@@ -28,6 +28,8 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const {source,setSource,saved}=useArenaDraft(initial.id,initial.player.username,initial.problem.signature,closed);
   const [elapsed,setElapsed]=useState(0);
   const [error,setError]=useState("");
+  const [refreshPending,setRefreshPending]=useState(false);
+  const retryRefresh=useRef<(()=>Promise<void>)|null>(null);
   const [sending,setSending]=useState(false);
   const [submission,setSubmission]=useState("");
   const actionRequest=useRef<AbortController|null>(null);
@@ -59,6 +61,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       if (stopped || refreshing) return;
       clearTimeout(timer);
       refreshing=true;
+      setRefreshPending(true);
       try {
         const response=await fetch(`/api/matches/${initial.id}`,{cache:"no-store",signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])});
         if (!response.ok) throw new Error();
@@ -66,14 +69,16 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         if (!stopped) { received.current=performance.now();setElapsed(0);setMatch(next);setError(""); }
       } catch { if (!stopped) setError("Live updates unavailable. Retrying; progress may be out of date."); }
       refreshing=false;
+      if (!stopped) setRefreshPending(false);
       if (!stopped) timer=setTimeout(refresh,2000);
     }
+    retryRefresh.current=refresh;
     let timer=setTimeout(refresh,0);
     function resume() {
       if (document.visibilityState==="visible") void refresh();
     }
     document.addEventListener("visibilitychange",resume);
-    return ()=>{stopped=true;controller.abort();clearTimeout(timer);clearInterval(clock);document.removeEventListener("visibilitychange",resume);};
+    return ()=>{stopped=true;retryRefresh.current=null;controller.abort();clearTimeout(timer);clearInterval(clock);document.removeEventListener("visibilitychange",resume);};
   },[initial.id,closed]);
   const seconds=remainingSeconds(match.deadline,match.serverTime,elapsed);
   return <div className="shell arena"><header className="site-header"><Link className="brand" href="/">Code<span className="accent">Duel</span></Link><span>Python arena</span><DuelFeedback feedback={feedback}/></header>
@@ -83,7 +88,11 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <div><span className="eyebrow">OPPONENT</span><h2>{match.opponent.username}</h2><p>{Math.round(match.opponent.rating)} MMR</p></div>
     </div>
     {match.status==="completed" && <Link className="button button--primary" href={`/match/${match.id}/results`}>View results</Link>}
-    {error && <p role="alert">{error}</p>}
+    {error && !closed && <section className="arena-connection" aria-label="Live connection">
+      <div><p role="alert">{error}</p><p className="muted">Your code stays in the editor. The server controls the clock and final result.</p></div>
+      <button type="button" className="button button--secondary" disabled={refreshPending} onClick={()=>void retryRefresh.current?.()}>Retry live updates</button>
+      <span role="status">{refreshPending ? "Refreshing match state…" : "Automatic retries continue every two seconds."}</span>
+    </section>}
     <section className="arena-progress" aria-label="Opponent progress"><label htmlFor="opponent-progress">Opponent tests passed: {match.progress ? `${match.progress.passed} / ${match.progress.total}` : "No judged submission yet"}</label><progress id="opponent-progress" value={match.progress?.passed ?? 0} max={match.progress?.total ?? 1}/></section>
     <div className="arena-columns"><section className="card arena-editor"><div className="arena-panel-heading"><h1>Your solution</h1><span className="badge">Python 3</span></div>
       <SolutionEditor value={source} onChange={setSource} readOnly={closed} starter={`${initial.problem.signature}\n    pass\n`}/>

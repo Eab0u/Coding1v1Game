@@ -110,6 +110,43 @@ it('uses server time and clamps expired deadlines',()=>{
   expect(remainingSeconds('2026-11-06T12:05:00Z',initial.serverTime,1000)).toBe(299);
   expect(remainingSeconds('2026-11-06T12:05:00Z',initial.serverTime,400000)).toBe(0);
 });
+it('retries stale match state immediately without overlapping automatic or manual refreshes',async()=>{
+  vi.useFakeTimers();
+  let resolve:(value:unknown)=>void=()=>{};
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error()).mockImplementationOnce(()=>new Promise(done=>{resolve=done;})).mockResolvedValue({ok:true,json:async()=>initial});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={initial}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'keep this draft'}});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  const retry=screen.getByRole('button',{name:'Retry live updates'});
+  fireEvent.click(retry);
+  fireEvent.click(retry);
+  expect(retry).toBeDisabled();
+  expect(screen.getByText('Refreshing match state…')).toBeVisible();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(4000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  await act(async()=>{resolve({ok:true,json:async()=>({...initial,progress:{passed:4,total:8}})});});
+  expect(screen.queryByRole('button',{name:'Retry live updates'})).not.toBeInTheDocument();
+  expect(screen.getByRole('progressbar')).toHaveAttribute('value','4');
+  expect(screen.getByLabelText('Python solution')).toHaveValue('keep this draft');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(fetcher).toHaveBeenCalledTimes(3);
+});
+it('keeps retry available after failure and removes connection feedback when a retry observes match end',async()=>{
+  vi.useFakeTimers();
+  const fetcher=vi.fn().mockRejectedValue(new Error());
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={initial}/>);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  await act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Retry live updates'}));});
+  expect(screen.getByRole('button',{name:'Retry live updates'})).toBeEnabled();
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...initial,status:'completed'})});
+  await act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Retry live updates'}));});
+  expect(screen.queryByRole('region',{name:'Live connection'})).not.toBeInTheDocument();
+  expect(screen.getByRole('link',{name:'View results'})).toBeVisible();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(4000);});
+  expect(fetcher).toHaveBeenCalledTimes(3);
+});
 it('shows pending state and editable drafts without implying submission works',()=>{
   vi.stubGlobal('fetch',vi.fn());
   render(<Arena initial={initial}/>);

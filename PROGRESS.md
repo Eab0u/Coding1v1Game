@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Immediate arena connection recovery
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena reliability item; catalog tasks remain unchecked.
+- Added a visible Retry live updates control when arena polling fails. It refreshes immediately through the existing polling chain, disables during a request and announces refresh activity. Automatic retries continue after failures. A responsive connection panel explains stale progress, draft preservation and server authority over time/results.
+- Added regression coverage for immediate retry, repeated clicks, pending requests spanning polling intervals, successful progress recovery, draft preservation, repeated failures and completion discovered during retry. Match completion removes connection feedback and stops polling.
+- Validation: all 308 tests across 39 files passed; lint, typecheck and production build passed. No player code executed. Live deployment connection recovery has not been manually smoke-tested.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Copy solution to clipboard
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent solution preservation/usability item; catalog tasks remain unchecked.
 - Added a Copy solution button shared by advanced and plain-text editors, including automatic fallback and read-only completed matches. Copies the exact current text through the browser clipboard API, announces success and gives actionable failure feedback when clipboard access is unavailable or denied.

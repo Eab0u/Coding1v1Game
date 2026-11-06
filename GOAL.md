@@ -118,3 +118,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Add an accessible line-wrap toggle shared by advanced and plain-text solution editors, including fallback and completed matches
 
 - [x] Copy the current solution from either editor and completed matches with accessible feedback, retry and duplicate-request protection
+
+- [x] Add immediate retry for stale arena updates with accessible connection feedback, duplicate-request protection and preserved drafts
