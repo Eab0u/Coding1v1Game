@@ -42,3 +42,29 @@ it('locks the editor when the server reports a completed match',()=>{
   expect(screen.getByText('This match has ended.')).toBeInTheDocument();
   expect(screen.getByRole('link',{name:'View results'})).toHaveAttribute('href',`/match/${initial.id}/results`);
 });
+it('submits the local draft and reports authoritative judging results and errors',async()=>{
+  vi.useFakeTimers();
+  const active={...initial,status:'active',deadline:'2026-11-06T12:05:00Z'};
+  const fetcher=vi.fn().mockImplementation(async(_url,options)=> options?.method==='POST' ? {ok:true,json:async()=>({status:'queued'})} : {ok:true,json:async()=>({...active,submission:{status:'judged',passed:1,total:8}})});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={active}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my solution'}});
+  fireEvent.click(screen.getByRole('button',{name:'Submit solution'}));
+  await act(async()=>{await Promise.resolve();});
+  expect(fetcher).toHaveBeenCalledWith('/api/matches/match',expect.objectContaining({method:'POST',body:JSON.stringify({action:'submit',source:'my solution'})}));
+  expect(screen.getByText(/Solution queued/)).toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByText('Latest solution: 1 / 8 tests passed.')).toBeInTheDocument();
+  fetcher.mockResolvedValueOnce({ok:false,json:async()=>({error:'Wait for judging.'})});
+  fireEvent.click(screen.getByRole('button',{name:'Submit solution'}));
+  await act(async()=>{await Promise.resolve();});
+  expect(screen.getByText('Wait for judging.')).toBeInTheDocument();
+});
+it('sends explicit readiness and keeps submission disabled during reservations',async()=>{
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>initial}));
+  render(<Arena initial={initial}/>);
+  fireEvent.click(screen.getByRole('button',{name:'Ready to duel'}));
+  await act(async()=>{await Promise.resolve();});
+  expect(screen.getByText(/Ready. Waiting for both players/)).toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+});

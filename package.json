@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "db:migrate": "node --env-file=.env scripts/migrate.mjs",
     "matchmaking": "tsx --env-file=.env scripts/matchmaking.ts",
+    "lifecycle": "tsx --env-file=.env scripts/lifecycle.ts",
     "problems": "tsx --env-file=.env scripts/problems.ts"
   },
   "repository": {

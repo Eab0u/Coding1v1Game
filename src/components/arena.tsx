@@ -12,6 +12,18 @@ export function Arena({initial}:{initial:ArenaSnapshot}) {
   const [source,setSource]=useState(`${initial.problem.signature}\n    pass\n`);
   const [elapsed,setElapsed]=useState(0);
   const [error,setError]=useState("");
+  const [sending,setSending]=useState(false);
+  const [submission,setSubmission]=useState("");
+  async function act(action: "ready" | "submit") {
+    setSending(true);
+    try {
+      const response=await fetch(`/api/matches/${initial.id}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,...(action==="submit" ? {source} : {})}),signal:AbortSignal.timeout(10000)});
+      const result=await response.json();
+      if (!response.ok) throw new Error(result.error || "Request failed.");
+      setSubmission(action==="ready" ? "Ready. Waiting for both players; reservations expire after 60 seconds." : "Solution queued. The server will judge it in the sandbox.");
+    } catch (error) { setSubmission(error instanceof Error ? error.message : "Request failed."); }
+    finally { setSending(false); }
+  }
   const received=useRef(0);
   useEffect(()=> {
     received.current=performance.now();
@@ -43,8 +55,10 @@ export function Arena({initial}:{initial:ArenaSnapshot}) {
     <section className="arena-progress" aria-label="Opponent progress"><label htmlFor="opponent-progress">Opponent tests passed: {match.progress ? `${match.progress.passed} / ${match.progress.total}` : "No judged submission yet"}</label><progress id="opponent-progress" value={match.progress?.passed ?? 0} max={match.progress?.total ?? 1}/></section>
     <div className="arena-columns"><section className="card arena-editor"><div className="arena-panel-heading"><h1>Your solution</h1><span className="badge">Python 3</span></div>
       <PythonEditor value={source} onChange={setSource} readOnly={closed}/>
+      {match.submission && <p role="status">{match.submission.status==="judged" ? `Latest solution: ${match.submission.passed} / ${match.submission.total} tests passed.` : match.submission.status==="error" ? "Sandbox temporarily unavailable. Your submission will retry; results are waiting." : "Your solution is being judged."}</p>}
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>
-      <button className="button button--primary" disabled aria-describedby="submission-status">Submit solution</button><p id="submission-status">Submission processing is not available yet. Keep this tab open to retain your draft.</p>
+      {match.status==="pending" && <button className="button button--primary" disabled={sending} onClick={()=>void act("ready")}>Ready to duel</button>}
+      <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0} onClick={()=>void act("submit")} aria-describedby="submission-status">Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires. Keep this tab open to retain your draft."}</p>
     </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre>{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><h3>Examples</h3><pre>{JSON.stringify(match.problem.examples,null,2)}</pre></section></div>
     </main></div>;
 }

@@ -74,7 +74,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Auth (simple username and password or OAuth)
 - [x] Matchmaking queue with WebSockets and rating bands
 - [x] Match screen: editor, timers, opponent progress bar
-- [ ] Match lifecycle: activate/expire reservations, sandbox submissions, finalize scores and persist ratings exactly once
+- [x] Match lifecycle: activate/expire reservations, sandbox submissions, finalize scores and persist ratings exactly once
 - [x] Post-match results screen with rating change animation
 - [x] Home page with Play button
 - [x] Profile page with rating graph

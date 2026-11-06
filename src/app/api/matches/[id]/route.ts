@@ -12,3 +12,4 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return Response.json(match ?? {error:"Match not found."},{status:match ? 200 : 404,headers});
   } catch { return Response.json({error:"Match service unavailable."},{status:503,headers}); }
 }
+export { POST } from "./actions";
