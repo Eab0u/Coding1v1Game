@@ -4,7 +4,7 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
-Application foundation and design system are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. Gameplay is not implemented yet.
+Application foundation, design system and tested match scoring are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. Live gameplay and judge integration are not implemented yet.
 
 ## Decisions made
 - Python only for v1
@@ -19,9 +19,18 @@ Application foundation and design system are in place: Next.js App Router, Postg
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
 ## Next up
-Judge service: sandboxed Python execution against hidden tests with pass counts and CPU timing. Scoring remains another independent next step.
+Judge service: sandboxed Python execution against hidden tests with pass counts and CPU timing, producing the three CPU samples consumed by the scorer.
 
 ## Log
+### 2026-11-06 - Match scoring
+- Selected scoring as the independently testable rule that defines match outcomes before judge integration; checked off only this backlog item.
+- Added a pure scorer that ranks correctness, then numeric median CPU time across three largest-test suite runs, then server-recorded submission time; exact ties draw.
+- Rejects invalid counts, mismatched test totals, invalid submission times and missing, negative or non-finite CPU samples. Input samples are never mutated.
+- Documented the trusted server/judge contract: same test suite and benchmark, CPU rather than wall time, and CPU-limit accounting for timeouts. Match lifecycle, no-shows and submission selection remain caller responsibilities.
+- Added 26 test cases covering both player positions for every tiebreak, outliers, numeric sorting, immutability, zero and fractional timing, complete/partial/zero-pass draws and invalid inputs.
+- Validation: all 36 tests across 4 files passed; lint, typecheck and production build passed.
+- Next: implement the sandbox judge service. Existing infrastructure blockers remain unchanged.
+
 ### 2026-11-06 - Design system
 - Selected the design system as the next shared foundation; checked off only this backlog item.
 - Added dark palette, spacing, radius and typography tokens; reusable native Button, Card and Badge components with primary/secondary/ghost button variants.

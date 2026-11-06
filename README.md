@@ -35,6 +35,22 @@ Hidden tests, solutions, and submitted source are server-only data. No public da
 
 `docker compose down` stops the local database while preserving its volume.
 
+## Match scoring
+
+`src/lib/scoring.ts` exports `scoreMatch(one, two)` for finalized, trusted judge
+results. It returns the winning player (or `null` for a draw), the deciding
+criterion and each player's median CPU time. Correctness takes priority over
+CPU time; submission time breaks equal CPU medians. Comparisons use exact values
+without rounding.
+
+Each result supplies counts for the same hidden test suite, exactly three CPU
+millisecond samples for the same largest-test benchmark and a server-recorded
+submission time in milliseconds since match start. The judge must account for
+timed-out tests using their CPU limit and must never supply wall-clock durations.
+Invalid inputs throw `RangeError`. The scorer does not execute code or handle
+no-shows, match deadlines or selection among multiple submissions; those belong
+to the future match service. Unit tests cover every deciding criterion.
+
 ## Design system
 
 Shared primitives live in `src/components/ui/index.tsx`: `Button` (primary,
