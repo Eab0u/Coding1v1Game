@@ -36,6 +36,7 @@ it("keeps a reserved match visible after socket closure", () => {
   event({ type: "matched", match: { id: "m", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
   expect(screen.getByText("Match found")).toBe(cue);
   expect(screen.getByRole("button", { name: "Match reserved" })).toBeDisabled();
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveAttribute("href", "/match/m");
 });
 it("permits retry after disconnect and ignores stale connection messages", () => {
   const ws = start(); act(() => ws.onerror());

@@ -239,7 +239,7 @@ exposure to either participant. Ties are random. Cancelled reservations count as
 exposure so cancellation cannot continually reroll a preferred problem. With a
 single eligible challenge, it remains playable. This reduces repeat advantages;
 it does not detect collusion or external assistance. Optional paste blocking is
-left off; there is no editor yet.
+left off in the arena editor.
 
 
 ### Duel feedback
@@ -247,3 +247,10 @@ left off; there is no editor yet.
 Signed-in home matchmaking includes a Sound on/off toggle. Sound is off by default; the preference is stored locally as `codeduel-sound`. Enabling it plays a short preview. No sound files or network requests are used. Audio is optional and hidden tabs stay silent. Visual feedback remains available with sound off and respects reduced-motion preferences.
 
 Arena/results components can use `useDuelFeedback()` with `<DuelFeedback feedback={feedback} />`. Call `feedback.unlock()` from the initiating user gesture and `feedback.notify(cue)` once per authoritative event (`matched`, `passed`, `failed`, `win`, `loss`). Do not emit success cues for provisional or infrastructure failures. The hook owns audio cleanup on unmount. Currently matchmaking emits `matched`; test and result events will be connected when those screens are implemented.
+
+
+### Match arena
+
+Reserved matches link to `/match/<id>`. Only signed-in participants can load the screen or its no-store snapshot endpoint at `/api/matches/<id>`. Monaco is bundled locally. Drafts survive snapshot updates every two seconds, but closing/reloading the tab discards them. Opponent progress shows the latest judged submission counts without code or private tests. The countdown uses server time and deadline, with monotonic elapsed time between updates; stale updates show a warning.
+
+The screen does not activate reservations or process submissions. Pending matches show Waiting to start; Submit remains disabled until the lifecycle service exists. Ended matches have a read-only editor. Validate the sandbox/catalog and implement authoritative activation, deadlines, submissions and completion before enabling ranked play. DOMPurify is overridden to patched 3.4.17 for Monaco's dependency.

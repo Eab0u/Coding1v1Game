@@ -3,11 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui";
 import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
 import type { QueueEvent } from "../lib/matchmaking";
+import Link from "next/link";
 
 export function Play({ signedIn }: { signedIn: boolean }) {
   const feedback = useDuelFeedback();
   const socket = useRef<WebSocket | null>(null);
   const [phase, setPhase] = useState("idle");
+  const [matchId, setMatchId] = useState<string | null>(null);
   const [message, setMessage] = useState("Python only · Rating bands widen as you wait.");
   useEffect(() => () => { const ws = socket.current; socket.current = null; ws?.close(); }, []);
   function join() {
@@ -26,7 +28,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
         const data: QueueEvent = JSON.parse(event.data);
         if (data.type === "queued") { setPhase("queued"); setMessage(`Finding opponent… ${data.waitedSeconds}s elapsed · Rating range ±${data.ratingBand}. Wait estimate unavailable.`); }
         else if (data.type === "matching") { setPhase("matching"); setMessage("Reserving your match…"); }
-        else if (data.type === "matched") { feedback.notify("matched"); setPhase("matched"); setMessage(`Matched with ${data.opponent.username} (${Math.round(data.opponent.rating)}) · ${data.match.difficulty}. Your match is reserved; the arena screen is coming soon.`); socket.current = null; ws.close(); }
+        else if (data.type === "matched") { feedback.notify("matched"); setMatchId(data.match.id); setPhase("matched"); setMessage(`Matched with ${data.opponent.username} (${Math.round(data.opponent.rating)}) · ${data.match.difficulty}. Your match is reserved. Open the arena to prepare.`); socket.current = null; ws.close(); }
         else if (data.type === "left" || data.type === "error") { socket.current = null; ws.close(); setPhase("idle"); setMessage(data.type === "error" ? data.message : "Search cancelled. Ready when you are."); }
       } catch { socket.current = null; ws.close(); setPhase("idle"); setMessage("Unexpected server response. Please try again."); }
     };
@@ -42,6 +44,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
       }}>Cancel search</Button>}
     </>}
     {signedIn && <DuelFeedback feedback={feedback} />}
+    {matchId && <Link className="button button--primary" href={`/match/${matchId}`}>Open arena</Link>}
     <p className="availability" role="status">{message}</p>
   </div>;
 }

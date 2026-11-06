@@ -4,6 +4,8 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
+The participant-only arena is implemented at /match/<id>, linked from matchmaking reservations, with locally bundled Monaco Python editing, server-time countdown, problem/examples panel and polling opponent progress. Pending matches wait for activation; Submit is disabled until the separate lifecycle service exists. Drafts live only in the open tab.
+
 Optional duel sound and animated feedback are implemented as shared components, with match-found feedback connected to matchmaking. Sound defaults off, persists locally and unlocks through user interaction. The future arena/results screens must call the shared test-pass/fail and win/loss cues when their authoritative events exist.
 
 Matchmaking fair-play basics now share command limits across account connections, throttle handshake attempts before authentication and rotate problems using both players' exposure histories. Optional paste blocking remains off until an editor exists. Worker counters reset on restart; reverse proxies need per-client handshake limits.
@@ -29,9 +31,17 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
 ## Next up
-Author and validate problems 1–20 through the new pipeline to enable pairing, then implement the match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
+Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Implement lifecycle orchestration (activation/expiry, sandbox submissions, completion and atomic ratings), connect it to the arena, then build results. Perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Match arena screen
+- Selected and checked off the match screen item. Added /match/<id> with locally bundled Monaco Python editing, player scoreboard, server-time countdown, opponent test progress and statement, constraints, signature and examples. Added a responsive stacked layout and matchmaking Open arena link.
+- Added a participant-only snapshot query and authenticated, no-store GET endpoint. Explicit projection excludes hidden tests, solutions, opponent code and account secrets. Progress uses the latest judged opponent submission. Unknown/nonparticipant matches return the same 404.
+- Sequential polling has a request timeout, aborts on unmount and reports stale updates while retrying. Snapshots preserve drafts; elapsed time uses a monotonic clock anchored to server time. Expired clocks clamp to zero and ended matches lock editing.
+- Added embedded Postgres privacy/access/progress tests, API authentication/error/cache tests, countdown, polling/draft/cleanup UI coverage and matchmaking-link coverage. All 198 tests across 28 files passed; lint, typecheck and production build passed. Production dependency audit is clear after overriding Monaco's DOMPurify dependency to patched 3.4.17; existing eight moderate development findings remain.
+- Added an explicit lifecycle backlog item. Reservations still need activation; Submit is disabled with an explanation. Drafts are in-memory only. Actual browser Monaco behavior and live database/proxy integration still need smoke testing. No player code executed; existing sandbox/database blockers remain.
+- Next: isolated sandbox and validated catalog, lifecycle orchestration, then post-match results.
+
 ### 2026-11-06 - Sound effects and animations
 - Selected and checked off the shared sound/animation backlog item, which can be implemented without publishing unvalidated problems or running player code. Added five distinct, original synthesized cues: match found, test passed, test failed, win and loss, plus accessible text badges and short arrival/settle animations.
 - Added a reusable feedback hook/component and integrated match-found feedback into the existing queue. The existing socket guard prevents duplicate/stale frames replaying the cue. Added a labeled Sound on/off toggle with pressed state; sound defaults off and persists locally. Enabling sound previews the test-pass cue.
