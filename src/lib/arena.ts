@@ -1,7 +1,7 @@
 import type { Pool } from "pg";
 
 export interface ArenaSnapshot {
-  id: string; status: string; deadline: string | null; serverTime: string;
+  id: string; status: string; deadline: string | null; reservationExpiresAt?: string | null; serverTime: string;
   player: { username: string; rating: number; ready?: boolean }; opponent: { username: string; rating: number; ready?: boolean };
   problem: { title: string; statement: string; signature: string; difficulty: string; constraints: string; examples: unknown };
   progress: { passed: number; total: number } | null;
@@ -11,7 +11,7 @@ export interface ArenaSnapshot {
 /** Explicit projection: neither source code nor private problem fields leave this boundary. */
 export async function loadArena(db: Pick<Pool, "query">, id: string, userId: string): Promise<ArenaSnapshot | null> {
   if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) return null;
-  const result = await db.query(`SELECT m.id,m.status,m.deadline_at,now() AS server_time,
+  const result = await db.query(`SELECT m.id,m.status,m.deadline_at,m.created_at + interval '60 seconds' AS reservation_expires_at,now() AS server_time,
     a.username,a.rating,b.username AS opponent,b.rating AS opponent_rating,
     CASE WHEN m.player_one_id=$2 THEN m.player_one_ready ELSE m.player_two_ready END AS ready,
     CASE WHEN m.player_one_id=$2 THEN m.player_two_ready ELSE m.player_one_ready END AS opponent_ready,
@@ -29,6 +29,7 @@ export async function loadArena(db: Pick<Pool, "query">, id: string, userId: str
   const r = result.rows[0];
   if (!r) return null;
   return { id:r.id,status:r.status,deadline:r.deadline_at?.toISOString() ?? null,serverTime:r.server_time.toISOString(),
+    reservationExpiresAt:r.status==="pending" ? r.reservation_expires_at.toISOString() : null,
     player:{username:r.username,rating:r.rating,ready:r.ready},opponent:{username:r.opponent,rating:r.opponent_rating,ready:r.opponent_ready},
     problem:{title:r.title,statement:r.statement,signature:r.function_signature,difficulty:r.difficulty,constraints:r.constraints,examples:r.examples},
     progress:r.tests_passed == null || r.tests_total == null ? null : {passed:r.tests_passed,total:r.tests_total},

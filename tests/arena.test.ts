@@ -16,6 +16,8 @@ it("restricts matches to participants and projects public problem and latest jud
     const {rows:[m]}=await db.query<{id:string}>("SELECT id FROM matches");
     const {rows:users}=await db.query<{id:string;username:string}>("SELECT id,username FROM users ORDER BY username");
     const store=db as unknown as Pool;
+    const {rows:[reservation]}=await db.query<{expires:Date}>("SELECT created_at + interval '60 seconds' AS expires FROM matches WHERE id=$1",[m.id]);
+    expect((await loadArena(store,m.id,users[0].id))?.reservationExpiresAt).toBe(reservation.expires.toISOString());
     expect(await loadArena(store,m.id,users[2].id)).toBeNull();
     expect(await loadArena(store,"invalid",users[0].id)).toBeNull();
     expect(await loadArena(store,m.id,users[0].id)).toMatchObject({status:'pending',deadline:null,progress:null,opponent:{username:'Bob'}});

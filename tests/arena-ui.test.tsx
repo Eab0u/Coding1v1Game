@@ -449,3 +449,37 @@ it('shows settlement guidance when reopening an expired active match',()=>{
   expect(screen.getByRole('region',{name:'Time is up. Waiting for results.'})).toBeVisible();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
 });
+
+it('counts down the server reservation window and awaits authoritative cancellation at zero',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,reservationExpiresAt:'2026-11-06T12:00:02Z'};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={snapshot}/>);
+  expect(screen.getByRole('timer')).toHaveTextContent('Ready in 2s');
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'preserved code'}});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1750);});
+  expect(screen.getByRole('timer')).toHaveTextContent('Ready in 1s');
+  // A failed refresh must not reset or extend the readiness window.
+  vi.mocked(fetch).mockRejectedValueOnce(new Error('offline'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(500);});
+  expect(screen.getByRole('timer')).toHaveTextContent('Confirming status');
+  expect(screen.getByText(/The readiness window has ended/)).toBeVisible();
+  expect(screen.getByRole('button',{name:'Ready to duel'})).toBeDisabled();
+  expect(screen.queryByRole('region',{name:'Duel cancelled'})).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('preserved code');
+  snapshot={...snapshot,status:'cancelled'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('region',{name:'Duel cancelled'})).toBeVisible();
+  expect(screen.queryByText(/The readiness window has ended/)).not.toBeInTheDocument();
+});
+
+it('replaces the reservation clock with the active match clock after server activation',async()=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status:'active',deadline:'2026-11-06T12:05:00Z',reservationExpiresAt:null})}));
+  render(<Arena initial={{...initial,reservationExpiresAt:'2026-11-06T11:59:59Z'}}/>);
+  expect(screen.getByRole('timer')).toHaveTextContent('Confirming status');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByRole('timer')).toHaveTextContent('5:00');
+  expect(screen.queryByRole('region',{name:'Duel readiness'})).not.toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeEnabled();
+});

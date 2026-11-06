@@ -38,7 +38,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const actionRequest=useRef<AbortController|null>(null);
   useEffect(()=>()=>{actionRequest.current?.abort();actionRequest.current=null;},[]);
   async function act(action: "ready" | "submit") {
-    if (actionRequest.current || closed || (action==="ready" && playerReady)) return;
+    if (actionRequest.current || closed || (action==="ready" && reservationExpired) || (action==="ready" && playerReady)) return;
     const controller=new AbortController();
     actionRequest.current=controller;
     feedback.unlock();
@@ -85,16 +85,18 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
     document.addEventListener("visibilitychange",resume);
     return ()=>{stopped=true;retryRefresh.current=null;controller.abort();clearTimeout(timer);clearInterval(clock);document.removeEventListener("visibilitychange",resume);};
   },[initial.id,closed]);
+  const reservationSeconds=remainingSeconds(match.reservationExpiresAt ?? null,match.serverTime,elapsed);
+  const reservationExpired=match.status==="pending" && reservationSeconds===0;
   const seconds=remainingSeconds(match.deadline,match.serverTime,elapsed);
   return <div className="shell arena"><header className="site-header"><Link className="brand" href="/">Code<span className="accent">Duel</span></Link><span>Python arena</span><DuelFeedback feedback={feedback}/></header>
     <main id="main-content"><div className="arena-scoreboard">
       <div><span className="eyebrow">YOU</span><h2>{match.player.username}</h2><p>{Math.round(match.player.rating)} MMR</p></div>
-      <div className="arena-clock"><span className="eyebrow">{match.status}</span><p role="timer" aria-label="Time remaining">{match.status==="pending" ? "Waiting to start" : seconds===null ? "No timer" : `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,"0")}`}</p></div>
+      <div className={`arena-clock${match.status==="pending" && reservationSeconds!==null ? " arena-clock--reservation" : ""}`}><span className="eyebrow">{match.status}</span><p role="timer" aria-label="Time remaining">{match.status==="pending" ? reservationSeconds===null ? "Waiting to start" : reservationSeconds===0 ? "Confirming status" : `Ready in ${reservationSeconds}s` : seconds===null ? "No timer" : `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,"0")}`}</p></div>
       <div><span className="eyebrow">OPPONENT</span><h2>{match.opponent.username}</h2><p>{Math.round(match.opponent.rating)} MMR</p></div>
     </div>
     {match.status==="pending" && <section className="arena-readiness" aria-label="Duel readiness" role="status">
       <div><span className={`badge${playerReady ? " arena-ready" : ""}`}>You: {playerReady ? "Ready" : "Not ready"}</span><span className={`badge${match.opponent.ready ? " arena-ready" : ""}`}>Opponent: {match.opponent.ready ? "Ready" : "Not ready"}</span></div>
-      <p>{playerReady ? "Waiting for the server to start the duel when both players are ready." : "Review the problem, then mark yourself ready to start."} Reservations expire 60 seconds after pairing.</p>
+      <p>{reservationExpired ? "The readiness window has ended. Checking with the server for activation or cancellation; no result is confirmed yet." : playerReady ? "Waiting for the server to start the duel when both players are ready." : "Review the problem, then mark yourself ready to start."} Reservations expire 60 seconds after pairing.</p>
     </section>}
     {match.status==="completed" && <Link className="button button--primary" href={`/match/${match.id}/results`}>View results</Link>}
     {match.status==="active" && seconds===0 && <section className="arena-settlement" aria-labelledby="settlement-title">
@@ -119,7 +121,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         <strong>{submittedSource===null ? "Check your latest edits" : submittedSource===source ? "Current code sent" : "Edits not submitted"}</strong>
         <p>{submittedSource===null ? "This tab cannot confirm whether the current code was submitted. Saving a draft does not submit it." : submittedSource===source ? "The server acknowledged this code. Judging and your best score are shown separately." : seconds===0 ? "These edits differ from the last code acknowledged in this tab. Submissions are now closed; you can still copy or download your work." : "Your code differs from the last submission acknowledged in this tab. Submit again to send these edits."}</p>
       </div>}
-      {match.status==="pending" && <button className="button button--primary" disabled={sending || playerReady} onClick={()=>void act("ready")}>{playerReady ? "Ready confirmed" : "Ready to duel"}</button>}
+      {match.status==="pending" && <button className="button button--primary" disabled={sending || playerReady || reservationExpired} onClick={()=>void act("ready")}>{playerReady ? "Ready confirmed" : "Ready to duel"}</button>}
       <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0} onClick={()=>void act("submit")} aria-describedby="submission-status">Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
     </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre tabIndex={0} role="region" aria-label="Function signature">{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><h3>Examples</h3><ProblemExamples examples={match.problem.examples}/></section></div>
     </main></div>;

@@ -129,3 +129,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Explain cancelled reservations with an accessible recovery panel, rating reassurance and a direct return to matchmaking while retaining visible code for export
 - [x] Explain expired arena clocks with accessible pending-results guidance, preserved code export and authoritative completion recovery
 - [x] Distinguish current code from the last acknowledged submission, including in-flight edits, failed requests and deadline expiry
+
+- [x] Show a server-based reservation readiness countdown, disable expired Ready actions and await authoritative activation or cancellation

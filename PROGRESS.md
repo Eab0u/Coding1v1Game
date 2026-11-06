@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Reservation readiness countdown
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability and visual polish item; catalog tasks remain unchecked.
+- Arena snapshots now project the pending reservation expiry from the same creation-time-plus-60-seconds rule used by the lifecycle service. The scoreboard shows a green, accessible countdown using server time and monotonic elapsed time, with a fallback for snapshots without expiry data.
+- Expired reservations disable Ready and explain that the server must confirm activation or cancellation. Failed polling does not extend the window or invent cancellation; code remains available. Server activation restores the duel timer and submission controls.
+- Added embedded database coverage for the exact expiry and UI regressions for countdown ticks, failed polling, expiry, preserved code, authoritative cancellation and activation.
+- Validation: all 342 tests across 40 files passed; lint, typecheck and production build passed. No player code executed. Live browser visual inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Submission freshness guidance
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability item; catalog tasks remain unchecked.
 - Added a styled, accessible submission status panel distinguishing code acknowledged by the server from subsequent edits. In-flight edits remain unsent after acknowledgment; failed requests retain the previous acknowledgment. Restoring exactly the sent code restores its sent state.
