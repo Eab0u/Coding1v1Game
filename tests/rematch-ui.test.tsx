@@ -169,3 +169,45 @@ it('replaces sending feedback with the confirmed invitation state',async()=>{
  expect(screen.getByRole('status')).not.toHaveClass('rematch-pending');
  expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeEnabled();
 });
+
+it('retries failed invitation reads immediately without overlapping requests and clears recovery on success',async()=>{
+ vi.useFakeTimers();
+ try {
+  const pending=deferred<ReturnType<typeof response>>();
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline')).mockReturnValueOnce(pending.promise).mockResolvedValue(response('none'));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.getByRole('alert')).toHaveTextContent('Automatic retries continue');
+  const retry=screen.getByRole('button',{name:'Retry invitation update'});
+  fireEvent.click(retry);
+  expect(retry).toBeDisabled();
+  expect(screen.getByText('Refreshing invitation...')).toHaveAttribute('role','status');
+  fireEvent.click(retry);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  await act(async()=>{pending.resolve(response('none'));});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button',{name:'Retry invitation update'})).not.toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Rematch'})).toBeEnabled();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(fetcher).toHaveBeenCalledTimes(3);
+ } finally {vi.useRealTimers();}
+});
+
+it('keeps recovery available after another failed read and aborts a retry on navigation',async()=>{
+ const pending=deferred<ReturnType<typeof response>>();
+ const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline')).mockRejectedValueOnce(new Error('offline')).mockReturnValueOnce(pending.promise).mockResolvedValue(response('none'));
+ vi.stubGlobal('fetch',fetcher);
+ const view=render(<Rematch id="old"/>);
+ fireEvent.click(await screen.findByRole('button',{name:'Retry invitation update'}));
+ await waitFor(()=>expect(screen.getByRole('button',{name:'Retry invitation update'})).toBeEnabled());
+ fireEvent.click(screen.getByRole('button',{name:'Retry invitation update'}));
+ const signal=fetcher.mock.calls[2][1].signal as AbortSignal;
+ view.rerender(<Rematch id="new"/>);
+ expect(signal.aborted).toBe(true);
+ await screen.findByRole('button',{name:'Rematch'});
+ await act(async()=>{pending.resolve(response('expired'));});
+ expect(screen.queryByText(/invitation expired/)).not.toBeInTheDocument();
+ expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});

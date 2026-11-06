@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Immediate rematch read recovery
+- Reviewed the two unchecked catalog items; both remain blocked by the missing isolated Judge0 deployment. Only .env.example is available. Added and completed one independent recovery and visual polish item; catalog tasks remain unchecked.
+- Failed invitation reads now show an accented recovery panel with an immediate Retry invitation update action. Refreshing is announced accessibly; retries are disabled during reads and invitation actions. Automatic retries continue, successful reads clear the panel, and terminal states retain their existing next actions.
+- Added regression tests for immediate retry, duplicate clicks, no overlapping scheduled reads, repeated failure, successful recovery, resumed polling and navigation abort with stale-response protection.
+- Validation: all 389 tests across 41 files, lint, typecheck, production build and diff whitespace checks passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database, WebSocket and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Rematch action confirmation feedback
 - Reviewed both unchecked catalog items; validation remains blocked by the missing isolated Judge0 deployment (only .env.example is present). Added and completed one independent rematch interaction and visual polish item; catalog items remain unchecked.
 - Sending, accepting, declining and cancelling invitations now display distinct accessible status messages in an accented panel until the server responds. Controls remain disabled during requests; confirmed state replaces pending feedback, and failures restore controls for retry with the existing error message.

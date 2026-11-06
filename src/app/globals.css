@@ -280,3 +280,7 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .rematch-panel .button { white-space: normal; text-align: center; }
 
 .rematch-pending { padding: 12px 16px; border-left: 4px solid var(--color-accent); border-radius: 8px; background: var(--color-surface); line-height: 1.6; }
+
+.rematch-recovery { margin-top: 16px; padding: 16px; border: 1px solid var(--color-accent); border-radius: 12px; background: var(--color-surface); }
+.rematch-recovery p { margin-top: 0; line-height: 1.6; }
+.rematch-recovery [role="status"] { margin: 12px 0 0; color: var(--color-muted); }

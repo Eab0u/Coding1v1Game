@@ -22,6 +22,8 @@ function RematchSession({id}:{id:string}) {
   const [state,setState]=useState<RematchState|null>(null);
   const [error,setError]=useState('');
   const [pollError,setPollError]=useState('');
+  const [refreshing,setRefreshing]=useState(false);
+  const readPending=useRef(false);
   const [busy,setBusy]=useState(false);
   const [pendingAction,setPendingAction]=useState('');
   const [refresh,setRefresh]=useState(0);
@@ -35,6 +37,7 @@ function RematchSession({id}:{id:string}) {
     let stopped=false; let timer:ReturnType<typeof setTimeout>;
     const controller=new AbortController();
     async function poll() {
+      readPending.current=true;setRefreshing(true);
       try {
         const response=await fetch(`/api/matches/${id}/rematch`,{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])});
         const data=await response.json();
@@ -43,12 +46,17 @@ function RematchSession({id}:{id:string}) {
           setState(data);setPollError('');
           if (terminalStatuses.has(data.status)) return;
         }
-      } catch {if (!stopped && revision.current===version) setPollError('Unable to refresh invitation. Retrying…');}
+      } catch {if (!stopped && revision.current===version) setPollError('Unable to refresh invitation. Automatic retries continue.');}
+      finally {if (!stopped && revision.current===version) {readPending.current=false;setRefreshing(false);}}
       if (!stopped && revision.current===version) timer=setTimeout(poll,2000);
     }
     void poll();
-    return ()=>{stopped=true;controller.abort();clearTimeout(timer);};
+    return ()=>{stopped=true;controller.abort();clearTimeout(timer);readPending.current=false;};
   },[id,refresh,busy,terminal]);
+  function retry() {
+    if (readPending.current || actionController.current || terminal) return;
+    readPending.current=true;setRefreshing(true);setRefresh(n=>n+1);
+  }
   async function act(action:string) {
     if (actionController.current) return;
     const controller=new AbortController();
@@ -72,6 +80,11 @@ function RematchSession({id}:{id:string}) {
     {state?.status==='pending' && (state.outgoing?<button className="button button--secondary" disabled={busy} onClick={()=>void act('cancel')}>Cancel invitation</button>:<div className="result-actions"><button className="button button--primary" disabled={busy} onClick={()=>void act('accept')}>Accept rematch</button><button className="button button--secondary" disabled={busy} onClick={()=>void act('decline')}>Decline</button></div>)}
     {state?.matchId && <Link className="button button--primary" href={`/match/${state.matchId}`}>Open rematch arena</Link>}
     {terminal && state.status!=='accepted' && <Link className="button button--primary" href="/">Find a new opponent</Link>}
-    {(error || pollError) && <p role="alert">{error || pollError}</p>}
+    {error && <p role="alert">{error}</p>}
+    {pollError && !terminal && <div className="rematch-recovery">
+      <p role="alert">{pollError}</p>
+      <button className="button button--secondary" disabled={busy || refreshing} onClick={retry}>Retry invitation update</button>
+      {refreshing && !busy && <p role="status">Refreshing invitation...</p>}
+    </div>}
   </section>;
 }
