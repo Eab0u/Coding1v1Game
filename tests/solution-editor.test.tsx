@@ -123,6 +123,40 @@ it("removes reset controls and confirmation when the match ends", () => {
   expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
   expect(screen.getByLabelText("Python solution")).toHaveValue("keep final code");
 });
+it.each([false, true])("moves reset confirmation focus safely and restores it on cancellation in plain mode %s", plain => {
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "valuable draft" } });
+  const reset = screen.getByRole("button", { name: "Reset to starter code" });
+  reset.focus();
+  fireEvent.click(reset);
+  expect(screen.getByRole("button", { name: "Keep my solution" })).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Keep my solution" }));
+  expect(reset).toHaveFocus();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("valuable draft");
+  fireEvent.click(reset);
+  const replace = screen.getByRole("button", { name: "Replace with starter code" });
+  replace.focus();
+  fireEvent.keyDown(replace, { key: "Escape" });
+  expect(reset).toHaveFocus();
+  expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("valuable draft");
+});
+
+it.each([false, true])("returns focus to the solution editor after confirming a reset in plain mode %s", plain => {
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "replace me" } });
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  const keep = screen.getByRole("button", { name: "Keep my solution" });
+  fireEvent.keyDown(keep, { key: "Enter" });
+  expect(screen.getByRole("group", { name: "Confirm solution reset" })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Replace with starter code" }));
+  expect(screen.getByRole("group", { name: "Solution editor" })).toHaveFocus();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+  expect(screen.getByRole("button", { name: "Reset to starter code" })).toBeDisabled();
+  expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+});
 it("preserves edits in both directions when switching editor modes", () => {
   render(<Harness/>);
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "advanced draft" } });

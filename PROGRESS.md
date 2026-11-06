@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Keyboard-accessible solution reset confirmation
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent editor usability item; catalog items remain unchecked.
+- Reset confirmation now focuses the safe Keep my solution action. Cancelling by button or Escape restores focus to Reset to starter code without changing the draft. Confirming returns focus to the named solution editor group, avoiding focus loss when the confirmation disappears and Reset becomes disabled. Existing visible focus styling applies, and ordinary Tab navigation remains available.
+- Added regressions for both editor modes covering initial focus, button cancellation, Escape from the destructive action, preserved drafts, confirmed replacement and focus recovery.
+- Validation: all 366 tests across 41 files passed; lint, typecheck and production build passed. No player code executed. Live browser and screen-reader inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing database and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Final-minute arena warning
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability item; catalog items remain unchecked.
 - Added an amber clock and bordered final-minute message reminding players to submit their latest edits. The polite, atomic status text stays constant as seconds tick, avoiding per-second announcements. It follows the existing server-based countdown and polling corrections, disappears at expiry or match completion, and uses no animation or focus changes.
