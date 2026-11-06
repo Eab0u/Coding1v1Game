@@ -81,7 +81,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Problem pipeline: generate, validate, publish
 - [ ] Problems 1 to 20 passing validation
 - [ ] Sound effects and animations
-- [ ] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
+- [x] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
 - [ ] Problems 21 to 60
 - [x] Mobile layout polish
 - [x] Friend relationships and friends-only leaderboard filter

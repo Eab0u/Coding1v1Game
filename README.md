@@ -223,3 +223,21 @@ Author original problem JSON drafts, then use `npm run problems -- validate path
 ### Friends
 
 Apply database migrations (`npm run db:migrate`) to create the friendships table. Signed-in players can send requests by username at `/friends`, accept or decline incoming requests, cancel outgoing requests, and remove friends. Reciprocal requests require explicit acceptance. `/leaderboard?scope=friends` and `/leaderboard?scope=friends&period=weekly` rank the current player and accepted friends within that circle. Weekly eligibility and UTC boundaries match the public leaderboard. Requests use the existing session and same-origin POST protection.
+# Matchmaking fair-play basics
+
+The single matchmaking worker enforces 20 commands per account per 10-second
+window across tabs and reconnects. Invalid and binary commands also consume quota.
+Handshake attempts are limited to 30 per peer IP per minute before authentication;
+excess attempts return HTTP 429. Counters use bounded memory, expire automatically
+and reset on worker restart. Existing authentication throttles remain database-backed.
+Behind a reverse proxy the peer IP is the proxy address: configure per-client
+handshake limits at the proxy; forwarded headers are deliberately not trusted.
+
+Problem selection prefers published challenges in the required difficulty that
+neither participant has encountered, then the challenge with the oldest most recent
+exposure to either participant. Ties are random. Cancelled reservations count as
+exposure so cancellation cannot continually reroll a preferred problem. With a
+single eligible challenge, it remains playable. This reduces repeat advantages;
+it does not detect collusion or external assistance. Optional paste blocking is
+left off; there is no editor yet.
+

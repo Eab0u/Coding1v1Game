@@ -21,7 +21,16 @@ export function createMatchStore(pool: Pool) {
         await client.query("SELECT id FROM users WHERE id=ANY($1::uuid[]) ORDER BY id FOR UPDATE", [[one.id, two.id]]);
         const busy = await client.query("SELECT id FROM matches WHERE status IN ('pending','active') AND (player_one_id=ANY($1::uuid[]) OR player_two_id=ANY($1::uuid[]))", [[one.id, two.id]]);
         if (busy.rows.length) throw new Error("Player already in match");
-        const problem = await client.query("SELECT id FROM problems WHERE published_at <= now() AND difficulty=$1 ORDER BY random() LIMIT 1", [difficulty]);
+        // Prefer unseen challenges for both players, then the least recently
+        // exposed. Cancelled reservations count too, preventing reroll fishing.
+        const problem = await client.query(`SELECT p.id FROM problems p
+          LEFT JOIN LATERAL (
+            SELECT max(m.created_at) AS last_seen FROM matches m
+            WHERE m.problem_id=p.id AND
+              (m.player_one_id=ANY($2::uuid[]) OR m.player_two_id=ANY($2::uuid[]))
+          ) history ON true
+          WHERE p.published_at <= now() AND p.difficulty=$1
+          ORDER BY history.last_seen ASC NULLS FIRST, random() LIMIT 1`, [difficulty, [one.id, two.id]]);
         if (!problem.rows[0]) throw new Error("No published problem");
         const result = await client.query("INSERT INTO matches (problem_id,player_one_id,player_two_id) VALUES ($1,$2,$3) RETURNING id", [problem.rows[0].id, one.id, two.id]);
         await client.query("COMMIT");

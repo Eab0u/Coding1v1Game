@@ -36,3 +36,16 @@ it("persists pending matches, recovers both sides and prevents unfinished duplic
   const next = await store.create(two, one, "easy"); expect(next.id).not.toBe(match.id);
   expect(JSON.stringify(await store.current(one.id))).not.toContain("SECRET");
 });
+
+it("rotates unseen problems then least recent exposure across either player, including cancellations", async () => {
+  await db.query("UPDATE matches SET status='cancelled', created_at=now() - interval '2 days'");
+  await db.query(`INSERT INTO problems (slug,title,statement,function_signature,difficulty,constraints,reference_solution,brute_force_solution,test_generator,hidden_tests,cpu_limit_ms,memory_limit_kb,published_at)
+    SELECT 'fresh',title,statement,function_signature,difficulty,constraints,reference_solution,brute_force_solution,test_generator,hidden_tests,cpu_limit_ms,memory_limit_kb,now() FROM problems WHERE slug='fixture'`);
+  const fresh = await store.create(two, one, "easy");
+  const chosen = await db.query<{ slug: string }>("SELECT p.slug FROM matches m JOIN problems p ON p.id=m.problem_id WHERE m.id=$1", [fresh.id]);
+  expect(chosen.rows[0].slug).toBe("fresh");
+  await db.query("UPDATE matches SET status='cancelled' WHERE id=$1", [fresh.id]);
+  const next = await store.create(one, two, "easy");
+  const repeated = await db.query<{ slug: string }>("SELECT p.slug FROM matches m JOIN problems p ON p.id=m.problem_id WHERE m.id=$1", [next.id]);
+  expect(repeated.rows[0].slug).toBe("fixture");
+});

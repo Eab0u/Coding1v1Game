@@ -72,6 +72,33 @@ it("bounds message rate", async () => {
   for (let i = 0; i < 21; i++) ws.send("{}");
   expect((await closed)[0]).toBe(1008);
 });
+it("preserves account command limits across reconnects without limiting another account", async () => {
+  const { connect, current } = await setup();
+  const first = connect(); await once(first, "open");
+  for (let i = 0; i < 20; i++) await command(first, {});
+  first.close(); await once(first, "close");
+  const second = connect(); await once(second, "open");
+  const closed = once(second, "close"); second.send('{"type":"join"}');
+  expect((await closed)[0]).toBe(1008);
+  expect(current).not.toHaveBeenCalled();
+  const independent = connect("two"); await once(independent, "open");
+  expect((await command(independent, { type: "join" })).type).toBe("queued");
+});
+
+it("limits repeated handshakes before authentication, including reconnects", async () => {
+  const { connect, authenticate } = await setup();
+  for (let i = 0; i < 31; i++) {
+    const ws = connect("invalid");
+    const status = await new Promise<number>(resolve => {
+      ws.on("error", () => {});
+      ws.once("unexpected-response", (_request, response) => {
+        resolve(response.statusCode!); response.resume(); ws.terminate();
+      });
+    });
+    expect(status).toBe(i < 30 ? 401 : 429);
+  }
+  expect(authenticate).toHaveBeenCalledTimes(30);
+});
 it("rejects binary commands and closes oversized frames", async () => {
   const { connect } = await setup(); const ws = connect(); await once(ws, "open");
   const response = receive(ws); ws.send(Buffer.from('{"type":"join"}'));

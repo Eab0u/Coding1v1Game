@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
 import { SESSION_COOKIE, type Account } from "./auth";
+import { RateLimit } from "./rate-limit";
 import { MatchmakingQueue, type QueuePeer, type MatchTicket, type Difficulty } from "./matchmaking";
 
 type Dependencies = {
@@ -15,9 +16,13 @@ export function createMatchmakingServer(deps: Dependencies) {
   const sockets = new WebSocketServer({ noServer: true, maxPayload: 1024, perMessageDeflate: false });
   const queue = new MatchmakingQueue(deps.create);
   let upgrades = 0;
+  const connections = new RateLimit(30, 60_000);
+  const commands = new RateLimit(20, 10_000);
   server.on("upgrade", async (request, socket, head) => {
     const reject = (status: number) => { socket.end(`HTTP/1.1 ${status} Rejected\r\nConnection: close\r\n\r\n`); };
     if (request.url !== "/matchmaking" || request.headers.origin !== deps.origin) { reject(403); return; }
+    // Use the actual peer address, never a spoofable forwarded header.
+    if (!connections.allow(request.socket.remoteAddress ?? "unknown")) { reject(429); return; }
     if (sockets.clients.size + upgrades >= 1000) { reject(503); return; }
     upgrades++;
     const timeout = setTimeout(() => socket.destroy(), 10_000);
@@ -30,8 +35,6 @@ export function createMatchmakingServer(deps: Dependencies) {
       sockets.handleUpgrade(request, socket, head, ws => {
         let alive = true;
         let processing = false;
-        let count = 0;
-        let windowStart = Date.now();
         const peer: QueuePeer = {
           user,
           connected: () => ws.readyState === WebSocket.OPEN,
@@ -51,8 +54,7 @@ export function createMatchmakingServer(deps: Dependencies) {
         }, 30_000);
         ws.once("close", () => clearInterval(heartbeat));
         ws.on("message", async (data, binary) => {
-          if (Date.now() - windowStart >= 10_000) { windowStart = Date.now(); count = 0; }
-          if (++count > 20) { ws.close(1008, "Too many requests"); return; }
+          if (!commands.allow(user.id)) { ws.close(1008, "Too many requests"); return; }
           if (processing) return;
           let type: unknown;
           try {

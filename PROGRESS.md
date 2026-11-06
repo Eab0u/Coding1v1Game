@@ -4,6 +4,8 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
+Matchmaking fair-play basics now share command limits across account connections, throttle handshake attempts before authentication and rotate problems using both players' exposure histories. Optional paste blocking remains off until an editor exists. Worker counters reset on restart; reverse proxies need per-client handshake limits.
+
 Friend requests and accepted friendships are available at /friends, with authenticated friends-only global and weekly standings. Apply migration 003_friends.sql before using these flows.
 
 Mobile layout polish is implemented for the existing home, account, profile and leaderboard pages, with Chromium regression coverage for narrow phones through desktop widths. Future arena/results screens will need their own responsive checks when implemented.
@@ -28,6 +30,15 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Author and validate problems 1–20 through the new pipeline to enable pairing, then implement the match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Anti-cheat basics
+- Selected and checked off only anti-cheat basics: existing queue admission controls had reconnect bypasses and random selection could immediately repeat a challenge.
+- Added bounded, expiring worker-level quotas: 20 commands/account/10 seconds across reconnects and tabs, and 30 handshake attempts/peer IP/minute before authentication. Invalid commands count; excess commands close with 1008 and handshakes return 429. Active counters cannot be evicted by filling the key limit.
+- Replaced random-only selection with unseen-first, then least recently exposed challenges across either participant. Cancelled reservations count against reroll fishing; published/difficulty filters and random ties remain. Single-problem catalogs still work.
+- Added quota boundary/capacity tests, real WebSocket reconnect/account isolation and pre-authentication handshake tests, and embedded Postgres rotation coverage. No player code executed.
+- Validation: all 182 tests across 24 files passed; lint, production build and typecheck passed. Fixed the upgrade socket type error found by the build by reading the peer address from the HTTP request socket.
+- Limits: counters reset on worker restart and depend on the existing single-worker deployment. Documented proxy address behavior and per-client proxy configuration. Optional paste blocking remains off; editor/submission controls belong to the upcoming arena. Existing sandbox and database deployment blockers remain.
+- Next: configure the isolated sandbox and validate problems 1-20, then implement the match screen and lifecycle orchestration.
+
 ### 2026-11-06 - Friends and friends-only standings
 - Selected the remaining social backlog item as a complete player flow supported by existing accounts and rankings. Checked off only friend relationships and friends-only filtering.
 - Added a migration with unique unordered friend pairs, no self-friendship and cascading account deletion. Added case-insensitive invitations, explicit recipient acceptance, decline/cancel and removal by either participant. Reciprocal requests cannot silently accept a friendship.
