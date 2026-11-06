@@ -78,3 +78,43 @@ it("keeps an unindented outdent unchanged and returns focus to the code", () => 
   expect(input.selectionStart).toBe(1);
   expect(input.selectionEnd).toBe(3);
 });
+
+it("tracks the active end of forward and backward selections without live announcements", () => {
+  render(<Harness initial={'one\n\ttwo\n'}/>);
+  const input = screen.getByRole('textbox') as HTMLTextAreaElement;
+  const status = screen.getByLabelText('Solution cursor position');
+  expect(status).toHaveTextContent('Line 1, column 1');
+  expect(status).toHaveAttribute('aria-live', 'off');
+  input.setSelectionRange(1, 7, 'forward');
+  fireEvent.select(input);
+  expect(status).toHaveTextContent('Line 2, column 4 \u00b7 6 code units selected');
+  input.setSelectionRange(1, 7, 'backward');
+  fireEvent.keyUp(input, { key: 'ArrowLeft', shiftKey: true });
+  expect(status).toHaveTextContent('Line 1, column 2 \u00b7 6 code units selected');
+  input.setSelectionRange(9, 9);
+  fireEvent.select(input);
+  expect(status).toHaveTextContent('Line 3, column 1');
+  expect(input).toHaveAccessibleDescription(/Line 3, column 1/);
+});
+
+it("updates the position after automatic indentation and block editing", () => {
+  render(<Harness initial={'def solve():'}/>);
+  const input = screen.getByRole('textbox') as HTMLTextAreaElement;
+  input.setSelectionRange(12, 12);
+  fireEvent.keyDown(input, { key: 'Enter' });
+  expect(screen.getByLabelText('Solution cursor position')).toHaveTextContent('Line 2, column 5');
+  fireEvent.click(screen.getByRole('button', { name: 'Indent' }));
+  expect(screen.getByLabelText('Solution cursor position')).toHaveTextContent('Line 2, column 9');
+});
+
+it("tracks read-only selection and external replacements, including empty code", () => {
+  const props = { onChange: vi.fn(), readOnly: true };
+  const { rerender } = render(<PlainPythonEditor {...props} value={'one\ntwo'}/>);
+  const input = screen.getByRole('textbox') as HTMLTextAreaElement;
+  input.setSelectionRange(4, 5);
+  fireEvent.select(input);
+  expect(screen.getByLabelText('Solution cursor position')).toHaveTextContent('Line 2, column 2 \u00b7 1 code unit selected');
+  rerender(<PlainPythonEditor {...props} value=""/>);
+  expect(screen.getByLabelText('Solution cursor position')).toHaveTextContent('Line 1, column 1');
+  expect(props.onChange).not.toHaveBeenCalled();
+});

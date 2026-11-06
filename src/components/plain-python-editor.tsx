@@ -6,12 +6,26 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
 }) {
   const input = useRef<HTMLTextAreaElement>(null);
   const caret = useRef<[number, number] | null>(null);
+  const position = useRef<HTMLDivElement>(null);
   const hint = useId();
+  const positionId = useId();
+  function updatePosition() {
+    const editor = input.current;
+    if (!editor || !position.current) return;
+    const { selectionStart: start, selectionEnd: end, selectionDirection } = editor;
+    const active = selectionDirection === "backward" ? start : end;
+    const before = editor.value.slice(0, active);
+    const line = before.split("\n").length;
+    const column = active - before.lastIndexOf("\n");
+    const selected = end - start;
+    position.current.textContent = `Line ${line}, column ${column}${selected ? ` · ${selected} code unit${selected === 1 ? "" : "s"} selected` : ""}`;
+  }
   useLayoutEffect(() => {
     if (caret.current !== null) {
       input.current?.setSelectionRange(...caret.current);
       caret.current = null;
     }
+    updatePosition();
   }, [value]);
   function changeIndent(outdent: boolean) {
     const editor = input.current;
@@ -44,8 +58,9 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(false)}>Indent</button>
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(true)}>Outdent</button>
     </div>
-    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={hint} value={value}
-      onChange={event => onChange(event.target.value)} readOnly={readOnly} spellCheck={false}
+    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId}`} value={value}
+      onSelect={updatePosition} onFocus={updatePosition} onKeyUp={updatePosition} onPointerUp={updatePosition}
+      onChange={event => { updatePosition(); onChange(event.target.value); }} readOnly={readOnly} spellCheck={false}
       autoCapitalize="off" autoCorrect="off" wrap={wordWrap ? "soft" : "off"}
       onKeyDown={event => {
         if (readOnly || event.key !== "Enter" || event.nativeEvent.isComposing || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
@@ -57,6 +72,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
         caret.current = [start + insertion.length, start + insertion.length];
         onChange(value.slice(0, start) + insertion + value.slice(end));
       }} />
+    <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
     <p id={hint} className="editor-hint">Enter keeps indentation and adds four spaces after a colon. Shift+Enter inserts a plain newline. Tab moves to the next control. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab).</p>
   </>;
 }

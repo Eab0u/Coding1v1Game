@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Plain-text editor cursor position
+- Reviewed the unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent editor usability item; catalog items remain unchecked.
+- Added a styled cursor position strip showing one-based line/column and selected UTF-16 code units. It follows the active selection end, keyboard and pointer movement, indentation edits, external replacements and completed read-only code. Tabs occupy one code unit for column counting.
+- Associated the strip with the editor for accessibility without live announcements on every keystroke. Position updates do not rerender the editor or change code, focus or selection.
+- Added regressions for forward/backward selections, trailing newlines, tabs, automatic and block indentation, read-only selections and empty external replacements. Fixed selection-direction event handling and avoided introducing an extra live status region.
+- Validation: all 357 tests across 41 files passed; lint, typecheck, production build and diff whitespace checks passed. No player code executed. Live browser visual inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing database and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Submit from the solution editor keyboard
 - Reviewed both unchecked catalog items; only .env.example is present, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability item; catalog items remain unchecked.
 - Ctrl+Enter and Command+Enter now submit current code from advanced and plain-text editors. Added visible shortcut guidance and accessible shortcut metadata on Submit. Editor capture handling prevents the keystroke from inserting a newline or invoking editor commands.
