@@ -43,4 +43,38 @@ it("does not alter completed solutions", () => {
   render(<PlainPythonEditor value="def solve():" onChange={change} readOnly/>);
   expect(fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" })).toBe(true);
   expect(change).not.toHaveBeenCalled();
+  expect(screen.getByRole("button", { name: "Indent" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Outdent" })).toBeDisabled();
+});
+
+it.each([
+  ["one\ntwo", 1, 1, "Indent", "    one\ntwo", 5, 5],
+  ["one\ntwo\nthree", 0, 8, "Indent", "    one\n    two\nthree", 4, 16],
+  ["    one\n  two\n\tthree", 2, 17, "Outdent", "one\ntwo\nthree", 0, 10],
+  ["\ncode", 0, 0, "Indent", "    \ncode", 4, 4],
+  ["one\n", 4, 4, "Indent", "one\n    ", 8, 8],
+  ["        one", 9, 11, "Outdent", "    one", 5, 7],
+  ["one\n  two", 0, 9, "Outdent", "one\ntwo", 0, 7],
+] as const)("adjusts block indentation and preserves selection: %s %s %s %s", (initial, start, end, action, expected, nextStart, nextEnd) => {
+  render(<Harness initial={initial}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(start, end);
+  fireEvent.click(screen.getByRole("button", { name: action }));
+  expect(input).toHaveValue(expected);
+  expect(input.selectionStart).toBe(nextStart);
+  expect(input.selectionEnd).toBe(nextEnd);
+  expect(input).toHaveFocus();
+});
+
+it("keeps an unindented outdent unchanged and returns focus to the code", () => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value="code" onChange={change} readOnly={false}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.setSelectionRange(1, 3);
+  fireEvent.click(screen.getByRole("button", { name: "Outdent" }));
+  expect(change).not.toHaveBeenCalled();
+  expect(input).toHaveFocus();
+  expect(input.selectionStart).toBe(1);
+  expect(input.selectionEnd).toBe(3);
 });

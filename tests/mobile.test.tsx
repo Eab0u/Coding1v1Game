@@ -40,8 +40,7 @@ it('keeps populated pages within phone, tablet and desktop viewports with usable
           expect(await region.evaluate(el => el === document.activeElement)).toBe(true);
           if (await region.evaluate(el => el.scrollWidth > el.clientWidth)) {
             await page.keyboard.press('ArrowRight');
-            await page.waitForTimeout(150);
-            expect(await region.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+            await expect.poll(() => region.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
           }
         }
         for (const button of await page.locator('.button, .site-header a').all()) {
@@ -96,8 +95,7 @@ it('keeps the arena readable with keyboard-scrollable code on narrow screens', a
           await region.focus();
           expect(await region.evaluate(el => el === document.activeElement)).toBe(true);
           await page.keyboard.press('ArrowRight');
-          await page.waitForTimeout(100);
-          expect(await region.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+          await expect.poll(() => region.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
         }
         if (width <= 375) {
           const clock = (await page.locator('.arena-clock').boundingBox())!;

@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Plain-text Python block indentation
+- Reviewed the two unchecked catalog items; isolated Judge0 configuration is still unavailable, so both remain blocked and unchecked. Added and completed one independent editor usability item.
+- Added wrapping, keyboard-accessible Indent and Outdent controls to the plain-text editor (including Monaco fallback). They adjust the current line or selected block, preserve the selected code and return focus to the editor. Indent adds four spaces; Outdent removes up to four leading spaces or one leading tab. A selection ending at the following line's start leaves that line alone. Completed-match controls are disabled; Tab retains native navigation.
+- Added eight regression cases covering multiline selections, partial indentation, tabs, empty first/final lines, caret/selection restoration, unchanged outdent and read-only controls. Existing newline, draft recovery and editor tests remain passing.
+- Replaced fixed browser-scroll delays with polling for the actual scroll position after a full-suite rerun exposed a timing failure. The keyboard-scroll assertions remain intact.
+- Validation: all 295 tests across 39 files passed; lint, typecheck and production build passed after removing an unsupported test-query option caught by TypeScript. No player code executed. Native browser interaction for the new controls has not been manually smoke-tested.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Readable arena problem examples
 - Reviewed both unchecked catalog items. They remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent problem-reading and visual polish item.
 - Replaced raw pipeline example JSON in the arena with numbered cards showing arguments in signature order, expected output and the authored explanation. Long inputs/outputs retain separately named, focusable scroll regions. Explanations preserve line breaks and wrap long text. Legacy or malformed example shapes retain the raw display rather than crashing or dropping data.

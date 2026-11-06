@@ -111,3 +111,4 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Add Python newline indentation to the plain-text editor with caret preservation, accessible keyboard guidance and native Tab navigation
 
 - [x] Present arena examples as numbered input/output and explanation cards with accessible scrolling and phone layout coverage
+- [x] Add accessible plain-text Python block Indent/Outdent controls with selection preservation and native Tab navigation
