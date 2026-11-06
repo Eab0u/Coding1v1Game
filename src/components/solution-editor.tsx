@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Component, useState, type ReactNode } from "react";
+import { Component, useRef, useState, type ReactNode } from "react";
 import { PlainPythonEditor } from "./plain-python-editor";
 
 const PythonEditor = dynamic(() => import("./python-editor"), {
@@ -21,8 +21,26 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const [wordWrap, setWordWrap] = useState(false);
   const [fontSize, setFontSize] = useState(15);
   const [downloadError, setDownloadError] = useState(false);
+  const copying = useRef(false);
+  const [copyPending, setCopyPending] = useState(false);
+  const [copyResult, setCopyResult] = useState<{ value: string; ok: boolean } | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const canReset = !readOnly && starter !== undefined && value !== starter;
+  async function copySolution() {
+    if (copying.current) return;
+    copying.current = true;
+    setCopyPending(true);
+    setCopyResult(null);
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyResult({ value, ok: true });
+    } catch {
+      setCopyResult({ value, ok: false });
+    } finally {
+      copying.current = false;
+      setCopyPending(false);
+    }
+  }
   function downloadSolution() {
     setDownloadError(false);
     let url: string | undefined;
@@ -60,6 +78,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       {plain ? "Use advanced editor" : "Use plain text editor"}
     </button>
     <button type="button" className="button button--secondary" onClick={downloadSolution}>Download solution (.py)</button>
+    <button type="button" className="button button--secondary" disabled={copyPending} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
     {starter !== undefined && !readOnly && <button type="button" className="button button--secondary" disabled={!canReset} onClick={() => setConfirmReset(true)}>Reset to starter code</button>}</div>
     {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset">
       <p>Replace your current solution with the starter code? Download your solution first if you want to keep it.</p>
@@ -69,5 +88,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       </div>
     </div>}
     {downloadError && <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>}
+    {copyResult?.value === value && (copyResult.ok
+      ? <p role="status">Solution copied to clipboard.</p>
+      : <p role="alert">Unable to copy your solution. Try again, download it or select and copy the code manually.</p>)}
   </div>;
 }

@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Copy solution to clipboard
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent solution preservation/usability item; catalog tasks remain unchecked.
+- Added a Copy solution button shared by advanced and plain-text editors, including automatic fallback and read-only completed matches. Copies the exact current text through the browser clipboard API, announces success and gives actionable failure feedback when clipboard access is unavailable or denied.
+- Disables copying while a request is pending, guards duplicate requests and hides results when the solution has changed since the copied snapshot. Supports explicit retries without changing code or editor selection.
+- Added four regression cases covering both editor modes, completed matches, Unicode/newlines, missing and denied clipboard access, retries, duplicate clicks and edits during pending requests. Fixed test clipboard mocking after the first targeted run showed jsdom has no clipboard property.
+- Validation: all 306 tests across 39 files passed; lint, typecheck and production build passed. No player code executed. Native browser clipboard permissions have not been manually smoke-tested.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Optional solution line wrapping
 - Reviewed both unchecked catalog items; only .env.example is present, so isolated Judge0 validation remains blocked. Added and completed one independent editor readability item; catalog items remain unchecked.
 - Added a keyboard-accessible Wrap long lines toggle with an announced pressed state. It shares wrapping across Monaco, plain text and automatic fallback, including read-only completed matches. Wrapping defaults off, lasts for the mounted editor session and changes display without inserting newlines into the solution. Plain text wraps even unbroken long tokens.

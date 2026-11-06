@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 const editor = vi.hoisted(() => ({ fails: false }));
@@ -12,6 +12,48 @@ function Harness({ readOnly = false }: { readOnly?: boolean }) {
   const [value, setValue] = useState("def solve():\n    pass");
   return <SolutionEditor value={value} onChange={setValue} readOnly={readOnly} starter={"def solve():\n    pass"}/>;
 }
+it.each([false, true])("copies exact current code in both editors with readOnly %s", async readOnly => {
+  const writeText = vi.fn().mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<SolutionEditor value={"def solve():\n    return 'λ'\n"} onChange={vi.fn()} readOnly={readOnly}/>);
+  for (let mode = 0; mode < 2; mode++) {
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Copy solution" })); });
+    expect(screen.getByRole("status")).toHaveTextContent("Solution copied to clipboard");
+    if (mode === 0) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  }
+  expect(writeText.mock.calls).toEqual([["def solve():\n    return 'λ'\n"], ["def solve():\n    return 'λ'\n"]]);
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    return 'λ'\n");
+});
+
+it("reports unavailable clipboard and denied access, and allows retry", async () => {
+  vi.stubGlobal("navigator", {});
+  render(<Harness/>);
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Copy solution" })); });
+  expect(screen.getByRole("alert")).toHaveTextContent("Unable to copy");
+  const writeText = vi.fn().mockRejectedValueOnce(new Error("Denied")).mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Copy solution" })); });
+  expect(screen.getByRole("alert")).toHaveTextContent("Unable to copy");
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Copy solution" })); });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Solution copied");
+});
+
+it("prevents overlapping copies and hides feedback for code edited during copying", async () => {
+  let finish!: () => void;
+  const writeText = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<Harness/>);
+  fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
+  const pending = screen.getByRole("button", { name: "Copying solution…" });
+  expect(pending).toBeDisabled();
+  fireEvent.click(pending);
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
+  await act(async () => { finish(); });
+  expect(writeText).toHaveBeenCalledExactlyOnceWith("def solve():\n    pass");
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
+});
 it.each([false, true])("requires confirmation to reset in plain mode %s and supports cancellation", plain => {
   render(<Harness/>);
   if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
