@@ -27,6 +27,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     const ws = new WebSocket(url);
     socket.current = ws;
     let cancelling = false;
+    let reserving = false;
     function awaitResponse(message: string) {
       clearResponseTimer();
       responseTimer.current = setTimeout(() => {
@@ -52,9 +53,15 @@ export function Play({ signedIn }: { signedIn: boolean }) {
       try {
         const data: QueueEvent = JSON.parse(event.data);
         if (cancelling && (data.type === "queued" || data.type === "matching")) return;
+        // Reservation frames must not renew the deadline or return us to the queue.
+        if (reserving && (data.type === "queued" || data.type === "matching")) return;
         if (["queued", "matching", "matched", "left", "error"].includes(data.type)) clearResponseTimer();
         if (data.type === "queued") { setPhase("queued"); setMessage(`Finding opponent… ${data.waitedSeconds}s elapsed · Rating range ±${data.ratingBand}. Wait estimate unavailable.`); }
-        else if (data.type === "matching") { setPhase("matching"); setMessage("Reserving your match…"); }
+        else if (data.type === "matching") {
+          reserving = true;
+          setPhase("matching"); setMessage("Reserving your match… Waiting for server confirmation.");
+          awaitResponse("Your reservation was not confirmed. Connection closed; retry to recover any reserved match.");
+        }
         else if (data.type === "matched") { feedback.notify("matched"); setMatchId(data.match.id); setPhase("matched"); setMessage(`Matched with ${data.opponent.username} (${Math.round(data.opponent.rating)}) · ${data.match.difficulty}. Your match is reserved. Open the arena to prepare.`); socket.current = null; ws.close(); }
         else if (data.type === "left" || data.type === "error") { socket.current = null; ws.close(); setPhase("idle"); setMessage(data.type === "error" ? data.message : "Search cancelled. Ready when you are."); }
       } catch { clearResponseTimer(); socket.current = null; ws.close(); setPhase("idle"); setMessage("Unexpected server response. Please try again."); }
@@ -63,10 +70,10 @@ export function Play({ signedIn }: { signedIn: boolean }) {
   }
   return <div className={`play-panel play-panel--${phase}`}>
     {!signedIn ? <a className="button button--primary play-button" href="/account">Sign in to play</a> : <>
-      <Button className="play-button" onClick={join} disabled={phase !== "idle"}>{phase === "idle" ? "Play a duel" : phase === "matched" ? "Match reserved" : "Finding opponent…"}</Button>
+      <Button className="play-button" onClick={join} disabled={phase !== "idle"}>{phase === "idle" ? "Play a duel" : phase === "matched" ? "Match reserved" : phase === "matching" ? "Reserving match…" : phase === "cancelling" ? "Cancelling search…" : phase === "connecting" ? "Connecting…" : "Finding opponent…"}</Button>
       {(phase === "queued" || phase === "connecting") && <Button variant="ghost" onClick={() => {
         const ws = socket.current;
-        if (ws?.readyState === WebSocket.OPEN) { setPhase("cancelling"); leave.current?.(); }
+        if (ws?.readyState === WebSocket.OPEN) { setPhase("cancelling"); setMessage("Cancelling your search… Waiting for server confirmation."); leave.current?.(); }
         else { socket.current = null; clearResponseTimer(); ws?.close(); setPhase("idle"); setMessage("Search cancelled. Ready when you are."); }
       }}>Cancel search</Button>}
     </>}

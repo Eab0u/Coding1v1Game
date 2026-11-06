@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Bounded matchmaking reservation recovery
+- Reviewed both unchecked catalog items; isolated Judge0 validation remains blocked because only .env.example is available. Added and completed one independent matchmaking reliability and usability item; catalog items remain unchecked.
+- Reservation confirmation now has a fixed ten-second deadline. Missing confirmation closes the connection and enables retry with explicit guidance that a reserved match may need recovery. Repeated matching frames and stale queued frames cannot renew the deadline or restore cancellation while reservation is underway. Late frames from abandoned connections cannot replace a recovered ticket.
+- Play buttons now distinguish connecting, searching, reserving and cancelling. Cancellation explicitly waits for server confirmation in the accessible status message.
+- Added regression tests for missing confirmation, repeated/out-of-order frames, late abandoned reservations, successful recovery, confirmation cleanup and unmount cleanup. All 374 tests across 41 files, lint and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database, WebSocket and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Account password visibility controls
 - Reviewed both unchecked catalog items; isolated Judge0 validation remains blocked because only .env.example is available. Added and completed one independent account usability and visual polish item; catalog items remain unchecked.
 - Added separate Show/Hide controls to sign-in and sign-up. Passwords start masked; toggling preserves input, password-manager autocomplete, form validation and focus without submitting. Native buttons expose the controlled field and pressed state, with distinct accessible names for each form.

@@ -104,3 +104,44 @@ it("recovers from a synchronous command send failure", () => {
   expect(screen.getByRole("status")).toHaveTextContent("Connection lost");
   expect(vi.getTimerCount()).toBe(0);
 });
+
+it("bounds reservation confirmation, ignores repeated frames and recovers the ticket on retry", () => {
+  vi.useFakeTimers();
+  const ws = start();
+  event({ type: "matching" });
+  expect(screen.getByRole("button", { name: "Reserving match…" })).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Waiting for server confirmation");
+  act(() => vi.advanceTimersByTime(9000));
+  event({ type: "matching" });
+  event({ type: "queued", waitedSeconds: 9, ratingBand: 100 });
+  expect(screen.queryByRole("button", { name: "Cancel search" })).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(1000));
+  expect(ws.close).toHaveBeenCalled();
+  expect(screen.getByRole("status")).toHaveTextContent("reservation was not confirmed");
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  act(() => ws.onmessage({ data: JSON.stringify({ type: "matched", match: { id: "stale" }, opponent: { username: "Old", rating: 800 } }) }));
+  expect(screen.queryByRole("link", { name: "Open arena" })).not.toBeInTheDocument();
+  event({ type: "matched", match: { id: "recovered", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveAttribute("href", "/match/recovered");
+  act(() => vi.advanceTimersByTime(10000));
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it("clears the reservation deadline after confirmation and on unmount", () => {
+  vi.useFakeTimers();
+  const view = render(<Play signedIn />);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "matching" });
+  event({ type: "matched", match: { id: "m", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("link", { name: "Open arena" })).toBeInTheDocument();
+  view.unmount();
+  const pending = render(<Play signedIn />);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "matching" });
+  pending.unmount();
+  expect(vi.getTimerCount()).toBe(0);
+});
