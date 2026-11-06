@@ -219,3 +219,7 @@ Tier thresholds use unrounded current MMR: Bronze below 1000, Silver 1000, Gold 
 ## Problem pipeline
 
 Author original problem JSON drafts, then use `npm run problems -- validate path/to/draft.json` or `npm run problems -- publish path/to/draft.json`. Validation compares reference and brute-force implementations on 2,000 deterministic random small inputs inside Judge0, checks authored examples and hidden outputs, and requires brute force to CPU-timeout on every largest-input benchmark. Publishing revalidates and inserts an immutable published suite. See [the authoring guide](problems/README.md) for the schema, limits and sandbox setup. No local Python execution or sandbox fallback exists.
+
+### Friends
+
+Apply database migrations (`npm run db:migrate`) to create the friendships table. Signed-in players can send requests by username at `/friends`, accept or decline incoming requests, cancel outgoing requests, and remove friends. Reciprocal requests require explicit acceptance. `/leaderboard?scope=friends` and `/leaderboard?scope=friends&period=weekly` rank the current player and accepted friends within that circle. Weekly eligibility and UTC boundaries match the public leaderboard. Requests use the existing session and same-origin POST protection.

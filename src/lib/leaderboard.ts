@@ -4,7 +4,9 @@ export type LeaderboardPeriod = "global" | "weekly";
 export interface LeaderboardEntry { username: string; rating: number; score: number; rank: number }
 
 /** Public projection only. Weekly gains use completed duels since Monday 00:00 UTC. */
-export async function loadLeaderboard(db: Pick<Pool, "query">, period: LeaderboardPeriod): Promise<LeaderboardEntry[]> {
+export async function loadLeaderboard(db: Pick<Pool, "query">, period: LeaderboardPeriod, friendUserId?: string): Promise<LeaderboardEntry[]> {
+  const friends = friendUserId ? ` WHERE (u.id=$1 OR EXISTS (SELECT 1 FROM friendships f
+    WHERE f.status='accepted' AND ((f.requester_id=$1 AND f.recipient_id=u.id) OR (f.recipient_id=$1 AND f.requester_id=u.id))))` : "";
   const result = await db.query<LeaderboardEntry>(period === "weekly" ? `
     WITH gains AS (
       SELECT h.user_id, sum(h.rating_after-h.rating_before) AS score
@@ -15,10 +17,10 @@ export async function loadLeaderboard(db: Pick<Pool, "query">, period: Leaderboa
     )
     SELECT u.username, u.rating, g.score,
       (rank() OVER (ORDER BY g.score DESC))::integer AS rank
-    FROM gains g JOIN users u ON u.id=g.user_id
+    FROM gains g JOIN users u ON u.id=g.user_id ${friends}
     ORDER BY g.score DESC, lower(u.username), u.id LIMIT 100
   ` : `SELECT username, rating, rating AS score,
     (rank() OVER (ORDER BY rating DESC))::integer AS rank
-    FROM users ORDER BY rating DESC, lower(username), id LIMIT 100`);
+    FROM users u ${friends} ORDER BY rating DESC, lower(username), id LIMIT 100`, friendUserId ? [friendUserId] : []);
   return result.rows;
 }

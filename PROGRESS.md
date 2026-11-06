@@ -4,6 +4,8 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
+Friend requests and accepted friendships are available at /friends, with authenticated friends-only global and weekly standings. Apply migration 003_friends.sql before using these flows.
+
 Mobile layout polish is implemented for the existing home, account, profile and leaderboard pages, with Chromium regression coverage for narrow phones through desktop widths. Future arena/results screens will need their own responsive checks when implemented.
 
 The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. The original problem catalog is still pending; no real catalog problems have been published.
@@ -26,6 +28,16 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Author and validate problems 1–20 through the new pipeline to enable pairing, then implement the match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Friends and friends-only standings
+- Selected the remaining social backlog item as a complete player flow supported by existing accounts and rankings. Checked off only friend relationships and friends-only filtering.
+- Added a migration with unique unordered friend pairs, no self-friendship and cascading account deletion. Added case-insensitive invitations, explicit recipient acceptance, decline/cancel and removal by either participant. Reciprocal requests cannot silently accept a friendship.
+- Added /friends with labeled invitation controls, incoming/outgoing states, profile links and clear feedback. Linked it from account and leaderboard navigation. Global and weekly friends filters include the signed-in player and accepted friends, computing ranks within that circle before the top-100 limit. Pending requests and unrelated players are excluded.
+- Added origin-checked authenticated POST handling with bounded inputs, session-derived actor IDs and generic infrastructure errors. No private account fields are projected.
+- Added embedded Postgres tests for consent, duplicate/reciprocal requests, unauthorized mutation, removal, invalid/self/missing targets and both leaderboard periods. Added route and page tests for access controls, actor spoofing, errors and filter preservation.
+- Validation: all 177 tests across 23 files passed; lint, production build and typecheck passed. Fixed a PowerShell text-encoding change caught by the build. No player code executed.
+- Limits: migration tested in embedded Postgres; live database and browser deployment smoke checks remain pending. Existing infrastructure blockers remain. No notifications or rematch invitations were added.
+- Next: configure the isolated sandbox and validate problems 1-20, then implement the match screen and lifecycle orchestration.
+
 ### 2026-11-06 - Mobile layout polish
 - Selected the most valuable remaining item that can be completed without the unpublished catalog or live sandbox: making existing player flows usable on phones. Checked off only mobile layout polish.
 - Prevented long names, signatures and problem text from forcing grid/page overflow. Added compact phone spacing, full-width Play/search controls, wrapping account headers and rating badges, stable record cards and readable recent-duel rows. Header and table links have 44px minimum touch heights.

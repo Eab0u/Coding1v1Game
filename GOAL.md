@@ -84,7 +84,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [ ] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
 - [ ] Problems 21 to 60
 - [x] Mobile layout polish
-- [ ] Friend relationships and friends-only leaderboard filter
+- [x] Friend relationships and friends-only leaderboard filter
 
 
 

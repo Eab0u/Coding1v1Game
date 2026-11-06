@@ -37,5 +37,10 @@ it("ranks public ratings with shared ranks, stable ties and a top-100 bound", as
         SELECT id,$1,800,800+$2 FROM users WHERE username='Ada'`, [match.rows[0].id,gain]);
     }
     expect(await loadLeaderboard(db as unknown as Pool, "weekly")).toEqual([{username:"Ada",rating:1000.4,score:7,rank:1}]);
+    await db.exec(await readFile(new URL("../db/migrations/003_friends.sql", import.meta.url), "utf8"));
+    const bob = (await db.query<{id:string}>("SELECT id FROM users WHERE username='Bob'")).rows[0].id;
+    expect(await loadLeaderboard(db as unknown as Pool, "weekly", bob)).toEqual([]);
+    await db.exec(`INSERT INTO friendships (requester_id,recipient_id,status) SELECT a.id,b.id,'accepted' FROM users a,users b WHERE a.username='Ada' AND b.username='Bob'`);
+    expect(await loadLeaderboard(db as unknown as Pool, "weekly", bob)).toEqual([{username:"Ada",rating:1000.4,score:7,rank:1}]);
   } finally { await db.close(); }
 }, 30000);

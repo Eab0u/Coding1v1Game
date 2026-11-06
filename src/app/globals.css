@@ -154,3 +154,6 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
   .ladder-filters a { flex: 1; text-align: center; }
 }
 @media (max-width: 480px) { .profile-record { gap: .5rem; } .profile-record .card { padding: 1rem; } }
+.friend-list { display: grid; gap: 1rem; margin-top: 1.5rem; }
+.friend-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.friend-list h2 { overflow-wrap: anywhere; }
