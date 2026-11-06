@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Account player hub and direct matchmaking
+- Reviewed both unchecked catalog items; isolated Judge0 validation remains blocked because only .env.example is available. Added and completed one independent account usability and visual polish item; catalog items remain unchecked.
+- Replaced the obsolete signed-in matchmaking placeholder with the shared Play flow, a prominent current rating and scoring guidance. Added a responsive player hub with profile, friends and leaderboard links, keeping sign-out available. The Play flow supports cancellation, connection recovery and reserved arena navigation using the existing component.
+- Updated account tests for authenticated navigation, rounded ratings, guest/service-error boundaries and joining matchmaking through reservation recovery. Existing Chromium coverage exercises the updated account at 320/375/768/1280px, checking overflow and touch target heights.
+- Validation: all 371 tests across 41 files passed; lint, typecheck, production build and diff whitespace checks passed. No player code executed. Live database, WebSocket and sandbox deployment smoke checks remain pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60; retain the existing infrastructure smoke checks before public ranked play.
+
 ### 2026-11-06 - In-flight arena action feedback
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability and visual polish item; catalog items remain unchecked.
 - Ready and Submit now show an atomic polite acknowledgement message in a bordered panel during requests, and the relevant button exposes its busy state. Submission guidance explains that edits made during the request are not included. Pending feedback replaces old success/error text until acknowledgement or failure arrives.

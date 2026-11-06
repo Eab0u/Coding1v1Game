@@ -82,6 +82,10 @@ code { font-family: var(--font-mono); }
 .account { padding: 64px 0; }
 .account-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 24px; }
 .account-form { display: grid; gap: 12px; }
+.account-play { border-top: 4px solid var(--color-accent); }
+.account-rating { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; color: var(--color-muted); }
+.account-rating strong { font-size: 2.5rem; color: var(--color-text); }
+.account-links { display: grid; gap: 12px; margin: 24px 0; }
 .account-form label { font-weight: 700; }
 .account-form input { width: 100%; background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 12px; }
 .account-form p { color: var(--color-muted); font-size: .875rem; }

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Replace the signed-in account dead end with a styled matchmaking action, current rating and profile, friends and leaderboard navigation
 - [x] Show a styled, accessible latest-submission panel distinguishing queued, judging, sandbox retry and judged states without exposing partial counts as a verdict
 - [x] Make starter-code reset confirmation keyboard-accessible with safe initial focus, Escape cancellation and predictable focus recovery
 - [x] Highlight the arena's final minute with accessible submission guidance that follows the authoritative clock and clears at expiry
