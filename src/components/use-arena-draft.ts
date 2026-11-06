@@ -9,6 +9,17 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
   const [source, setSource] = useState(`${signature}\n    pass\n`);
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
+  const edited = source !== `${signature}\n    pass\n`;
+  useEffect(() => {
+    if (closed || !edited) return;
+    function warnBeforeLeaving(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      // Older browsers require returnValue as well as preventDefault.
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, [closed, edited]);
   useEffect(() => {
     try {
       const draft = sessionStorage.getItem(key);

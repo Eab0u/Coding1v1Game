@@ -104,3 +104,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Recover matchmaking from missing join/cancel acknowledgements and clean up connection timers
 - [x] Guard arena Ready/Submit against duplicate requests and abort pending actions on navigation
 - [x] Preserve arena code with a switchable plain-text editor and automatic fallback when Monaco fails
+
+- [x] Warn before browser reload or tab close when an unfinished arena contains edited code; clear warnings after match end

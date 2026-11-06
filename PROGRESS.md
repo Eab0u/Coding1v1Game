@@ -36,6 +36,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Protect arena drafts on browser exit
+- Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent draft-protection item.
+- Edited or recovered code in pending/active arenas now registers a browser reload/tab-close warning, including when session storage fails. Returning to the starter code, receiving completed/cancelled status, changing arena sessions or unmounting removes the warning. Untouched starter code does not prompt.
+- Added four regression cases covering edits/reset, navigation/unmount cleanup, both terminal statuses, recovered drafts and unavailable storage.
+- Validation: all 261 tests across 37 files passed; lint, typecheck and production build passed. No player code executed.
+- Limits: browser exit prompts depend on browser support and user interaction; mobile process termination may bypass them. The warning covers browser document exit, not client-side link navigation. Native prompt appearance was not manually smoke-tested.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Resilient arena editor
 - Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent arena usability item.
 - Players can switch between Monaco and a styled plain-text Python editor while keeping the exact current draft. The switch remains available during loading. An error boundary automatically provides plain-text editing if Monaco fails to load or render, retaining code and match-end read-only behavior. Players can switch modes to retry the advanced editor.

@@ -6,6 +6,45 @@ vi.mock('next/dynamic',()=>({default:()=>function Editor({value,onChange,readOnl
 import { Arena,remainingSeconds } from "../src/components/arena";
 const initial:ArenaSnapshot={id:'match',status:'pending',deadline:null,serverTime:'2026-11-06T12:00:00Z',player:{username:'Ada',rating:800},opponent:{username:'Bob',rating:900},problem:{title:'Sample',statement:'Find an answer',signature:'def solve():',difficulty:'easy',constraints:'n <= 100',examples:[{input:[1],output:1}]},progress:null};
 afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();sessionStorage.clear();localStorage.clear();});
+function leaveIsGuarded() {
+  const event=new Event('beforeunload',{cancelable:true});
+  window.dispatchEvent(event);
+  return event.defaultPrevented;
+}
+it('guards edited unfinished drafts on reload or tab close and cleans up on reset and navigation',()=>{
+  vi.stubGlobal('fetch',vi.fn());
+  const view=render(<Arena initial={initial}/>);
+  expect(leaveIsGuarded()).toBe(false);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'def solve():\n    return 42\n'}});
+  expect(leaveIsGuarded()).toBe(true);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'def solve():\n    pass\n'}});
+  expect(leaveIsGuarded()).toBe(false);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'edited'}});
+  view.rerender(<Arena initial={{...initial,id:'another-match'}}/>);
+  expect(leaveIsGuarded()).toBe(false);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'another draft'}});
+  expect(leaveIsGuarded()).toBe(true);
+  view.unmount();
+  expect(leaveIsGuarded()).toBe(false);
+});
+it.each(['completed','cancelled'])('removes the exit warning when the server reports %s',async(status)=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status})}));
+  render(<Arena initial={initial}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'edited'}});
+  expect(leaveIsGuarded()).toBe(true);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(leaveIsGuarded()).toBe(false);
+});
+it('guards restored drafts even when browser storage stops working',()=>{
+  vi.stubGlobal('fetch',vi.fn());
+  sessionStorage.setItem('codeduel:draft:Ada:match','recovered code');
+  vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('Storage blocked');});
+  render(<Arena initial={{...initial,status:'active'}}/>);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('recovered code');
+  expect(screen.getByText(/Draft recovery unavailable/)).toBeVisible();
+  expect(leaveIsGuarded()).toBe(true);
+});
 it.each(['completed','cancelled'])('does not poll an initially %s arena',async(status)=>{
   vi.useFakeTimers();
   const fetcher=vi.fn();
