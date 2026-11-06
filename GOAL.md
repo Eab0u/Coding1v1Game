@@ -1,0 +1,83 @@
+# GOAL: Ranked 1v1 Coding Duel Site
+
+A competitive site where two players get the same coding problem and race to solve it. Winner is decided by code quality and speed. Ratings change after every match (MMR). Think chess.com, but for algorithm problems.
+
+## Problem style (important)
+Problems are LeetCode / Codeforces style algorithm and data structure questions. Players write a solution function in Python and it is judged against hidden tests with time limits.
+- Typical topics: arrays, strings, hash maps, two pointers, sliding window, stacks, queues, linked lists, trees, graphs (BFS, DFS, shortest path), binary search, sorting, heaps, recursion, backtracking, dynamic programming, greedy, intervals, bit manipulation, math
+- Each problem gives a function signature to complete, for example `def two_sum(nums: list[int], target: int) -> list[int]:`
+- Each problem states input constraints (for example 1 <= n <= 10^5) so players know what complexity is needed
+- Difficulty bands: Easy (rating 800 to 1199), Medium (1200 to 1599), Hard (1600+)
+- Easy problems should be solvable in about 5 minutes, Medium in about 15, Hard in about 30. Match timers scale with difficulty.
+- Problems should have a clear brute force solution and a better optimal solution, so complexity actually matters for winning.
+
+## Match scoring (winner order)
+1. Most hidden tests passed (correctness first)
+2. Better runtime on the largest tests (proxy for time complexity). Use CPU time or instruction count, never wall clock. Run each submission 3 times and take the median.
+3. Earlier submission time (tiebreaker)
+
+If everything ties, the match is a draw.
+
+## Stack
+- Next.js + TypeScript frontend
+- Node server with WebSockets for matchmaking and live matches
+- Postgres for users, matches, ratings, problems
+- Judge0 or Piston for sandboxed code execution (no network, memory and CPU limits)
+- Python only for v1
+
+## Rating
+- Glicko-2 (or Elo as a first pass), new players start at 800 with placement matches
+- Matchmaking within a rating band that widens the longer you wait
+- Problem difficulty picked from the average rating of the two players
+- Show rating change after each match (+8 / -7 style)
+
+## Look and feel (the vibe)
+Similar feel to chess.com and other competitive 1v1 sites. Original branding, do not copy their logos or assets.
+- Dark theme by default: charcoal backgrounds (#262421 to #312e2b), one strong green accent for primary actions (#81b64c range), white and light grey text
+- Flat, chunky, friendly UI. Big rounded buttons. Big primary "Play" button on the home screen.
+- Home: Play button, current rating, streak, recent matches, a daily problem
+- Matchmaking: "Finding opponent..." with a pulsing animation and estimated wait
+- Match screen: code editor on the left (Monaco), problem statement on the right or in a tab. Top bar shows both players with avatar, username, rating, and a countdown timer. Live opponent progress bar showing tests passed (never their code).
+- Sound effects and short animations: match found, test passed, test failed, win, loss
+- Post-match screen: big WIN / LOSS / DRAW banner, rating change animation, side by side comparison (tests passed, runtime, submit time), "Rematch" and "New match" buttons
+- Profile: rating graph over time, win/loss/draw record, tier badge, match history
+- Leaderboard: global top players, filter by friends and weekly
+- Rating tiers with badges (for example Bronze, Silver, Gold, Platinum, Diamond, Master)
+- Mobile friendly layout for everything except the editor view
+
+## Problems
+- Do NOT copy LeetCode or other copyrighted problems. Write original problems or original variants.
+- Each problem needs: statement, examples, reference solution, brute force solution, test generator, hidden tests including large inputs that make O(n^2) time out when O(n log n) is intended.
+- Validate automatically: reference and brute force must agree on thousands of random small inputs. A deliberately slow solution must fail the large tests.
+- Tag each problem with difficulty and topic.
+- Start with 20 problems, grow toward 200+ over time.
+
+## Rules for the agent
+- Work one task at a time from the backlog below. Pick the most valuable unchecked item.
+- Always write or update tests. Tests must pass before finishing.
+- Never delete tests to make them pass.
+- Never run untrusted code outside the sandbox.
+- No real secrets in the repo. Use .env.example.
+- Keep PROGRESS.md updated: what was done, what is next, any blockers.
+- Do not do big refactors unless a backlog item requires it.
+- If blocked, write the blocker in PROGRESS.md and move to the next item.
+
+## Backlog (check off as done)
+- [ ] Project scaffold (Next.js, TS, lint, test setup, Postgres schema)
+- [ ] Design system: colors, buttons, typography, dark theme
+- [ ] Judge service: run code in the sandbox against tests, return pass count and CPU time
+- [ ] Scoring function with unit tests for all tiebreak cases
+- [ ] Rating system (Glicko-2) with unit tests
+- [ ] Auth (simple username and password or OAuth)
+- [ ] Matchmaking queue with WebSockets and rating bands
+- [ ] Match screen: editor, timers, opponent progress bar
+- [ ] Post-match results screen with rating change animation
+- [ ] Home page with Play button
+- [ ] Profile page with rating graph
+- [ ] Leaderboard
+- [ ] Problem pipeline: generate, validate, publish
+- [ ] Problems 1 to 20 passing validation
+- [ ] Sound effects and animations
+- [ ] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
+- [ ] Problems 21 to 60
+- [ ] Mobile layout polish
