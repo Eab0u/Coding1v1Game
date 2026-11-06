@@ -181,3 +181,19 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .arena-text { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7; }
 .arena-problem pre { overflow:auto; padding:16px; background:#262421; border-radius:8px; }
 @media(max-width:800px) { .arena-columns { grid-template-columns:minmax(0,1fr); } .arena-scoreboard { gap:12px; padding:16px; } .arena-scoreboard h2 { font-size:1rem; } .arena-clock p { font-size:1rem; } }
+
+.results main { display: grid; gap: var(--space-6, 1.5rem); padding-bottom: 3rem; }
+.result-banner { text-align: center; padding: 2rem; }
+.result-banner h1 { font-size: clamp(3rem, 12vw, 5rem); margin: .5rem 0; }
+.result-banner--win h1 { color: var(--color-primary, #81b64c); }
+.result-players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.result-player { min-width: 0; overflow-wrap: anywhere; }
+.result-player h2 { margin-top: .5rem; }
+.result-rating strong { font-size: 1.6rem; }
+.rating-change { display: inline-block; margin-left: 1rem; color: #81b64c; font-size: 1.6rem; font-weight: 800; animation: rating-arrive 650ms ease-out both; }
+.result-player dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; }
+.result-player dd { margin: 0; font-weight: 700; }
+.result-actions { display: flex; flex-wrap: wrap; gap: 1rem; }
+@keyframes rating-arrive { from { opacity: 0; transform: translateY(12px) scale(.8); } to { opacity: 1; transform: none; } }
+@media (max-width: 600px) { .result-players { grid-template-columns: 1fr; } .result-actions > * { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .rating-change { animation: none; } }

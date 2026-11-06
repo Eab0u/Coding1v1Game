@@ -4,6 +4,8 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
+Participant-only post-match results are available at /match/<id>/results, linked from completed arenas. Apply migration 004_match_results.sql. Results use persisted winner, rating history and explicit final-score snapshots; the pending lifecycle service must write these atomically. Rematch invitations remain a separate backlog item.
+
 The participant-only arena is implemented at /match/<id>, linked from matchmaking reservations, with locally bundled Monaco Python editing, server-time countdown, problem/examples panel and polling opponent progress. Pending matches wait for activation; Submit is disabled until the separate lifecycle service exists. Drafts live only in the open tab.
 
 Optional duel sound and animated feedback are implemented as shared components, with match-found feedback connected to matchmaking. Sound defaults off, persists locally and unlocks through user interaction. The future arena/results screens must call the shared test-pass/fail and win/loss cues when their authoritative events exist.
@@ -34,6 +36,15 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Implement lifecycle orchestration (activation/expiry, sandbox submissions, completion and atomic ratings), connect it to the arena, then build results. Perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Post-match results screen
+- Selected and checked off the post-match results screen item. Added participant-only /match/<id>/results with WIN/LOSS/DRAW banners, animated signed rating changes, profile links and side-by-side final test counts, median benchmark CPU and submission elapsed time. Added completed-arena navigation and New match navigation to the existing queue entry point.
+- Added migration 004_match_results.sql for explicit final scorer snapshots. The screen never guesses which submission counted from submission history. Missing historical scores and ratings have honest states; no-submission time is distinct from missing score data.
+- Authentication uses the server session; unknown, unfinished, future-completed and nonparticipant matches return the same 404. Infrastructure errors show generic feedback. Explicit projection excludes code, hidden tests and secrets.
+- Added embedded Postgres access/privacy/outcome/perspective/score tests, route authentication/error tests, all-outcome and missing-data UI tests, arena-link coverage and Chromium viewport/reduced-motion coverage.
+- Validation: 207 tests across 31 files passed; lint, typecheck and production build passed. No player code executed.
+- Limits: apply the migration before loading results. Lifecycle must atomically persist two participant score snapshots with completion and rating history; orchestration is still pending, so ranked play is not enabled. Rematch is visibly disabled with an explanation; added a separate consent/expiry invitation backlog item. Live database and deployment smoke checks remain pending.
+- Next: lifecycle orchestration and isolated sandbox/catalog validation, then consensual rematch invitations.
+
 ### 2026-11-06 - Match arena screen
 - Selected and checked off the match screen item. Added /match/<id> with locally bundled Monaco Python editing, player scoreboard, server-time countdown, opponent test progress and statement, constraints, signature and examples. Added a responsive stacked layout and matchmaking Open arena link.
 - Added a participant-only snapshot query and authenticated, no-store GET endpoint. Explicit projection excludes hidden tests, solutions, opponent code and account secrets. Progress uses the latest judged opponent submission. Unknown/nonparticipant matches return the same 404.

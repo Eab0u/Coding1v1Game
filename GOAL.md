@@ -75,7 +75,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Matchmaking queue with WebSockets and rating bands
 - [x] Match screen: editor, timers, opponent progress bar
 - [ ] Match lifecycle: activate/expire reservations, sandbox submissions, finalize scores and persist ratings exactly once
-- [ ] Post-match results screen with rating change animation
+- [x] Post-match results screen with rating change animation
 - [x] Home page with Play button
 - [x] Profile page with rating graph
 - [x] Leaderboard
@@ -90,3 +90,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 
 
 
+
+- [ ] Consensual rematch invitations with opponent acceptance and expiry

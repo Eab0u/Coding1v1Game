@@ -40,4 +40,5 @@ it('locks the editor when the server reports a completed match',()=>{
   render(<Arena initial={{...initial,status:'completed'}}/>);
   expect(screen.getByLabelText('Python solution')).toHaveAttribute('readonly');
   expect(screen.getByText('This match has ended.')).toBeInTheDocument();
+  expect(screen.getByRole('link',{name:'View results'})).toHaveAttribute('href',`/match/${initial.id}/results`);
 });

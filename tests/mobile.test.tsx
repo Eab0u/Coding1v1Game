@@ -10,6 +10,7 @@ vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current
 vi.mock('../src/lib/home', () => ({ loadHome: async () => ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: 'def solve_very_long_function_name(values: list[int]) -> list[int]:', difficulty: 'easy' }, recent: [{ id: '1', title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }) }));
 vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => [{ username: 'abcdefghijklmnopqrstuvwx', rating: 1234, score: 123, rank: 1 }] }));
 vi.mock('../src/lib/profile', () => ({ ratingTier: () => 'Bronze', loadProfile: async () => ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }) }));
+import { Results } from '../src/components/results';
 import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
 import Leaderboard from '../src/app/leaderboard/page';
@@ -20,7 +21,7 @@ beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
 it('keeps populated pages within phone, tablet and desktop viewports with usable scroll regions', async () => {
-  const pages = [await Home(), await Profile({ params: Promise.resolve({ username }) }), await Leaderboard({ searchParams: Promise.resolve({ period: 'weekly' }) }), await Account({ searchParams: Promise.resolve({}) })];
+  const pages = [<Results key="results" result={{title:'X'.repeat(150),outcome:'WIN',players:[{username,before:800,after:808,passed:8,total:8,cpu:1,submitted:1000},{username:'another_long_player_name',before:800,after:792,passed:0,total:8,cpu:1000,submitted:null}]}}/>, await Home(), await Profile({ params: Promise.resolve({ username }) }), await Leaderboard({ searchParams: Promise.resolve({ period: 'weekly' }) }), await Account({ searchParams: Promise.resolve({}) })];
   state.signedIn = false;
   pages.push(await Account({ searchParams: Promise.resolve({}) }), await Home());
   const css = readFileSync('src/app/globals.css', 'utf8');
@@ -61,4 +62,14 @@ it('keeps feedback readable on phones and disables cue motion when requested', a
     expect(await page.locator('.duel-cue').isVisible()).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   } finally { await page.close(); }
+});
+
+it('animates rating changes and respects reduced motion', async()=>{
+ const page=await browser.newPage();
+ try {
+  await page.setContent(`<style>${readFileSync('src/app/globals.css','utf8')}</style><span class="rating-change">+8</span>`);
+  expect(await page.locator('.rating-change').evaluate(el=>getComputedStyle(el).animationName)).toBe('rating-arrive');
+  await page.emulateMedia({reducedMotion:'reduce'});
+  expect(await page.locator('.rating-change').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
+ } finally {await page.close();}
 });
