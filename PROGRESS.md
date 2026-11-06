@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - In-flight arena action feedback
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability and visual polish item; catalog items remain unchecked.
+- Ready and Submit now show an atomic polite acknowledgement message in a bordered panel during requests, and the relevant button exposes its busy state. Submission guidance explains that edits made during the request are not included. Pending feedback replaces old success/error text until acknowledgement or failure arrives.
+- Kept the editor available and existing duplicate-request guards intact. Added regressions for both actions covering delayed acknowledgement, concurrent polling, duplicate clicks, retained edits, failure cleanup, retry and successful acknowledgement.
+- Validation: all 370 tests across 41 files passed; lint, typecheck, production build and diff whitespace checks passed. No player code executed. Live browser and screen-reader inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing database and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Clear latest-submission judging states
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena clarity and visual polish item; catalog items remain unchecked.
 - Replaced the generic judging sentence with a bordered, accessible latest-submission panel. Queued attempts explain the worker wait, running attempts explain judging, infrastructure errors show an amber retry state, and judged attempts show the final test count. Partial worker counts stay hidden until judging completes. Unknown states receive neutral checking guidance.

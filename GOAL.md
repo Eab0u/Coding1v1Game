@@ -142,3 +142,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Show accessible submission size guidance and block blank or oversized arena submissions using shared server validation, preserving drafts and export
 
 - [x] Submit from either solution editor with Ctrl+Enter or Command+Enter, with accessible guidance and admission safeguards
+
+- [x] Show accessible in-flight Ready and Submit feedback while preserving editable drafts and distinguishing acknowledgement from judging

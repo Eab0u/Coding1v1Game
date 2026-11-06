@@ -33,7 +33,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const [error,setError]=useState("");
   const [refreshPending,setRefreshPending]=useState(false);
   const retryRefresh=useRef<(()=>Promise<void>)|null>(null);
-  const [sending,setSending]=useState(false);
+  const [sending,setSending]=useState<"ready"|"submit"|null>(null);
   const [readyAcknowledged,setReadyAcknowledged]=useState(false);
   const playerReady=match.player.ready || readyAcknowledged;
   const [submission,setSubmission]=useState("");
@@ -45,7 +45,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
     const controller=new AbortController();
     actionRequest.current=controller;
     feedback.unlock();
-    setSending(true);
+    setSending(action);
     try {
       const response=await fetch(`/api/matches/${initial.id}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,...(action==="submit" ? {source} : {})}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])});
       const result=await response.json();
@@ -55,7 +55,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       if (action==="ready" && (result.status==="pending" || result.status==="active")) setReadyAcknowledged(true);
       setSubmission(action==="ready" ? "Ready. Waiting for both players; reservations expire after 60 seconds." : "Solution queued. The server will judge it in the sandbox.");
     } catch (error) { if (!controller.signal.aborted) setSubmission(error instanceof Error ? error.message : "Request failed."); }
-    finally { if (actionRequest.current===controller) {actionRequest.current=null;setSending(false);} }
+    finally { if (actionRequest.current===controller) {actionRequest.current=null;setSending(null);} }
   }
   const received=useRef(0);
   useEffect(()=> {
@@ -141,12 +141,12 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         <strong>{submittedSource===null ? "Check your latest edits" : submittedSource===source ? "Current code sent" : "Edits not submitted"}</strong>
         <p>{submittedSource===null ? "This tab cannot confirm whether the current code was submitted. Saving a draft does not submit it." : submittedSource===source ? "The server acknowledged this code. Judging and your best score are shown separately." : seconds===0 ? "These edits differ from the last code acknowledged in this tab. Submissions are now closed; you can still copy or download your work." : "Your code differs from the last submission acknowledged in this tab. Submit again to send these edits."}</p>
       </div>}
-      {match.status==="pending" && <button className="button button--primary" disabled={sending || playerReady || reservationExpired} onClick={()=>void act("ready")}>{playerReady ? "Ready confirmed" : "Ready to duel"}</button>}
+      {match.status==="pending" && <button className="button button--primary" aria-busy={sending==="ready"} aria-describedby="submission-status" disabled={!!sending || playerReady || reservationExpired} onClick={()=>void act("ready")}>{playerReady ? "Ready confirmed" : "Ready to duel"}</button>}
       {!closed && <div className={`arena-source-limit${sourceError ? " arena-source-limit--invalid" : ""}`}>
         <p id="solution-size">{source.length.toLocaleString("en-US")} / {MAX_SOLUTION_LENGTH.toLocaleString("en-US")} character units <span className="muted">(Python source limit)</span></p>
         <p id="solution-validation" role="status">{sourceError || "Within the submission limit. Some symbols count as two character units."}</p>
       </div>}
-      <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0 || !!sourceError} onClick={()=>void act("submit")} aria-keyshortcuts="Control+Enter Meta+Enter" aria-describedby={closed ? "submission-status submit-shortcut" : "solution-size solution-validation submission-status submit-shortcut"}>Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
+      <button className="button button--primary" aria-busy={sending==="submit"} disabled={!!sending || match.status!=="active" || seconds===0 || !!sourceError} onClick={()=>void act("submit")} aria-keyshortcuts="Control+Enter Meta+Enter" aria-describedby={closed ? "submission-status submit-shortcut" : "solution-size solution-validation submission-status submit-shortcut"}>Submit solution</button><p id="submission-status" role="status" aria-atomic="true" className={sending ? "arena-action-pending" : undefined}>{sending==="ready" ? "Confirming readiness with the server. Please wait for acknowledgement." : sending==="submit" ? "Sending your solution. Waiting for server acknowledgement; edits made now are not included in this request." : submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
     </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre tabIndex={0} role="region" aria-label="Function signature">{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><h3>Examples</h3><ProblemExamples examples={match.problem.examples}/></section></div>
     </main></div>;
 }

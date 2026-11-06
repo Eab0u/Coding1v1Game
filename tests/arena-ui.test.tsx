@@ -663,3 +663,37 @@ it('follows authoritative clock corrections and clears the warning when results 
   expect(screen.queryByText(/Final minute\./)).not.toBeInTheDocument();
   expect(screen.getByRole('link',{name:'View results'})).toBeVisible();
 });
+
+it.each(['ready','submit'] as const)('shows pending %s acknowledgement, preserves edits and recovers after failure',async(action)=>{
+  vi.useFakeTimers();
+  const snapshot=action==='ready' ? initial : {...initial,status:'active',deadline:'2026-11-06T12:05:00Z'};
+  let resolve:(value:unknown)=>void=()=>{};
+  const fetcher=vi.fn().mockImplementation((_url,options)=>options?.method==='POST' ? new Promise(done=>{resolve=done;}) : Promise.resolve({ok:true,json:async()=>snapshot}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={snapshot}/>);
+  const button=screen.getByRole('button',{name:action==='ready' ? 'Ready to duel' : 'Submit solution'});
+  fireEvent.click(button);
+  expect(button).toBeDisabled();
+  expect(button).toHaveAttribute('aria-busy','true');
+  const status=document.getElementById('submission-status')!;
+  expect(status).toHaveAttribute('aria-atomic','true');
+  expect(status).toHaveClass('arena-action-pending');
+  expect(status).toHaveTextContent(action==='ready' ? 'Confirming readiness with the server' : 'Sending your solution');
+  if(action==='submit') expect(status).toHaveTextContent('edits made now are not included');
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'new unsent edits'}});
+  fireEvent.click(button);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(fetcher.mock.calls.filter(call=>call[1]?.method==='POST')).toHaveLength(1);
+  expect(status).toHaveClass('arena-action-pending');
+  await act(async()=>{resolve({ok:false,json:async()=>({error:'Please retry.'})});});
+  expect(status).toHaveTextContent('Please retry.');
+  expect(status).not.toHaveClass('arena-action-pending');
+  expect(button).toHaveAttribute('aria-busy','false');
+  expect(button).toBeEnabled();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('new unsent edits');
+  fireEvent.click(button);
+  await act(async()=>{resolve({ok:true,json:async()=>({status:action==='ready' ? 'pending' : 'queued'})});});
+  expect(status).toHaveTextContent(action==='ready' ? 'Ready. Waiting for both players' : 'Solution queued.');
+  expect(button).toHaveAttribute('aria-busy','false');
+  expect(status).not.toHaveClass('arena-action-pending');
+});
