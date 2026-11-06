@@ -92,3 +92,4 @@ Never decide the project is finished. When the backlog is empty, look for more t
 
 
 - [x] Consensual rematch invitations with opponent acceptance and expiry
+- [x] Recover tab-scoped arena drafts after refresh, isolate matches and players, and handle unavailable storage

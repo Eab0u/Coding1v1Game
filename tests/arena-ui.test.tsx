@@ -4,7 +4,7 @@ import type { ArenaSnapshot } from "../src/lib/arena";
 vi.mock('next/dynamic',()=>({default:()=>function Editor({value,onChange,readOnly}:{value:string;onChange:(v:string)=>void;readOnly:boolean}) {return <textarea aria-label="Python solution" value={value} onChange={e=>onChange(e.target.value)} readOnly={readOnly}/>;}}));
 import { Arena,remainingSeconds } from "../src/components/arena";
 const initial:ArenaSnapshot={id:'match',status:'pending',deadline:null,serverTime:'2026-11-06T12:00:00Z',player:{username:'Ada',rating:800},opponent:{username:'Bob',rating:900},problem:{title:'Sample',statement:'Find an answer',signature:'def solve():',difficulty:'easy',constraints:'n <= 100',examples:[{input:[1],output:1}]},progress:null};
-afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();});
+afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();sessionStorage.clear();});
 it('uses server time and clamps expired deadlines',()=>{
   expect(remainingSeconds(null,initial.serverTime,0)).toBeNull();
   expect(remainingSeconds('2026-11-06T12:05:00Z',initial.serverTime,1000)).toBe(299);
@@ -67,4 +67,49 @@ it('sends explicit readiness and keeps submission disabled during reservations',
   await act(async()=>{await Promise.resolve();});
   expect(screen.getByText(/Ready. Waiting for both players/)).toBeInTheDocument();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+});
+it('recovers the exact draft after remount, including an intentionally empty editor',()=>{
+  const first=render(<Arena initial={initial}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'def solve():\n    return 42'}});
+  first.unmount();
+  const second=render(<Arena initial={initial}/>);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    return 42');
+  expect(screen.getByText(/Draft saved in this tab/)).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:''}});
+  second.unmount();
+  render(<Arena initial={initial}/>);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('');
+});
+it('isolates drafts between matches and players when navigating',()=>{
+  const view=render(<Arena initial={initial}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'private draft'}});
+  view.rerender(<Arena initial={{...initial,id:'another-match'}}/>);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    pass\n');
+  view.rerender(<Arena initial={{...initial,player:{username:'Carol',rating:800}}}/>);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    pass\n');
+  view.rerender(<Arena initial={initial}/>);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('private draft');
+});
+it.each(['completed','cancelled'])('clears recovery when the server reports %s',async(status)=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status})}));
+  render(<Arena initial={initial}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'draft'}});
+  expect(sessionStorage.length).toBe(1);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(sessionStorage.length).toBe(0);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('draft');
+  expect(screen.getByLabelText('Python solution')).toHaveAttribute('readonly');
+});
+it('keeps editing and submission working when browser storage is unavailable',async()=>{
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(()=>{throw new Error('blocked');});
+  vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});
+  const fetcher=vi.fn().mockImplementation(async(_url,options)=>({ok:true,json:async()=>options?.method==='POST' ? {status:'queued'} : {...initial,status:'active',deadline:'2026-11-06T12:05:00Z'}}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={{...initial,status:'active',deadline:'2026-11-06T12:05:00Z'}}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'still editable'}});
+  expect(screen.getByText(/Draft recovery unavailable/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Submit solution'}));
+  await act(async()=>{await Promise.resolve();});
+  expect(fetcher).toHaveBeenCalledWith('/api/matches/match',expect.objectContaining({body:JSON.stringify({action:'submit',source:'still editable'})}));
 });

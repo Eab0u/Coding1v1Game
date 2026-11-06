@@ -3,13 +3,18 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ArenaSnapshot } from "../lib/arena";
+import { useArenaDraft } from "./use-arena-draft";
 const PythonEditor = dynamic(()=>import("./python-editor"),{ssr:false,loading:()=> <p>Loading editor…</p>});
 export function remainingSeconds(deadline:string|null, serverTime:string, elapsed:number) {
   return deadline ? Math.max(0,Math.ceil((Date.parse(deadline)-Date.parse(serverTime)-elapsed)/1000)) : null;
 }
 export function Arena({initial}:{initial:ArenaSnapshot}) {
+  return <ArenaSession key={`${initial.id}:${initial.player.username}`} initial={initial}/>;
+}
+function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const [match,setMatch]=useState(initial);
-  const [source,setSource]=useState(`${initial.problem.signature}\n    pass\n`);
+  const closed=match.status==="completed" || match.status==="cancelled";
+  const {source,setSource,saved}=useArenaDraft(initial.id,initial.player.username,initial.problem.signature,closed);
   const [elapsed,setElapsed]=useState(0);
   const [error,setError]=useState("");
   const [sending,setSending]=useState(false);
@@ -43,7 +48,6 @@ export function Arena({initial}:{initial:ArenaSnapshot}) {
     return ()=>{stopped=true;controller.abort();clearTimeout(timer);clearInterval(clock);};
   },[initial.id]);
   const seconds=remainingSeconds(match.deadline,match.serverTime,elapsed);
-  const closed=match.status==="completed" || match.status==="cancelled";
   return <div className="shell arena"><header className="site-header"><Link className="brand" href="/">Code<span className="accent">Duel</span></Link><span>Python arena</span></header>
     <main id="main-content"><div className="arena-scoreboard">
       <div><span className="eyebrow">YOU</span><h2>{match.player.username}</h2><p>{Math.round(match.player.rating)} MMR</p></div>
@@ -55,10 +59,11 @@ export function Arena({initial}:{initial:ArenaSnapshot}) {
     <section className="arena-progress" aria-label="Opponent progress"><label htmlFor="opponent-progress">Opponent tests passed: {match.progress ? `${match.progress.passed} / ${match.progress.total}` : "No judged submission yet"}</label><progress id="opponent-progress" value={match.progress?.passed ?? 0} max={match.progress?.total ?? 1}/></section>
     <div className="arena-columns"><section className="card arena-editor"><div className="arena-panel-heading"><h1>Your solution</h1><span className="badge">Python 3</span></div>
       <PythonEditor value={source} onChange={setSource} readOnly={closed}/>
+      {!closed && <p role="status">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code."}</p>}
       {match.submission && <p role="status">{match.submission.status==="judged" ? `Latest solution: ${match.submission.passed} / ${match.submission.total} tests passed.` : match.submission.status==="error" ? "Sandbox temporarily unavailable. Your submission will retry; results are waiting." : "Your solution is being judged."}</p>}
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>
       {match.status==="pending" && <button className="button button--primary" disabled={sending} onClick={()=>void act("ready")}>Ready to duel</button>}
-      <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0} onClick={()=>void act("submit")} aria-describedby="submission-status">Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires. Keep this tab open to retain your draft."}</p>
+      <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0} onClick={()=>void act("submit")} aria-describedby="submission-status">Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
     </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre>{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><h3>Examples</h3><pre>{JSON.stringify(match.problem.examples,null,2)}</pre></section></div>
     </main></div>;
 }
