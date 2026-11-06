@@ -4,7 +4,7 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
-Application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. Live gameplay, rating persistence orchestration and judge integration are not implemented yet.
+Application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter now produces scorer-compatible results. Live gameplay, rating persistence orchestration and live sandbox verification remain pending.
 
 ## Decisions made
 - Python only for v1
@@ -19,9 +19,19 @@ Application foundation, design system, tested match scoring and Glicko-2 rating 
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
 ## Next up
-Judge service: sandboxed Python execution against hidden tests with pass counts and CPU timing, producing the three CPU samples consumed by the scorer.
+Authentication, followed by the WebSocket matchmaking queue and match orchestration. Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Sandbox judge service
+- Selected the judge as the core remaining dependency for live matches; checked off only this backlog item.
+- Added a server-only Judge0 adapter for Python functions and JSON hidden tests. Expected answers stay on the Node server. Every execution explicitly disables network and sets CPU, wall, memory, process and file limits; no local execution fallback exists.
+- Runs largest-test benchmarks three independent times, sums CPU milliseconds per run and returns scorer-compatible counts and samples. Benchmark tests must pass all three runs; failed runs receive the full CPU limit.
+- Added bounded polling, request abort timeouts, input/config validation and fail-closed infrastructure errors. Service failures cannot become scored losses. Documented deployment settings, exact JSON comparison, benchmark measurement and caller responsibilities.
+- Added 37 mocked API tests for limits, polling, correctness, CPU units, multiple benchmarks, all program failure statuses, invalid inputs and infrastructure failures. No player code was executed.
+- Validation: all 93 tests across 6 files passed; lint, typecheck and production build passed.
+- Blocker/limit: no configured live Judge0 deployment was available. Real sandbox smoke tests, including isolation/resource enforcement, remain required before ranked rollout. Existing Docker and dependency-audit blockers remain.
+- Next: authentication, then matchmaking and orchestration. The problem pipeline must supply shared JSON suites and largest-input benchmark flags.
+
 ### 2026-11-06 - Glicko-2 ratings
 - Selected ratings as a core match dependency that can be completed without sandbox infrastructure; checked off only the rating backlog item.
 - Implemented Glickman's revised Glicko-2 volatility solver, rating-period updates, inactive-period uncertainty growth and simultaneous duel updates from pre-match snapshots. New players start at 800 with deviation 350 and volatility 0.06.
@@ -55,3 +65,4 @@ Judge service: sandboxed Python execution against hidden tests with pass counts 
 - Added users, problems, matches, submissions and rating history tables, constraints and indexes; included a serialized transactional migration runner, Docker Compose, .env.example and local setup documentation.
 - Added page availability coverage and database tests for initial ratings, username validation, match creation, self-match rejection, submission counts, completed results and unique rating history.
 - Validation: all 4 tests passed across 2 files; lint, typecheck and production build passed. Docker integration remains unverified because its daemon is unavailable.
+

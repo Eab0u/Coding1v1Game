@@ -65,7 +65,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 ## Backlog (check off as done)
 - [x] Project scaffold (Next.js, TS, lint, test setup, Postgres schema)
 - [x] Design system: colors, buttons, typography, dark theme
-- [ ] Judge service: run code in the sandbox against tests, return pass count and CPU time
+- [x] Judge service: run code in the sandbox against tests, return pass count and CPU time
 - [x] Scoring function with unit tests for all tiebreak cases
 - [x] Rating system (Glicko-2) with unit tests
 - [ ] Auth (simple username and password or OAuth)
@@ -81,3 +81,4 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 - [ ] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
 - [ ] Problems 21 to 60
 - [ ] Mobile layout polish
+
