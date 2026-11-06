@@ -4,7 +4,7 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
-Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems, match screen/lifecycle, rating persistence orchestration and live sandbox verification remain pending.
+The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems, match screen/lifecycle, rating persistence orchestration and live sandbox verification remain pending.
 
 ## Decisions made
 - Python only for v1
@@ -22,6 +22,16 @@ Authenticated WebSocket matchmaking now pairs players within widening rating ban
 Problem pipeline and validated published problems to enable pairing, then match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Home dashboard and Play
+- Selected the home page as the highest-value player-facing entry point to the existing queue; checked off only this backlog item.
+- Replaced the disabled Play placeholder with a same-origin authenticated WebSocket client. Added server-reported wait/rating bands, cancellation acknowledgement, connection timeout, retry after errors, stale connection protection and cleanup on navigation. Reserved tickets remain visible without implying the unfinished arena is available.
+- Added server-rendered current rating, consecutive win streak and five recent completed results. Streak counts the full history rather than the five-row preview; draws break streaks. Guests get a sign-in action and clear empty states.
+- Added a deterministic UTC daily selection from published problems, projecting only public fields. Added responsive dashboard cards, a larger primary action and reduced-motion-aware searching animation. Corrected outdated account copy.
+- Added dashboard, socket interaction and embedded Postgres tests covering private-field exclusion, draft exclusion, streaks longer than the preview, draws, cancellation, reservations, disconnect/retry, stale events and unmount cleanup.
+- Validation: all 134 tests across 14 files passed; lint (after removing an unused test argument warning), typecheck and production build passed. No player code executed.
+- Limits: browser/proxy smoke testing remains unverified. Real pairing still requires published problems; activation and the match screen remain upcoming work. Daily card currently presents the challenge statement/signature; practice submission is not implemented. Existing infrastructure blockers remain.
+- Next: problem pipeline and validated published problems, then match screen/lifecycle orchestration.
+
 ### 2026-11-06 - WebSocket matchmaking
 - Selected the matchmaking queue as the highest-value next step after authentication; checked off only that backlog item.
 - Added a standalone Node WebSocket worker (`npm run matchmaking`) using database-backed session authentication, strict origin/path checks, refreshed server ratings and a small join/leave protocol. Added environment and reverse-proxy setup documentation.

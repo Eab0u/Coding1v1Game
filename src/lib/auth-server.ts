@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import { createAuth } from "./auth";
 
 const globalDb = globalThis as typeof globalThis & { authPool?: Pool };
-function database() {
+export function database() {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required.");
   return globalDb.authPool ??= new Pool({ connectionString: process.env.DATABASE_URL, max: 10 });
 }

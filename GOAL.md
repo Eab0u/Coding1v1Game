@@ -75,7 +75,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Matchmaking queue with WebSockets and rating bands
 - [ ] Match screen: editor, timers, opponent progress bar
 - [ ] Post-match results screen with rating change animation
-- [ ] Home page with Play button
+- [x] Home page with Play button
 - [ ] Profile page with rating graph
 - [ ] Leaderboard
 - [ ] Problem pipeline: generate, validate, publish
