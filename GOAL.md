@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Highlight the arena's final minute with accessible submission guidance that follows the authoritative clock and clears at expiry
 - [x] Show a styled, accessible plain-text editor cursor line, column and selection count, including read-only code and indentation edits
 - [x] Show your authoritative best judged arena progress separately from the latest attempt and current edits
 - [x] Project scaffold (Next.js, TS, lint, test setup, Postgres schema)

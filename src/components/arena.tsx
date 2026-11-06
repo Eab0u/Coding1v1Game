@@ -90,12 +90,14 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const reservationSeconds=remainingSeconds(match.reservationExpiresAt ?? null,match.serverTime,elapsed);
   const reservationExpired=match.status==="pending" && reservationSeconds===0;
   const seconds=remainingSeconds(match.deadline,match.serverTime,elapsed);
+  const finalMinute=match.status==="active" && seconds!==null && seconds>0 && seconds<=60;
   return <div className="shell arena"><header className="site-header"><Link className="brand" href="/">Code<span className="accent">Duel</span></Link><span>Python arena</span><DuelFeedback feedback={feedback}/></header>
     <main id="main-content"><div className="arena-scoreboard">
       <div><span className="eyebrow">YOU</span><h2>{match.player.username}</h2><p>{Math.round(match.player.rating)} MMR</p></div>
-      <div className={`arena-clock${match.status==="pending" && reservationSeconds!==null ? " arena-clock--reservation" : ""}`}><span className="eyebrow">{match.status}</span><p role="timer" aria-label="Time remaining">{match.status==="pending" ? reservationSeconds===null ? "Waiting to start" : reservationSeconds===0 ? "Confirming status" : `Ready in ${reservationSeconds}s` : seconds===null ? "No timer" : `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,"0")}`}</p></div>
+      <div className={`arena-clock${match.status==="pending" && reservationSeconds!==null ? " arena-clock--reservation" : ""}${finalMinute ? " arena-clock--urgent" : ""}`}><span className="eyebrow">{match.status}</span><p role="timer" aria-label="Time remaining">{match.status==="pending" ? reservationSeconds===null ? "Waiting to start" : reservationSeconds===0 ? "Confirming status" : `Ready in ${reservationSeconds}s` : seconds===null ? "No timer" : `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,"0")}`}</p></div>
       <div><span className="eyebrow">OPPONENT</span><h2>{match.opponent.username}</h2><p>{Math.round(match.opponent.rating)} MMR</p></div>
     </div>
+    <div role="status" aria-atomic="true" className={finalMinute ? "arena-time-warning" : undefined}>{finalMinute ? "Final minute. Submit your latest edits before the clock expires." : ""}</div>
     {match.status==="pending" && <section className="arena-readiness" aria-label="Duel readiness" role="status">
       <div><span className={`badge${playerReady ? " arena-ready" : ""}`}>You: {playerReady ? "Ready" : "Not ready"}</span><span className={`badge${match.opponent.ready ? " arena-ready" : ""}`}>Opponent: {match.opponent.ready ? "Ready" : "Not ready"}</span></div>
       <p>{reservationExpired ? "The readiness window has ended. Checking with the server for activation or cancellation; no result is confirmed yet." : playerReady ? "Waiting for the server to start the duel when both players are ready." : "Review the problem, then mark yourself ready to start."} Reservations expire 60 seconds after pairing.</p>

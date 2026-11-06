@@ -249,3 +249,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .arena-ready { color: var(--color-success); border: 1px solid currentColor; }
 
 .arena-clock--reservation p { color: var(--color-accent); }
+.arena-clock--urgent p { color: #ffd28a; }
+.arena-time-warning { margin: 16px 0; padding: 12px 16px; border: 1px solid #ffd28a; border-radius: var(--radius-md, 12px); background: #3b3023; color: #ffd28a; font-weight: 600; overflow-wrap: anywhere; }

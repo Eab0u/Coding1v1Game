@@ -579,3 +579,53 @@ it.each(['pending','completed','cancelled','expired','blank','oversized'])('does
   fireEvent.keyDown(editor,{key:'Enter',metaKey:true});
   expect(fetchMock).not.toHaveBeenCalled();
 });
+
+it('warns at the final-minute boundary with stable accessible text and preserves edits through expiry',async()=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockReturnValue(new Promise(()=>{})));
+  render(<Arena initial={{...initial,status:'active',deadline:'2026-11-06T12:01:01Z'}}/>);
+  const timer=screen.getByRole('timer');
+  expect(timer).toHaveTextContent('1:01');
+  expect(screen.queryByText(/Final minute\./)).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my latest edits'}});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  const warning=screen.getByText(/Final minute\./);
+  expect(warning).toHaveAttribute('role','status');
+  expect(warning).toHaveAttribute('aria-atomic','true');
+  expect(timer.parentElement).toHaveClass('arena-clock--urgent');
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeEnabled();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(timer).toHaveTextContent('0:59');
+  expect(screen.getByText(/Final minute\./)).toBe(warning);
+  expect(warning).toHaveTextContent('Final minute. Submit your latest edits before the clock expires.');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(59000);});
+  expect(screen.queryByText(/Final minute\./)).not.toBeInTheDocument();
+  expect(timer.parentElement).not.toHaveClass('arena-clock--urgent');
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('my latest edits');
+  expect(screen.getByText('Time is up. Waiting for results.')).toBeVisible();
+});
+it.each(['pending','completed','cancelled'] as const)('does not show an active-clock warning for %s matches',status=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockReturnValue(new Promise(()=>{})));
+  render(<Arena initial={{...initial,status,deadline:'2026-11-06T12:00:30Z'}}/>);
+  expect(screen.queryByText(/Final minute\./)).not.toBeInTheDocument();
+  expect(screen.getByRole('timer').parentElement).not.toHaveClass('arena-clock--urgent');
+});
+it('follows authoritative clock corrections and clears the warning when results arrive',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:30Z'};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={snapshot}/>);
+  expect(screen.getByText(/Final minute\./)).toBeVisible();
+  snapshot={...snapshot,deadline:'2026-11-06T12:05:00Z'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.queryByText(/Final minute\./)).not.toBeInTheDocument();
+  snapshot={...snapshot,deadline:'2026-11-06T12:00:30Z'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByText(/Final minute\./)).toBeVisible();
+  snapshot={...snapshot,status:'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.queryByText(/Final minute\./)).not.toBeInTheDocument();
+  expect(screen.getByRole('link',{name:'View results'})).toBeVisible();
+});
