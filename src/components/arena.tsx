@@ -115,7 +115,17 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
     </section>}
     <section className="arena-progress" aria-label="Opponent progress"><label htmlFor="opponent-progress">Opponent best tests passed: {match.progress ? `${match.progress.passed} / ${match.progress.total}` : "No judged submission yet"}</label><progress id="opponent-progress" aria-describedby="opponent-progress-help" value={match.progress?.passed ?? 0} max={match.progress?.total || 1}/><p className="muted" id="opponent-progress-help">Best judged test count. Later attempts cannot lower it; runtime and submission time break ties.</p></section>
     <div className="arena-columns"><section className="card arena-editor"><div className="arena-panel-heading"><h1>Your solution</h1><span className="badge">Python 3</span></div>
-      <SolutionEditor value={source} onChange={setSource} readOnly={closed} starter={`${initial.problem.signature}\n    pass\n`}/>
+      <div onKeyDownCapture={event=>{
+        if (event.key!=="Enter" || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.repeat || event.nativeEvent.isComposing) return;
+        const target=event.target;
+        if (!(target instanceof HTMLElement) || !(target.tagName==="TEXTAREA" || target.isContentEditable)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        void act("submit");
+      }}>
+        <SolutionEditor value={source} onChange={setSource} readOnly={closed} starter={`${initial.problem.signature}\n    pass\n`}/>
+      </div>
+      <p className="muted" id="submit-shortcut">From the editor, press Ctrl+Enter or Command+Enter to submit your solution.</p>
       <section className="arena-progress" aria-label="Your best progress">
         <label htmlFor="player-progress">Your best tests passed: {match.bestProgress ? `${match.bestProgress.passed} / ${match.bestProgress.total}` : "No judged submission yet"}</label>
         <progress id="player-progress" aria-describedby="player-progress-help" value={match.bestProgress?.passed ?? 0} max={match.bestProgress?.total || 1}/>
@@ -133,7 +143,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         <p id="solution-size">{source.length.toLocaleString("en-US")} / {MAX_SOLUTION_LENGTH.toLocaleString("en-US")} character units <span className="muted">(Python source limit)</span></p>
         <p id="solution-validation" role="status">{sourceError || "Within the submission limit. Some symbols count as two character units."}</p>
       </div>}
-      <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0 || !!sourceError} onClick={()=>void act("submit")} aria-describedby={closed ? "submission-status" : "solution-size solution-validation submission-status"}>Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
+      <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0 || !!sourceError} onClick={()=>void act("submit")} aria-keyshortcuts="Control+Enter Meta+Enter" aria-describedby={closed ? "submission-status submit-shortcut" : "solution-size solution-validation submission-status submit-shortcut"}>Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
     </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre tabIndex={0} role="region" aria-label="Function signature">{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><h3>Examples</h3><ProblemExamples examples={match.problem.examples}/></section></div>
     </main></div>;
 }

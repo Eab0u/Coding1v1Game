@@ -540,3 +540,42 @@ it('labels opponent progress as best judged correctness and explains scoring tie
   expect(progress).toHaveAttribute('max','8');
   expect(progress).toHaveAccessibleDescription('Best judged test count. Later attempts cannot lower it; runtime and submission time break ties.');
 });
+
+it('submits current code with editor shortcuts in both editors and guards duplicate or modified keys',async()=>{
+  vi.useFakeTimers();
+  let resolve:(value:unknown)=>void=()=>{};
+  const fetchMock=vi.fn().mockImplementation(()=>new Promise(done=>{resolve=done;}));
+  vi.stubGlobal('fetch',fetchMock);
+  render(<Arena initial={{...initial,status:'active',deadline:'2026-11-06T12:05:00Z'}}/>);
+  const submit=screen.getByRole('button',{name:'Submit solution'});
+  expect(submit).toHaveAttribute('aria-keyshortcuts','Control+Enter Meta+Enter');
+  expect(submit).toHaveAccessibleDescription(/Ctrl\+Enter/);
+  const editor=screen.getByLabelText('Python solution');
+  fireEvent.change(editor,{target:{value:'def solve():\n    return 42'}});
+  for (const modifiers of [{},{ctrlKey:true,shiftKey:true},{metaKey:true,altKey:true},{ctrlKey:true,repeat:true},{ctrlKey:true,isComposing:true}]) {
+    fireEvent.keyDown(editor,{key:'Enter',...modifiers});
+  }
+  fireEvent.keyDown(submit,{key:'Enter',ctrlKey:true});
+  expect(fetchMock).not.toHaveBeenCalled();
+  fireEvent.keyDown(editor,{key:'Enter',ctrlKey:true});
+  fireEvent.keyDown(editor,{key:'Enter',metaKey:true});
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body).source).toBe('def solve():\n    return 42');
+  await act(async()=>{resolve({ok:true,json:async()=>({status:'queued'})});});
+  fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  fireEvent.keyDown(screen.getByLabelText('Python solution'),{key:'Enter',metaKey:true});
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  await act(async()=>{resolve({ok:true,json:async()=>({status:'queued'})});});
+});
+it.each(['pending','completed','cancelled','expired','blank','oversized'])('does not submit through shortcuts when %s',state=>{
+  vi.useFakeTimers();
+  const fetchMock=vi.fn();
+  vi.stubGlobal('fetch',fetchMock);
+  const status=state==='pending' || state==='completed' || state==='cancelled' ? state : 'active';
+  render(<Arena initial={{...initial,status,deadline:state==='expired' ? initial.serverTime : '2026-11-06T12:05:00Z'}}/>);
+  const editor=screen.getByLabelText('Python solution');
+  if (state==='blank' || state==='oversized') fireEvent.change(editor,{target:{value:state==='blank' ? '  ' : 'x'.repeat(65537)}});
+  fireEvent.keyDown(editor,{key:'Enter',ctrlKey:true});
+  fireEvent.keyDown(editor,{key:'Enter',metaKey:true});
+  expect(fetchMock).not.toHaveBeenCalled();
+});

@@ -136,3 +136,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Keep opponent progress on the best judged test count after weaker attempts, with accessible scoring guidance
 
 - [x] Show accessible submission size guidance and block blank or oversized arena submissions using shared server validation, preserving drafts and export
+
+- [x] Submit from either solution editor with Ctrl+Enter or Command+Enter, with accessible guidance and admission safeguards

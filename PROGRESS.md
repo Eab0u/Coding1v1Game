@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Submit from the solution editor keyboard
+- Reviewed both unchecked catalog items; only .env.example is present, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability item; catalog items remain unchecked.
+- Ctrl+Enter and Command+Enter now submit current code from advanced and plain-text editors. Added visible shortcut guidance and accessible shortcut metadata on Submit. Editor capture handling prevents the keystroke from inserting a newline or invoking editor commands.
+- Shortcuts use existing admission and in-flight guards. Added regressions for both editors, current source, duplicate requests, non-editor focus, ordinary Enter, extra modifiers, key repeat, IME composition, invalid source, reservation/completed/cancelled states and expired clocks.
+- Validation: all 354 tests across 41 files passed; lint, typecheck, production build and diff whitespace checks passed. No player code executed. Live Monaco/browser deployment smoke checks remain pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Your best judged arena progress
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena clarity improvement; catalog items remain unchecked.
 - Arena snapshots now project the participant's best judged test count separately from the latest submission. Added an accessible green progress bar beside the editor, with empty-state guidance and an explanation that the score does not confirm submission of current edits.
