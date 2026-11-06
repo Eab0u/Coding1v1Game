@@ -205,6 +205,10 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .arena-scoreboard > * { min-width: 0; }
 .arena-problem h2 { overflow-wrap: anywhere; }
 .arena-problem pre { max-width: 100%; }
+.problem-examples { display: grid; gap: 16px; min-width: 0; }
+.problem-example { min-width: 0; padding: 16px; border: 1px solid var(--border, #48443f); border-radius: 12px; }
+.problem-example h4 { margin: 0 0 16px; color: #81b64c; }
+.problem-example .eyebrow { font-size: 0.7rem; line-height: 1.6; }
 .arena-editor > .button { margin: 0 8px 8px 0; }
 @media (max-width: 480px) {
   .arena-scoreboard { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }

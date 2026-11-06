@@ -109,3 +109,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Download the current Python solution from either editor, including completed matches, with failure feedback
 - [x] Reset arena solutions to the full starter code with explicit confirmation, draft persistence and completed-match protection
 - [x] Add Python newline indentation to the plain-text editor with caret preservation, accessible keyboard guidance and native Tab navigation
+
+- [x] Present arena examples as numbered input/output and explanation cards with accessible scrolling and phone layout coverage

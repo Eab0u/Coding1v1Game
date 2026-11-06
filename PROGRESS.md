@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Readable arena problem examples
+- Reviewed both unchecked catalog items. They remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent problem-reading and visual polish item.
+- Replaced raw pipeline example JSON in the arena with numbered cards showing arguments in signature order, expected output and the authored explanation. Long inputs/outputs retain separately named, focusable scroll regions. Explanations preserve line breaks and wrap long text. Legacy or malformed example shapes retain the raw display rather than crashing or dropping data.
+- Added seven component regression cases for argument ordering, multiple examples, falsy/null outputs, no-argument functions, keyboard focusability, escaped markup and legacy/unavailable data. Updated Chromium arena checks to exercise actual pipeline-shaped examples, long explanations and independent input/output keyboard scrolling across four viewport widths and all match statuses.
+- Validation: all 287 tests across 39 files passed; lint, typecheck and production build passed. No player code executed. Browser coverage uses rendered fixtures; live deployment checks remain pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Plain-text Python indentation
 - Reviewed the two unchecked catalog items. Both remain blocked on isolated Judge0 validation; this workspace still has only .env.example. Added and completed one independent editor usability item.
 - The plain-text editor, including automatic Monaco failure fallback, now keeps leading whitespace on Enter and adds four spaces after a colon. It replaces selected text and restores the caret after indentation. Shift+Enter provides a plain newline; Tab keeps native focus navigation. Muted, accessible keyboard guidance explains these controls.

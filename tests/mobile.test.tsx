@@ -84,14 +84,14 @@ it('keeps the arena readable with keyboard-scrollable code on narrow screens', a
       const content = renderToStaticMarkup(<Arena initial={{
         id: 'arena', status, deadline: '2026-11-06T12:05:00Z', serverTime: '2026-11-06T12:00:00Z',
         player: { username, rating: 800 }, opponent: { username: 'another_long_player_name', rating: 1200 },
-        problem: { title: 'X'.repeat(150), statement: 'Y'.repeat(200), signature: `def solve_${'z'.repeat(200)}():`, difficulty: 'medium', constraints: 'N'.repeat(200), examples: [{ input: 'a'.repeat(200), output: 1 }] },
+        problem: { title: 'X'.repeat(150), statement: 'Y'.repeat(200), signature: `def solve_${'z'.repeat(200)}():`, difficulty: 'medium', constraints: 'N'.repeat(200), examples: [{ args: ['a'.repeat(200)], expected: 'b'.repeat(200), explanation: 'E'.repeat(200) }] },
         progress: { passed: 123, total: 456 },
       }}/>);
       for (const width of [320, 375, 768, 1280]) {
         await page.setViewportSize({ width, height: 900 });
         await page.setContent(`<style>${css}</style>${content}`);
         expect(await page.evaluate(() => document.documentElement.scrollWidth), `${status} overflow at ${width}px`).toBeLessThanOrEqual(width);
-        for (const label of ['Function signature', 'Problem examples']) {
+        for (const label of ['Function signature', 'Example 1 input', 'Example 1 expected output']) {
           const region = page.getByRole('region', { name: label, exact: true });
           await region.focus();
           expect(await region.evaluate(el => el === document.activeElement)).toBe(true);
