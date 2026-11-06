@@ -11,6 +11,41 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('distinguishes acknowledged code from edits made during submission and resets on navigation',async()=>{
+  vi.useFakeTimers();
+  const active={...initial,status:'active' as const,deadline:'2026-11-06T12:05:00Z'};
+  let resolve:(value:unknown)=>void=()=>{};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation((_url,options)=>options?.method==='POST' ? new Promise(done=>{resolve=done;}) : Promise.resolve({ok:true,json:async()=>active})));
+  const view=render(<Arena initial={active}/>);
+  expect(screen.getByText('Check your latest edits')).toBeVisible();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'sent code'}});
+  fireEvent.click(screen.getByRole('button',{name:'Submit solution'}));
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'new edits'}});
+  await act(async()=>{resolve({ok:true,json:async()=>({status:'queued'})});});
+  expect(screen.getByText('Edits not submitted')).toBeVisible();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'sent code'}});
+  expect(screen.getByText('Current code sent')).toBeVisible();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'new edits'}});
+  fireEvent.click(screen.getByRole('button',{name:'Submit solution'}));
+  await act(async()=>{resolve({ok:false,json:async()=>({error:'Try again'})});});
+  expect(screen.getByText('Edits not submitted')).toBeVisible();
+  view.rerender(<Arena initial={{...active,id:'new-match'}}/>);
+  expect(screen.getByText('Check your latest edits')).toBeVisible();
+});
+it('keeps unsent edit guidance honest at expiry and removes it when the match ends',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z'};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation((_url,options)=>Promise.resolve({ok:true,json:async()=>options?.method==='POST' ? {status:'queued'} : snapshot})));
+  render(<Arena initial={snapshot}/>);
+  await act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Submit solution'}));});
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'unsent'}});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1250);});
+  expect(screen.getByText(/These edits differ.*Submissions are now closed/)).toBeVisible();
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+  snapshot={...snapshot,status:'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.queryByText('Edits not submitted')).not.toBeInTheDocument();
+});
 it('explains an already cancelled reservation and links back to matchmaking',()=>{
   render(<Arena initial={{...initial,status:'cancelled'}}/>);
   expect(screen.getByRole('region',{name:'Duel cancelled'})).toBeVisible();

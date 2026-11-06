@@ -34,6 +34,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const [readyAcknowledged,setReadyAcknowledged]=useState(false);
   const playerReady=match.player.ready || readyAcknowledged;
   const [submission,setSubmission]=useState("");
+  const [submittedSource,setSubmittedSource]=useState<string|null>(null);
   const actionRequest=useRef<AbortController|null>(null);
   useEffect(()=>()=>{actionRequest.current?.abort();actionRequest.current=null;},[]);
   async function act(action: "ready" | "submit") {
@@ -47,6 +48,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       const result=await response.json();
       if (controller.signal.aborted) return;
       if (!response.ok) throw new Error(result.error || "Request failed.");
+      if (action==="submit") setSubmittedSource(source);
       if (action==="ready" && (result.status==="pending" || result.status==="active")) setReadyAcknowledged(true);
       setSubmission(action==="ready" ? "Ready. Waiting for both players; reservations expire after 60 seconds." : "Solution queued. The server will judge it in the sandbox.");
     } catch (error) { if (!controller.signal.aborted) setSubmission(error instanceof Error ? error.message : "Request failed."); }
@@ -113,6 +115,10 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       {!closed && <p role="status">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code."}</p>}
       {match.submission && <p role="status">{match.submission.status==="judged" ? `Latest solution: ${match.submission.passed} / ${match.submission.total} tests passed.` : match.submission.status==="error" ? "Sandbox temporarily unavailable. Your submission will retry; results are waiting." : "Your solution is being judged."}</p>}
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>
+      {match.status==="active" && <div className="arena-submission-state" role="status">
+        <strong>{submittedSource===null ? "Check your latest edits" : submittedSource===source ? "Current code sent" : "Edits not submitted"}</strong>
+        <p>{submittedSource===null ? "This tab cannot confirm whether the current code was submitted. Saving a draft does not submit it." : submittedSource===source ? "The server acknowledged this code. Judging and your best score are shown separately." : seconds===0 ? "These edits differ from the last code acknowledged in this tab. Submissions are now closed; you can still copy or download your work." : "Your code differs from the last submission acknowledged in this tab. Submit again to send these edits."}</p>
+      </div>}
       {match.status==="pending" && <button className="button button--primary" disabled={sending || playerReady} onClick={()=>void act("ready")}>{playerReady ? "Ready confirmed" : "Ready to duel"}</button>}
       <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0} onClick={()=>void act("submit")} aria-describedby="submission-status">Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
     </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre tabIndex={0} role="region" aria-label="Function signature">{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><h3>Examples</h3><ProblemExamples examples={match.problem.examples}/></section></div>

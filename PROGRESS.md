@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Submission freshness guidance
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability item; catalog tasks remain unchecked.
+- Added a styled, accessible submission status panel distinguishing code acknowledged by the server from subsequent edits. In-flight edits remain unsent after acknowledgment; failed requests retain the previous acknowledgment. Restoring exactly the sent code restores its sent state.
+- Reopened and new arenas honestly explain that this tab cannot confirm the current code's submission history. Draft saving is explicitly separate from submission. Expired clocks explain that unsent edits can still be exported, and ended matches remove the panel.
+- Added regressions for in-flight editing, restoring sent code, request failure, match navigation, deadline expiry and completion.
+- Validation: all 340 tests across 40 files passed; lint, typecheck and production build passed. No player code executed. Live browser visual inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Expired clock and pending results guidance
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena clarity and visual polish item; catalog tasks remain unchecked.
 - Active arenas at zero now show a responsive, green-accented pending-results panel with an accessible announcement. It explains closed submissions, continued judging, possible sandbox delays and automatic checking without implying a winner or confirmed rating change.
