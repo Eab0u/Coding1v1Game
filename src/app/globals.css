@@ -160,7 +160,7 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 @media (max-width: 480px) { .profile-record { gap: .5rem; } .profile-record .card { padding: 1rem; } }
 .friend-list { display: grid; gap: 1rem; margin-top: 1.5rem; }
 .friend-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
-.friend-list h2 { overflow-wrap: anywhere; }
+.friend-list h3 { overflow-wrap: anywhere; }
 .duel-feedback { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
 .duel-feedback-status { min-height: 28px; }
 .duel-cue { display: inline-block; padding: 2px 12px; border-radius: var(--radius-pill); background: var(--color-bg); border: 1px solid currentColor; font-weight: 700; color: var(--color-success); animation: cue-arrival 360ms ease-out; }
@@ -266,3 +266,10 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .password-field { display: flex; align-items: stretch; gap: 8px; min-width: 0; }
 .password-field input { min-width: 0; flex: 1; }
 .password-field .button { flex-shrink: 0; }
+
+.friend-groups { display: grid; gap: 2rem; margin-top: 2rem; }
+.friend-group-title { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.friend-list { list-style: none; padding: 0; }
+.friend-list li { min-width: 0; }
+.friend-list h3 { margin-top: 0; font-size: 1.25rem; }
+.friend-empty { color: var(--color-muted); padding: 1rem; border: 1px dashed var(--color-border); border-radius: var(--radius-md); }

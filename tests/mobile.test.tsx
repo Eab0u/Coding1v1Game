@@ -12,6 +12,8 @@ vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => [{ usern
 vi.mock('../src/lib/profile', () => ({ ratingTier: () => 'Bronze', loadProfile: async () => ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }) }));
 import { Arena } from '../src/components/arena';
 import { Results } from '../src/components/results';
+vi.mock('../src/lib/friends', () => ({ loadFriends: async () => [{ username: 'abcdefghijklmnopqrstuvwx', status: 'pending', incoming: true }, { username: 'another_long_player_name', status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', status: 'pending', incoming: false }] }));
+import Friends from '../src/app/friends/page';
 import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
 import Leaderboard from '../src/app/leaderboard/page';
@@ -22,7 +24,7 @@ beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
 it('keeps populated pages within phone, tablet and desktop viewports with usable scroll regions', async () => {
-  const pages = [<Results key="results" result={{title:'X'.repeat(150),outcome:'WIN',players:[{username,before:800,after:808,passed:8,total:8,cpu:1,submitted:1000},{username:'another_long_player_name',before:800,after:792,passed:0,total:8,cpu:1000,submitted:null}]}}/>, await Home(), await Profile({ params: Promise.resolve({ username }) }), await Leaderboard({ searchParams: Promise.resolve({ period: 'weekly' }) }), await Account({ searchParams: Promise.resolve({}) })];
+  const pages = [<Results key="results" result={{title:'X'.repeat(150),outcome:'WIN',players:[{username,before:800,after:808,passed:8,total:8,cpu:1,submitted:1000},{username:'another_long_player_name',before:800,after:792,passed:0,total:8,cpu:1000,submitted:null}]}}/>, await Friends({ searchParams: Promise.resolve({}) }), await Home(), await Profile({ params: Promise.resolve({ username }) }), await Leaderboard({ searchParams: Promise.resolve({ period: 'weekly' }) }), await Account({ searchParams: Promise.resolve({}) })];
   state.signedIn = false;
   pages.push(await Account({ searchParams: Promise.resolve({}) }), await Home());
   const css = readFileSync('src/app/globals.css', 'utf8');

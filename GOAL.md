@@ -148,3 +148,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Show accessible in-flight Ready and Submit feedback while preserving editable drafts and distinguishing acknowledgement from judging
 
 - [x] Add accessible, independent password visibility controls to sign-in and sign-up with preserved input and phone-friendly styling
+
+- [x] Restore working friend action submissions and organize incoming requests, friends and sent requests into accessible counted sections with phone layout coverage

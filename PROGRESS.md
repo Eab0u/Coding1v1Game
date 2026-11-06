@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Working friend actions and organized relationship sections
+- Reviewed both unchecked catalog items; isolated Judge0 validation remains blocked because only .env.example is available. Added and completed one independent friends-flow repair and visual polish item; catalog items remain unchecked.
+- Fixed Accept, Decline, Cancel request and Remove friend buttons: the shared Button defaults to type="button", so these controls previously never submitted. Each now explicitly submits its existing authenticated POST form with the selected action and player.
+- Split the circle into accessible Incoming requests, Your friends and Sent requests sections, with accurate counts, incoming-first ordering, semantic player lists, named action forms and styled empty states. Existing server authorization and consent rules remain in effect.
+- Added regression coverage for actual submit events, clicked submitters, player/action payloads, section membership/counts, empty states and guest privacy. Extended Chromium layout checks to populated friends at 320/375/768/1280px, including long names and touch target sizes.
+- Validation: all 376 tests across 41 files, lint, typecheck, production build and diff whitespace checks passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database, WebSocket and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Bounded matchmaking reservation recovery
 - Reviewed both unchecked catalog items; isolated Judge0 validation remains blocked because only .env.example is available. Added and completed one independent matchmaking reliability and usability item; catalog items remain unchecked.
 - Reservation confirmation now has a fixed ten-second deadline. Missing confirmation closes the connection and enables retry with explicit guidance that a reserved match may need recovery. Repeated matching frames and stale queued frames cannot renew the deadline or restore cancellation while reservation is underway. Late frames from abandoned connections cannot replace a recovered ticket.
