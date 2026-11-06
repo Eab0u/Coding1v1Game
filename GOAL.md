@@ -100,3 +100,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Polish the phone arena scoreboard and submission controls; make problem code blocks keyboard-scrollable with browser regression coverage
 - [x] Refresh arena state immediately on tab return, prevent overlapping polls and stop polling ended matches
 - [x] Protect rematch actions from stale polls, isolate match views and abort actions on navigation
+
+- [x] Recover matchmaking from missing join/cancel acknowledgements and clean up connection timers

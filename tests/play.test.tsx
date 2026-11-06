@@ -11,7 +11,7 @@ class Socket {
   constructor(public url: URL) { Socket.latest = this; }
 }
 beforeEach(() => { vi.stubGlobal("WebSocket", Socket); });
-afterEach(() => { vi.unstubAllGlobals(); });
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 function start() { render(<Play signedIn />); fireEvent.click(screen.getByRole("button", { name: "Play a duel" })); act(() => Socket.latest.onopen()); return Socket.latest; }
 function event(data: object) { act(() => Socket.latest.onmessage({ data: JSON.stringify(data) })); }
 it("joins once and shows server wait and cancellation acknowledgement", () => {
@@ -50,3 +50,57 @@ it("closes an outstanding search on unmount", () => {
   view.unmount(); expect(Socket.latest.close).toHaveBeenCalled();
 });
 
+
+it("times out an open connection without a join acknowledgement and permits retry", () => {
+  vi.useFakeTimers();
+  const ws = start();
+  act(() => vi.advanceTimersByTime(10000));
+  expect(ws.close).toHaveBeenCalled();
+  expect(screen.getByRole("status")).toHaveTextContent("did not confirm your search");
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => ws.onmessage({ data: '{"type":"queued","waitedSeconds":0,"ratingBand":100}' }));
+  expect(screen.getByRole("status")).toHaveTextContent("Connecting");
+});
+it("waits for cancellation despite queued frames and recovers if acknowledgement never arrives", () => {
+  vi.useFakeTimers();
+  start();
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  event({ type: "queued", waitedSeconds: 1, ratingBand: 100 });
+  expect(screen.queryByRole("button", { name: "Cancel search" })).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("status")).toHaveTextContent("Cancellation was not confirmed");
+  expect(screen.getByRole("button", { name: "Play a duel" })).toBeEnabled();
+});
+it("clears acknowledgement timers on success and unmount", () => {
+  vi.useFakeTimers();
+  const view = render(<Play signedIn />);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("status")).toHaveTextContent("Finding opponent");
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  view.unmount();
+  expect(vi.getTimerCount()).toBe(0);
+});
+it("preserves a reservation received while cancelling", () => {
+  vi.useFakeTimers();
+  start();
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  event({ type: "matched", match: { id: "race", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveAttribute("href", "/match/race");
+});
+
+it("recovers from a synchronous command send failure", () => {
+  vi.useFakeTimers();
+  render(<Play signedIn />);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  Socket.latest.send.mockImplementationOnce(() => { throw new Error("closed"); });
+  act(() => Socket.latest.onopen());
+  expect(screen.getByRole("button", { name: "Play a duel" })).toBeEnabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Connection lost");
+  expect(vi.getTimerCount()).toBe(0);
+});

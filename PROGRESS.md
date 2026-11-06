@@ -36,6 +36,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Matchmaking acknowledgement recovery
+- Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent matchmaking reliability item.
+- Open sockets now have a fresh ten-second response deadline for join and leave commands. Missing acknowledgements close the connection and restore Play with explicit retry feedback. Unconfirmed cancellation tells players to retry to recover any reservation.
+- Queued/matching frames received during cancellation cannot replace the cancellation state or cancel its deadline. A concurrent reserved match remains accessible. Successful responses, send failures, socket failures, local cancellation and unmount clear timers; stale connection callbacks cannot affect a retry.
+- Added regression tests for missing acknowledgements, stale frames, cancellation races, timer cleanup and synchronous send failure.
+- Validation: the full suite passed (249 tests across 36 files), then the final added send-failure regression passed with all 9 Play tests (250 tests total). Lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency, sandbox isolation/resource enforcement and deployment smoke checks remain pending.
+
 ### 2026-11-06 - Rematch request isolation
 - Reviewed the unchecked problems 1-20 and 21-60 items. Both still require isolated Judge0 validation; only .env.example is configured. Added and completed one independent rematch reliability item.
 - Invitation actions synchronously invalidate earlier polls and pause polling while pending. Polling resumes after success or failure. Match changes reset invitation state; navigation aborts pending actions, and late responses cannot update the replacement view. A synchronous request guard prevents duplicate actions.
