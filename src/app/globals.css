@@ -278,3 +278,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .rematch-panel--settled { border-left: 4px solid var(--color-accent); }
 .rematch-summary { color: var(--color-muted); line-height: 1.6; }
 .rematch-panel .button { white-space: normal; text-align: center; }
+
+.rematch-pending { padding: 12px 16px; border-left: 4px solid var(--color-accent); border-radius: 8px; background: var(--color-surface); line-height: 1.6; }

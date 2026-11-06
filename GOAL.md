@@ -151,3 +151,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Add accessible, independent password visibility controls to sign-in and sign-up with preserved input and phone-friendly styling
 
 - [x] Restore working friend action submissions and organize incoming requests, friends and sent requests into accessible counted sections with phone layout coverage
+
+- [x] Show styled, accessible rematch action feedback until server confirmation, with retry recovery and duplicate-action protection

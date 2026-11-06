@@ -129,3 +129,43 @@ it('continues polling pending invitations until the server reports expiry',async
   expect(fetcher).toHaveBeenCalledTimes(2);
  } finally {vi.useRealTimers();}
 });
+
+
+it.each([
+ ['invite','none',true,'Rematch','Sending invitation'],
+ ['accept','pending',false,'Accept rematch','Accepting rematch'],
+ ['decline','pending',false,'Decline','Declining invitation'],
+ ['cancel','pending',true,'Cancel invitation','Cancelling invitation'],
+] as const)('announces %s while awaiting confirmation and restores controls after failure',async(action,status,outgoing,label,message)=>{
+ const pending=deferred<{ok:boolean;json:()=>Promise<{error:string}>}>();
+ const initial={ok:true,json:async()=>({status,outgoing,matchId:null})};
+ const fetcher=vi.fn().mockResolvedValueOnce(initial).mockReturnValueOnce(pending.promise).mockResolvedValue(initial);
+ vi.stubGlobal('fetch',fetcher);
+ render(<Rematch id="old"/>);
+ const button=await screen.findByRole('button',{name:label});
+ fireEvent.click(button);
+ expect(screen.getByRole('status')).toHaveTextContent(message);
+ expect(screen.getByRole('status')).toHaveClass('rematch-pending');
+ for (const control of screen.getAllByRole('button')) expect(control).toBeDisabled();
+ fireEvent.click(button);
+ expect(fetcher).toHaveBeenCalledTimes(2);
+ expect(fetcher).toHaveBeenLastCalledWith(`/api/matches/old/rematch?action=${action}`,expect.objectContaining({method:'POST'}));
+ await act(async()=>{pending.resolve({ok:false,json:async()=>({error:'Please try again.'})});});
+ expect(screen.getByRole('alert')).toHaveTextContent('Please try again.');
+ expect(screen.getByRole('status')).not.toHaveTextContent(message);
+ expect(screen.getByRole('status')).not.toHaveClass('rematch-pending');
+ expect(screen.getByRole('button',{name:label})).toBeEnabled();
+});
+
+it('replaces sending feedback with the confirmed invitation state',async()=>{
+ const pending=deferred<ReturnType<typeof response>>();
+ const fetcher=vi.fn().mockResolvedValueOnce(response('none')).mockReturnValueOnce(pending.promise).mockResolvedValue(response('pending'));
+ vi.stubGlobal('fetch',fetcher);
+ render(<Rematch id="old"/>);
+ fireEvent.click(await screen.findByRole('button',{name:'Rematch'}));
+ expect(screen.getByRole('status')).toHaveTextContent('Sending invitation');
+ await act(async()=>{pending.resolve(response('pending'));});
+ expect(screen.getByRole('status')).toHaveTextContent('Waiting for your opponent');
+ expect(screen.getByRole('status')).not.toHaveClass('rematch-pending');
+ expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeEnabled();
+});

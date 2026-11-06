@@ -2,6 +2,12 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { RematchState } from '../lib/rematch';
+const pendingMessages: Record<string,string> = {
+  invite: 'Sending invitation. Waiting for server confirmation.',
+  accept: 'Accepting rematch. Waiting for the server to open your arena.',
+  decline: 'Declining invitation. Waiting for server confirmation.',
+  cancel: 'Cancelling invitation. Waiting for server confirmation.',
+};
 const terminalStatuses = new Set(['accepted','declined','cancelled','expired']);
 const terminalMessages: Record<string,string> = {
   accepted: 'Rematch accepted. Your next arena is ready.',
@@ -17,6 +23,7 @@ function RematchSession({id}:{id:string}) {
   const [error,setError]=useState('');
   const [pollError,setPollError]=useState('');
   const [busy,setBusy]=useState(false);
+  const [pendingAction,setPendingAction]=useState('');
   const [refresh,setRefresh]=useState(0);
   const revision=useRef(0);
   const actionController=useRef<AbortController|null>(null);
@@ -47,7 +54,7 @@ function RematchSession({id}:{id:string}) {
     const controller=new AbortController();
     actionController.current=controller;
     revision.current++;
-    setBusy(true);setError('');
+    setBusy(true);setPendingAction(action);setError('');
     try {
       const response=await fetch(`/api/matches/${id}/rematch?action=${action}`,{method:'POST',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])});
       const data=await response.json();
@@ -56,11 +63,11 @@ function RematchSession({id}:{id:string}) {
       // Restart polling so an older in-flight read cannot replace the action result.
       setRefresh(n=>n+1);setState(data);setPollError('');
     } catch(e) {if (!controller.signal.aborted) setError(e instanceof Error?e.message:'Unable to send invitation.');}
-    finally {if (!controller.signal.aborted) {actionController.current=null;setBusy(false);}}
+    finally {if (!controller.signal.aborted) {actionController.current=null;setBusy(false);setPendingAction('');}}
   }
   return <section className={`card rematch-panel${terminal?' rematch-panel--settled':''}`} aria-label="Rematch invitation"><h2>Another round?</h2>
     {terminal && <p className="rematch-summary" role="status">{terminalMessages[state.status]}</p>}
-    {!terminal && <p role="status">{!state?'Checking invitation…':state.status==='none'?'Invite your opponent to a fresh ranked duel. They have 60 seconds to accept.':state.status==='pending'?(state.outgoing?'Waiting for your opponent. Invitation expires after 60 seconds.':'Your opponent invited you to a fresh ranked duel. Accept within 60 seconds.'):`Invitation ${state.status}.`}</p>}
+    {!terminal && <p role="status" className={busy?'rematch-pending':undefined}>{busy?pendingMessages[pendingAction]:!state?'Checking invitation…':state.status==='none'?'Invite your opponent to a fresh ranked duel. They have 60 seconds to accept.':state.status==='pending'?(state.outgoing?'Waiting for your opponent. Invitation expires after 60 seconds.':'Your opponent invited you to a fresh ranked duel. Accept within 60 seconds.'):`Invitation ${state.status}.`}</p>}
     {state?.status==='none' && <button className="button button--secondary" disabled={busy} onClick={()=>void act('invite')}>Rematch</button>}
     {state?.status==='pending' && (state.outgoing?<button className="button button--secondary" disabled={busy} onClick={()=>void act('cancel')}>Cancel invitation</button>:<div className="result-actions"><button className="button button--primary" disabled={busy} onClick={()=>void act('accept')}>Accept rematch</button><button className="button button--secondary" disabled={busy} onClick={()=>void act('decline')}>Decline</button></div>)}
     {state?.matchId && <Link className="button button--primary" href={`/match/${state.matchId}`}>Open rematch arena</Link>}
