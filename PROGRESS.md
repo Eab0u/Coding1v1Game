@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Settled rematch feedback and polling cleanup
+- Reviewed both unchecked catalog items; isolated Judge0 validation remains blocked because only .env.example is available. Added and completed one independent rematch efficiency and visual polish item; catalog items remain unchecked.
+- Rematch reads now stop after the server reports accepted, declined, cancelled or expired, including terminal POST responses. This avoids repeating transactional database reads and match-row locks for immutable invitation outcomes. Pending and absent invitations still poll, failed requests retain retry behavior, and changing matches starts a fresh session.
+- Added distinct accessible terminal messages, a styled settled panel and a direct Find a new opponent action for declined, cancelled and expired invitations. Accepted invitations retain their arena link. Successful actions clear stale refresh errors.
+- Added six regression cases covering all terminal states, next-action links, terminal action responses, match changes and server-reported expiry after pending refreshes.
+- Validation: all 382 tests across 41 files, lint, typecheck, production build and diff whitespace checks passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database, WebSocket and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Working friend actions and organized relationship sections
 - Reviewed both unchecked catalog items; isolated Judge0 validation remains blocked because only .env.example is available. Added and completed one independent friends-flow repair and visual polish item; catalog items remain unchecked.
 - Fixed Accept, Decline, Cancel request and Remove friend buttons: the shared Button defaults to type="button", so these controls previously never submitted. Each now explicitly submits its existing authenticated POST form with the selected action and player.

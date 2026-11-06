@@ -77,3 +77,55 @@ it('aborts an in-flight action when the invitation view unmounts',async()=>{
  await act(async()=>{pending.resolve(response('pending'));});
  expect(fetcher).toHaveBeenCalledTimes(2);
 });
+
+it.each(['accepted','declined','cancelled','expired'])('stops polling an authoritative %s invitation and shows its next action',async(status)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({status,outgoing:false,matchId:status==='accepted'?'next':null})});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.getByRole('status')).toHaveTextContent(status==='accepted'?'Rematch accepted':status==='declined'?'rematch was declined':status==='cancelled'?'invitation was cancelled':'invitation expired');
+  const link=screen.getByRole('link',{name:status==='accepted'?'Open rematch arena':'Find a new opponent'});
+  expect(link).toHaveAttribute('href',status==='accepted'?'/match/next':'/');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(30000);});
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole('button')).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
+
+it('stops polling after a terminal action response and starts fresh for another match',async()=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockResolvedValueOnce(response('pending')).mockResolvedValueOnce(response('cancelled')).mockResolvedValue(response('none'));
+  vi.stubGlobal('fetch',fetcher);
+  const view=render(<Rematch id="old"/>);
+  await act(async()=>{});
+  fireEvent.click(screen.getByRole('button',{name:'Cancel invitation'}));
+  await act(async()=>{});
+  expect(screen.getByRole('status')).toHaveTextContent('invitation was cancelled');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(30000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  view.rerender(<Rematch id="other"/>);
+  await act(async()=>{});
+  expect(fetcher).toHaveBeenCalledTimes(3);
+  expect(screen.getByRole('button',{name:'Rematch'})).toBeEnabled();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(fetcher).toHaveBeenCalledTimes(4);
+ } finally {vi.useRealTimers();}
+});
+
+it('continues polling pending invitations until the server reports expiry',async()=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockResolvedValueOnce(response('pending')).mockResolvedValue(response('expired'));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeEnabled();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('status')).toHaveTextContent('invitation expired');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(30000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+ } finally {vi.useRealTimers();}
+});
