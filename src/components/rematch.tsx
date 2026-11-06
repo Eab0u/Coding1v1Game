@@ -37,6 +37,8 @@ function RematchSession({id}:{id:string}) {
     let stopped=false; let timer:ReturnType<typeof setTimeout>;
     const controller=new AbortController();
     async function poll() {
+      if (stopped || readPending.current) return;
+      clearTimeout(timer);
       readPending.current=true;setRefreshing(true);
       try {
         const response=await fetch(`/api/matches/${id}/rematch`,{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])});
@@ -50,8 +52,12 @@ function RematchSession({id}:{id:string}) {
       finally {if (!stopped && revision.current===version) {readPending.current=false;setRefreshing(false);}}
       if (!stopped && revision.current===version) timer=setTimeout(poll,2000);
     }
+    function resume() {
+      if (document.visibilityState==='visible') void poll();
+    }
+    document.addEventListener('visibilitychange',resume);
     void poll();
-    return ()=>{stopped=true;controller.abort();clearTimeout(timer);readPending.current=false;};
+    return ()=>{stopped=true;controller.abort();clearTimeout(timer);readPending.current=false;document.removeEventListener('visibilitychange',resume);};
   },[id,refresh,busy,terminal]);
   function retry() {
     if (readPending.current || actionController.current || terminal) return;

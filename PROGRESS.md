@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Rematch tab-return recovery
+- Reviewed both unchecked catalog items; isolated Judge0 remains unavailable (only .env.example is present). Added and completed one independent rematch recovery item; catalog items remain unchecked.
+- Returning to a visible tab now immediately refreshes the invitation, updating the existing accessible outcome panel and next actions. Reads share an in-flight guard and reset the scheduled poll delay. Invitation actions and terminal outcomes suppress refreshes; navigation removes the listener and aborts reads.
+- Added regression coverage for hidden tabs, repeated visibility events, in-flight reads/actions, expiry, resumed polling timing and listener cleanup.
+- Validation: the full suite passed (391 tests across 41 files); the final additional timing/cleanup test passed in the focused 21-test rematch suite. Lint, typecheck, production build and diff whitespace checks passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database, WebSocket and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Immediate rematch read recovery
 - Reviewed the two unchecked catalog items; both remain blocked by the missing isolated Judge0 deployment. Only .env.example is available. Added and completed one independent recovery and visual polish item; catalog tasks remain unchecked.
 - Failed invitation reads now show an accented recovery panel with an immediate Retry invitation update action. Refreshing is announced accessibly; retries are disabled during reads and invitation actions. Automatic retries continue, successful reads clear the panel, and terminal states retain their existing next actions.

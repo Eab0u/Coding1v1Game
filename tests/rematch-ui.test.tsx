@@ -211,3 +211,69 @@ it('keeps recovery available after another failed read and aborts a retry on nav
  expect(screen.queryByText(/invitation expired/)).not.toBeInTheDocument();
  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
+
+it('refreshes on tab return without overlapping reads and stops after expiry',async()=>{
+ vi.useFakeTimers();
+ const visibility=vi.spyOn(document,'visibilityState','get');
+ try {
+  const pending=deferred<ReturnType<typeof response>>();
+  const fetcher=vi.fn().mockResolvedValueOnce(response('pending')).mockReturnValueOnce(pending.promise);
+  vi.stubGlobal('fetch',fetcher);
+  const view=render(<Rematch id="old"/>);
+  await act(async()=>{});
+  visibility.mockReturnValue('hidden');
+  fireEvent(document,new Event('visibilitychange'));
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  visibility.mockReturnValue('visible');
+  fireEvent(document,new Event('visibilitychange'));
+  fireEvent(document,new Event('visibilitychange'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  await act(async()=>{pending.resolve(response('expired'));});
+  expect(screen.getByRole('status')).toHaveTextContent('invitation expired');
+  fireEvent(document,new Event('visibilitychange'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  view.unmount();
+  fireEvent(document,new Event('visibilitychange'));
+  expect(fetcher).toHaveBeenCalledTimes(2);
+ } finally {visibility.mockRestore();vi.useRealTimers();}
+});
+
+it('does not refresh on tab return during an invitation action',async()=>{
+ const pending=deferred<ReturnType<typeof response>>();
+ const fetcher=vi.fn().mockResolvedValueOnce(response('none')).mockReturnValueOnce(pending.promise).mockResolvedValue(response('pending'));
+ vi.stubGlobal('fetch',fetcher);
+ const visibility=vi.spyOn(document,'visibilityState','get').mockReturnValue('visible');
+ try {
+  render(<Rematch id="old"/>);
+  fireEvent.click(await screen.findByRole('button',{name:'Rematch'}));
+  fireEvent(document,new Event('visibilitychange'));
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  await act(async()=>{pending.resolve(response('pending'));});
+  expect(fetcher).toHaveBeenCalledTimes(3);
+  expect(screen.getByRole('status')).toHaveTextContent('Waiting for your opponent');
+ } finally {visibility.mockRestore();}
+});
+
+it('restarts the poll delay after a tab-return refresh and removes the listener on navigation',async()=>{
+ vi.useFakeTimers();
+ const visibility=vi.spyOn(document,'visibilityState','get').mockReturnValue('visible');
+ try {
+  const fetcher=vi.fn().mockResolvedValue(response('none'));
+  vi.stubGlobal('fetch',fetcher);
+  const view=render(<Rematch id="old"/>);
+  await act(async()=>{});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1500);});
+  await act(async()=>{fireEvent(document,new Event('visibilitychange'));});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(500);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1500);});
+  expect(fetcher).toHaveBeenCalledTimes(3);
+  view.unmount();
+  fireEvent(document,new Event('visibilitychange'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(4000);});
+  expect(fetcher).toHaveBeenCalledTimes(3);
+ } finally {visibility.mockRestore();vi.useRealTimers();}
+});
