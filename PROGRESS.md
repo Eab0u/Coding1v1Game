@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Your best judged arena progress
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena clarity improvement; catalog items remain unchecked.
+- Arena snapshots now project the participant's best judged test count separately from the latest submission. Added an accessible green progress bar beside the editor, with empty-state guidance and an explanation that the score does not confirm submission of current edits.
+- Added embedded database coverage for participant isolation, zero-pass scores, stronger scores and later weaker, failed, running or incomplete attempts. UI coverage verifies polling updates, latest-versus-best scores, unsent edits, accessible labels/descriptions and completed matches. Updated existing selectors to distinguish both players' progress bars.
+- Validation: all 347 tests across 41 files passed; lint, typecheck, production build and diff whitespace checks passed. No player code executed. Live deployment visual inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Submission size guidance and admission validation
 - Reviewed the two unchecked catalog items; only .env.example is present, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability item; catalog items remain unchecked.
 - Added a styled source-limit panel with exact character-unit counts, accessible validation feedback and guidance for symbols that occupy two UTF-16 units. Blank or oversized code disables Submit; reducing code to the limit restores submission. Ready remains independent of source validity.

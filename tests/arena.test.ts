@@ -29,6 +29,7 @@ it("restricts matches to participants and projects public problem and best judge
       ($1,$2,'SECRET','judged',2,8,now()-interval '1 minute'),($1,$2,'SECRET','judged',5,8,now()),($1,$2,'SECRET','running',NULL,NULL,now()+interval '1 second')`,[m.id,users[1].id]);
     const result=await loadArena(store,m.id,users[0].id);
     expect(result?.progress).toEqual({passed:5,total:8});
+    expect(result?.bestProgress).toBeNull();
     expect(JSON.stringify(result)).not.toContain('SECRET');
     // Later weaker attempts, pending work, and incomplete verdicts must not hide the best score.
     await db.query(`INSERT INTO submissions(match_id,user_id,source_code,status,tests_passed,tests_total,submitted_at) VALUES
@@ -43,5 +44,18 @@ it("restricts matches to participants and projects public problem and best judge
     const opponent=await loadArena(store,m.id,users[1].id);
     expect(opponent?.progress).toBeNull();
     expect(opponent?.submission).toMatchObject({id:expect.any(String),status:'judged',passed:8,total:8});
+    expect(opponent?.bestProgress).toEqual({passed:8,total:8});
+    await db.query(`INSERT INTO submissions(match_id,user_id,source_code,status,tests_passed,tests_total,submitted_at) VALUES
+      ($1,$2,'SECRET','judged',0,8,now()+interval '6 seconds'),
+      ($1,$2,'SECRET','error',8,8,now()+interval '7 seconds'),
+      ($1,$2,'SECRET','running',NULL,NULL,now()+interval '8 seconds'),
+      ($1,$2,'SECRET','judged',NULL,NULL,now()+interval '9 seconds')`,[m.id,users[1].id]);
+    const weaker=await loadArena(store,m.id,users[1].id);
+    expect(weaker?.bestProgress).toEqual({passed:8,total:8});
+    expect(weaker?.submission).toMatchObject({status:'judged',passed:null,total:null});
+    expect(JSON.stringify(weaker)).not.toContain('SECRET');
+    await db.query(`INSERT INTO submissions(match_id,user_id,source_code,status,tests_passed,tests_total)
+      VALUES ($1,$2,'SECRET','judged',0,8)`,[m.id,users[0].id]);
+    expect((await loadArena(store,m.id,users[0].id))?.bestProgress).toEqual({passed:0,total:8});
   } finally { await db.close(); }
 },30000);

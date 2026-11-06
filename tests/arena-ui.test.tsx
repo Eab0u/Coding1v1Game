@@ -11,6 +11,25 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('shows authoritative best progress separately from weaker latest attempts and unsent edits',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:05:00Z',bestProgress:null};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={snapshot}/>);
+  const progress=screen.getByRole('progressbar',{name:'Your best tests passed: No judged submission yet'});
+  expect(progress).toHaveAttribute('value','0');
+  expect(progress).toHaveAccessibleDescription(/does not confirm that your current edits were submitted/);
+  snapshot={...snapshot,bestProgress:{passed:5,total:8},submission:{id:'latest',status:'judged',passed:1,total:8}};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByRole('progressbar',{name:'Your best tests passed: 5 / 8'})).toHaveAttribute('max','8');
+  expect(screen.getByText('Latest solution: 1 / 8 tests passed.')).toBeVisible();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'unsent edits'}});
+  expect(progress).toHaveAttribute('value','5');
+  snapshot={...snapshot,status:'completed',bestProgress:{passed:8,total:8}};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('progressbar',{name:'Your best tests passed: 8 / 8'})).toHaveAttribute('value','8');
+  expect(screen.getByRole('link',{name:'View results'})).toBeVisible();
+});
 it('blocks invalid source, preserves export and draft recovery, and submits at the exact limit',async()=>{
   vi.useFakeTimers();
   const active={...initial,status:'active' as const,deadline:'2026-11-06T12:05:00Z'};
@@ -211,7 +230,7 @@ it('retries stale match state immediately without overlapping automatic or manua
   expect(fetcher).toHaveBeenCalledTimes(2);
   await act(async()=>{resolve({ok:true,json:async()=>({...initial,progress:{passed:4,total:8}})});});
   expect(screen.queryByRole('button',{name:'Retry live updates'})).not.toBeInTheDocument();
-  expect(screen.getByRole('progressbar')).toHaveAttribute('value','4');
+  expect(screen.getByRole('progressbar',{name:/Opponent best tests passed/})).toHaveAttribute('value','4');
   expect(screen.getByLabelText('Python solution')).toHaveValue('keep this draft');
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
   expect(fetcher).toHaveBeenCalledTimes(3);
@@ -238,7 +257,8 @@ it('shows pending state and editable drafts without implying submission works',(
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my draft'}});
   expect(screen.getByLabelText('Python solution')).toHaveValue('my draft');
-  expect(screen.getByText(/No judged submission/)).toBeInTheDocument();
+  expect(screen.getByRole('progressbar',{name:'Opponent best tests passed: No judged submission yet'})).toBeInTheDocument();
+  expect(screen.getByRole('progressbar',{name:'Your best tests passed: No judged submission yet'})).toBeInTheDocument();
 });
 it('refreshes authoritative progress without overwriting code and reports stale updates',async()=>{
   vi.useFakeTimers();
@@ -248,7 +268,7 @@ it('refreshes authoritative progress without overwriting code and reports stale 
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'draft'}});
   await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
   expect(screen.getByRole('timer')).toHaveTextContent('5:00');
-  expect(screen.getByRole('progressbar')).toHaveAttribute('value','3');
+  expect(screen.getByRole('progressbar',{name:/Opponent best tests passed/})).toHaveAttribute('value','3');
   expect(screen.getByLabelText('Python solution')).toHaveValue('draft');
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
   expect(screen.getByRole('timer')).toHaveTextContent('4:58');
