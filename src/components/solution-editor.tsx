@@ -13,11 +13,13 @@ class EditorBoundary extends Component<{ children: ReactNode; fallback: ReactNod
   render() { return this.state.failed ? this.props.fallback : this.props.children; }
 }
 
-export function SolutionEditor({ value, onChange, readOnly }: {
-  value: string; onChange: (value: string) => void; readOnly: boolean;
+export function SolutionEditor({ value, onChange, readOnly, starter }: {
+  value: string; onChange: (value: string) => void; readOnly: boolean; starter?: string;
 }) {
   const [plain, setPlain] = useState(false);
   const [downloadError, setDownloadError] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const canReset = !readOnly && starter !== undefined && value !== starter;
   function downloadSolution() {
     setDownloadError(false);
     let url: string | undefined;
@@ -49,7 +51,15 @@ export function SolutionEditor({ value, onChange, readOnly }: {
     <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={plain} onClick={() => setPlain(current => !current)}>
       {plain ? "Use advanced editor" : "Use plain text editor"}
     </button>
-    <button type="button" className="button button--secondary" onClick={downloadSolution}>Download solution (.py)</button></div>
+    <button type="button" className="button button--secondary" onClick={downloadSolution}>Download solution (.py)</button>
+    {starter !== undefined && !readOnly && <button type="button" className="button button--secondary" disabled={!canReset} onClick={() => setConfirmReset(true)}>Reset to starter code</button>}</div>
+    {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset">
+      <p>Replace your current solution with the starter code? Download your solution first if you want to keep it.</p>
+      <div className="solution-editor-actions">
+        <button type="button" className="button button--secondary" onClick={() => setConfirmReset(false)}>Keep my solution</button>
+        <button type="button" className="button button--primary" onClick={() => { if (canReset) onChange(starter); setConfirmReset(false); }}>Replace with starter code</button>
+      </div>
+    </div>}
     {downloadError && <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>}
   </div>;
 }

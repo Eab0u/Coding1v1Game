@@ -10,8 +10,34 @@ import { SolutionEditor } from "../src/components/solution-editor";
 afterEach(() => { editor.fails = false; vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 function Harness({ readOnly = false }: { readOnly?: boolean }) {
   const [value, setValue] = useState("def solve():\n    pass");
-  return <SolutionEditor value={value} onChange={setValue} readOnly={readOnly}/>;
+  return <SolutionEditor value={value} onChange={setValue} readOnly={readOnly} starter={"def solve():\n    pass"}/>;
 }
+it.each([false, true])("requires confirmation to reset in plain mode %s and supports cancellation", plain => {
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const reset = screen.getByRole("button", { name: "Reset to starter code" });
+  expect(reset).toBeDisabled();
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "my draft" } });
+  fireEvent.click(reset);
+  expect(screen.getByLabelText("Python solution")).toHaveValue("my draft");
+  fireEvent.click(screen.getByRole("button", { name: "Keep my solution" }));
+  expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("my draft");
+  fireEvent.click(reset);
+  fireEvent.click(screen.getByRole("button", { name: "Replace with starter code" }));
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+  expect(reset).toBeDisabled();
+  expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+});
+it("removes reset controls and confirmation when the match ends", () => {
+  const view = render(<Harness/>);
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "keep final code" } });
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  view.rerender(<Harness readOnly/>);
+  expect(screen.queryByRole("button", { name: "Reset to starter code" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("keep final code");
+});
 it("preserves edits in both directions when switching editor modes", () => {
   render(<Harness/>);
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "advanced draft" } });

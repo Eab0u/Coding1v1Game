@@ -11,6 +11,17 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('resets a recovered draft to the full starter, persists it and clears the exit warning',()=>{
+  vi.stubGlobal('fetch',vi.fn());
+  sessionStorage.setItem('codeduel:draft:Ada:match','recovered solution');
+  render(<Arena initial={initial}/>);
+  fireEvent.click(screen.getByRole('button',{name:'Reset to starter code'}));
+  expect(leaveIsGuarded()).toBe(true);
+  fireEvent.click(screen.getByRole('button',{name:'Replace with starter code'}));
+  expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    pass\n');
+  expect(sessionStorage.getItem('codeduel:draft:Ada:match')).toBe('def solve():\n    pass\n');
+  expect(leaveIsGuarded()).toBe(false);
+});
 it('guards edited unfinished drafts on reload or tab close and cleans up on reset and navigation',()=>{
   vi.stubGlobal('fetch',vi.fn());
   const view=render(<Arena initial={initial}/>);

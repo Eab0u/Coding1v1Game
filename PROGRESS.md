@@ -29,6 +29,7 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 - SQL migrations are transactional and tracked in Postgres. PGlite executes schema tests without an external database.
 
 ## Blockers
+- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace has only .env.example and no configured sandbox. Catalog validation remains blocked.
 - Docker daemon is not running in this environment, so Docker Postgres startup and the network migration runner were not exercised. The SQL itself passes embedded Postgres tests.
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
@@ -36,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Confirmed arena solution reset
+- Reviewed the two unchecked catalog items; both remain blocked on isolated Judge0 validation. Added and completed one independent arena usability item, with all catalog items left unchecked.
+- Added Reset to starter code in the editor action row, disabled for untouched starter code. An inline confirmation offers Keep my solution or Replace with starter code and reminds players they can download their draft first. Both editor modes restore the complete function stub. Completed/cancelled matches expose no reset controls.
+- Reset uses the existing draft update path, preserving tab recovery and clearing the edited-code browser-exit warning. Added tests for both modes, confirmation/cancellation, read-only transitions, recovered-draft persistence and exit-warning cleanup.
+- Validation: all 267 tests across 37 files passed; lint, typecheck and production build passed. No player code executed. Native browser interaction has not been manually smoke-tested.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Download arena solutions
 - Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent solution-preservation item.
 - Added Download solution (.py) beside the editor switch in a wrapping action row. It saves the exact current draft, including Unicode and whitespace, from either editor and after match end without depending on browser draft storage. Failed downloads show retry/copy guidance. Temporary links and object URLs are cleaned up.
