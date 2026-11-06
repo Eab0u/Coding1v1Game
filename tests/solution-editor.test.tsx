@@ -1,17 +1,60 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const editor = vi.hoisted(() => ({ fails: false }));
 vi.mock("next/dynamic", () => ({ default: () => function MockEditor({ value, onChange, readOnly, fontSize, wordWrap }: { value: string; onChange: (value: string) => void; readOnly: boolean; fontSize: number; wordWrap: boolean }) {
   if (editor.fails) throw new Error("Chunk unavailable");
   return <textarea wrap={wordWrap ? "soft" : "off"} style={{ fontSize }} aria-label="Python solution" value={value} onChange={event => onChange(event.target.value)} readOnly={readOnly}/>;
 } }));
 import { SolutionEditor } from "../src/components/solution-editor";
+beforeEach(() => localStorage.clear());
 afterEach(() => { editor.fails = false; vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 function Harness({ readOnly = false }: { readOnly?: boolean }) {
   const [value, setValue] = useState("def solve():\n    pass");
   return <SolutionEditor value={value} onChange={setValue} readOnly={readOnly} starter={"def solve():\n    pass"}/>;
 }
+it("restores preferences across visits without persisting code", () => {
+  const first = render(<Harness/>);
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  fireEvent.click(screen.getByRole("button", { name: "Increase solution text size" }));
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "private solution" } });
+  expect(localStorage.getItem("codeduel:editor-preferences:v1")).toBe(JSON.stringify({ plain: true, wordWrap: true, fontSize: 16 }));
+  first.unmount();
+  render(<Harness readOnly/>);
+  expect(screen.getByRole("button", { name: "Use advanced editor" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+});
+it.each(["invalid json", "null", '{"fontSize":99,"plain":"true","wordWrap":1}', '{"fontSize":12.5}', '[]'])("ignores malformed stored preferences: %s", raw => {
+  localStorage.setItem("codeduel:editor-preferences:v1", raw);
+  render(<Harness/>);
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "false");
+  expect(screen.getByRole("button", { name: "Use plain text editor" })).toBeInTheDocument();
+});
+it("keeps valid fields when another stored preference is invalid", () => {
+  localStorage.setItem("codeduel:editor-preferences:v1", '{"fontSize":100,"plain":true,"wordWrap":true}');
+  render(<Harness/>);
+  expect(screen.getByRole("button", { name: "Use advanced editor" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
+});
+it("keeps editing and controls usable when storage fails, then retries on a preference change", () => {
+  const read = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("Blocked"); });
+  const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+  render(<Harness/>);
+  expect(screen.getByRole("status")).toHaveTextContent("Editor preferences apply for this visit");
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "still editable" } });
+  expect(screen.getByLabelText("Python solution")).toHaveValue("still editable");
+  write.mockRestore();
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  read.mockRestore();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: true, wordWrap: true, fontSize: 15 });
+});
 it.each([false, true])("copies exact current code in both editors with readOnly %s", async readOnly => {
   const writeText = vi.fn().mockResolvedValue(undefined);
   vi.stubGlobal("navigator", { clipboard: { writeText } });

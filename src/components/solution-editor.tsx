@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import { Component, useRef, useState, type ReactNode } from "react";
 import { PlainPythonEditor } from "./plain-python-editor";
+import { useEditorPreferences } from "./use-editor-preferences";
 
 const PythonEditor = dynamic(() => import("./python-editor"), {
   ssr: false,
@@ -17,9 +18,10 @@ class EditorBoundary extends Component<{ children: ReactNode; fallback: ReactNod
 export function SolutionEditor({ value, onChange, readOnly, starter }: {
   value: string; onChange: (value: string) => void; readOnly: boolean; starter?: string;
 }) {
-  const [plain, setPlain] = useState(false);
-  const [wordWrap, setWordWrap] = useState(false);
-  const [fontSize, setFontSize] = useState(15);
+  const { preferences: { plain, wordWrap, fontSize }, setPreferences, unavailable } = useEditorPreferences();
+  const setPlain = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, plain: update(current.plain) }));
+  const setWordWrap = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, wordWrap: update(current.wordWrap) }));
+  const setFontSize = (update: number | ((value: number) => number)) => setPreferences(current => ({ ...current, fontSize: typeof update === "number" ? update : update(current.fontSize) }));
   const [downloadError, setDownloadError] = useState(false);
   const copying = useRef(false);
   const [copyPending, setCopyPending] = useState(false);
@@ -64,6 +66,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   }
   const textEditor = <PlainPythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>;
   return <div className="solution-editor">
+    {unavailable && <p role="status">Editor preferences apply for this visit. Browser storage is unavailable, so they may reset next time.</p>}
     <div className="solution-editor-actions" role="group" aria-label="Solution text size">
       <button type="button" className="button button--secondary" aria-label="Decrease solution text size" disabled={fontSize <= 12} onClick={() => setFontSize(size => Math.max(12, size - 1))}>A-</button>
       <span aria-live="polite" aria-atomic="true">{fontSize}px</span>

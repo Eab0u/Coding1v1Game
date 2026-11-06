@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Remember editor preferences
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent editor usability item; catalog tasks remain unchecked.
+- The solution editor now remembers the chosen editor, text size and line wrapping in versioned browser local storage across visits, including completed matches. Preferences load after hydration and store only display settings; solution drafts retain their existing tab-scoped storage.
+- Invalid stored fields independently fall back to safe defaults. Blocked storage or quota failures leave editing usable and show accessible visit-only feedback; subsequent preference changes retry saving.
+- Added eight regression cases covering remount recovery, read-only matches, code exclusion, malformed JSON, invalid fields and storage read/write failures with recovery. Corrected an encoding change in the test file and a mocked-storage assertion caught by the first targeted run.
+- Validation: all 332 tests across 40 files passed; lint, typecheck and production build passed. No player code executed. Live browser storage behavior remains unverified.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Explain duel scoring decisions
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent results clarity and visual polish item; catalog tasks remain unchecked.
 - Added an accessible, green-accented summary above the player comparison explaining the deciding rule: correctness, median benchmark CPU time, earlier submission, exact draw or neither player having a judged submission. Uses full-precision persisted metrics and checks agreement with the authoritative outcome.
