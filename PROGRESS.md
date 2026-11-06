@@ -4,6 +4,8 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
+Optional duel sound and animated feedback are implemented as shared components, with match-found feedback connected to matchmaking. Sound defaults off, persists locally and unlocks through user interaction. The future arena/results screens must call the shared test-pass/fail and win/loss cues when their authoritative events exist.
+
 Matchmaking fair-play basics now share command limits across account connections, throttle handshake attempts before authentication and rotate problems using both players' exposure histories. Optional paste blocking remains off until an editor exists. Worker counters reset on restart; reverse proxies need per-client handshake limits.
 
 Friend requests and accepted friendships are available at /friends, with authenticated friends-only global and weekly standings. Apply migration 003_friends.sql before using these flows.
@@ -30,6 +32,15 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Author and validate problems 1–20 through the new pipeline to enable pairing, then implement the match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Sound effects and animations
+- Selected and checked off the shared sound/animation backlog item, which can be implemented without publishing unvalidated problems or running player code. Added five distinct, original synthesized cues: match found, test passed, test failed, win and loss, plus accessible text badges and short arrival/settle animations.
+- Added a reusable feedback hook/component and integrated match-found feedback into the existing queue. The existing socket guard prevents duplicate/stale frames replaying the cue. Added a labeled Sound on/off toggle with pressed state; sound defaults off and persists locally. Enabling sound previews the test-pass cue.
+- Audio unlocks only from user gestures, stays silent in hidden tabs, has bounded low-volume notes, disconnects finished nodes and closes the context on mute/unmount. Missing audio support, suspended contexts and storage failures preserve visual feedback. All cue animations honor reduced motion.
+- Added audio scheduling/lifecycle, all five cue, consent/persistence, unavailable API/storage, hidden-tab and queue duplicate-frame tests. Added Chromium coverage for visible feedback at 320px and reduced-motion suppression.
+- Validation: all 191 tests across 25 files passed; lint, production build and typecheck passed. No player code executed.
+- Limits: the arena and results screens do not exist yet; their authoritative test/result events must call the shared notify API when implemented. Actual device sound and browser autoplay policy need deployment smoke checks. Existing sandbox/database blockers remain.
+- Next: configure the isolated sandbox and validate problems 1-20, then implement arena lifecycle/screens using the shared feedback components.
+
 ### 2026-11-06 - Anti-cheat basics
 - Selected and checked off only anti-cheat basics: existing queue admission controls had reconnect bypasses and random selection could immediately repeat a challenge.
 - Added bounded, expiring worker-level quotas: 20 commands/account/10 seconds across reconnects and tabs, and 30 handshake attempts/peer IP/minute before authentication. Invalid commands count; excess commands close with 1008 and handshakes return 429. Active counters cannot be evicted by filling the key limit.

@@ -49,3 +49,16 @@ it('keeps populated pages within phone, tablet and desktop viewports with usable
     }
   } finally { await page.close(); }
 }, 30000);
+
+it('keeps feedback readable on phones and disables cue motion when requested', async () => {
+  const page = await browser.newPage({ viewport: { width: 320, height: 600 } });
+  try {
+    const css = readFileSync('src/app/globals.css', 'utf8');
+    await page.setContent(`<style>${css}</style><div class="duel-feedback"><button class="button">Sound off</button><span class="duel-feedback-status"><span class="duel-cue duel-cue--win">Victory</span></span></div>`);
+    expect(await page.locator('.duel-cue').evaluate(el => getComputedStyle(el).animationName)).toBe('cue-arrival');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    expect(await page.locator('.duel-cue').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+    expect(await page.locator('.duel-cue').isVisible()).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  } finally { await page.close(); }
+});

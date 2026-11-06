@@ -1,15 +1,18 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui";
+import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
 import type { QueueEvent } from "../lib/matchmaking";
 
 export function Play({ signedIn }: { signedIn: boolean }) {
+  const feedback = useDuelFeedback();
   const socket = useRef<WebSocket | null>(null);
   const [phase, setPhase] = useState("idle");
   const [message, setMessage] = useState("Python only · Rating bands widen as you wait.");
   useEffect(() => () => { const ws = socket.current; socket.current = null; ws?.close(); }, []);
   function join() {
     if (socket.current) return;
+    feedback.unlock();
     setPhase("connecting"); setMessage("Connecting to the arena…");
     const url = new URL("/matchmaking", window.location.href);
     url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
@@ -23,7 +26,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
         const data: QueueEvent = JSON.parse(event.data);
         if (data.type === "queued") { setPhase("queued"); setMessage(`Finding opponent… ${data.waitedSeconds}s elapsed · Rating range ±${data.ratingBand}. Wait estimate unavailable.`); }
         else if (data.type === "matching") { setPhase("matching"); setMessage("Reserving your match…"); }
-        else if (data.type === "matched") { setPhase("matched"); setMessage(`Matched with ${data.opponent.username} (${Math.round(data.opponent.rating)}) · ${data.match.difficulty}. Your match is reserved; the arena screen is coming soon.`); socket.current = null; ws.close(); }
+        else if (data.type === "matched") { feedback.notify("matched"); setPhase("matched"); setMessage(`Matched with ${data.opponent.username} (${Math.round(data.opponent.rating)}) · ${data.match.difficulty}. Your match is reserved; the arena screen is coming soon.`); socket.current = null; ws.close(); }
         else if (data.type === "left" || data.type === "error") { socket.current = null; ws.close(); setPhase("idle"); setMessage(data.type === "error" ? data.message : "Search cancelled. Ready when you are."); }
       } catch { socket.current = null; ws.close(); setPhase("idle"); setMessage("Unexpected server response. Please try again."); }
     };
@@ -38,6 +41,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
         else { socket.current = null; ws?.close(); setPhase("idle"); setMessage("Search cancelled. Ready when you are."); }
       }}>Cancel search</Button>}
     </>}
+    {signedIn && <DuelFeedback feedback={feedback} />}
     <p className="availability" role="status">{message}</p>
   </div>;
 }

@@ -80,7 +80,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Leaderboard
 - [x] Problem pipeline: generate, validate, publish
 - [ ] Problems 1 to 20 passing validation
-- [ ] Sound effects and animations
+- [x] Sound effects and animations
 - [x] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
 - [ ] Problems 21 to 60
 - [x] Mobile layout polish

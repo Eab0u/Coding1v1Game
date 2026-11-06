@@ -30,6 +30,11 @@ it("keeps a reserved match visible after socket closure", () => {
   event({ type: "matched", match: { id: "m", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
   act(() => ws.onclose());
   expect(screen.getByRole("status")).toHaveTextContent("Matched with Ada");
+  expect(screen.getByText("Match found")).toHaveClass("duel-cue--matched");
+  // A duplicate frame on the closed connection must not replay feedback.
+  const cue = screen.getByText("Match found");
+  event({ type: "matched", match: { id: "m", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByText("Match found")).toBe(cue);
   expect(screen.getByRole("button", { name: "Match reserved" })).toBeDisabled();
 });
 it("permits retry after disconnect and ignores stale connection messages", () => {

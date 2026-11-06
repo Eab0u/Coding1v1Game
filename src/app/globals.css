@@ -157,3 +157,10 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .friend-list { display: grid; gap: 1rem; margin-top: 1.5rem; }
 .friend-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
 .friend-list h2 { overflow-wrap: anywhere; }
+.duel-feedback { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.duel-feedback-status { min-height: 28px; }
+.duel-cue { display: inline-block; padding: 2px 12px; border-radius: var(--radius-pill); background: var(--color-bg); border: 1px solid currentColor; font-weight: 700; color: var(--color-success); animation: cue-arrival 360ms ease-out; }
+.duel-cue--failed, .duel-cue--loss { color: var(--color-danger); animation-name: cue-settle; }
+.duel-cue--win { animation-duration: 550ms; }
+@keyframes cue-arrival { from { opacity: 0; transform: translateY(5px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes cue-settle { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: translateX(0); } }

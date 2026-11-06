@@ -241,3 +241,9 @@ single eligible challenge, it remains playable. This reduces repeat advantages;
 it does not detect collusion or external assistance. Optional paste blocking is
 left off; there is no editor yet.
 
+
+### Duel feedback
+
+Signed-in home matchmaking includes a Sound on/off toggle. Sound is off by default; the preference is stored locally as `codeduel-sound`. Enabling it plays a short preview. No sound files or network requests are used. Audio is optional and hidden tabs stay silent. Visual feedback remains available with sound off and respects reduced-motion preferences.
+
+Arena/results components can use `useDuelFeedback()` with `<DuelFeedback feedback={feedback} />`. Call `feedback.unlock()` from the initiating user gesture and `feedback.notify(cue)` once per authoritative event (`matched`, `passed`, `failed`, `win`, `loss`). Do not emit success cues for provisional or infrastructure failures. The hook owns audio cleanup on unmount. Currently matchmaking emits `matched`; test and result events will be connected when those screens are implemented.
