@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Account password visibility controls
+- Reviewed both unchecked catalog items; isolated Judge0 validation remains blocked because only .env.example is available. Added and completed one independent account usability and visual polish item; catalog items remain unchecked.
+- Added separate Show/Hide controls to sign-in and sign-up. Passwords start masked; toggling preserves input, password-manager autocomplete, form validation and focus without submitting. Native buttons expose the controlled field and pressed state, with distinct accessible names for each form.
+- Styled the input and toggle as a compact responsive row. Added regression coverage for independent visibility, retained values, submitted form data, focus and accidental-submit prevention. Existing Chromium coverage checks guest account overflow and minimum touch heights at 320/375/768/1280px.
+- Validation: all 372 tests across 41 files passed; lint, typecheck, production build and diff whitespace checks passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing live database, WebSocket and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Account player hub and direct matchmaking
 - Reviewed both unchecked catalog items; isolated Judge0 validation remains blocked because only .env.example is available. Added and completed one independent account usability and visual polish item; catalog items remain unchecked.
 - Replaced the obsolete signed-in matchmaking placeholder with the shared Play flow, a prominent current rating and scoring guidance. Added a responsive player hub with profile, friends and leaderboard links, keeping sign-out available. The Play flow supports cancellation, connection recovery and reserved arena navigation using the existing component.

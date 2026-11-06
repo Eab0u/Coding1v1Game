@@ -145,3 +145,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Submit from either solution editor with Ctrl+Enter or Command+Enter, with accessible guidance and admission safeguards
 
 - [x] Show accessible in-flight Ready and Submit feedback while preserving editable drafts and distinguishing acknowledgement from judging
+
+- [x] Add accessible, independent password visibility controls to sign-in and sign-up with preserved input and phone-friendly styling
