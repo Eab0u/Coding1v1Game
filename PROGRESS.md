@@ -36,6 +36,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Rematch request isolation
+- Reviewed the unchecked problems 1-20 and 21-60 items. Both still require isolated Judge0 validation; only .env.example is configured. Added and completed one independent rematch reliability item.
+- Invitation actions synchronously invalidate earlier polls and pause polling while pending. Polling resumes after success or failure. Match changes reset invitation state; navigation aborts pending actions, and late responses cannot update the replacement view. A synchronous request guard prevents duplicate actions.
+- Separated action errors from refresh errors so background requests cannot hide a failed invitation response.
+- Added regression tests for stale poll completion during an action, paused polling, recovery after failure, match changes, aborted requests, ignored late responses and unmount cleanup.
+- Validation: all 245 tests across 36 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency, sandbox isolation/resource enforcement and deployment smoke checks remain pending.
+
 ### 2026-11-06 - Arena polling recovery and cleanup
 - Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; no .env is configured. Added and completed one independent arena reliability item.
 - Returning to a visible arena tab immediately refreshes authoritative state rather than waiting for the next scheduled poll. Repeated visibility events share an in-flight request, and refreshes replace the scheduled timer so only one polling chain remains. Successful refreshes clear stale-update feedback.
