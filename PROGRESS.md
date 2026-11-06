@@ -36,6 +36,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Arena polling recovery and cleanup
+- Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; no .env is configured. Added and completed one independent arena reliability item.
+- Returning to a visible arena tab immediately refreshes authoritative state rather than waiting for the next scheduled poll. Repeated visibility events share an in-flight request, and refreshes replace the scheduled timer so only one polling chain remains. Successful refreshes clear stale-update feedback.
+- Completed and cancelled arenas stop polling and clock intervals and remove the visibility listener. Arenas opened in either terminal state do not poll. Unmount still aborts outstanding requests and removes timers/listeners.
+- Added regression tests for both terminal states, initial and polled completion/cancellation, hidden/visible transitions, error recovery, overlapping events, one polling chain and unmount cleanup.
+- Validation: all 242 tests across 36 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency, sandbox isolation/resource enforcement and deployment smoke checks remain pending.
+
 ### 2026-11-06 - Phone arena layout and keyboard scrolling
 - Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent arena usability item.
 - On narrow phones the clock occupies its own row above the players, long names wrap within their columns, and submission controls span the editor panel. Problem titles wrap and long signatures/examples scroll locally in named, keyboard-focusable regions.

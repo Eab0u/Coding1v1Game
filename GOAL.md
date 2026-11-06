@@ -98,3 +98,4 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Add authoritative results feedback for wins, losses and draws with optional sound and explicit replay
 
 - [x] Polish the phone arena scoreboard and submission controls; make problem code blocks keyboard-scrollable with browser regression coverage
+- [x] Refresh arena state immediately on tab return, prevent overlapping polls and stop polling ended matches

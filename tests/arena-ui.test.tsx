@@ -6,6 +6,55 @@ vi.mock('next/dynamic',()=>({default:()=>function Editor({value,onChange,readOnl
 import { Arena,remainingSeconds } from "../src/components/arena";
 const initial:ArenaSnapshot={id:'match',status:'pending',deadline:null,serverTime:'2026-11-06T12:00:00Z',player:{username:'Ada',rating:800},opponent:{username:'Bob',rating:900},problem:{title:'Sample',statement:'Find an answer',signature:'def solve():',difficulty:'easy',constraints:'n <= 100',examples:[{input:[1],output:1}]},progress:null};
 afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();sessionStorage.clear();localStorage.clear();});
+it.each(['completed','cancelled'])('does not poll an initially %s arena',async(status)=>{
+  vi.useFakeTimers();
+  const fetcher=vi.fn();
+  vi.stubGlobal('fetch',fetcher);
+  vi.spyOn(document,'visibilityState','get').mockReturnValue('visible');
+  render(<Arena initial={{...initial,status}}/>);
+  fireEvent(document,new Event('visibilitychange'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(10000);});
+  expect(fetcher).not.toHaveBeenCalled();
+});
+it.each(['completed','cancelled'])('stops polling after observing %s and removes resume handling',async(status)=>{
+  vi.useFakeTimers();
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status})});
+  vi.stubGlobal('fetch',fetcher);
+  vi.spyOn(document,'visibilityState','get').mockReturnValue('visible');
+  render(<Arena initial={initial}/>);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  fireEvent(document,new Event('visibilitychange'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(10000);});
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
+it('refreshes on returning to the tab, recovers errors, and keeps only one polling chain',async()=>{
+  vi.useFakeTimers();
+  const visibility=vi.spyOn(document,'visibilityState','get').mockReturnValue('hidden');
+  let resolve: (value:unknown)=>void=()=>{};
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error()).mockImplementationOnce(()=>new Promise(done=>{resolve=done;})).mockResolvedValue({ok:true,json:async()=>initial});
+  vi.stubGlobal('fetch',fetcher);
+  const view=render(<Arena initial={initial}/>);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByRole('alert')).toBeVisible();
+  fireEvent(document,new Event('visibilitychange'));
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  visibility.mockReturnValue('visible');
+  fireEvent(document,new Event('visibilitychange'));
+  fireEvent(document,new Event('visibilitychange'));
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(4000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  await act(async()=>{resolve({ok:true,json:async()=>initial});});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(fetcher).toHaveBeenCalledTimes(3);
+  const signal=fetcher.mock.calls[2][1].signal as AbortSignal;
+  view.unmount();
+  expect(signal.aborted).toBe(true);
+  fireEvent(document,new Event('visibilitychange'));
+  await vi.advanceTimersByTimeAsync(10000);
+  expect(fetcher).toHaveBeenCalledTimes(3);
+});
 it('uses server time and clamps expired deadlines',()=>{
   expect(remainingSeconds(null,initial.serverTime,0)).toBeNull();
   expect(remainingSeconds('2026-11-06T12:05:00Z',initial.serverTime,1000)).toBe(299);

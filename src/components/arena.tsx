@@ -43,22 +43,32 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   }
   const received=useRef(0);
   useEffect(()=> {
+    if (closed) return;
     received.current=performance.now();
     const clock=setInterval(()=>setElapsed(performance.now()-received.current),250);
     let stopped=false;
+    let refreshing=false;
     const controller=new AbortController();
     async function refresh() {
+      if (stopped || refreshing) return;
+      clearTimeout(timer);
+      refreshing=true;
       try {
         const response=await fetch(`/api/matches/${initial.id}`,{cache:"no-store",signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])});
         if (!response.ok) throw new Error();
         const next:ArenaSnapshot=await response.json();
         if (!stopped) { received.current=performance.now();setElapsed(0);setMatch(next);setError(""); }
       } catch { if (!stopped) setError("Live updates unavailable. Retrying; progress may be out of date."); }
+      refreshing=false;
       if (!stopped) timer=setTimeout(refresh,2000);
     }
     let timer=setTimeout(refresh,0);
-    return ()=>{stopped=true;controller.abort();clearTimeout(timer);clearInterval(clock);};
-  },[initial.id]);
+    function resume() {
+      if (document.visibilityState==="visible") void refresh();
+    }
+    document.addEventListener("visibilitychange",resume);
+    return ()=>{stopped=true;controller.abort();clearTimeout(timer);clearInterval(clock);document.removeEventListener("visibilitychange",resume);};
+  },[initial.id,closed]);
   const seconds=remainingSeconds(match.deadline,match.serverTime,elapsed);
   return <div className="shell arena"><header className="site-header"><Link className="brand" href="/">Code<span className="accent">Duel</span></Link><span>Python arena</span><DuelFeedback feedback={feedback}/></header>
     <main id="main-content"><div className="arena-scoreboard">
