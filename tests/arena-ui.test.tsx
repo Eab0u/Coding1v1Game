@@ -483,3 +483,14 @@ it('replaces the reservation clock with the active match clock after server acti
   expect(screen.queryByRole('region',{name:'Duel readiness'})).not.toBeInTheDocument();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeEnabled();
 });
+
+it('labels opponent progress as best judged correctness and explains scoring ties',()=>{
+  vi.stubGlobal('fetch',vi.fn().mockReturnValue(new Promise(()=>{})));
+  const view=render(<Arena initial={initial}/>);
+  expect(screen.getByRole('progressbar',{name:'Opponent best tests passed: No judged submission yet'})).toHaveAttribute('value','0');
+  view.rerender(<Arena initial={{...initial,id:'scored',progress:{passed:5,total:8}}}/>);
+  const progress=screen.getByRole('progressbar',{name:'Opponent best tests passed: 5 / 8'});
+  expect(progress).toHaveAttribute('value','5');
+  expect(progress).toHaveAttribute('max','8');
+  expect(progress).toHaveAccessibleDescription('Best judged test count. Later attempts cannot lower it; runtime and submission time break ties.');
+});

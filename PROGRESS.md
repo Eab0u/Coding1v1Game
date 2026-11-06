@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Best judged opponent progress
+- Reviewed both unchecked catalog items; isolated Judge0 remains unconfigured (only .env.example is present). Catalog validation remains blocked and unchecked. Added and completed one independent arena correctness and clarity item.
+- Opponent progress now selects the highest judged test count rather than the latest attempt, so weaker resubmissions cannot lower the displayed score. Failed, pending and incomplete verdicts do not replace valid judged progress. Own latest-submission reporting remains separate.
+- Updated the progress bar label and accessible guidance to explain best correctness and the runtime/submission-time tiebreakers.
+- Added embedded database regressions for weaker, failed, incomplete and stronger attempts, plus UI coverage for empty/populated accessible progress and scoring guidance.
+- Validation: all 343 tests across 40 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency, sandbox enforcement and deployment visual checks remain pending.
+
 ### 2026-11-06 - Reservation readiness countdown
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability and visual polish item; catalog tasks remain unchecked.
 - Arena snapshots now project the pending reservation expiry from the same creation-time-plus-60-seconds rule used by the lifecycle service. The scoreboard shows a green, accessible countdown using server time and monotonic elapsed time, with a fallback for snapshots without expiry data.

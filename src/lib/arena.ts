@@ -22,7 +22,8 @@ export async function loadArena(db: Pick<Pool, "query">, id: string, userId: str
     JOIN users b ON b.id=CASE WHEN m.player_one_id=$2 THEN m.player_two_id ELSE m.player_one_id END
     LEFT JOIN LATERAL (SELECT tests_passed,tests_total FROM submissions
       WHERE match_id=m.id AND user_id=b.id AND status='judged'
-      ORDER BY submitted_at DESC,id DESC LIMIT 1) s ON true
+        AND tests_passed IS NOT NULL AND tests_total IS NOT NULL
+      ORDER BY tests_passed DESC,submitted_at DESC,id DESC LIMIT 1) s ON true
     LEFT JOIN LATERAL (SELECT id,status,tests_passed,tests_total FROM submissions
       WHERE match_id=m.id AND user_id=$2 ORDER BY submitted_at DESC,id DESC LIMIT 1) own ON true
     WHERE m.id=$1 AND (m.player_one_id=$2 OR m.player_two_id=$2)`, [id,userId]);

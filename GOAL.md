@@ -131,3 +131,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Distinguish current code from the last acknowledged submission, including in-flight edits, failed requests and deadline expiry
 
 - [x] Show a server-based reservation readiness countdown, disable expired Ready actions and await authoritative activation or cancellation
+
+- [x] Keep opponent progress on the best judged test count after weaker attempts, with accessible scoring guidance

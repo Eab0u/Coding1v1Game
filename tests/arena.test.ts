@@ -4,7 +4,7 @@ import { PGlite } from "@electric-sql/pglite";
 import type { Pool } from "pg";
 import { expect, it } from "vitest";
 import { loadArena } from "../src/lib/arena";
-it("restricts matches to participants and projects public problem and latest judged progress only",async()=>{
+it("restricts matches to participants and projects public problem and best judged opponent progress only",async()=>{
   const db=new PGlite();
   try {
     await db.exec(await readFile(new URL('../db/migrations/001_initial.sql',import.meta.url),'utf8'));
@@ -30,8 +30,18 @@ it("restricts matches to participants and projects public problem and latest jud
     const result=await loadArena(store,m.id,users[0].id);
     expect(result?.progress).toEqual({passed:5,total:8});
     expect(JSON.stringify(result)).not.toContain('SECRET');
+    // Later weaker attempts, pending work, and incomplete verdicts must not hide the best score.
+    await db.query(`INSERT INTO submissions(match_id,user_id,source_code,status,tests_passed,tests_total,submitted_at) VALUES
+      ($1,$2,'SECRET','judged',1,8,now()+interval '2 seconds'),
+      ($1,$2,'SECRET','error',8,8,now()+interval '3 seconds'),
+      ($1,$2,'SECRET','judged',NULL,NULL,now()+interval '4 seconds')`,[m.id,users[1].id]);
+    expect((await loadArena(store,m.id,users[0].id))?.progress).toEqual({passed:5,total:8});
+    await db.query(`INSERT INTO submissions(match_id,user_id,source_code,status,tests_passed,tests_total,submitted_at)
+      VALUES ($1,$2,'SECRET','judged',8,8,now()+interval '5 seconds')`,[m.id,users[1].id]);
+    expect((await loadArena(store,m.id,users[0].id))?.progress).toEqual({passed:8,total:8});
+
     const opponent=await loadArena(store,m.id,users[1].id);
     expect(opponent?.progress).toBeNull();
-    expect(opponent?.submission).toMatchObject({id:expect.any(String),status:'running',passed:null,total:null});
+    expect(opponent?.submission).toMatchObject({id:expect.any(String),status:'judged',passed:8,total:8});
   } finally { await db.close(); }
 },30000);
