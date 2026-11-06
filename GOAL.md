@@ -91,4 +91,4 @@ Never decide the project is finished. When the backlog is empty, look for more t
 
 
 
-- [ ] Consensual rematch invitations with opponent acceptance and expiry
+- [x] Consensual rematch invitations with opponent acceptance and expiry

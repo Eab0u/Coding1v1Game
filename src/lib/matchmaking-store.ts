@@ -1,4 +1,4 @@
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import type { Account } from "./auth";
 import type { Difficulty, MatchTicket } from "./matchmaking";
 
@@ -17,6 +17,19 @@ export function createMatchStore(pool: Pool) {
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
+        const ticket = await reserveMatch(client, one, two, difficulty);
+        await client.query("COMMIT");
+        return ticket;
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally { client.release(); }
+    },
+  };
+}
+
+/** Caller owns the transaction; shared with consensual rematch acceptance. */
+export async function reserveMatch(client: PoolClient, one: Account, two: Account, difficulty: Difficulty): Promise<MatchTicket> {
         // Lock both players in a stable order, then check their unfinished matches.
         await client.query("SELECT id FROM users WHERE id=ANY($1::uuid[]) ORDER BY id FOR UPDATE", [[one.id, two.id]]);
         const busy = await client.query("SELECT id FROM matches WHERE status IN ('pending','active') AND (player_one_id=ANY($1::uuid[]) OR player_two_id=ANY($1::uuid[]))", [[one.id, two.id]]);
@@ -33,12 +46,5 @@ export function createMatchStore(pool: Pool) {
           ORDER BY history.last_seen ASC NULLS FIRST, random() LIMIT 1`, [difficulty, [one.id, two.id]]);
         if (!problem.rows[0]) throw new Error("No published problem");
         const result = await client.query("INSERT INTO matches (problem_id,player_one_id,player_two_id) VALUES ($1,$2,$3) RETURNING id", [problem.rows[0].id, one.id, two.id]);
-        await client.query("COMMIT");
-        return { id: result.rows[0].id, difficulty };
-      } catch (error) {
-        await client.query("ROLLBACK");
-        throw error;
-      } finally { client.release(); }
-    },
-  };
+  return { id: result.rows[0].id, difficulty };
 }

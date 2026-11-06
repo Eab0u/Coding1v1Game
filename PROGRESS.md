@@ -6,7 +6,7 @@ Newest entries go at the top of the Log section.
 ## Current status
 Match lifecycle orchestration is implemented. Apply migrations through 005_match_lifecycle.sql and run `npm run lifecycle` alongside the app and matchmaking with isolated Judge0 credentials. Both participants click Ready within 60 seconds; the server activates difficulty-scaled clocks, admits bounded submissions, judges durable jobs and atomically persists final scores, ratings and history. Best judged submissions count at the deadline. Infrastructure failures retry and delay settlement rather than scoring losses. Pending reservations expire without ratings. No catalog problems have been published; validated problems and live infrastructure smoke checks remain required before public ranked play.
 
-The participant-only arena at /match/<id> supports locally bundled Monaco Python editing, readiness, sandbox submission, server-time countdown and polled own/opponent progress. Drafts live only in the open tab. Completed arenas link to participant-only /match/<id>/results with persisted outcome, rating history and final-score snapshots. Consensual rematch invitations remain on the backlog.
+The participant-only arena at /match/<id> supports locally bundled Monaco Python editing, readiness, sandbox submission, server-time countdown and polled own/opponent progress. Drafts live only in the open tab. Completed arenas link to participant-only /match/<id>/results with persisted outcome, rating history and final-score snapshots. Consensual rematch invitations are available on results pages after applying migration 006_rematches.sql.
 
 Optional duel sound and animated feedback are implemented as shared components, with match-found feedback connected to matchmaking. Sound defaults off, persists locally and unlocks through user interaction. The future arena/results screens must call the shared test-pass/fail and win/loss cues when their authoritative events exist.
 
@@ -33,9 +33,19 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
 ## Next up
-Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Consensual rematch invitations follow.
+Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Consensual rematch invitations
+- Selected and checked off the rematch invitation item. The catalog items remain blocked on isolated Judge0 validation; no unvalidated problems were published.
+- Results pages now let either participant send a 60-second invitation. The opponent explicitly accepts or declines; the sender can cancel. Both pages poll authoritative state and expose the accepted arena link. Errors are visible, polling retries and requests time out.
+- Added migration 006_rematches.sql and participant-only authenticated endpoints with origin checks, fixed action allowlists, session-derived identity, private no-store responses and generic infrastructure errors. Each completed match permits one invitation; decline, cancellation and expiry are terminal to avoid repeated prompts. New match remains available.
+- Acceptance atomically creates one pending reservation and records its ID. Repeated acceptance recovers the same arena. Shared matchmaking reservation logic locks users in stable order, checks unfinished matches, selects difficulty from current ratings and rotates published problems. Expiry is checked again after acquiring user locks. Normal readiness and reservation expiry apply to the new arena.
+- Added embedded Postgres coverage for consent, outsider access, duplicate sends/acceptance, decline/cancel, expiry, unpublished problems, busy players and rollback; added endpoint origin/auth/action/privacy/error tests and UI acceptance/link/error tests. Updated the obsolete disabled-rematch assertion without removing tests.
+- Validation: all 226 tests across 36 files passed; lint, typecheck and production build passed. No player code executed.
+- Limits: apply migration 006 before use. Real Postgres concurrent queue/rematch behavior and live browser/database deployment still require smoke checks. Existing isolated sandbox and unpublished catalog blockers remain.
+- Next: configure isolated Judge0 and author/validate problems 1-20; smoke-test deployment, concurrent reservation/settlement and sandbox resource enforcement.
+
 ### 2026-11-06 - Match lifecycle orchestration
 - Selected and checked off the match lifecycle item. Added migration 005_match_lifecycle.sql and a dedicated lifecycle worker with independent reservation/settlement and sandbox job loops, so long judging jobs do not delay expiry.
 - Both participants must explicitly ready within 60 seconds. Activation is idempotent and starts Easy/Medium/Hard clocks of 5/15/30 minutes. Expired reservations cancel without ratings. Participant-only same-origin POST actions admit Python code using database time after acquiring the match lock, reject deadline/size violations and enforce one outstanding judgment, five-second pacing and 20 submissions per player.

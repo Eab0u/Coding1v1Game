@@ -12,5 +12,5 @@ export default async function ResultsPage({params}:{params:Promise<{id:string}>}
   try { result = await loadResult(database(),(await params).id,user.id); }
   catch { return <main id="main-content" className="shell"><p role="alert">Results unavailable. Please try again.</p></main>; }
   if (!result) notFound();
-  return <Results result={result}/>;
+  return <Results result={result} matchId={(await params).id}/>;
 }

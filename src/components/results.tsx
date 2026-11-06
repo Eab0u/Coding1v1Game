@@ -1,18 +1,19 @@
 "use client";
 import Link from "next/link";
+import { Rematch } from "./rematch";
 import type { DuelResult } from "../lib/results";
 
 function delta(before:number,after:number) {
   const change=Math.round(after)-Math.round(before);
   return `${change>=0?"+":""}${change}`;
 }
-export function Results({result}:{result:DuelResult}) {
+export function Results({result,matchId}:{result:DuelResult;matchId?:string}) {
   return <div className="shell results"><header className="site-header"><Link className="brand" href="/">Code<span className="accent">Duel</span></Link><span>Duel results</span></header>
     <main id="main-content"><section className={`card result-banner result-banner--${result.outcome.toLowerCase()}`} aria-label="Match outcome"><p className="eyebrow">{result.title}</p><h1>{result.outcome}</h1><p>{result.outcome==="WIN"?"Well played. Keep the momentum going.":result.outcome==="LOSS"?"Every duel is a chance to improve.":"An evenly matched duel."}</p></section>
     <div className="result-players">{result.players.map((p,i)=><section className="card result-player" key={p.username} aria-label={i===0?"Your result":"Opponent result"}><p className="eyebrow">{i===0?"YOU":"OPPONENT"}</p><h2><Link href={`/profile/${encodeURIComponent(p.username)}`}>{p.username}</Link></h2>
       {p.before!==null && p.after!==null ? <div className="result-rating"><strong>{Math.round(p.after)} MMR</strong><span className="rating-change" aria-label={`Rating change ${delta(p.before,p.after)}`}>{delta(p.before,p.after)}</span><p>Previously {Math.round(p.before)}</p></div>:<p>Rating not recorded</p>}
       <dl><dt>Hidden tests passed</dt><dd>{p.passed===null?"Not recorded":`${p.passed} / ${p.total}`}</dd><dt>Median benchmark CPU</dt><dd>{p.cpu===null?"Not recorded":`${p.cpu.toFixed(2)} ms`}</dd><dt>Submitted after start</dt><dd>{p.passed===null?"Not recorded":p.submitted===null?"No submission":`${(p.submitted/1000).toFixed(2)} s`}</dd></dl>
     </section>)}</div><p>Correctness first, then median CPU time across three benchmark runs, then earlier submission.</p>
-    <div className="result-actions"><Link href="/" className="button button--primary">New match</Link><button className="button button--secondary" disabled aria-describedby="rematch-status">Rematch</button></div><p id="rematch-status">Rematch invitations are not available yet. Find your next opponent with New match.</p>
+    <div className="result-actions"><Link href="/" className="button button--primary">New match</Link></div>{matchId && <Rematch id={matchId}/>}
     </main></div>;
 }

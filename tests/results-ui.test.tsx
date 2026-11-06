@@ -12,7 +12,7 @@ it.each(['WIN','LOSS','DRAW'] as const)('shows authoritative %s and side by side
  expect(screen.getByText('1.25 s')).toBeVisible();
  expect(screen.getByText('No submission')).toBeVisible();
  expect(screen.getByRole('link',{name:'New match'})).toHaveAttribute('href','/');
- expect(screen.getByRole('button',{name:'Rematch'})).toBeDisabled();
+ expect(screen.queryByText('Rematch invitations are not available yet.')).not.toBeInTheDocument();
 });
 it('does not invent missing historical metrics or rating changes',()=>{
  const p={username:'Ada',before:null,after:null,passed:null,total:null,cpu:null,submitted:null};
