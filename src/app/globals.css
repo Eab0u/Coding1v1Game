@@ -194,6 +194,9 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .result-banner { text-align: center; padding: 2rem; }
 .result-banner h1 { font-size: clamp(3rem, 12vw, 5rem); margin: .5rem 0; }
 .result-banner--win h1 { color: var(--color-primary, #81b64c); }
+.result-explanation { border-inline-start: 4px solid var(--color-primary, #81b64c); margin-block: 1rem; overflow-wrap: anywhere; }
+.result-explanation h2 { font-size: 1.1rem; margin-top: 0; }
+.result-explanation p { margin-bottom: 0; }
 .result-players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .result-player { min-width: 0; overflow-wrap: anywhere; }
 .result-player h2 { margin-top: .5rem; }

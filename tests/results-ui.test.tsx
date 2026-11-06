@@ -33,6 +33,7 @@ it.each([
 it.each(['WIN','LOSS','DRAW'] as const)('shows authoritative %s and side by side final metrics',outcome=>{
  render(<Results result={{title:'Sample',outcome,players}}/>);
  expect(screen.getByRole('heading',{name:outcome})).toBeVisible();
+ expect(screen.getByRole('region',{name:'How this duel was decided'})).toHaveTextContent(outcome==='WIN'?'You passed more hidden tests':'A detailed scoring explanation is unavailable');
  expect(screen.getByLabelText('Rating change +8')).toBeVisible();
  expect(screen.getByLabelText('Rating change -8')).toBeVisible();
  expect(screen.getByText('12.35 ms')).toBeVisible();

@@ -120,3 +120,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Copy the current solution from either editor and completed matches with accessible feedback, retry and duplicate-request protection
 
 - [x] Add immediate retry for stale arena updates with accessible connection feedback, duplicate-request protection and preserved drafts
+
+- [x] Explain the deciding scoring rule on results pages with an accessible summary and honest historical-data fallback

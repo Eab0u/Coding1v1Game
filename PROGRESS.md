@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Explain duel scoring decisions
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent results clarity and visual polish item; catalog tasks remain unchecked.
+- Added an accessible, green-accented summary above the player comparison explaining the deciding rule: correctness, median benchmark CPU time, earlier submission, exact draw or neither player having a judged submission. Uses full-precision persisted metrics and checks agreement with the authoritative outcome.
+- Missing historical metrics, incompatible test totals, invalid data and ambiguous no-submission timing receive an explicit unavailable explanation instead of an inferred winner. Existing final outcomes and scoring remain authoritative.
+- Added regression tests for scoring priority, participant perspective, precision, draws, no submissions, missing/invalid data, contradictory outcomes and accessible results rendering.
+- Validation: all 324 tests across 40 files passed; lint, typecheck and production build passed. No player code executed. Live browser visual inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Immediate arena connection recovery
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena reliability item; catalog tasks remain unchecked.
 - Added a visible Retry live updates control when arena polling fails. It refreshes immediately through the existing polling chain, disables during a request and announces refresh activity. Automatic retries continue after failures. A responsive connection panel explains stale progress, draft preservation and server authority over time/results.
