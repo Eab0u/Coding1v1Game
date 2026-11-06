@@ -36,6 +36,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Download arena solutions
+- Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent solution-preservation item.
+- Added Download solution (.py) beside the editor switch in a wrapping action row. It saves the exact current draft, including Unicode and whitespace, from either editor and after match end without depending on browser draft storage. Failed downloads show retry/copy guidance. Temporary links and object URLs are cleaned up.
+- Added regression coverage for exact file contents, both modes, read-only matches, URL cleanup after unmount, creation/click failures and successful retry. Fixed the test timer configuration so FileReader can complete while download cleanup remains controlled.
+- Validation: all 263 tests across 37 files passed; lint, typecheck and production build passed. No player code executed.
+- Limits: tests verify the browser download contract with a mocked anchor click; native save dialogs and browser download policies were not manually smoke-tested.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Protect arena drafts on browser exit
 - Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent draft-protection item.
 - Edited or recovered code in pending/active arenas now registers a browser reload/tab-close warning, including when session storage fails. Returning to the starter code, receiving completed/cancelled status, changing arena sessions or unmounting removes the warning. Untouched starter code does not prompt.
