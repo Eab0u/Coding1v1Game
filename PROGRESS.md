@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Expired clock and pending results guidance
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena clarity and visual polish item; catalog tasks remain unchecked.
+- Active arenas at zero now show a responsive, green-accented pending-results panel with an accessible announcement. It explains closed submissions, continued judging, possible sandbox delays and automatic checking without implying a winner or confirmed rating change.
+- Code and export controls remain available. Guidance survives failed polls and disappears when the server confirms completion, revealing the existing results link.
+- Added regressions for local clock expiry, reopening an expired active match, connection failure/recovery, disabled submission, preserved code/export and authoritative completion.
+- Validation: all 338 tests across 40 files passed; lint, typecheck and production build passed. No player code executed. Live deployment visual inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Cancelled reservation recovery
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena recovery and visual polish item; catalog tasks remain unchecked.
 - Cancelled arenas now show a responsive, green-accented recovery panel explaining reservation expiry and unchanged ratings, with a direct link home to matchmaking and guidance to copy or download visible code before leaving.

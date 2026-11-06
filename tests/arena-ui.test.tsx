@@ -381,3 +381,36 @@ it('allows an arena action to retry after a network failure',async()=>{
   expect(screen.getByText(/Ready. Waiting for both players/)).toBeInTheDocument();
   expect(fetcher).toHaveBeenCalledTimes(2);
 });
+it('announces local clock expiry, preserves export and waits for authoritative completion',async()=>{
+  vi.useFakeTimers();
+  const active:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z'};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>active});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={active}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my solution'}});
+  expect(screen.queryByRole('region',{name:'Time is up. Waiting for results.'})).not.toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  const panel=screen.getByRole('region',{name:'Time is up. Waiting for results.'});
+  expect(panel.querySelector('[role="status"]')).toHaveTextContent('before confirming the result and rating changes');
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+  expect(screen.getByRole('button',{name:'Copy solution'})).toBeEnabled();
+  expect(screen.getByRole('button',{name:/Download solution/})).toBeEnabled();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('my solution');
+  expect(screen.queryByRole('link',{name:'View results'})).not.toBeInTheDocument();
+  fetcher.mockRejectedValueOnce(new Error('offline'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(panel).toBeVisible();
+  expect(screen.getByRole('button',{name:'Retry live updates'})).toBeEnabled();
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...active,status:'completed'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.queryByRole('region',{name:'Time is up. Waiting for results.'})).not.toBeInTheDocument();
+  expect(screen.getByRole('link',{name:'View results'})).toBeVisible();
+});
+
+it('shows settlement guidance when reopening an expired active match',()=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn());
+  render(<Arena initial={{...initial,status:'active',deadline:initial.serverTime}}/>);
+  expect(screen.getByRole('region',{name:'Time is up. Waiting for results.'})).toBeVisible();
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+});

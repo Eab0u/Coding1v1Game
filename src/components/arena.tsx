@@ -95,6 +95,9 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <p>{playerReady ? "Waiting for the server to start the duel when both players are ready." : "Review the problem, then mark yourself ready to start."} Reservations expire 60 seconds after pairing.</p>
     </section>}
     {match.status==="completed" && <Link className="button button--primary" href={`/match/${match.id}/results`}>View results</Link>}
+    {match.status==="active" && seconds===0 && <section className="arena-settlement" aria-labelledby="settlement-title">
+      <div role="status"><span className="badge">Results pending</span><h2 id="settlement-title">Time is up. Waiting for results.</h2><p>Submissions are closed. The server will finish judging submitted solutions before confirming the result and rating changes.</p><p className="muted">Sandbox delays can take longer. This page keeps checking automatically; your code is still available to copy or download.</p></div>
+    </section>}
     {match.status==="cancelled" && <section className="arena-cancelled" aria-labelledby="cancelled-title">
       <div role="status"><h2 id="cancelled-title">Duel cancelled</h2><p>The reservation ended before both players were ready. No ratings changed.</p><p className="muted">Return home to find a new opponent. You can still copy or download the code visible in this tab before leaving.</p></div>
       <Link className="button button--primary" href="/">Back to matchmaking</Link>
