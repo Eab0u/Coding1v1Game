@@ -108,3 +108,4 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Warn before browser reload or tab close when an unfinished arena contains edited code; clear warnings after match end
 - [x] Download the current Python solution from either editor, including completed matches, with failure feedback
 - [x] Reset arena solutions to the full starter code with explicit confirmation, draft persistence and completed-match protection
+- [x] Add Python newline indentation to the plain-text editor with caret preservation, accessible keyboard guidance and native Tab navigation

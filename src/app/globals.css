@@ -214,3 +214,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
   .arena-panel-heading { flex-wrap: wrap; gap: 8px; }
   .arena-editor > .button { width: 100%; margin-right: 0; }
 }
+
+.editor-hint { color: var(--color-text-muted, #b8b6b3); font-size: 0.875rem; line-height: 1.5; margin: 8px 0; }

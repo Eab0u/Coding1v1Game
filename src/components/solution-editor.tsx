@@ -1,6 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import { Component, useState, type ReactNode } from "react";
+import { PlainPythonEditor } from "./plain-python-editor";
 
 const PythonEditor = dynamic(() => import("./python-editor"), {
   ssr: false,
@@ -41,9 +42,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       }
     }
   }
-  const textEditor = <textarea className="plain-solution-editor" aria-label="Python solution" value={value}
-    onChange={event => onChange(event.target.value)} readOnly={readOnly} spellCheck={false}
-    autoCapitalize="off" autoCorrect="off" wrap="off" />;
+  const textEditor = <PlainPythonEditor value={value} onChange={onChange} readOnly={readOnly}/>;
   return <div className="solution-editor">
     {plain ? textEditor : <EditorBoundary fallback={<><p role="status">Advanced editor unavailable. Continue in plain text; your code is preserved.</p>{textEditor}</>}>
       <PythonEditor value={value} onChange={onChange} readOnly={readOnly}/>

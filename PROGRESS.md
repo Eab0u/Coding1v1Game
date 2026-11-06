@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Plain-text Python indentation
+- Reviewed the two unchecked catalog items. Both remain blocked on isolated Judge0 validation; this workspace still has only .env.example. Added and completed one independent editor usability item.
+- The plain-text editor, including automatic Monaco failure fallback, now keeps leading whitespace on Enter and adds four spaces after a colon. It replaces selected text and restores the caret after indentation. Shift+Enter provides a plain newline; Tab keeps native focus navigation. Muted, accessible keyboard guidance explains these controls.
+- Added 13 regression cases covering nested indentation, tabs, selections, mid-document insertion, start-of-document boundaries, caret/focus preservation, modifier keys, IME composition, keyboard guidance and completed-match protection. Existing editor switching, recovery, draft and submission coverage also passed.
+- Validation: all 280 tests across 38 files passed; lint, typecheck and production build passed. No player code executed. Native keyboard behavior has not been manually smoke-tested in a deployed browser. Indentation follows whitespace and trailing colons rather than parsing Python syntax.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Confirmed arena solution reset
 - Reviewed the two unchecked catalog items; both remain blocked on isolated Judge0 validation. Added and completed one independent arena usability item, with all catalog items left unchecked.
 - Added Reset to starter code in the editor action row, disabled for untouched starter code. An inline confirmation offers Keep my solution or Replace with starter code and reminds players they can download their draft first. Both editor modes restore the complete function stub. Completed/cancelled matches expose no reset controls.
