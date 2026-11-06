@@ -1,4 +1,4 @@
-# GOAL: Ranked 1v1 Coding Duel Site
+﻿# GOAL: Ranked 1v1 Coding Duel Site
 
 A competitive site where two players get the same coding problem and race to solve it. Winner is decided by code quality and speed. Ratings change after every match (MMR). Think chess.com, but for algorithm problems.
 
@@ -62,13 +62,16 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 - Do not do big refactors unless a backlog item requires it.
 - If blocked, write the blocker in PROGRESS.md and move to the next item.
 
+## Never stop improving
+Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
+
 ## Backlog (check off as done)
 - [x] Project scaffold (Next.js, TS, lint, test setup, Postgres schema)
 - [x] Design system: colors, buttons, typography, dark theme
 - [x] Judge service: run code in the sandbox against tests, return pass count and CPU time
 - [x] Scoring function with unit tests for all tiebreak cases
 - [x] Rating system (Glicko-2) with unit tests
-- [ ] Auth (simple username and password or OAuth)
+- [x] Auth (simple username and password or OAuth)
 - [ ] Matchmaking queue with WebSockets and rating bands
 - [ ] Match screen: editor, timers, opponent progress bar
 - [ ] Post-match results screen with rating change animation
@@ -81,4 +84,5 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 - [ ] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
 - [ ] Problems 21 to 60
 - [ ] Mobile layout polish
+
 

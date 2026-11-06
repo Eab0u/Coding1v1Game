@@ -1,10 +1,10 @@
-# Progress Log
+﻿# Progress Log
 
 The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
-Application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter now produces scorer-compatible results. Live gameplay, rating persistence orchestration and live sandbox verification remain pending.
+Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter now produces scorer-compatible results. Live gameplay, rating persistence orchestration and live sandbox verification remain pending.
 
 ## Decisions made
 - Python only for v1
@@ -19,9 +19,19 @@ Application foundation, design system, tested match scoring and Glicko-2 rating 
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
 ## Next up
-Authentication, followed by the WebSocket matchmaking queue and match orchestration. Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
+WebSocket matchmaking queue and match orchestration. Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Player authentication
+- Selected authentication as the highest-value remaining prerequisite for identifying ranked players; checked off only this backlog item.
+- Added responsive sign-up/sign-in and authenticated account views, linked from the entry page, with labeled fields, password autocomplete, feedback and sign-out.
+- Added asynchronous salted scrypt passwords, case-insensitive unique usernames, seven-day opaque sessions stored only as SHA-256 digests, database expiry checks, session rotation and revocation. Public account results never contain password hashes.
+- Added origin-checked POST routes, HttpOnly/SameSite cookies (Secure in production), bounded credential/body validation, generic infrastructure errors and atomic per-username throttling shared across instances.
+- Added migration and deployment documentation, including APP_ORIGIN, HTTPS, cleanup, case-only duplicate migration handling and the session contract for future match services.
+- Added 19 tests covering crypto, validation, embedded Postgres persistence, duplicate names, wrong credentials, expiry, forged tokens, rotation/revocation, throttling, route protections, cookies and account UI. Fixed a test hook that accidentally returned a mock as a cleanup callback.
+- Validation: all 112 tests across 9 files passed; lint, typecheck and production build passed. No player code executed.
+- Limits: live Postgres/browser smoke checks remain unverified. Public rollout needs deployment proxy IP/global limits; password recovery is not implemented. Existing Docker, Judge0 and development dependency blockers remain.
+- Next: WebSocket matchmaking and match orchestration.
 ### 2026-11-06 - Sandbox judge service
 - Selected the judge as the core remaining dependency for live matches; checked off only this backlog item.
 - Added a server-only Judge0 adapter for Python functions and JSON hidden tests. Expected answers stay on the Node server. Every execution explicitly disables network and sets CPU, wall, memory, process and file limits; no local execution fallback exists.
@@ -65,4 +75,5 @@ Authentication, followed by the WebSocket matchmaking queue and match orchestrat
 - Added users, problems, matches, submissions and rating history tables, constraints and indexes; included a serialized transactional migration runner, Docker Compose, .env.example and local setup documentation.
 - Added page availability coverage and database tests for initial ratings, username validation, match creation, self-match rejection, submission counts, completed results and unique rating history.
 - Validation: all 4 tests passed across 2 files; lint, typecheck and production build passed. Docker integration remains unverified because its daemon is unavailable.
+
 

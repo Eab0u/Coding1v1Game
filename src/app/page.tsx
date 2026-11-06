@@ -6,7 +6,7 @@ export default function Home() {
       <a className="skip-link" href="#main">Skip to content</a>
       <header className="site-header">
         <span className="brand">CodeDuel<span className="accent">.</span></span>
-        <Badge>Under construction</Badge>
+        <a href="/account">Sign in / Create account</a>
       </header>
       <main id="main" tabIndex={-1}>
         <section className="hero" aria-labelledby="welcome">
@@ -37,3 +37,4 @@ export default function Home() {
     </div>
   );
 }
+

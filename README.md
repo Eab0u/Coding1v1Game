@@ -132,3 +132,10 @@ was unavailable during implementation, so deployment smoke testing (valid functi
 wrong answer, infinite loop, memory exhaustion and blocked network) is still required
 before enabling ranked matches.
 
+
+### Player authentication
+Run `npm run db:migrate` before using `/account`. Registration and login use case-insensitive usernames, 12-character minimum passwords (256-byte maximum), salted asynchronous scrypt hashes (N=32768, r=8, p=1), and opaque seven-day sessions. Only SHA-256 token digests are stored. Sign-in rotates the browser's previous session; sign-out revokes it in Postgres. Other devices remain signed in.
+
+Set `APP_ORIGIN` to the exact public origin (for example `https://duel.example`) in production, and serve over HTTPS. Auth POSTs require that Origin; cookies are HttpOnly, SameSite=Lax and Secure in production. Future authenticated API/WebSocket handlers must resolve the session through `auth.current` and authorize the requested resource; never trust a client user ID. Cookie behavior follows the [Next.js cookie API](https://nextjs.org/docs/app/api-reference/functions/cookies).
+
+Auth attempts are atomically limited to ten per case-insensitive username per 15-minute window across app instances. Configure additional IP/global request limits at the deployment proxy before public rollout. There is no password recovery flow yet. Periodically delete expired `auth_sessions` and old `auth_attempts` rows (older than 15 minutes); they never authenticate users after expiry. The case-insensitive username migration intentionally fails on existing case-only duplicates; resolve those before migrating an existing deployment. Embedded Postgres tests cover persistence; live database/browser smoke tests remain a deployment check.
