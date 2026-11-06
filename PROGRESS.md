@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Submission size guidance and admission validation
+- Reviewed the two unchecked catalog items; only .env.example is present, so isolated Judge0 validation remains blocked. Added and completed one independent arena usability item; catalog items remain unchecked.
+- Added a styled source-limit panel with exact character-unit counts, accessible validation feedback and guidance for symbols that occupy two UTF-16 units. Blank or oversized code disables Submit; reducing code to the limit restores submission. Ready remains independent of source validity.
+- Shared source validation between the arena and lifecycle admission, including an action-handler guard. Oversized recovered drafts remain intact and available for editing, copying and downloading; no code is truncated.
+- Added regressions for whitespace, exact/over-limit source, Unicode counting, recovered drafts, accessible button descriptions, export availability, valid submission and server persistence boundaries.
+- Validation: all 346 tests across 41 files passed; lint, typecheck and production build passed. No player code executed. Live deployment visual inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Best judged opponent progress
 - Reviewed both unchecked catalog items; isolated Judge0 remains unconfigured (only .env.example is present). Catalog validation remains blocked and unchecked. Added and completed one independent arena correctness and clarity item.
 - Opponent progress now selects the highest judged test count rather than the latest attempt, so weaker resubmissions cannot lower the displayed score. Failed, pending and incomplete verdicts do not replace valid judged progress. Own latest-submission reporting remains separate.

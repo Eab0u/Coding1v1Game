@@ -133,3 +133,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Show a server-based reservation readiness countdown, disable expired Ready actions and await authoritative activation or cancellation
 
 - [x] Keep opponent progress on the best judged test count after weaker attempts, with accessible scoring guidance
+
+- [x] Show accessible submission size guidance and block blank or oversized arena submissions using shared server validation, preserving drafts and export

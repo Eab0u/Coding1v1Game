@@ -11,6 +11,32 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('blocks invalid source, preserves export and draft recovery, and submits at the exact limit',async()=>{
+  vi.useFakeTimers();
+  const active={...initial,status:'active' as const,deadline:'2026-11-06T12:05:00Z'};
+  const fetchMock=vi.fn().mockResolvedValue({ok:true,json:async()=>({status:'queued'})});
+  vi.stubGlobal('fetch',fetchMock);
+  sessionStorage.setItem('codeduel:draft:Ada:match','x'.repeat(65537));
+  render(<Arena initial={active}/>);
+  const submit=screen.getByRole('button',{name:'Submit solution'});
+  expect(submit).toBeDisabled();
+  expect(submit).toHaveAccessibleDescription(/exceeds the 65,536-character limit/);
+  expect(screen.getByText(/65,537 \/ 65,536/)).toBeVisible();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('x'.repeat(65537));
+  expect(screen.getByRole('button',{name:'Copy solution'})).toBeEnabled();
+  expect(screen.getByRole('button',{name:/Download solution/})).toBeEnabled();
+  fireEvent.click(submit);
+  expect(fetchMock).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:' \n\t'}});
+  expect(submit).toBeDisabled();
+  expect(submit).toHaveAccessibleDescription(/Enter a solution/);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'x'.repeat(65536)}});
+  expect(submit).toBeEnabled();
+  expect(sessionStorage.getItem('codeduel:draft:Ada:match')).toHaveLength(65536);
+  await act(async()=>{fireEvent.click(submit);});
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body).source).toHaveLength(65536);
+});
 it('distinguishes acknowledged code from edits made during submission and resets on navigation',async()=>{
   vi.useFakeTimers();
   const active={...initial,status:'active' as const,deadline:'2026-11-06T12:05:00Z'};

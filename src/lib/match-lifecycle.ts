@@ -2,6 +2,7 @@ import type { Pool, PoolClient } from "pg";
 import { createJudge, type JudgeRequest } from "./judge";
 import { scoreMatch, type ScoredSubmission } from "./scoring";
 import { rateMatch } from "./rating";
+import { solutionError } from "./solution-validation";
 
 export class MatchActionError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -16,7 +17,10 @@ async function transaction<T>(pool: Pool, fn: (db: PoolClient) => Promise<T>): P
 /** The match row serializes readiness, admission, and finalization across processes. */
 export async function matchAction(pool: Pool, id: string, actor: string, action: "ready" | "submit", source = "") {
   if (!uuid.test(id)) throw new MatchActionError(404, "Match not found.");
-  if (action === "submit" && (!source.trim() || source.length > 65536)) throw new MatchActionError(400, "Enter a solution of at most 65536 characters.");
+  if (action === "submit") {
+    const error = solutionError(source);
+    if (error) throw new MatchActionError(400, error);
+  }
   return transaction(pool, async db => {
     const { rows: [m] } = await db.query(`SELECT m.*, p.difficulty FROM matches m
       JOIN problems p ON p.id=m.problem_id WHERE m.id=$1 FOR UPDATE OF m`, [id]);

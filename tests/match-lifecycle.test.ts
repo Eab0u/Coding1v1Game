@@ -22,6 +22,14 @@ afterEach(async()=>{await db.close();});
 async function activate() {await matchAction(pool,id,one,'ready');await matchAction(pool,id,two,'ready');}
 async function expire() {await db.query("UPDATE matches SET deadline_at=clock_timestamp()-interval '1 second',started_at=clock_timestamp()-interval '301 seconds' WHERE id=$1",[id]);}
 const run=vi.fn(async(request)=>({testsPassed:1,testsTotal:1,largestTestsCpuMs:[10,30,20] as const,submittedAtMs:request.submittedAtMs}));
+it('enforces the shared source limits before persisting submissions',async()=>{
+  await activate();
+  await expect(matchAction(pool,id,one,'submit',' \n\t')).rejects.toMatchObject({status:400});
+  await expect(matchAction(pool,id,one,'submit','x'.repeat(65537))).rejects.toMatchObject({status:400});
+  expect((await db.query('SELECT * FROM submissions')).rows).toHaveLength(0);
+  await expect(matchAction(pool,id,one,'submit','x'.repeat(65536))).resolves.toMatchObject({status:'queued'});
+  expect((await db.query<{source_code:string}>('SELECT source_code FROM submissions')).rows[0].source_code).toHaveLength(65536);
+});
 it('restricts actions, activates once with both participants and rejects late submissions',async()=>{
   await expect(matchAction(pool,id,eve,'ready')).rejects.toMatchObject({status:404});
   await expect(matchAction(pool,'bad',one,'ready')).rejects.toMatchObject({status:404});

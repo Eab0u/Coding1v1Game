@@ -6,6 +6,7 @@ import type { ArenaSnapshot } from "../lib/arena";
 import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
 import { useArenaDraft } from "./use-arena-draft";
 import { SolutionEditor } from "./solution-editor";
+import { MAX_SOLUTION_LENGTH, solutionError } from "../lib/solution-validation";
 export function remainingSeconds(deadline:string|null, serverTime:string, elapsed:number) {
   return deadline ? Math.max(0,Math.ceil((Date.parse(deadline)-Date.parse(serverTime)-elapsed)/1000)) : null;
 }
@@ -26,6 +27,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   },[match.submission,notify]);
   const closed=match.status==="completed" || match.status==="cancelled";
   const {source,setSource,saved}=useArenaDraft(initial.id,initial.player.username,initial.problem.signature,closed);
+  const sourceError=solutionError(source);
   const [elapsed,setElapsed]=useState(0);
   const [error,setError]=useState("");
   const [refreshPending,setRefreshPending]=useState(false);
@@ -38,7 +40,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const actionRequest=useRef<AbortController|null>(null);
   useEffect(()=>()=>{actionRequest.current?.abort();actionRequest.current=null;},[]);
   async function act(action: "ready" | "submit") {
-    if (actionRequest.current || closed || (action==="ready" && reservationExpired) || (action==="ready" && playerReady)) return;
+    if (actionRequest.current || closed || (action==="submit" && (sourceError || match.status!=="active" || seconds===0)) || (action==="ready" && reservationExpired) || (action==="ready" && playerReady)) return;
     const controller=new AbortController();
     actionRequest.current=controller;
     feedback.unlock();
@@ -122,7 +124,11 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         <p>{submittedSource===null ? "This tab cannot confirm whether the current code was submitted. Saving a draft does not submit it." : submittedSource===source ? "The server acknowledged this code. Judging and your best score are shown separately." : seconds===0 ? "These edits differ from the last code acknowledged in this tab. Submissions are now closed; you can still copy or download your work." : "Your code differs from the last submission acknowledged in this tab. Submit again to send these edits."}</p>
       </div>}
       {match.status==="pending" && <button className="button button--primary" disabled={sending || playerReady || reservationExpired} onClick={()=>void act("ready")}>{playerReady ? "Ready confirmed" : "Ready to duel"}</button>}
-      <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0} onClick={()=>void act("submit")} aria-describedby="submission-status">Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
+      {!closed && <div className={`arena-source-limit${sourceError ? " arena-source-limit--invalid" : ""}`}>
+        <p id="solution-size">{source.length.toLocaleString("en-US")} / {MAX_SOLUTION_LENGTH.toLocaleString("en-US")} character units <span className="muted">(Python source limit)</span></p>
+        <p id="solution-validation" role="status">{sourceError || "Within the submission limit. Some symbols count as two character units."}</p>
+      </div>}
+      <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0 || !!sourceError} onClick={()=>void act("submit")} aria-describedby={closed ? "submission-status" : "solution-size solution-validation submission-status"}>Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
     </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre tabIndex={0} role="region" aria-label="Function signature">{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><h3>Examples</h3><ProblemExamples examples={match.problem.examples}/></section></div>
     </main></div>;
 }
