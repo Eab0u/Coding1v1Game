@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { ProblemExamples } from "./problem-examples";
+import { SubmissionStatus } from "./submission-status";
 import { useEffect, useRef, useState } from "react";
 import type { ArenaSnapshot } from "../lib/arena";
 import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
@@ -134,7 +135,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         <p className="muted" id="player-progress-help">Best judged test count across your attempts. Later attempts cannot lower it; runtime and submission time break ties. This score does not confirm that your current edits were submitted.</p>
       </section>
       {!closed && <p role="status">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code."}</p>}
-      {match.submission && <p role="status">{match.submission.status==="judged" ? `Latest solution: ${match.submission.passed} / ${match.submission.total} tests passed.` : match.submission.status==="error" ? "Sandbox temporarily unavailable. Your submission will retry; results are waiting." : "Your solution is being judged."}</p>}
+      <SubmissionStatus submission={match.submission}/>
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>
       {match.status==="active" && <div className="arena-submission-state" role="status">
         <strong>{submittedSource===null ? "Check your latest edits" : submittedSource===source ? "Current code sent" : "Edits not submitted"}</strong>

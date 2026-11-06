@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Clear latest-submission judging states
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena clarity and visual polish item; catalog items remain unchecked.
+- Replaced the generic judging sentence with a bordered, accessible latest-submission panel. Queued attempts explain the worker wait, running attempts explain judging, infrastructure errors show an amber retry state, and judged attempts show the final test count. Partial worker counts stay hidden until judging completes. Unknown states receive neutral checking guidance.
+- The atomic polite status follows authoritative snapshots and identifies the latest recorded attempt separately from best progress and unsent edits. It remains visible in completed arenas and uses no animation or focus changes.
+- Added regressions covering queued/running/error/retry/judged transitions, absent submissions, hidden partial counts, retry styling cleanup, completed-match visibility, retained edits and unchanged best progress.
+- Validation: all 368 tests across 41 files passed; lint, typecheck, production build and diff whitespace checks passed. No player code executed. Live browser and screen-reader inspection remains pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing database and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Keyboard-accessible solution reset confirmation
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent editor usability item; catalog items remain unchecked.
 - Reset confirmation now focuses the safe Keep my solution action. Cancelling by button or Escape restores focus to Reset to starter code without changing the draft. Confirming returns focus to the named solution editor group, avoiding focus loss when the confirmation disappears and Reset becomes disabled. Existing visible focus styling applies, and ordinary Tab navigation remains available.

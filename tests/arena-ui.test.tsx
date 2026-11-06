@@ -11,6 +11,40 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('follows authoritative judging stages without presenting partial worker counts as a verdict',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:05:00Z',bestProgress:{passed:4,total:8},submission:{id:'latest',status:'queued',passed:0,total:8}};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={snapshot}/>);
+  const panel=screen.getByRole('status',{name:'Latest submission'});
+  expect(panel).toHaveAttribute('aria-atomic','true');
+  expect(panel).toHaveTextContent('Queued for judging');
+  expect(panel).not.toHaveTextContent('0 / 8');
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'unsent edits'}});
+  snapshot={...snapshot,submission:{id:'latest',status:'running',passed:2,total:8}};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(panel).toHaveTextContent('Judging in progress');
+  expect(panel).not.toHaveTextContent('2 / 8');
+  snapshot={...snapshot,submission:{id:'latest',status:'error',passed:2,total:8}};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(panel).toHaveTextContent('Waiting for sandbox recovery');
+  expect(panel).toHaveTextContent('Your submission will retry');
+  expect(panel).toHaveClass('arena-verdict--retry');
+  snapshot={...snapshot,submission:{id:'latest',status:'running',passed:0,total:8}};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(panel).toHaveTextContent('Judging in progress');
+  expect(panel).not.toHaveClass('arena-verdict--retry');
+  snapshot={...snapshot,status:'completed',submission:{id:'latest',status:'judged',passed:3,total:8}};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(panel).toHaveTextContent('Judging complete');
+  expect(panel).toHaveTextContent('Latest solution: 3 / 8 tests passed.');
+  expect(screen.getByRole('progressbar',{name:'Your best tests passed: 4 / 8'})).toHaveAttribute('value','4');
+  expect(screen.getByLabelText('Python solution')).toHaveValue('unsent edits');
+});
+it('omits the latest submission panel until a server-recorded attempt exists',()=>{
+  render(<Arena initial={initial}/>);
+  expect(screen.queryByRole('status',{name:'Latest submission'})).not.toBeInTheDocument();
+});
 it('shows authoritative best progress separately from weaker latest attempts and unsent edits',async()=>{
   vi.useFakeTimers();
   let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:05:00Z',bestProgress:null};
