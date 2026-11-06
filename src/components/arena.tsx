@@ -30,16 +30,22 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const [error,setError]=useState("");
   const [sending,setSending]=useState(false);
   const [submission,setSubmission]=useState("");
+  const actionRequest=useRef<AbortController|null>(null);
+  useEffect(()=>()=>{actionRequest.current?.abort();actionRequest.current=null;},[]);
   async function act(action: "ready" | "submit") {
+    if (actionRequest.current || closed) return;
+    const controller=new AbortController();
+    actionRequest.current=controller;
     feedback.unlock();
     setSending(true);
     try {
-      const response=await fetch(`/api/matches/${initial.id}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,...(action==="submit" ? {source} : {})}),signal:AbortSignal.timeout(10000)});
+      const response=await fetch(`/api/matches/${initial.id}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,...(action==="submit" ? {source} : {})}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])});
       const result=await response.json();
+      if (controller.signal.aborted) return;
       if (!response.ok) throw new Error(result.error || "Request failed.");
       setSubmission(action==="ready" ? "Ready. Waiting for both players; reservations expire after 60 seconds." : "Solution queued. The server will judge it in the sandbox.");
-    } catch (error) { setSubmission(error instanceof Error ? error.message : "Request failed."); }
-    finally { setSending(false); }
+    } catch (error) { if (!controller.signal.aborted) setSubmission(error instanceof Error ? error.message : "Request failed."); }
+    finally { if (actionRequest.current===controller) {actionRequest.current=null;setSending(false);} }
   }
   const received=useRef(0);
   useEffect(()=> {

@@ -36,6 +36,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Arena action request isolation
+- Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent arena reliability item.
+- Ready and Submit now share a synchronous request guard, preventing duplicate actions before React updates the disabled buttons. Each request combines its timeout with a session-owned cancellation signal. Navigating to another match/player or unmounting aborts pending actions; late responses cannot update the replacement view. Failed requests release the guard for retry.
+- Added regression coverage for duplicate Ready/Submit clicks, match navigation, ignored late responses, unmount cancellation, and retry after network failure.
+- Validation: all 253 tests across 36 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency, sandbox isolation/resource enforcement and deployment smoke checks remain pending.
+
 ### 2026-11-06 - Matchmaking acknowledgement recovery
 - Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent matchmaking reliability item.
 - Open sockets now have a fresh ten-second response deadline for join and leave commands. Missing acknowledgements close the connection and restore Play with explicit retry feedback. Unconfirmed cancellation tells players to retry to recover any reservation.

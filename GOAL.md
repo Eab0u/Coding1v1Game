@@ -102,3 +102,4 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Protect rematch actions from stale polls, isolate match views and abort actions on navigation
 
 - [x] Recover matchmaking from missing join/cancel acknowledgements and clean up connection timers
+- [x] Guard arena Ready/Submit against duplicate requests and abort pending actions on navigation

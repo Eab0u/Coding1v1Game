@@ -202,3 +202,44 @@ it('announces each newly judged submission once, including identical scores, wit
   expect(screen.getByText('Test failed')).toBeVisible();
   expect(play).toHaveBeenCalledTimes(3);
 });
+
+it.each(['ready','submit'])('isolates pending %s requests on navigation and allows a fresh action',async(action)=>{
+  vi.useFakeTimers();
+  let finish:(value:unknown)=>void=()=>{};
+  const fetcher=vi.fn().mockImplementation(()=>new Promise(resolve=>{finish=resolve;}));
+  vi.stubGlobal('fetch',fetcher);
+  const snapshot=action==='ready' ? initial : {...initial,status:'active',deadline:'2026-11-06T12:05:00Z'};
+  const label=action==='ready' ? 'Ready to duel' : 'Submit solution';
+  const view=render(<Arena initial={snapshot}/>);
+  const button=screen.getByRole('button',{name:label});
+  act(()=>{button.click();button.click();});
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(button).toBeDisabled();
+  const signal=fetcher.mock.calls[0][1].signal as AbortSignal;
+  view.rerender(<Arena initial={{...snapshot,id:'replacement'}}/>);
+  expect(signal.aborted).toBe(true);
+  await act(async()=>{finish({ok:true,json:async()=>({})});});
+  expect(screen.queryByText(/Solution queued|Ready. Waiting for both players/)).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:label}));
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  expect(fetcher.mock.calls[1][0]).toBe('/api/matches/replacement');
+  const replacementSignal=fetcher.mock.calls[1][1].signal as AbortSignal;
+  view.unmount();
+  expect(replacementSignal.aborted).toBe(true);
+  await act(async()=>{finish({ok:true,json:async()=>({})});});
+});
+
+it('allows an arena action to retry after a network failure',async()=>{
+  vi.useFakeTimers();
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error('Connection lost')).mockResolvedValue({ok:true,json:async()=>({})});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={initial}/>);
+  fireEvent.click(screen.getByRole('button',{name:'Ready to duel'}));
+  await act(async()=>{await Promise.resolve();});
+  expect(screen.getByText('Connection lost')).toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Ready to duel'})).toBeEnabled();
+  fireEvent.click(screen.getByRole('button',{name:'Ready to duel'}));
+  await act(async()=>{await Promise.resolve();});
+  expect(screen.getByText(/Ready. Waiting for both players/)).toBeInTheDocument();
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
