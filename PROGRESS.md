@@ -4,7 +4,7 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
-Public global and weekly leaderboards are available at /leaderboard, linked from the home page. The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems, match screen/lifecycle, rating persistence orchestration and live sandbox verification remain pending.
+Public player profiles now show rating graphs, tier badges, full win/loss/draw records and recent match history at /profile/<username>. Public global and weekly leaderboards are available at /leaderboard, linked from the home page. The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems, match screen/lifecycle, rating persistence orchestration and live sandbox verification remain pending.
 
 ## Decisions made
 - Python only for v1
@@ -22,6 +22,15 @@ Public global and weekly leaderboards are available at /leaderboard, linked from
 Problem pipeline and validated published problems to enable pairing, then match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Player profiles and rating graph
+- Selected the profile page as a complete player-facing use of existing rating/history storage without depending on unfinished match orchestration. Checked off this item only.
+- Added public case-insensitive /profile/<username> routes, linked from signed-in home navigation and leaderboard players. Unknown/invalid players return 404; database errors show generic feedback.
+- Added current MMR and documented tier thresholds, all-time completed win/loss/draw records, the last 20 matches with opponent profile links and rating deltas, and the last 50 rated duels as a responsive SVG graph with expandable dated text data. Empty profiles and matches without ratings have explicit states. Future and unfinished matches are excluded.
+- Added embedded Postgres and page tests covering privacy, parameterized lookup, record aggregation, limits/order, tier boundaries, constant graphs, accessible data, empty states, 404s and infrastructure failures. Fixed parameter inference errors in SQL test fixtures. No player code executed.
+- Validation: all 144 tests across 18 files passed; lint, typecheck and production build passed.
+- Limits: browser visual inspection and live Postgres smoke testing remain unverified. Profile history will populate once match completion writes results and ratings. Existing infrastructure blockers remain.
+- Next: problem pipeline and validated published problems, then match screen/lifecycle orchestration.
+
 ### 2026-11-06 - Global and weekly leaderboard
 - Selected the leaderboard as a complete player-facing improvement supported by existing ratings and history; checked off this item only. Added a separate future item for friend relationships and filtering, which have no existing data model.
 - Added a public, dynamically rendered /leaderboard route and home navigation. Global standings rank current ratings; weekly standings rank net rating gain from completed duels since Monday 00:00 UTC, excluding future and unfinished matches and inactive players.
@@ -105,6 +114,7 @@ Problem pipeline and validated published problems to enable pairing, then match 
 - Added users, problems, matches, submissions and rating history tables, constraints and indexes; included a serialized transactional migration runner, Docker Compose, .env.example and local setup documentation.
 - Added page availability coverage and database tests for initial ratings, username validation, match creation, self-match rejection, submission counts, completed results and unique rating history.
 - Validation: all 4 tests passed across 2 files; lint, typecheck and production build passed. Docker integration remains unverified because its daemon is unavailable.
+
 
 
 

@@ -28,7 +28,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
             <caption>{period === "weekly" ? "Weekly climb" : "Global rating"} standings</caption>
             <thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Rating</th>{period === "weekly" && <th scope="col">Weekly gain</th>}</tr></thead>
             <tbody>{entries.map(entry => <tr key={entry.username} className={entry.rank <= 3 ? "ladder-podium" : undefined}>
-              <td><span className="ladder-rank">#{entry.rank}</span></td><th scope="row">{entry.username}</th><td>{Math.round(entry.rating)}</td>
+              <td><span className="ladder-rank">#{entry.rank}</span></td><th scope="row"><Link href={`/profile/${entry.username}`}>{entry.username}</Link></th><td>{Math.round(entry.rating)}</td>
               {period === "weekly" && <td>{entry.score > 0 ? "+" : ""}{Math.round(entry.score)}</td>}
             </tr>)}</tbody>
           </table></div> : <div className="ladder-empty"><h2>{period === "weekly" ? "A new week. An open ladder." : "The first rivals are on their way."}</h2><p>{period === "weekly" ? "Completed rated duels will put this week’s climbers here." : "Create an account to join the standings."}</p><Link className="button button--primary" href="/">Back to arena</Link></div>}

@@ -20,6 +20,7 @@ export default async function Home() {
       <header className="site-header">
         <span className="brand">CodeDuel<span className="accent">.</span></span>
         <a href="/leaderboard">Leaderboard</a>
+        {user && <a href={`/profile/${user.username}`}>Your profile</a>}
         <a href="/account">{user ? `Account ? ${user.username}` : "Sign in / Create account"}</a>
       </header>
       <main id="main" tabIndex={-1}>

@@ -202,3 +202,8 @@ with qualifying rating-history rows appear. Equal full-precision scores share a
 rank (1, 1, 3); usernames provide stable ordering within ties. Display values are
 rounded. Both views are public and never return credentials or problem internals.
 Friends filtering awaits friend relationships (tracked in GOAL.md).
+
+## Public player profiles
+`/profile/<username>` shows current rating, all-time completed match record, the last 20 completed matches and a graph of the last 50 rated duels. Lookup is case-insensitive; unknown players return 404. Future-dated and unfinished matches are excluded. Profiles expose no credentials, source code, hidden tests or solutions. Graph points follow match order, with expandable dated rating data; missing rating history is labeled Unrated.
+
+Tier thresholds use unrounded current MMR: Bronze below 1000, Silver 1000, Gold 1200, Platinum 1600, Diamond 2000, Master 2400. These display tiers do not change matchmaking difficulty bands.

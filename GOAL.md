@@ -76,7 +76,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [ ] Match screen: editor, timers, opponent progress bar
 - [ ] Post-match results screen with rating change animation
 - [x] Home page with Play button
-- [ ] Profile page with rating graph
+- [x] Profile page with rating graph
 - [x] Leaderboard
 - [ ] Problem pipeline: generate, validate, publish
 - [ ] Problems 1 to 20 passing validation
@@ -85,6 +85,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [ ] Problems 21 to 60
 - [ ] Mobile layout polish
 - [ ] Friend relationships and friends-only leaderboard filter
+
 
 
 
