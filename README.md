@@ -34,3 +34,18 @@ Vitest tests the entry page in jsdom and executes the actual SQL migration in PG
 Hidden tests, solutions, and submitted source are server-only data. No public database API is exposed. The schema records the median CPU time on large tests; the future judge must compute it over three runs. Authentication, participant authorization and match lifecycle enforcement belong to the future server implementation.
 
 `docker compose down` stops the local database while preserving its volume.
+
+## Design system
+
+Shared primitives live in `src/components/ui/index.tsx`: `Button` (primary,
+secondary, ghost), `Card`, and `Badge` (neutral, accent). They forward native
+HTML attributes and accept additional classes. Buttons default to `type="button"`;
+set `type="submit"` explicitly in forms. Use native `disabled` for unavailable actions
+and `aria-describedby` to connect an explanation.
+
+`src/app/globals.css` defines the dark palette, spacing, radii, and sans/monospace
+font tokens. Green buttons use dark text for contrast. Shared controls include
+visible keyboard focus, hover, active and disabled states; motion respects the
+reduced-motion preference. The entry page demonstrates these primitives and
+collapses its grids to one column below 760px. Reuse these tokens and components
+for subsequent gameplay screens.

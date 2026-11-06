@@ -4,7 +4,7 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
-Application foundation is in place: Next.js App Router with strict TypeScript, ESLint, Vitest, a responsive dark entry page, and a Postgres schema. Gameplay is not implemented yet.
+Application foundation and design system are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. Gameplay is not implemented yet.
 
 ## Decisions made
 - Python only for v1
@@ -19,9 +19,18 @@ Application foundation is in place: Next.js App Router with strict TypeScript, E
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
 ## Next up
-Design system: reusable colors, buttons, typography and dark theme. The current page only provides starter styles.
+Judge service: sandboxed Python execution against hidden tests with pass counts and CPU timing. Scoring remains another independent next step.
 
 ## Log
+### 2026-11-06 - Design system
+- Selected the design system as the next shared foundation; checked off only this backlog item.
+- Added dark palette, spacing, radius and typography tokens; reusable native Button, Card and Badge components with primary/secondary/ghost button variants.
+- Applied the system to the entry page with an arena illustration, scoring cards and responsive grids. Play remains disabled with an accessible availability explanation until matchmaking exists.
+- Added visible keyboard focus, skip navigation, native disabled states and reduced-motion support; documented component usage in README.md.
+- Added component interaction, disabled behavior, variant, attribute forwarding and page accessibility tests.
+- Validation: all 10 tests across 3 files passed; lint, typecheck and production build passed. Browser visual inspection was not performed.
+- Next: implement the sandbox judge service. Existing infrastructure blockers remain unchanged.
+
 ### 2026-11-06 — Project scaffold
 - Selected the scaffold as the highest-value dependency for all subsequent work; checked off only that item.
 - Added Next.js + TypeScript, ESLint, Vitest/jsdom, a clear under-construction entry page, and CI checks.
