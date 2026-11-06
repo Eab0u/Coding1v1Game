@@ -1,10 +1,11 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import { DuelSound } from "../src/lib/duel-sound";
 import type { ArenaSnapshot } from "../src/lib/arena";
 vi.mock('next/dynamic',()=>({default:()=>function Editor({value,onChange,readOnly}:{value:string;onChange:(v:string)=>void;readOnly:boolean}) {return <textarea aria-label="Python solution" value={value} onChange={e=>onChange(e.target.value)} readOnly={readOnly}/>;}}));
 import { Arena,remainingSeconds } from "../src/components/arena";
 const initial:ArenaSnapshot={id:'match',status:'pending',deadline:null,serverTime:'2026-11-06T12:00:00Z',player:{username:'Ada',rating:800},opponent:{username:'Bob',rating:900},problem:{title:'Sample',statement:'Find an answer',signature:'def solve():',difficulty:'easy',constraints:'n <= 100',examples:[{input:[1],output:1}]},progress:null};
-afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();sessionStorage.clear();});
+afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();sessionStorage.clear();localStorage.clear();});
 it('uses server time and clamps expired deadlines',()=>{
   expect(remainingSeconds(null,initial.serverTime,0)).toBeNull();
   expect(remainingSeconds('2026-11-06T12:05:00Z',initial.serverTime,1000)).toBe(299);
@@ -112,4 +113,43 @@ it('keeps editing and submission working when browser storage is unavailable',as
   fireEvent.click(screen.getByRole('button',{name:'Submit solution'}));
   await act(async()=>{await Promise.resolve();});
   expect(fetcher).toHaveBeenCalledWith('/api/matches/match',expect.objectContaining({body:JSON.stringify({action:'submit',source:'still editable'})}));
+});
+
+it('announces each newly judged submission once, including identical scores, without replaying history',async()=>{
+  vi.useFakeTimers();
+  const play=vi.spyOn(DuelSound.prototype,'play').mockImplementation(()=>{});
+  vi.spyOn(DuelSound.prototype,'unlock').mockImplementation(()=>{});
+  const active={...initial,status:'active',deadline:'2026-11-06T12:05:00Z'};
+  let submission={id:'old',status:'judged',passed:8,total:8};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(async()=>({ok:true,json:async()=>({...active,submission:{...submission}})})));
+  render(<Arena initial={{...active,submission}}/>);
+  expect(screen.queryByText('Test passed')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Sound off'}));
+  play.mockClear();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(play).not.toHaveBeenCalled();
+  submission={id:'new',status:'running',passed:0,total:8};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).not.toHaveBeenCalled();
+  submission={...submission,status:'error'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).not.toHaveBeenCalled();
+  submission={...submission,status:'judged',passed:3};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByText('Test failed')).toBeVisible();
+  expect(play).toHaveBeenCalledExactlyOnceWith('failed');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledTimes(1);
+  submission={...submission,id:'another'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledTimes(2);
+  submission={...submission,id:'perfect',passed:8};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByText('Test passed')).toBeVisible();
+  expect(play).toHaveBeenLastCalledWith('passed');
+  fireEvent.click(screen.getByRole('button',{name:'Sound on'}));
+  submission={...submission,id:'muted',passed:0};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByText('Test failed')).toBeVisible();
+  expect(play).toHaveBeenCalledTimes(3);
 });

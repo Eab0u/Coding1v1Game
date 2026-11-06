@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ArenaSnapshot } from "../lib/arena";
+import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
 import { useArenaDraft } from "./use-arena-draft";
 const PythonEditor = dynamic(()=>import("./python-editor"),{ssr:false,loading:()=> <p>Loading editor…</p>});
 export function remainingSeconds(deadline:string|null, serverTime:string, elapsed:number) {
@@ -13,6 +14,16 @@ export function Arena({initial}:{initial:ArenaSnapshot}) {
 }
 function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const [match,setMatch]=useState(initial);
+  const feedback=useDuelFeedback();
+  const {notify}=feedback;
+  // Existing verdicts are history, not new events when reopening the arena.
+  const seenVerdicts=useRef(new Set(initial.submission?.status==="judged" && initial.submission.id ? [initial.submission.id] : []));
+  useEffect(()=> {
+    const verdict=match.submission;
+    if (!verdict?.id || verdict.status!=="judged" || verdict.passed===null || verdict.total===null || verdict.total<=0 || seenVerdicts.current.has(verdict.id)) return;
+    seenVerdicts.current.add(verdict.id);
+    notify(verdict.passed===verdict.total ? "passed" : "failed");
+  },[match.submission,notify]);
   const closed=match.status==="completed" || match.status==="cancelled";
   const {source,setSource,saved}=useArenaDraft(initial.id,initial.player.username,initial.problem.signature,closed);
   const [elapsed,setElapsed]=useState(0);
@@ -20,6 +31,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const [sending,setSending]=useState(false);
   const [submission,setSubmission]=useState("");
   async function act(action: "ready" | "submit") {
+    feedback.unlock();
     setSending(true);
     try {
       const response=await fetch(`/api/matches/${initial.id}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,...(action==="submit" ? {source} : {})}),signal:AbortSignal.timeout(10000)});
@@ -48,7 +60,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
     return ()=>{stopped=true;controller.abort();clearTimeout(timer);clearInterval(clock);};
   },[initial.id]);
   const seconds=remainingSeconds(match.deadline,match.serverTime,elapsed);
-  return <div className="shell arena"><header className="site-header"><Link className="brand" href="/">Code<span className="accent">Duel</span></Link><span>Python arena</span></header>
+  return <div className="shell arena"><header className="site-header"><Link className="brand" href="/">Code<span className="accent">Duel</span></Link><span>Python arena</span><DuelFeedback feedback={feedback}/></header>
     <main id="main-content"><div className="arena-scoreboard">
       <div><span className="eyebrow">YOU</span><h2>{match.player.username}</h2><p>{Math.round(match.player.rating)} MMR</p></div>
       <div className="arena-clock"><span className="eyebrow">{match.status}</span><p role="timer" aria-label="Time remaining">{match.status==="pending" ? "Waiting to start" : seconds===null ? "No timer" : `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,"0")}`}</p></div>

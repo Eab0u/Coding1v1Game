@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DuelSound, type DuelCue } from "../lib/duel-sound";
 import { Button } from "./ui";
 
@@ -21,10 +21,10 @@ export function useDuelFeedback() {
   function unlock() {
     if (enabledRef.current) { sound.current ??= new DuelSound(); sound.current.unlock(); }
   }
-  function notify(cue: DuelCue) {
+  const notify = useCallback((cue: DuelCue) => {
     if (enabledRef.current && document.visibilityState !== "hidden") sound.current?.play(cue);
     setEvent(previous => ({ cue, sequence: (previous?.sequence ?? 0) + 1 }));
-  }
+  }, []);
   function toggle() {
     enabledRef.current = !enabledRef.current;
     setEnabled(enabledRef.current);

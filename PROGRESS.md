@@ -8,7 +8,7 @@ Match lifecycle orchestration is implemented. Apply migrations through 005_match
 
 The participant-only arena at /match/<id> supports locally bundled Monaco Python editing, readiness, sandbox submission, server-time countdown and polled own/opponent progress. Drafts recover after refresh using match/player-scoped browser session storage, with visible failure feedback and cleanup when the server reports the match ended. Completed arenas link to participant-only /match/<id>/results with persisted outcome, rating history and final-score snapshots. Consensual rematch invitations are available on results pages after applying migration 006_rematches.sql.
 
-Optional duel sound and animated feedback are implemented as shared components, with match-found feedback connected to matchmaking. Sound defaults off, persists locally and unlocks through user interaction. The future arena/results screens must call the shared test-pass/fail and win/loss cues when their authoritative events exist.
+Optional duel sound and animated feedback are implemented as shared components, with match-found feedback connected to matchmaking. Sound defaults off, persists locally and unlocks through user interaction. The arena now connects authoritative judged submissions to test-pass/fail cues, once per submission; results win/loss sound integration remains a future improvement.
 
 Matchmaking fair-play basics now share command limits across account connections, throttle handshake attempts before authentication and rotate problems using both players' exposure histories. Optional paste blocking remains off until an editor exists. Worker counters reset on restart; reverse proxies need per-client handshake limits.
 
@@ -36,6 +36,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Arena verdict feedback
+- Reviewed the two unchecked catalog items; isolated Judge0 validation remains blocked because this workspace has only .env.example. Added and completed one independent improvement: animated arena verdict feedback with optional sound.
+- Added the latest own submission ID to the participant-only snapshot without exposing code or private problem data. Each newly observed judged submission cues pass when all tests pass and fail otherwise. Stable submission IDs prevent repeated polling from replaying cues while allowing consecutive identical scores to trigger separate feedback. Existing verdicts do not replay on opening the arena; queued/running/error states do not trigger verdicts.
+- Added the shared sound toggle to the arena header. Sound stays off by default, restores the existing preference and unlocks on user interaction; visual feedback works while muted. Shared reduced-motion and hidden-tab audio behavior remain in effect.
+- Added regression coverage for history suppression, judging/retry states, duplicate polls, identical scores across distinct submissions, all-pass/partial results and muting, plus database coverage for the projected submission ID.
+- Validation: all 232 tests across 36 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database, concurrent-worker and sandbox isolation checks remain pending. Results sound feedback is a future improvement.
+
 ### 2026-11-06 - Arena draft recovery
 - Reviewed the two remaining unchecked catalog items. Both remain blocked on isolated Judge0 validation; this workspace has no configured .env. Added and completed one independent improvement: protect players from losing arena work on an accidental refresh.
 - Arena drafts now recover from sessionStorage, keyed by match and player. Empty drafts recover correctly. Switching matches or players creates a separate editor session. Saved code is removed when authoritative polling reports completion or cancellation; ended matches do not restore drafts.

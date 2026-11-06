@@ -23,6 +23,8 @@ it("restricts matches to participants and projects public problem and latest jud
     const result=await loadArena(store,m.id,users[0].id);
     expect(result?.progress).toEqual({passed:5,total:8});
     expect(JSON.stringify(result)).not.toContain('SECRET');
-    expect((await loadArena(store,m.id,users[1].id))?.progress).toBeNull();
+    const opponent=await loadArena(store,m.id,users[1].id);
+    expect(opponent?.progress).toBeNull();
+    expect(opponent?.submission).toMatchObject({id:expect.any(String),status:'running',passed:null,total:null});
   } finally { await db.close(); }
 },30000);
