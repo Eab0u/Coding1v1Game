@@ -67,7 +67,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 - [x] Design system: colors, buttons, typography, dark theme
 - [ ] Judge service: run code in the sandbox against tests, return pass count and CPU time
 - [x] Scoring function with unit tests for all tiebreak cases
-- [ ] Rating system (Glicko-2) with unit tests
+- [x] Rating system (Glicko-2) with unit tests
 - [ ] Auth (simple username and password or OAuth)
 - [ ] Matchmaking queue with WebSockets and rating bands
 - [ ] Match screen: editor, timers, opponent progress bar

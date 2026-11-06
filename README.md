@@ -51,6 +51,28 @@ Invalid inputs throw `RangeError`. The scorer does not execute code or handle
 no-shows, match deadlines or selection among multiple submissions; those belong
 to the future match service. Unit tests cover every deciding criterion.
 
+## Ratings
+
+`src/lib/rating.ts` implements [Glickman's revised Glicko-2 algorithm](https://www.glicko.net/glicko/glicko2.pdf)
+with tau 0.5 and convergence tolerance 0.000001. `initialRating()` returns
+800 rating, 350 deviation and 0.06 volatility, matching database defaults.
+`updateRating(player, games)` accepts pre-period opponent snapshots and scores
+(win 1, draw 0.5, loss 0); an empty period grows uncertainty only.
+`rateMatch(one, two, winner)` treats each completed duel as one period and returns
+both updated states and full-precision rating deltas, using both pre-match states.
+The match scorer's winner can be passed directly to it.
+
+Ratings have a zero floor to match database constraints; deviation has no artificial
+cap. Calculations retain full precision: round only for display. Invalid states,
+outcomes and numerically unrepresentable calculations throw `RangeError`.
+The future match service must persist both players' rating, deviation, volatility
+and rating history atomically and ensure a match is applied once. These pure
+functions do not write to the database. Placement uncertainty is represented by
+the initial deviation; placement badges and inactivity scheduling belong to that
+service. No automatic elapsed-time decay is applied: callers explicitly supply
+empty periods if needed. Per-duel updates are a product choice; Glickman recommends
+larger batches for the best predictive performance.
+
 ## Design system
 
 Shared primitives live in `src/components/ui/index.tsx`: `Button` (primary,

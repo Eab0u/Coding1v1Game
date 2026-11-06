@@ -4,7 +4,7 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
-Application foundation, design system and tested match scoring are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. Live gameplay and judge integration are not implemented yet.
+Application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. Live gameplay, rating persistence orchestration and judge integration are not implemented yet.
 
 ## Decisions made
 - Python only for v1
@@ -22,6 +22,15 @@ Application foundation, design system and tested match scoring are in place: Nex
 Judge service: sandboxed Python execution against hidden tests with pass counts and CPU timing, producing the three CPU samples consumed by the scorer.
 
 ## Log
+### 2026-11-06 - Glicko-2 ratings
+- Selected ratings as a core match dependency that can be completed without sandbox infrastructure; checked off only the rating backlog item.
+- Implemented Glickman's revised Glicko-2 volatility solver, rating-period updates, inactive-period uncertainty growth and simultaneous duel updates from pre-match snapshots. New players start at 800 with deviation 350 and volatility 0.06.
+- Fixed tau at 0.5; use one completed duel per rating period and a zero rating floor to match database constraints. Preserve full precision and return both rating deltas. Documented these policies and the published algorithm source in README.md.
+- Added 20 tests covering the published reference example (with tolerance for the paper's rounded intermediates), wins for both positions, draws, inactivity, upsets, the zero floor, placement uncertainty, invalid inputs and 300 consecutive updates. Tests never execute player code.
+- Validation: all 56 tests across 5 files passed; lint, typecheck and production build passed. Corrected a type assertion in the deliberately invalid-score test after typecheck caught it.
+- Future match service must atomically persist both rating states and history exactly once per completed match; inactivity scheduling and placement badges remain caller responsibilities. No new infrastructure blockers.
+- Next: sandbox judge service; existing infrastructure blockers remain unchanged.
+
 ### 2026-11-06 - Match scoring
 - Selected scoring as the independently testable rule that defines match outcomes before judge integration; checked off only this backlog item.
 - Added a pure scorer that ranks correctness, then numeric median CPU time across three largest-test suite runs, then server-recorded submission time; exact ties draw.
