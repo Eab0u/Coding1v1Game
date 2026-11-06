@@ -14,7 +14,7 @@ Matchmaking fair-play basics now share command limits across account connections
 
 Friend requests and accepted friendships are available at /friends, with authenticated friends-only global and weekly standings. Apply migration 003_friends.sql before using these flows.
 
-Mobile layout polish is implemented for the existing home, account, profile and leaderboard pages, with Chromium regression coverage for narrow phones through desktop widths. Future arena/results screens will need their own responsive checks when implemented.
+Mobile layout polish is implemented for the existing home, account, profile and leaderboard pages, with Chromium regression coverage for narrow phones through desktop widths. Arena and results now have responsive browser checks; Monaco interaction still needs a live deployment smoke check.
 
 The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. The original problem catalog is still pending; no real catalog problems have been published.
 
@@ -36,6 +36,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Phone arena layout and keyboard scrolling
+- Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent arena usability item.
+- On narrow phones the clock occupies its own row above the players, long names wrap within their columns, and submission controls span the editor panel. Problem titles wrap and long signatures/examples scroll locally in named, keyboard-focusable regions.
+- Added Chromium regression coverage for actual arena markup in pending, active, completed and cancelled states at 320/375/768/1280px, with long names, titles, constraints and code. Checks cover page overflow, keyboard scrolling, clock placement and phone button widths. The dynamically loaded Monaco editor is outside this static-markup test; live editor smoke checks remain pending.
+- Validation: all 237 tests across 36 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing live database concurrency and sandbox isolation/resource smoke checks remain pending.
+
 ### 2026-11-06 - Results feedback and optional replay
 - Reviewed the unchecked catalog items. Both remain blocked on isolated Judge0 validation; only .env.example is present. Added and completed one independent player-facing improvement: authoritative results feedback with optional replay.
 - Results now show an animated victory, defeat or draw cue, share the existing persistent sound toggle and offer a Replay result button. Opening the page shows visual feedback without unlocking audio or autoplaying sound. Replay unlocks through a user click and plays the outcome when sound is enabled; muted replay still animates. Added an original draw tone sequence and label. Existing reduced-motion, hidden-tab and unavailable-device safeguards apply.

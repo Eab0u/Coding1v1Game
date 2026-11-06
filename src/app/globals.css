@@ -197,3 +197,17 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 @keyframes rating-arrive { from { opacity: 0; transform: translateY(12px) scale(.8); } to { opacity: 1; transform: none; } }
 @media (max-width: 600px) { .result-players { grid-template-columns: 1fr; } .result-actions > * { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .rating-change { animation: none; } }
+
+/* Keep the match identity and clock readable while code scrolls locally. */
+.arena-scoreboard > * { min-width: 0; }
+.arena-problem h2 { overflow-wrap: anywhere; }
+.arena-problem pre { max-width: 100%; }
+.arena-editor > .button { margin: 0 8px 8px 0; }
+@media (max-width: 480px) {
+  .arena-scoreboard { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .arena-clock { grid-column: 1 / -1; grid-row: 1; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; }
+  .arena-clock p { margin-bottom: 0; font-size: 1.5rem; }
+  .arena-scoreboard h2 { line-height: 1.4; }
+  .arena-panel-heading { flex-wrap: wrap; gap: 8px; }
+  .arena-editor > .button { width: 100%; margin-right: 0; }
+}

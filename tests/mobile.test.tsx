@@ -10,6 +10,7 @@ vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current
 vi.mock('../src/lib/home', () => ({ loadHome: async () => ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: 'def solve_very_long_function_name(values: list[int]) -> list[int]:', difficulty: 'easy' }, recent: [{ id: '1', title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }) }));
 vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => [{ username: 'abcdefghijklmnopqrstuvwx', rating: 1234, score: 123, rank: 1 }] }));
 vi.mock('../src/lib/profile', () => ({ ratingTier: () => 'Bronze', loadProfile: async () => ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }) }));
+import { Arena } from '../src/components/arena';
 import { Results } from '../src/components/results';
 import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
@@ -73,3 +74,40 @@ it('animates rating changes and respects reduced motion', async()=>{
   expect(await page.locator('.rating-change').evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
  } finally {await page.close();}
 });
+
+
+it('keeps the arena readable with keyboard-scrollable code on narrow screens', async () => {
+  const page = await browser.newPage();
+  const css = readFileSync('src/app/globals.css', 'utf8');
+  try {
+    for (const status of ['pending', 'active', 'completed', 'cancelled']) {
+      const content = renderToStaticMarkup(<Arena initial={{
+        id: 'arena', status, deadline: '2026-11-06T12:05:00Z', serverTime: '2026-11-06T12:00:00Z',
+        player: { username, rating: 800 }, opponent: { username: 'another_long_player_name', rating: 1200 },
+        problem: { title: 'X'.repeat(150), statement: 'Y'.repeat(200), signature: `def solve_${'z'.repeat(200)}():`, difficulty: 'medium', constraints: 'N'.repeat(200), examples: [{ input: 'a'.repeat(200), output: 1 }] },
+        progress: { passed: 123, total: 456 },
+      }}/>);
+      for (const width of [320, 375, 768, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.setContent(`<style>${css}</style>${content}`);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth), `${status} overflow at ${width}px`).toBeLessThanOrEqual(width);
+        for (const label of ['Function signature', 'Problem examples']) {
+          const region = page.getByRole('region', { name: label, exact: true });
+          await region.focus();
+          expect(await region.evaluate(el => el === document.activeElement)).toBe(true);
+          await page.keyboard.press('ArrowRight');
+          await page.waitForTimeout(100);
+          expect(await region.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+        }
+        if (width <= 375) {
+          const clock = (await page.locator('.arena-clock').boundingBox())!;
+          const player = (await page.locator('.arena-scoreboard > div').first().boundingBox())!;
+          expect(clock.y + clock.height).toBeLessThanOrEqual(player.y);
+          for (const button of await page.locator('.arena-editor > button').all()) {
+            expect((await button.boundingBox())!.width).toBeGreaterThan(200);
+          }
+        }
+      }
+    }
+  } finally { await page.close(); }
+}, 30000);
