@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Show a server-based rematch invitation countdown with styled deadline feedback and disable elapsed invitation responses while awaiting authoritative confirmation
 - [x] Refresh rematch invitations immediately on tab return without overlapping reads or actions, and stop after terminal outcomes
 - [x] Recover failed rematch reads with a styled, accessible immediate retry, refresh feedback and duplicate-request protection
 - [x] Stop rematch polling after authoritative terminal states and provide styled, accessible outcomes with clear next actions

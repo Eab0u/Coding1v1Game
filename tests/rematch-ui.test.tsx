@@ -277,3 +277,53 @@ it('restarts the poll delay after a tab-return refresh and removes the listener 
   expect(fetcher).toHaveBeenCalledTimes(3);
  } finally {visibility.mockRestore();vi.useRealTimers();}
 });
+
+it('counts down from server time despite local clock skew and awaits authoritative expiry',async()=>{
+ vi.useFakeTimers();
+ try {
+  vi.setSystemTime(new Date('2040-01-01'));
+  const pending={status:'pending',outgoing:false,matchId:null,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T12:00:03Z'};
+  const stalled=deferred<ReturnType<typeof response>>();
+  const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>pending}).mockReturnValueOnce(stalled.promise).mockResolvedValue(response('expired'));
+  vi.stubGlobal('fetch',fetcher);
+  const view=render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.getByRole('timer')).toHaveTextContent('3s remaining');
+  expect(screen.getByRole('timer')).toHaveAttribute('aria-live','off');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(3000);});
+  expect(screen.getByRole('timer')).toHaveTextContent('0s remaining');
+  expect(screen.getByRole('button',{name:'Accept rematch'})).toBeDisabled();
+  expect(screen.getByRole('button',{name:'Decline'})).toBeDisabled();
+  expect(screen.getByText(/Waiting for server confirmation\./)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Accept rematch'}));
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  await act(async()=>{stalled.resolve(response('expired'));});
+  expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+  expect(screen.getByRole('link',{name:'Find a new opponent'})).toBeInTheDocument();
+  view.unmount();
+ } finally {vi.useRealTimers();}
+});
+it('omits countdown for unavailable server timestamps',async()=>{
+ vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({status:'pending',outgoing:true,serverNow:'invalid',expiresAt:'invalid'})}));
+ render(<Rematch id="old"/>);
+ expect(await screen.findByRole('button',{name:'Cancel invitation'})).toBeEnabled();
+ expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+});
+it('disables elapsed outgoing invitations and cleans up the countdown on navigation',async()=>{
+ vi.useFakeTimers();
+ try {
+  const pending={status:'pending',outgoing:true,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T11:59:59Z'};
+  const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>pending}).mockResolvedValue(response('none'));
+  vi.stubGlobal('fetch',fetcher);
+  const view=render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeDisabled();
+  view.rerender(<Rematch id="new"/>);
+  await act(async()=>{});
+  expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Rematch'})).toBeEnabled();
+  view.unmount();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(10000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+ } finally {vi.useRealTimers();}
+});

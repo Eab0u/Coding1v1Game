@@ -5,7 +5,7 @@ import { difficultyFor } from "./matchmaking";
 export class RematchError extends Error {
   constructor(message: string, public status = 409) { super(message); }
 }
-export type RematchState = { status: string; outgoing: boolean; expiresAt: string | null; matchId: string | null };
+export type RematchState = { status: string; outgoing: boolean; expiresAt: string | null; matchId: string | null; serverNow?: string };
 export async function rematch(db: Pool, id: string, userId: string, action = 'view'): Promise<RematchState> {
   if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) throw new RematchError('Match not found.',404);
   if (!['view','invite','accept','decline','cancel'].includes(action)) throw new RematchError('Invalid action.',400);
@@ -46,9 +46,10 @@ export async function rematch(db: Pool, id: string, userId: string, action = 'vi
         }
       }
     }
+    const {rows:[clock]} = await c.query('SELECT clock_timestamp() AS now');
     await c.query('COMMIT');
     return {status:!inv?'none':inv.status==='pending' && inv.expired?'expired':inv.status,
-      outgoing:inv?.sender_id===userId,expiresAt:inv?new Date(inv.expires_at).toISOString():null,matchId:inv?.rematch_id??null};
+      outgoing:inv?.sender_id===userId,expiresAt:inv?new Date(inv.expires_at).toISOString():null,matchId:inv?.rematch_id??null,serverNow:new Date(clock.now).toISOString()};
   } catch (error) { await c.query('ROLLBACK'); throw error; }
   finally { c.release(); }
 }

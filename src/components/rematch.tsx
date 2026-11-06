@@ -30,6 +30,23 @@ function RematchSession({id}:{id:string}) {
   const revision=useRef(0);
   const actionController=useRef<AbortController|null>(null);
   const terminal=state!==null && terminalStatuses.has(state.status);
+  const [countdown,setCountdown]=useState<{source:RematchState;seconds:number}|null>(null);
+  const expires=Date.parse(state?.expiresAt??'');
+  const server=Date.parse(state?.serverNow??'');
+  const remaining=state?.status==='pending' && Number.isFinite(expires) && Number.isFinite(server)
+    ? countdown?.source===state?countdown.seconds:Math.max(0,Math.ceil((expires-server)/1000)) : null;
+  useEffect(()=>{
+    const expires=Date.parse(state?.expiresAt??'');
+    const server=Date.parse(state?.serverNow??'');
+    if (state?.status!=='pending' || !Number.isFinite(expires) || !Number.isFinite(server)) {
+      return;
+    }
+    const started=performance.now();
+    const tick=()=>setCountdown({source:state,seconds:Math.max(0,Math.ceil((expires-server-(performance.now()-started))/1000))});
+    const timer=setInterval(tick,250);
+    return ()=>clearInterval(timer);
+  },[state]);
+  const deadlinePassed=state?.status==='pending' && remaining===0;
   useEffect(()=>()=>{revision.current++;actionController.current?.abort();},[]);
   useEffect(()=>{
     if (busy || terminal) return;
@@ -64,7 +81,7 @@ function RematchSession({id}:{id:string}) {
     readPending.current=true;setRefreshing(true);setRefresh(n=>n+1);
   }
   async function act(action:string) {
-    if (actionController.current) return;
+    if (actionController.current || deadlinePassed) return;
     const controller=new AbortController();
     actionController.current=controller;
     revision.current++;
@@ -83,7 +100,11 @@ function RematchSession({id}:{id:string}) {
     {terminal && <p className="rematch-summary" role="status">{terminalMessages[state.status]}</p>}
     {!terminal && <p role="status" className={busy?'rematch-pending':undefined}>{busy?pendingMessages[pendingAction]:!state?'Checking invitation…':state.status==='none'?'Invite your opponent to a fresh ranked duel. They have 60 seconds to accept.':state.status==='pending'?(state.outgoing?'Waiting for your opponent. Invitation expires after 60 seconds.':'Your opponent invited you to a fresh ranked duel. Accept within 60 seconds.'):`Invitation ${state.status}.`}</p>}
     {state?.status==='none' && <button className="button button--secondary" disabled={busy} onClick={()=>void act('invite')}>Rematch</button>}
-    {state?.status==='pending' && (state.outgoing?<button className="button button--secondary" disabled={busy} onClick={()=>void act('cancel')}>Cancel invitation</button>:<div className="result-actions"><button className="button button--primary" disabled={busy} onClick={()=>void act('accept')}>Accept rematch</button><button className="button button--secondary" disabled={busy} onClick={()=>void act('decline')}>Decline</button></div>)}
+    {state?.status==='pending' && remaining!==null && <div className={`rematch-deadline${deadlinePassed?' rematch-deadline--elapsed':''}`}>
+      <p role="timer" aria-live="off" aria-label="Invitation time remaining">{remaining}s remaining</p>
+      {deadlinePassed && <p role="status">Invitation deadline reached. Waiting for server confirmation.</p>}
+    </div>}
+    {state?.status==='pending' && (state.outgoing?<button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('cancel')}>Cancel invitation</button>:<div className="result-actions"><button className="button button--primary" disabled={busy || deadlinePassed} onClick={()=>void act('accept')}>Accept rematch</button><button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('decline')}>Decline</button></div>)}
     {state?.matchId && <Link className="button button--primary" href={`/match/${state.matchId}`}>Open rematch arena</Link>}
     {terminal && state.status!=='accepted' && <Link className="button button--primary" href="/">Find a new opponent</Link>}
     {error && <p role="alert">{error}</p>}

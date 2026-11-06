@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Rematch invitation deadline guidance
+- Reviewed the unchecked catalog tasks; both still require an unavailable isolated Judge0 deployment (only .env.example is present). Added and completed one independent rematch usability item; catalog tasks remain unchecked.
+- Invitation responses now include server time. A styled, accessible countdown uses server timestamps and a monotonic elapsed clock, so local clock skew does not change the deadline. Per-second changes are not announced by screen readers.
+- At zero, response controls disable and a status message explains that server confirmation is pending. Polling continues to recover authoritative expiry or acceptance; local time never invents a terminal outcome. Invalid/missing timestamps omit the countdown safely. Countdown timers clear on navigation and terminal states.
+- Added coverage for clock skew, countdown expiry, blocked incoming/outgoing actions, delayed authoritative confirmation, malformed timestamps and navigation cleanup. Updated the reservation recovery test to verify stable reservation fields separately from fresh server time.
+- Validation: all 395 tests across 41 files passed; focused rematch coverage (25 tests), lint and typecheck passed after resolving an effect-state lint finding. The final full-suite rerun and production build passed; diff whitespace checks passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database, WebSocket and sandbox deployment smoke checks remain pending.
+
 ### 2026-11-06 - Rematch tab-return recovery
 - Reviewed both unchecked catalog items; isolated Judge0 remains unavailable (only .env.example is present). Added and completed one independent rematch recovery item; catalog items remain unchecked.
 - Returning to a visible tab now immediately refreshes the invitation, updating the existing accessible outcome panel and next actions. Reads share an in-flight guard and reset the scheduled poll delay. Invitation actions and terminal outcomes suppress refreshes; navigation removes the listener and aborts reads.

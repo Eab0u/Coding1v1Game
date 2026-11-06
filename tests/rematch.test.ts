@@ -33,7 +33,9 @@ it('requires consent, enforces expiry and permissions, reserves exactly once and
  await db.query('UPDATE problems SET published_at=now()');
  const accepted=await run(1,'accept');
  expect(accepted.status).toBe('accepted');expect(accepted.matchId).toBeTruthy();
- expect(await run(1,'accept')).toEqual(accepted);
+ const recovered=await run(1,'accept');
+ expect(recovered).toMatchObject({status:accepted.status,outgoing:accepted.outgoing,expiresAt:accepted.expiresAt,matchId:accepted.matchId});
+ expect(Number.isFinite(Date.parse(recovered.serverNow!))).toBe(true);
  expect((await db.query('SELECT id FROM matches')).rows).toHaveLength(2);
  await db.query("UPDATE matches SET status='cancelled' WHERE id=$1",[accepted.matchId]);
  await db.query('DELETE FROM rematch_invitations');
