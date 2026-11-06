@@ -207,3 +207,7 @@ Friends filtering awaits friend relationships (tracked in GOAL.md).
 `/profile/<username>` shows current rating, all-time completed match record, the last 20 completed matches and a graph of the last 50 rated duels. Lookup is case-insensitive; unknown players return 404. Future-dated and unfinished matches are excluded. Profiles expose no credentials, source code, hidden tests or solutions. Graph points follow match order, with expandable dated rating data; missing rating history is labeled Unrated.
 
 Tier thresholds use unrounded current MMR: Bronze below 1000, Silver 1000, Gold 1200, Platinum 1600, Diamond 2000, Master 2400. These display tiers do not change matchmaking difficulty bands.
+
+## Problem pipeline
+
+Author original problem JSON drafts, then use `npm run problems -- validate path/to/draft.json` or `npm run problems -- publish path/to/draft.json`. Validation compares reference and brute-force implementations on 2,000 deterministic random small inputs inside Judge0, checks authored examples and hidden outputs, and requires brute force to CPU-timeout on every largest-input benchmark. Publishing revalidates and inserts an immutable published suite. See [the authoring guide](problems/README.md) for the schema, limits and sandbox setup. No local Python execution or sandbox fallback exists.

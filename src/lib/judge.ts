@@ -19,6 +19,8 @@ export interface JudgeConfig {
   requestTimeoutMs?: number;
   maxPolls?: number;
   pollIntervalMs?: number;
+  /** Server-side diagnostics for catalog validation; never supplied by players. */
+  onExecutionStatus?: (status: number) => void;
 }
 export class JudgeUnavailableError extends Error {
   constructor() { super("Sandbox judge unavailable; submission must not be scored."); }
@@ -90,6 +92,7 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
           continue;
         }
         if (!Number.isInteger(status) || status < 3 || status > 12) throw new JudgeUnavailableError();
+        config.onExecutionStatus?.(status);
         // Failed programs get the full limit, so immediate crashes cannot win on CPU.
         if (status !== 3) return { passed: false, cpuMs: config.cpuLimitSeconds * 1000 };
         if (typeof result.time !== "string" || !/^(\d+)(\.\d+)?$/.test(result.time) || !Number.isFinite(Number(result.time))) throw new JudgeUnavailableError();

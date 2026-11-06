@@ -12,6 +12,11 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it("reports final execution statuses so catalog validation distinguishes timeouts from crashes", async () => {
+    const onExecutionStatus = vi.fn();
+    await createJudge({ ...config, onExecutionStatus }, sandbox([{ status: { id: 1 } }, { status: { id: 5 } }, { status: { id: 7 } }, done()]))(request);
+    expect(onExecutionStatus.mock.calls).toEqual([[5], [7], [3]]);
+  });
   it("runs benchmarks independently three times and returns scorer-compatible CPU milliseconds", async () => {
     const fetcher = sandbox([done(42, "0.030"), done(42, "0.010"), done(42, "0.020")]);
     const result = await createJudge(config, fetcher)(request);

@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test:watch": "vitest",
     "db:migrate": "node --env-file=.env scripts/migrate.mjs",
-    "matchmaking": "tsx --env-file=.env scripts/matchmaking.ts"
+    "matchmaking": "tsx --env-file=.env scripts/matchmaking.ts",
+    "problems": "tsx --env-file=.env scripts/problems.ts"
   },
   "repository": {
     "type": "git",

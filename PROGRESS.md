@@ -4,6 +4,8 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
+The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. The original problem catalog is still pending; no real catalog problems have been published.
+
 Public player profiles now show rating graphs, tier badges, full win/loss/draw records and recent match history at /profile/<username>. Public global and weekly leaderboards are available at /leaderboard, linked from the home page. The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems, match screen/lifecycle, rating persistence orchestration and live sandbox verification remain pending.
 
 ## Decisions made
@@ -19,9 +21,19 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
 ## Next up
-Problem pipeline and validated published problems to enable pairing, then match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
+Author and validate problems 1–20 through the new pipeline to enable pairing, then implement the match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Problem generation, validation and publication pipeline
+- Selected the problem pipeline as the highest-value dependency for real matchmaking. Checked off only this backlog item.
+- Added strict JSON draft parsing and a deterministic seeded integer/integer-array generator producing 2,000 random small inputs. Compared reference and brute-force solutions in separate sandbox namespaces with fresh argument copies, in bounded batches. No Python or author-supplied generator code executes on the host.
+- Added authored example/hidden-test checks for the reference, example/edge checks for brute force, and explicit Judge0 final-status diagnostics. Every benchmark must CPU-timeout on all three brute-force runs; crashes, wrong answers and partial timeouts fail validation. Infrastructure failures prevent publication.
+- Added validate/publish CLI commands and an authoring guide. Publication revalidates the exact cloned draft and atomically inserts public metadata, private solutions, the suite and generator validation metadata/digest. Duplicate slugs fail instead of replacing suites used by existing matches.
+- Added tests covering deterministic generation/bounds, malformed drafts, validation stages, infrastructure errors, timeout versus crash diagnostics, multiple benchmarks, snapshot mutation, embedded Postgres publication and duplicate protection. No player or author Python code executed.
+- Validation: all 169 tests across 19 files passed; lint, typecheck and production build passed. Fixed a suite type inference error and an unused test import found by checks.
+- Limits: no configured live Judge0 was available, so actual Python execution, isolation and resource enforcement still need deployment smoke tests. The initial declarative generator supports integers and integer arrays; other problem families need additional generator types. No catalog problems were published during mocked/embedded tests; problems 1–20 remain unchecked. Existing infrastructure blockers remain.
+- Next: configure the isolated sandbox and author/validate the initial problem catalog, then match screen/lifecycle orchestration.
+
 ### 2026-11-06 - Player profiles and rating graph
 - Selected the profile page as a complete player-facing use of existing rating/history storage without depending on unfinished match orchestration. Checked off this item only.
 - Added public case-insensitive /profile/<username> routes, linked from signed-in home navigation and leaderboard players. Unknown/invalid players return 404; database errors show generic feedback.
@@ -108,7 +120,7 @@ Problem pipeline and validated published problems to enable pairing, then match 
 - Validation: all 10 tests across 3 files passed; lint, typecheck and production build passed. Browser visual inspection was not performed.
 - Next: implement the sandbox judge service. Existing infrastructure blockers remain unchanged.
 
-### 2026-11-06 � Project scaffold
+### 2026-11-06 — Project scaffold
 - Selected the scaffold as the highest-value dependency for all subsequent work; checked off only that item.
 - Added Next.js + TypeScript, ESLint, Vitest/jsdom, a clear under-construction entry page, and CI checks.
 - Added users, problems, matches, submissions and rating history tables, constraints and indexes; included a serialized transactional migration runner, Docker Compose, .env.example and local setup documentation.

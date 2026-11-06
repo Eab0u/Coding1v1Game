@@ -78,7 +78,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Home page with Play button
 - [x] Profile page with rating graph
 - [x] Leaderboard
-- [ ] Problem pipeline: generate, validate, publish
+- [x] Problem pipeline: generate, validate, publish
 - [ ] Problems 1 to 20 passing validation
 - [ ] Sound effects and animations
 - [ ] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
