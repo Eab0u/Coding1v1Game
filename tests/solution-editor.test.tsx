@@ -2,9 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 const editor = vi.hoisted(() => ({ fails: false }));
-vi.mock("next/dynamic", () => ({ default: () => function MockEditor({ value, onChange, readOnly }: { value: string; onChange: (value: string) => void; readOnly: boolean }) {
+vi.mock("next/dynamic", () => ({ default: () => function MockEditor({ value, onChange, readOnly, fontSize }: { value: string; onChange: (value: string) => void; readOnly: boolean; fontSize: number }) {
   if (editor.fails) throw new Error("Chunk unavailable");
-  return <textarea aria-label="Python solution" value={value} onChange={event => onChange(event.target.value)} readOnly={readOnly}/>;
+  return <textarea style={{ fontSize }} aria-label="Python solution" value={value} onChange={event => onChange(event.target.value)} readOnly={readOnly}/>;
 } }));
 import { SolutionEditor } from "../src/components/solution-editor";
 afterEach(() => { editor.fails = false; vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
@@ -121,4 +121,45 @@ it("reports download failures, cleans up and permits retry", () => {
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   vi.advanceTimersByTime(1000);
   expect(revoke).toHaveBeenCalledTimes(2);
+});
+
+it.each([false, true])("adjusts and bounds text size without editing code in plain mode %s", plain => {
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const solution = screen.getByLabelText("Python solution");
+  const increase = screen.getByRole("button", { name: "Increase solution text size" });
+  const decrease = screen.getByRole("button", { name: "Decrease solution text size" });
+  const reset = screen.getByRole("button", { name: "Reset text size" });
+  expect(solution).toHaveStyle({ fontSize: "15px" });
+  expect(reset).toBeDisabled();
+  for (let i = 0; i < 15; i++) fireEvent.click(increase);
+  expect(solution).toHaveStyle({ fontSize: "24px" });
+  expect(increase).toBeDisabled();
+  expect(screen.getByText("24px")).toHaveAttribute("aria-live", "polite");
+  for (let i = 0; i < 20; i++) fireEvent.click(decrease);
+  expect(solution).toHaveStyle({ fontSize: "12px" });
+  expect(decrease).toBeDisabled();
+  fireEvent.click(reset);
+  expect(solution).toHaveStyle({ fontSize: "15px" });
+  expect(solution).toHaveValue("def solve():\n    pass");
+});
+it("retains text size when switching modes and after match completion", () => {
+  const view = render(<Harness/>);
+  fireEvent.click(screen.getByRole("button", { name: "Increase solution text size" }));
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
+  view.rerender(<Harness readOnly/>);
+  fireEvent.click(screen.getByRole("button", { name: "Increase solution text size" }));
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "17px" });
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("readonly");
+  fireEvent.click(screen.getByRole("button", { name: "Use advanced editor" }));
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "17px" });
+});
+it("preserves text size in the automatic plain-text fallback", () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  const view = render(<Harness/>);
+  fireEvent.click(screen.getByRole("button", { name: "Increase solution text size" }));
+  editor.fails = true;
+  view.rerender(<Harness readOnly/>);
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
 });

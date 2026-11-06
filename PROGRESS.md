@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Adjustable solution text size
+- Reviewed both unchecked catalog items. They remain blocked because no isolated Judge0 service is configured (only .env.example is present). Added and completed one independent editor readability item; catalog items remain unchecked.
+- Added keyboard-accessible decrease, increase and reset controls above the solution editor. Text ranges from 12px to 24px in one-pixel increments, defaults to 15px and announces size changes politely. Controls use the existing wrapping action styling and disable at their bounds.
+- Shared size state with Monaco and the plain-text editor, preserving it across editor switches and automatic fallback. Completed-match code remains read-only while text size remains adjustable. Size is scoped to the mounted editor and is not persisted after reload.
+- Added four regression cases covering both modes, bounds, reset, unchanged code, switching, completed matches and automatic fallback. Fixed an ambiguous status query exposed during the initial test run by using a live span for the size indicator.
+- Validation: all 299 tests across 39 files passed; lint, typecheck and production build passed. No player code executed. Live Monaco/browser interaction has not been manually smoke-tested.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Plain-text Python block indentation
 - Reviewed the two unchecked catalog items; isolated Judge0 configuration is still unavailable, so both remain blocked and unchecked. Added and completed one independent editor usability item.
 - Added wrapping, keyboard-accessible Indent and Outdent controls to the plain-text editor (including Monaco fallback). They adjust the current line or selected block, preserve the selected code and return focus to the editor. Indent adds four spaces; Outdent removes up to four leading spaces or one leading tab. A selection ending at the following line's start leaves that line alone. Completed-match controls are disabled; Tab retains native navigation.
