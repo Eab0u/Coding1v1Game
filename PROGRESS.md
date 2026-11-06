@@ -36,6 +36,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Resilient arena editor
+- Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent arena usability item.
+- Players can switch between Monaco and a styled plain-text Python editor while keeping the exact current draft. The switch remains available during loading. An error boundary automatically provides plain-text editing if Monaco fails to load or render, retaining code and match-end read-only behavior. Players can switch modes to retry the advanced editor.
+- Added tests for editing and switching both ways, failure recovery with the current draft, retry, read-only transitions and submission from both editor modes.
+- Validation: all 256 tests across 37 files passed; the final added plain-text submission case then passed with all 21 arena UI tests (257 tests total). Lint, typecheck and production build passed. No player code executed. Live Monaco deployment smoke checks remain pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox isolation/resource enforcement checks remain pending.
+
 ### 2026-11-06 - Arena action request isolation
 - Reviewed the unchecked problems 1-20 and 21-60 items. Both remain blocked on isolated Judge0 validation; only .env.example is available. Added and completed one independent arena reliability item.
 - Ready and Submit now share a synchronous request guard, preventing duplicate actions before React updates the disabled buttons. Each request combines its timeout with a session-owned cancellation signal. Navigating to another match/player or unmounting aborts pending actions; late responses cannot update the replacement view. Failed requests release the guard for retry.

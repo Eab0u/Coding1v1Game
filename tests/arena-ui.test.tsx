@@ -92,12 +92,13 @@ it('locks the editor when the server reports a completed match',()=>{
   expect(screen.getByText('This match has ended.')).toBeInTheDocument();
   expect(screen.getByRole('link',{name:'View results'})).toHaveAttribute('href',`/match/${initial.id}/results`);
 });
-it('submits the local draft and reports authoritative judging results and errors',async()=>{
+it.each(['advanced','plain'])('submits the %s editor draft and reports authoritative judging results and errors',async(mode)=>{
   vi.useFakeTimers();
   const active={...initial,status:'active',deadline:'2026-11-06T12:05:00Z'};
   const fetcher=vi.fn().mockImplementation(async(_url,options)=> options?.method==='POST' ? {ok:true,json:async()=>({status:'queued'})} : {ok:true,json:async()=>({...active,submission:{status:'judged',passed:1,total:8}})});
   vi.stubGlobal('fetch',fetcher);
   render(<Arena initial={active}/>);
+  if (mode==='plain') fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my solution'}});
   fireEvent.click(screen.getByRole('button',{name:'Submit solution'}));
   await act(async()=>{await Promise.resolve();});
