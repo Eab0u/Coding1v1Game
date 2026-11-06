@@ -2,3 +2,9 @@ logs/
 STOP
 node_modules/
 .env
+.env.*
+!.env.example
+.next/
+out/
+coverage/
+*.tsbuildinfo

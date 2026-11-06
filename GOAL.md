@@ -63,7 +63,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 - If blocked, write the blocker in PROGRESS.md and move to the next item.
 
 ## Backlog (check off as done)
-- [ ] Project scaffold (Next.js, TS, lint, test setup, Postgres schema)
+- [x] Project scaffold (Next.js, TS, lint, test setup, Postgres schema)
 - [ ] Design system: colors, buttons, typography, dark theme
 - [ ] Judge service: run code in the sandbox against tests, return pass count and CPU time
 - [ ] Scoring function with unit tests for all tiebreak cases

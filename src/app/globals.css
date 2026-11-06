@@ -1,0 +1,14 @@
+:root { color-scheme: dark; background: #262421; color: #f5f3ef; font-family: Arial, Helvetica, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1100px; padding: 36px clamp(24px, 6vw, 80px); margin: auto; min-height: 100svh; display: flex; flex-direction: column; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+.dot, .eyebrow { color: #a4d275; }
+.tag { font-size: 12px; color: #d0cbc4; border: 1px solid #57534c; border-radius: 20px; padding: 8px 12px; }
+section { padding: clamp(64px, 12vh, 140px) 0; max-width: 760px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 2px; }
+h1 { font-size: clamp(42px, 7vw, 78px); line-height: 1.05; letter-spacing: -2px; margin: 24px 0; }
+.intro { color: #d0cbc4; font-size: 20px; line-height: 1.6; max-width: 580px; }
+.notice { border-left: 3px solid #81b64c; background: #312e2b; padding: 18px 22px; margin-top: 32px; line-height: 1.6; }
+footer { margin-top: auto; padding-bottom: 12px; color: #b5afa6; font-size: 13px; line-height: 1.6; }
