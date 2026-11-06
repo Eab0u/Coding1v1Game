@@ -1,10 +1,10 @@
-﻿# Progress Log
+# Progress Log
 
 The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
-The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems, match screen/lifecycle, rating persistence orchestration and live sandbox verification remain pending.
+Public global and weekly leaderboards are available at /leaderboard, linked from the home page. The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems, match screen/lifecycle, rating persistence orchestration and live sandbox verification remain pending.
 
 ## Decisions made
 - Python only for v1
@@ -22,6 +22,15 @@ The home dashboard now connects signed-in players to matchmaking, displays curre
 Problem pipeline and validated published problems to enable pairing, then match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Global and weekly leaderboard
+- Selected the leaderboard as a complete player-facing improvement supported by existing ratings and history; checked off this item only. Added a separate future item for friend relationships and filtering, which have no existing data model.
+- Added a public, dynamically rendered /leaderboard route and home navigation. Global standings rank current ratings; weekly standings rank net rating gain from completed duels since Monday 00:00 UTC, excluding future and unfinished matches and inactive players.
+- Limited standings to 100 players, ranked at full precision with shared ranks and deterministic ordering. Queries project only public names and rating data. Added clear ranking rules, accessible table headings and period navigation, responsive styling, top-three accents, empty states and generic database error feedback.
+- Added embedded Postgres tests for ranking, precision, ties, row limits, privacy and weekly time/status boundaries, plus page tests for filters, gains, empty/error states and invalid period fallback. No player code executed.
+- Validation: all 138 tests across 16 files passed; lint, typecheck and production build passed after fixes. Corrected a test hook returning a mock, used Next Link for home navigation, and reran typecheck after build refreshed generated route types.
+- Limits: browser visual inspection and live Postgres smoke testing remain unverified; existing infrastructure blockers remain. Weekly standings will populate once match completion persists ratings/history. Friends filtering remains on the backlog.
+- Next: problem pipeline and validated published problems, then match screen/lifecycle orchestration.
+
 ### 2026-11-06 - Home dashboard and Play
 - Selected the home page as the highest-value player-facing entry point to the existing queue; checked off only this backlog item.
 - Replaced the disabled Play placeholder with a same-origin authenticated WebSocket client. Added server-reported wait/rating bands, cancellation acknowledgement, connection timeout, retry after errors, stale connection protection and cleanup on navigation. Reserved tickets remain visible without implying the unfinished arena is available.
@@ -90,11 +99,12 @@ Problem pipeline and validated published problems to enable pairing, then match 
 - Validation: all 10 tests across 3 files passed; lint, typecheck and production build passed. Browser visual inspection was not performed.
 - Next: implement the sandbox judge service. Existing infrastructure blockers remain unchanged.
 
-### 2026-11-06 — Project scaffold
+### 2026-11-06 � Project scaffold
 - Selected the scaffold as the highest-value dependency for all subsequent work; checked off only that item.
 - Added Next.js + TypeScript, ESLint, Vitest/jsdom, a clear under-construction entry page, and CI checks.
 - Added users, problems, matches, submissions and rating history tables, constraints and indexes; included a serialized transactional migration runner, Docker Compose, .env.example and local setup documentation.
 - Added page availability coverage and database tests for initial ratings, username validation, match creation, self-match rejection, submission counts, completed results and unique rating history.
 - Validation: all 4 tests passed across 2 files; lint, typecheck and production build passed. Docker integration remains unverified because its daemon is unavailable.
+
 
 

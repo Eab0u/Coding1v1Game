@@ -1,4 +1,4 @@
-﻿# GOAL: Ranked 1v1 Coding Duel Site
+# GOAL: Ranked 1v1 Coding Duel Site
 
 A competitive site where two players get the same coding problem and race to solve it. Winner is decided by code quality and speed. Ratings change after every match (MMR). Think chess.com, but for algorithm problems.
 
@@ -77,12 +77,14 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [ ] Post-match results screen with rating change animation
 - [x] Home page with Play button
 - [ ] Profile page with rating graph
-- [ ] Leaderboard
+- [x] Leaderboard
 - [ ] Problem pipeline: generate, validate, publish
 - [ ] Problems 1 to 20 passing validation
 - [ ] Sound effects and animations
 - [ ] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
 - [ ] Problems 21 to 60
 - [ ] Mobile layout polish
+- [ ] Friend relationships and friends-only leaderboard filter
+
 
 

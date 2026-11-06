@@ -194,3 +194,11 @@ tests remain required.
 The home page reads the signed-in player's current rating, consecutive wins and five latest completed duels from Postgres. A draw or loss ends the win streak. Daily challenges rotate deterministically at UTC midnight using published problems only; solutions, generators and hidden tests never enter the page data. Empty catalogs and unavailable services have explicit UI states.
 
 Play connects to the same-origin `/matchmaking` WebSocket endpoint using the session cookie. Run the matchmaking worker and configure the documented reverse proxy for that path. The client displays server wait updates, supports cancelling a search and requires an explicit retry after connection failure. It displays recovered/reserved tickets until the match screen and activation service are implemented; ranked play still needs the validated catalog and lifecycle work.
+
+Leaderboard: `/leaderboard` shows the top 100 current ratings, including new accounts.
+`/leaderboard?period=weekly` ranks net rating gain from completed duels since Monday
+00:00 UTC, using match completion time and excluding future matches. Only players
+with qualifying rating-history rows appear. Equal full-precision scores share a
+rank (1, 1, 3); usernames provide stable ordering within ties. Display values are
+rounded. Both views are public and never return credentials or problem internals.
+Friends filtering awaits friend relationships (tracked in GOAL.md).

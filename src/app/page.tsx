@@ -19,6 +19,7 @@ export default async function Home() {
       <a className="skip-link" href="#main">Skip to content</a>
       <header className="site-header">
         <span className="brand">CodeDuel<span className="accent">.</span></span>
+        <a href="/leaderboard">Leaderboard</a>
         <a href="/account">{user ? `Account ? ${user.username}` : "Sign in / Create account"}</a>
       </header>
       <main id="main" tabIndex={-1}>
