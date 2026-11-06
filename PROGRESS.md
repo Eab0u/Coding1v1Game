@@ -8,7 +8,7 @@ Match lifecycle orchestration is implemented. Apply migrations through 005_match
 
 The participant-only arena at /match/<id> supports locally bundled Monaco Python editing, readiness, sandbox submission, server-time countdown and polled own/opponent progress. Drafts recover after refresh using match/player-scoped browser session storage, with visible failure feedback and cleanup when the server reports the match ended. Completed arenas link to participant-only /match/<id>/results with persisted outcome, rating history and final-score snapshots. Consensual rematch invitations are available on results pages after applying migration 006_rematches.sql.
 
-Optional duel sound and animated feedback are implemented as shared components, with match-found feedback connected to matchmaking. Sound defaults off, persists locally and unlocks through user interaction. The arena now connects authoritative judged submissions to test-pass/fail cues, once per submission; results win/loss sound integration remains a future improvement.
+Optional duel sound and animated feedback are implemented as shared components, with match-found feedback connected to matchmaking. Sound defaults off, persists locally and unlocks through user interaction. The arena connects authoritative judged submissions to test-pass/fail cues, once per submission. Results show victory, defeat or draw feedback and offer explicit replay with optional sound; opening results does not unlock or autoplay audio.
 
 Matchmaking fair-play basics now share command limits across account connections, throttle handshake attempts before authentication and rotate problems using both players' exposure histories. Optional paste blocking remains off until an editor exists. Worker counters reset on restart; reverse proxies need per-client handshake limits.
 
@@ -36,6 +36,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Results feedback and optional replay
+- Reviewed the unchecked catalog items. Both remain blocked on isolated Judge0 validation; only .env.example is present. Added and completed one independent player-facing improvement: authoritative results feedback with optional replay.
+- Results now show an animated victory, defeat or draw cue, share the existing persistent sound toggle and offer a Replay result button. Opening the page shows visual feedback without unlocking audio or autoplaying sound. Replay unlocks through a user click and plays the outcome when sound is enabled; muted replay still animates. Added an original draw tone sequence and label. Existing reduced-motion, hidden-tab and unavailable-device safeguards apply.
+- Added outcome-specific regression tests for visual feedback, stable rerenders, explicit audio unlocking, correct cue selection and muted replay. The shared audio tests also exercise draw note scheduling and cleanup.
+- Validation: all 236 tests across 36 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox isolation/resource smoke checks remain pending.
+
 ### 2026-11-06 - Arena verdict feedback
 - Reviewed the two unchecked catalog items; isolated Judge0 validation remains blocked because this workspace has only .env.example. Added and completed one independent improvement: animated arena verdict feedback with optional sound.
 - Added the latest own submission ID to the participant-only snapshot without exposing code or private problem data. Each newly observed judged submission cues pass when all tests pass and fail otherwise. Stable submission IDs prevent repeated polling from replaying cues while allowing consecutive identical scores to trigger separate feedback. Existing verdicts do not replay on opening the arena; queued/running/error states do not trigger verdicts.

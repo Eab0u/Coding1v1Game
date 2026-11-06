@@ -39,7 +39,7 @@ it("defaults silent, persists consent, shows every cue and stops on mute", () =>
   expect(localStorage.getItem("codeduel-sound")).toBe("on");
   for (const cue of Object.keys(cueNotes) as DuelCue[]) fireEvent.click(screen.getByText(cue));
   expect(nodes.length).toBeGreaterThan(10);
-  expect(screen.getByText("Defeat")).toHaveClass("duel-cue--loss");
+  expect(screen.getByText("Honors shared")).toHaveClass("duel-cue--draw");
   fireEvent.click(screen.getByRole("button", { name: "Sound on" }));
   expect(Audio.latest.close).toHaveBeenCalledOnce();
   const count = nodes.length; fireEvent.click(screen.getByText("win")); expect(nodes).toHaveLength(count);

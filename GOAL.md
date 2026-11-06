@@ -95,3 +95,4 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Recover tab-scoped arena drafts after refresh, isolate matches and players, and handle unavailable storage
 
 - [x] Connect authoritative arena verdicts to animated feedback and optional sound, once per submission
+- [x] Add authoritative results feedback for wins, losses and draws with optional sound and explicit replay

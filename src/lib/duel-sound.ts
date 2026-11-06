@@ -1,6 +1,6 @@
 export const cueNotes = {
   matched: [392, 523, 659], passed: [523, 784], failed: [294, 220],
-  win: [523, 659, 784, 1047], loss: [392, 330, 262],
+  win: [523, 659, 784, 1047], loss: [392, 330, 262], draw: [440, 554, 440],
 } as const;
 export type DuelCue = keyof typeof cueNotes;
 

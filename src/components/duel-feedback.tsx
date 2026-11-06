@@ -5,7 +5,7 @@ import { Button } from "./ui";
 
 const preferenceKey = "codeduel-sound";
 const labels: Record<DuelCue, string> = {
-  matched: "Match found", passed: "Test passed", failed: "Test failed", win: "Victory", loss: "Defeat",
+  matched: "Match found", passed: "Test passed", failed: "Test failed", win: "Victory", loss: "Defeat", draw: "Honors shared",
 };
 
 export function useDuelFeedback() {
