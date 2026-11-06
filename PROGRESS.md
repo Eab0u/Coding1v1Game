@@ -4,7 +4,7 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
-Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter now produces scorer-compatible results. Live gameplay, rating persistence orchestration and live sandbox verification remain pending.
+Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems, match screen/lifecycle, rating persistence orchestration and live sandbox verification remain pending.
 
 ## Decisions made
 - Python only for v1
@@ -19,9 +19,20 @@ Username/password authentication, database-backed sessions, application foundati
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
 ## Next up
-WebSocket matchmaking queue and match orchestration. Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
+Problem pipeline and validated published problems to enable pairing, then match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - WebSocket matchmaking
+- Selected the matchmaking queue as the highest-value next step after authentication; checked off only that backlog item.
+- Added a standalone Node WebSocket worker (`npm run matchmaking`) using database-backed session authentication, strict origin/path checks, refreshed server ratings and a small join/leave protocol. Added environment and reverse-proxy setup documentation.
+- Implemented FIFO compatible pairing with mutual rating bands starting at 100, widening by 50 per ten seconds to 800. Added duplicate connection handling, idempotent joins, queue capacity, cancellation, disconnect cleanup and reservation protection during persistence.
+- Added transactional pending match creation with stable user-row locking, unfinished-match checks, average-rating difficulty selection and published-only problem selection. Rejoining recovers pending/active tickets without exposing hidden tests or solutions. Catalog/database failures return generic errors and permit explicit retries.
+- Enforced a single worker per database through a dedicated advisory lock; added bounded frames, request rates and outgoing buffering, handshake timeout, heartbeat/session revalidation and shutdown handling.
+- Added 15 tests covering rating boundaries, FIFO, mutual widening, duplicate tabs, capacity, disconnects, concurrent ticks, reserved cancellation, failure retry, real local WebSocket authentication/protocol/limits, and actual SQL persistence/recovery in embedded Postgres. No player code executed.
+- Validation: all 127 tests across 12 files passed; lint, typecheck and production build passed. Fixed Node upgrade socket timeout typing identified by typecheck.
+- Limits: the catalog has no published problems yet, so real pairing requires the problem pipeline. Tickets remain pending until the upcoming lifecycle service activates/cancels them. Waiting entries are in memory and must rejoin after restart. Live Postgres advisory-lock, HTTPS proxy and browser smoke checks remain unverified; existing Docker/Judge0/development audit blockers remain.
+- Next: problem pipeline and validated published problems, then match screen/lifecycle orchestration.
+
 ### 2026-11-06 - Player authentication
 - Selected authentication as the highest-value remaining prerequisite for identifying ranked players; checked off only this backlog item.
 - Added responsive sign-up/sign-in and authenticated account views, linked from the entry page, with labeled fields, password autocomplete, feedback and sign-out.

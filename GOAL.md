@@ -72,7 +72,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Scoring function with unit tests for all tiebreak cases
 - [x] Rating system (Glicko-2) with unit tests
 - [x] Auth (simple username and password or OAuth)
-- [ ] Matchmaking queue with WebSockets and rating bands
+- [x] Matchmaking queue with WebSockets and rating bands
 - [ ] Match screen: editor, timers, opponent progress bar
 - [ ] Post-match results screen with rating change animation
 - [ ] Home page with Play button

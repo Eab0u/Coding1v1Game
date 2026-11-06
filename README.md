@@ -31,7 +31,7 @@ Vitest tests the entry page in jsdom and executes the actual SQL migration in PG
 
 `db/migrations` contains ordered SQL migrations for users, problems, matches, submissions and rating history. `npm run db:migrate` applies pending migrations in one transaction, records them in `schema_migrations`, and uses a transaction advisory lock to serialize concurrent runs. Run it again safely after adding migrations; do not edit migrations already applied to a shared database.
 
-Hidden tests, solutions, and submitted source are server-only data. No public database API is exposed. The schema records the median CPU time on large tests; the judge adapter supplies three independent benchmark CPU samples for scoring. Authentication, participant authorization and match lifecycle enforcement belong to the future server implementation.
+Hidden tests, solutions, and submitted source are server-only data. No public database API is exposed. The schema records the median CPU time on large tests; the judge adapter supplies three independent benchmark CPU samples for scoring. Authentication and matchmaking are implemented; gameplay participant authorization and match lifecycle enforcement remain pending.
 
 `docker compose down` stops the local database while preserving its volume.
 
@@ -139,3 +139,52 @@ Run `npm run db:migrate` before using `/account`. Registration and login use cas
 Set `APP_ORIGIN` to the exact public origin (for example `https://duel.example`) in production, and serve over HTTPS. Auth POSTs require that Origin; cookies are HttpOnly, SameSite=Lax and Secure in production. Future authenticated API/WebSocket handlers must resolve the session through `auth.current` and authorize the requested resource; never trust a client user ID. Cookie behavior follows the [Next.js cookie API](https://nextjs.org/docs/app/api-reference/functions/cookies).
 
 Auth attempts are atomically limited to ten per case-insensitive username per 15-minute window across app instances. Configure additional IP/global request limits at the deployment proxy before public rollout. There is no password recovery flow yet. Periodically delete expired `auth_sessions` and old `auth_attempts` rows (older than 15 minutes); they never authenticate users after expiry. The case-insensitive username migration intentionally fails on existing case-only duplicates; resolve those before migrating an existing deployment. Embedded Postgres tests cover persistence; live database/browser smoke tests remain a deployment check.
+
+## WebSocket matchmaking
+
+After migrating the database, run `npm run matchmaking` alongside Next.js. The worker
+reads `.env` and binds to `MATCHMAKING_HOST: MATCHMAKING_PORT` (default loopback,
+port 3001). Configure your HTTPS reverse proxy to forward WebSocket upgrades for
+`/matchmaking` to that listener, retaining the Cookie and Origin headers. Browsers
+connect to `wss://<your-site>/matchmaking` with their existing session cookie.
+`APP_ORIGIN` is required and must exactly match the browser origin. Use `ws://`
+for local development. Proxy connection/IP limits are required for public rollout.
+
+The protocol accepts only `{"type":"join"}` and `{"type":"leave"}`. Identity and
+current rating are resolved from Postgres. Joining returns `queued` with
+`waitedSeconds` and `ratingBand`; updates arrive every second. Bands start at 100
+rating points, grow by 50 every ten seconds and cap at 800. Both players' bands
+must allow the distance. Oldest compatible players get priority. Duplicate joins
+preserve queue age; a second connection for the same player is rejected.
+
+Pairing sends `matching`, reserves both entries, then creates one pending match
+in a database transaction. The average rating determines easy (<1200), medium
+(1200–1599), or hard (1600+) difficulty. A random problem of that difficulty must
+have a publication date at or before now. Success sends each player
+`{"type":"matched","match":{"id":"…","difficulty":"easy"},"opponent":{"id":"…","username":"…","rating":800}}`.
+Hidden tests and solutions never enter the protocol. The match screen will consume
+this ticket in a later backlog item; this service does not start a timer or execute code.
+
+Leaving or disconnecting removes an unreserved entry. Once `matching` is sent,
+the reservation completes even if a player leaves. Joining again recovers an
+existing pending/active match, including after worker restart. Transactions lock
+both user rows in stable order and reject unfinished matches. Database/catalog
+failures emit a generic `error`, remove the paired entries and allow an explicit
+retry; they never create scored losses or rating changes. An empty published
+catalog currently prevents pairing. Pending match activation, expiry and cancellation
+belong to the upcoming match lifecycle; pending tickets remain recoverable until
+that service transitions them.
+
+Run one worker per database: a dedicated Postgres advisory lock rejects additional
+workers and loss of that connection terminates the process. Waiting entries are
+in memory and clients must rejoin after a restart; persisted tickets survive.
+The worker caps connections/queue entries at 1000, messages at 1 KiB and 20 per
+ten seconds per connection, bounds outgoing buffering, and uses ping/pong and
+session revalidation every 30 seconds. Join also revalidates the session. Deploy
+with a process supervisor and route all queue traffic to this single worker.
+SIGINT/SIGTERM close connections and release the database lock.
+
+Tests cover the queue policy, cancellation/reservations, failure recovery, real
+local WebSocket handshakes/protocol/authentication and actual persistence SQL in
+embedded Postgres. Live Postgres advisory-lock and proxy/browser deployment smoke
+tests remain required.
