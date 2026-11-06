@@ -114,3 +114,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Add accessible plain-text Python block Indent/Outdent controls with selection preservation and native Tab navigation
 
 - [x] Add accessible, bounded solution text size controls shared by advanced and plain-text editors, including fallback and completed matches
+
+- [x] Add an accessible line-wrap toggle shared by advanced and plain-text solution editors, including fallback and completed matches

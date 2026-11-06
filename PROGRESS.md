@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Optional solution line wrapping
+- Reviewed both unchecked catalog items; only .env.example is present, so isolated Judge0 validation remains blocked. Added and completed one independent editor readability item; catalog items remain unchecked.
+- Added a keyboard-accessible Wrap long lines toggle with an announced pressed state. It shares wrapping across Monaco, plain text and automatic fallback, including read-only completed matches. Wrapping defaults off, lasts for the mounted editor session and changes display without inserting newlines into the solution. Plain text wraps even unbroken long tokens.
+- Added three regression cases covering default state, toggling both ways, editor switching, unchanged code, completed matches and automatic fallback.
+- Validation: all 302 tests across 39 files passed; lint, typecheck and production build passed. No player code executed. Native Monaco/browser wrapping has not been manually smoke-tested.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Adjustable solution text size
 - Reviewed both unchecked catalog items. They remain blocked because no isolated Judge0 service is configured (only .env.example is present). Added and completed one independent editor readability item; catalog items remain unchecked.
 - Added keyboard-accessible decrease, increase and reset controls above the solution editor. Text ranges from 12px to 24px in one-pixel increments, defaults to 15px and announces size changes politely. Controls use the existing wrapping action styling and disable at their bounds.

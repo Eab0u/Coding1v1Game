@@ -2,9 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 const editor = vi.hoisted(() => ({ fails: false }));
-vi.mock("next/dynamic", () => ({ default: () => function MockEditor({ value, onChange, readOnly, fontSize }: { value: string; onChange: (value: string) => void; readOnly: boolean; fontSize: number }) {
+vi.mock("next/dynamic", () => ({ default: () => function MockEditor({ value, onChange, readOnly, fontSize, wordWrap }: { value: string; onChange: (value: string) => void; readOnly: boolean; fontSize: number; wordWrap: boolean }) {
   if (editor.fails) throw new Error("Chunk unavailable");
-  return <textarea style={{ fontSize }} aria-label="Python solution" value={value} onChange={event => onChange(event.target.value)} readOnly={readOnly}/>;
+  return <textarea wrap={wordWrap ? "soft" : "off"} style={{ fontSize }} aria-label="Python solution" value={value} onChange={event => onChange(event.target.value)} readOnly={readOnly}/>;
 } }));
 import { SolutionEditor } from "../src/components/solution-editor";
 afterEach(() => { editor.fails = false; vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
@@ -162,4 +162,37 @@ it("preserves text size in the automatic plain-text fallback", () => {
   editor.fails = true;
   view.rerender(<Harness readOnly/>);
   expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
+});
+
+
+it.each([false, true])("shares reversible line wrapping across editor modes with readOnly %s", readOnly => {
+  render(<Harness readOnly={readOnly}/>);
+  const code = "def solve():\n    pass";
+  const toggle = screen.getByRole("button", { name: "Wrap long lines" });
+  expect(toggle).toHaveAttribute("aria-pressed", "false");
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "off");
+  fireEvent.click(toggle);
+  expect(toggle).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "soft");
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "soft");
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ whiteSpace: "pre-wrap", overflowWrap: "anywhere" });
+  expect(screen.getByLabelText("Python solution")).toHaveValue(code);
+  fireEvent.click(toggle);
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "off");
+  fireEvent.click(screen.getByRole("button", { name: "Use advanced editor" }));
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "off");
+  expect(screen.getByLabelText("Python solution")).toHaveValue(code);
+});
+
+it("preserves wrapping on automatic advanced editor failure", () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  const view = render(<Harness/>);
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  editor.fails = true;
+  view.rerender(<Harness readOnly/>);
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "soft");
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("readonly");
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "off");
 });

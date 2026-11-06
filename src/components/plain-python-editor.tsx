@@ -1,8 +1,8 @@
 "use client";
 import { useId, useLayoutEffect, useRef } from "react";
 
-export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15 }: {
-  value: string; onChange: (value: string) => void; readOnly: boolean; fontSize?: number;
+export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wordWrap = false }: {
+  value: string; onChange: (value: string) => void; readOnly: boolean; fontSize?: number; wordWrap?: boolean;
 }) {
   const input = useRef<HTMLTextAreaElement>(null);
   const caret = useRef<[number, number] | null>(null);
@@ -44,9 +44,9 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15 }: 
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(false)}>Indent</button>
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(true)}>Outdent</button>
     </div>
-    <textarea ref={input} style={{ fontSize }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={hint} value={value}
+    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={hint} value={value}
       onChange={event => onChange(event.target.value)} readOnly={readOnly} spellCheck={false}
-      autoCapitalize="off" autoCorrect="off" wrap="off"
+      autoCapitalize="off" autoCorrect="off" wrap={wordWrap ? "soft" : "off"}
       onKeyDown={event => {
         if (readOnly || event.key !== "Enter" || event.nativeEvent.isComposing || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
         const { selectionStart: start, selectionEnd: end } = event.currentTarget;

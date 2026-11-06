@@ -18,6 +18,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   value: string; onChange: (value: string) => void; readOnly: boolean; starter?: string;
 }) {
   const [plain, setPlain] = useState(false);
+  const [wordWrap, setWordWrap] = useState(false);
   const [fontSize, setFontSize] = useState(15);
   const [downloadError, setDownloadError] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -43,7 +44,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       }
     }
   }
-  const textEditor = <PlainPythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize}/>;
+  const textEditor = <PlainPythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>;
   return <div className="solution-editor">
     <div className="solution-editor-actions" role="group" aria-label="Solution text size">
       <button type="button" className="button button--secondary" aria-label="Decrease solution text size" disabled={fontSize <= 12} onClick={() => setFontSize(size => Math.max(12, size - 1))}>A-</button>
@@ -51,8 +52,9 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       <button type="button" className="button button--secondary" aria-label="Increase solution text size" disabled={fontSize >= 24} onClick={() => setFontSize(size => Math.min(24, size + 1))}>A+</button>
       <button type="button" className="button button--secondary" disabled={fontSize === 15} onClick={() => setFontSize(15)}>Reset text size</button>
     </div>
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines</button></div>
     {plain ? textEditor : <EditorBoundary fallback={<><p role="status">Advanced editor unavailable. Continue in plain text; your code is preserved.</p>{textEditor}</>}>
-      <PythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize}/>
+      <PythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>
     </EditorBoundary>}
     <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={plain} onClick={() => setPlain(current => !current)}>
       {plain ? "Use advanced editor" : "Use plain text editor"}
