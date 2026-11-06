@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Reservation readiness feedback
+- Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent arena clarity and visual polish item; catalog tasks remain unchecked.
+- Participant-only arena snapshots now project both readiness flags from the existing lifecycle columns, correctly swapping perspective for the second player without exposing source or private problem data.
+- Added an accessible waiting panel with wrapping status badges, green confirmed states, start guidance and the reservation expiry rule. Confirmed readiness disables Ready, survives older polling responses after acknowledgment and restores from server state on reopening. Active and ended matches remove the panel; failed actions retain retry behavior.
+- Extended embedded database coverage for initial flags and both participant perspectives. Added UI regressions for recovered readiness, opponent status, activation and stale polls after acknowledgment with duplicate-action prevention.
+- Validation: all 334 tests across 40 files passed; lint, typecheck and production build passed. No player code executed. Live deployment readiness and visual smoke checks remain pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Live database concurrency and sandbox enforcement checks remain pending.
+
 ### 2026-11-06 - Remember editor preferences
 - Reviewed both unchecked catalog items; only .env.example is available, so isolated Judge0 validation remains blocked. Added and completed one independent editor usability item; catalog tasks remain unchecked.
 - The solution editor now remembers the chosen editor, text size and line wrapping in versioned browser local storage across visits, including completed matches. Preferences load after hydration and store only display settings; solution drafts retain their existing tab-scoped storage.

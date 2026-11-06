@@ -31,11 +31,13 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const [refreshPending,setRefreshPending]=useState(false);
   const retryRefresh=useRef<(()=>Promise<void>)|null>(null);
   const [sending,setSending]=useState(false);
+  const [readyAcknowledged,setReadyAcknowledged]=useState(false);
+  const playerReady=match.player.ready || readyAcknowledged;
   const [submission,setSubmission]=useState("");
   const actionRequest=useRef<AbortController|null>(null);
   useEffect(()=>()=>{actionRequest.current?.abort();actionRequest.current=null;},[]);
   async function act(action: "ready" | "submit") {
-    if (actionRequest.current || closed) return;
+    if (actionRequest.current || closed || (action==="ready" && playerReady)) return;
     const controller=new AbortController();
     actionRequest.current=controller;
     feedback.unlock();
@@ -45,6 +47,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       const result=await response.json();
       if (controller.signal.aborted) return;
       if (!response.ok) throw new Error(result.error || "Request failed.");
+      if (action==="ready" && (result.status==="pending" || result.status==="active")) setReadyAcknowledged(true);
       setSubmission(action==="ready" ? "Ready. Waiting for both players; reservations expire after 60 seconds." : "Solution queued. The server will judge it in the sandbox.");
     } catch (error) { if (!controller.signal.aborted) setSubmission(error instanceof Error ? error.message : "Request failed."); }
     finally { if (actionRequest.current===controller) {actionRequest.current=null;setSending(false);} }
@@ -87,6 +90,10 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <div className="arena-clock"><span className="eyebrow">{match.status}</span><p role="timer" aria-label="Time remaining">{match.status==="pending" ? "Waiting to start" : seconds===null ? "No timer" : `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,"0")}`}</p></div>
       <div><span className="eyebrow">OPPONENT</span><h2>{match.opponent.username}</h2><p>{Math.round(match.opponent.rating)} MMR</p></div>
     </div>
+    {match.status==="pending" && <section className="arena-readiness" aria-label="Duel readiness" role="status">
+      <div><span className={`badge${playerReady ? " arena-ready" : ""}`}>You: {playerReady ? "Ready" : "Not ready"}</span><span className={`badge${match.opponent.ready ? " arena-ready" : ""}`}>Opponent: {match.opponent.ready ? "Ready" : "Not ready"}</span></div>
+      <p>{playerReady ? "Waiting for the server to start the duel when both players are ready." : "Review the problem, then mark yourself ready to start."} Reservations expire 60 seconds after pairing.</p>
+    </section>}
     {match.status==="completed" && <Link className="button button--primary" href={`/match/${match.id}/results`}>View results</Link>}
     {error && !closed && <section className="arena-connection" aria-label="Live connection">
       <div><p role="alert">{error}</p><p className="muted">Your code stays in the editor. The server controls the clock and final result.</p></div>
@@ -99,7 +106,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       {!closed && <p role="status">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code."}</p>}
       {match.submission && <p role="status">{match.submission.status==="judged" ? `Latest solution: ${match.submission.passed} / ${match.submission.total} tests passed.` : match.submission.status==="error" ? "Sandbox temporarily unavailable. Your submission will retry; results are waiting." : "Your solution is being judged."}</p>}
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>
-      {match.status==="pending" && <button className="button button--primary" disabled={sending} onClick={()=>void act("ready")}>Ready to duel</button>}
+      {match.status==="pending" && <button className="button button--primary" disabled={sending || playerReady} onClick={()=>void act("ready")}>{playerReady ? "Ready confirmed" : "Ready to duel"}</button>}
       <button className="button button--primary" disabled={sending || match.status!=="active" || seconds===0} onClick={()=>void act("submit")} aria-describedby="submission-status">Submit solution</button><p id="submission-status" role="status">{submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
     </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre tabIndex={0} role="region" aria-label="Function signature">{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><h3>Examples</h3><ProblemExamples examples={match.problem.examples}/></section></div>
     </main></div>;

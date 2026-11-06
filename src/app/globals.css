@@ -228,3 +228,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 }
 
 .editor-hint { color: var(--color-text-muted, #b8b6b3); font-size: 0.875rem; line-height: 1.5; margin: 8px 0; }
+
+.arena-readiness { padding: 16px; margin-bottom: 20px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.arena-readiness > div { display: flex; flex-wrap: wrap; gap: 12px; }
+.arena-readiness p { margin-bottom: 0; }
+.arena-ready { color: var(--color-success); border: 1px solid currentColor; }

@@ -206,6 +206,33 @@ it('sends explicit readiness and keeps submission disabled during reservations',
   expect(screen.getByText(/Ready. Waiting for both players/)).toBeInTheDocument();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
 });
+it('restores participant readiness and removes the waiting panel when the duel starts',async()=>{
+  vi.useFakeTimers();
+  const reserved={...initial,player:{...initial.player,ready:true},opponent:{...initial.opponent,ready:false}};
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...reserved,status:'active',deadline:'2026-11-06T12:05:00Z'})}));
+  render(<Arena initial={reserved}/>);
+  expect(screen.getByText('You: Ready')).toBeVisible();
+  expect(screen.getByText('Opponent: Not ready')).toBeVisible();
+  expect(screen.getByRole('button',{name:'Ready confirmed'})).toBeDisabled();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.queryByRole('status',{name:'Duel readiness'})).not.toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeEnabled();
+});
+it('keeps confirmed readiness through an older poll without sending duplicate ready actions',async()=>{
+  vi.useFakeTimers();
+  const fetcher=vi.fn().mockImplementation((_url,options)=>Promise.resolve({ok:true,json:async()=>options?.method==='POST' ? {status:'pending'} : initial}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={{...initial,opponent:{...initial.opponent,ready:true}}}/>);
+  expect(screen.getByText('Opponent: Ready')).toBeVisible();
+  fireEvent.click(screen.getByRole('button',{name:'Ready to duel'}));
+  await act(async()=>{await Promise.resolve();});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  const ready=screen.getByRole('button',{name:'Ready confirmed'});
+  expect(ready).toBeDisabled();
+  fireEvent.click(ready);
+  expect(fetcher.mock.calls.filter(call=>call[1]?.method==='POST')).toHaveLength(1);
+  expect(screen.getByText('You: Ready')).toBeVisible();
+});
 it('recovers the exact draft after remount, including an intentionally empty editor',()=>{
   const first=render(<Arena initial={initial}/>);
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'def solve():\n    return 42'}});

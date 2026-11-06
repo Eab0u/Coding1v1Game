@@ -124,3 +124,5 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Explain the deciding scoring rule on results pages with an accessible summary and honest historical-data fallback
 
 - [x] Remember solution editor choice, text size and line wrapping across visits, with validated preferences and graceful storage failure feedback
+
+- [x] Show both participants' reservation readiness with accessible status badges and prevent repeated Ready actions after server confirmation
