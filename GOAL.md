@@ -83,7 +83,7 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [ ] Sound effects and animations
 - [ ] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
 - [ ] Problems 21 to 60
-- [ ] Mobile layout polish
+- [x] Mobile layout polish
 - [ ] Friend relationships and friends-only leaderboard filter
 
 

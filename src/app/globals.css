@@ -122,4 +122,35 @@ code { font-family: var(--font-mono); }
 .profile-record strong { font-size: 2rem; }
 .rating-chart { width: 100%; max-height: 260px; color: var(--color-accent, #81b64c); background: rgba(129,182,76,.04); border-radius: 12px; }
 .profile-history { margin: 1rem 0; }
+/* Keep intrinsic text widths from pushing grids beyond the viewport. */
+.hero > *, .dashboard-grid > *, .account-grid > *, .profile-record > * { min-width: 0; }
+.shell { overflow-wrap: anywhere; }
+.site-header { flex-wrap: wrap; }
+.site-header > a { display: inline-flex; align-items: center; min-height: 44px; }
+.recent-duels li > span { min-width: 0; }
+.recent-duels strong { flex-shrink: 0; }
+.ladder-scroll { max-width: 100%; overscroll-behavior-x: contain; }
+.ladder-table { min-width: 420px; }
+.profile-history .ladder-table { min-width: 640px; }
+.ladder-table a { display: inline-flex; align-items: center; min-height: 44px; }
+.profile-rating { flex-wrap: wrap; }
+summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
+@media (max-width: 480px) {
+  .shell { padding: 20px 16px; }
+  .site-header { gap: 8px 16px; padding-bottom: 16px; }
+  .site-header .brand { flex-basis: 100%; }
+  .hero { padding-block: 36px; gap: 24px; }
+  .card { padding: 16px; }
+  .ladder-card { padding: 0; }
+  .account, .ladder { padding-block: 32px; }
+  .play-button { width: 100%; min-width: 0; }
+  .play-panel > .button { width: 100%; }
+  .duel-mark { gap: 12px; }
+  .player-mark { width: 64px; height: 64px; flex-shrink: 0; }
+  .recent-duels li { gap: 12px; align-items: flex-start; }
+  .profile-record { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .profile-record .card { padding: 12px 8px; }
+  .profile-record strong { font-size: clamp(1.25rem, 6vw, 2rem); }
+  .ladder-filters a { flex: 1; text-align: center; }
+}
 @media (max-width: 480px) { .profile-record { gap: .5rem; } .profile-record .card { padding: 1rem; } }

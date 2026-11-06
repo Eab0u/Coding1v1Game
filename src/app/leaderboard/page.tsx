@@ -24,7 +24,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
       <Card className="ladder-card">
         {unavailable ? <p role="alert">Standings unavailable. Please try again later.</p> : entries.length ?
-          <div className="ladder-scroll"><table className="ladder-table" aria-describedby="ranking-rules">
+          <div className="ladder-scroll" role="region" aria-label="Leaderboard standings" tabIndex={0}><table className="ladder-table" aria-describedby="ranking-rules">
             <caption>{period === "weekly" ? "Weekly climb" : "Global rating"} standings</caption>
             <thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Rating</th>{period === "weekly" && <th scope="col">Weekly gain</th>}</tr></thead>
             <tbody>{entries.map(entry => <tr key={entry.username} className={entry.rank <= 3 ? "ladder-podium" : undefined}>

@@ -4,6 +4,8 @@ The agent reads this file at the start of every run and updates it at the end.
 Newest entries go at the top of the Log section.
 
 ## Current status
+Mobile layout polish is implemented for the existing home, account, profile and leaderboard pages, with Chromium regression coverage for narrow phones through desktop widths. Future arena/results screens will need their own responsive checks when implemented.
+
 The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. The original problem catalog is still pending; no real catalog problems have been published.
 
 Public player profiles now show rating graphs, tier badges, full win/loss/draw records and recent match history at /profile/<username>. Public global and weekly leaderboards are available at /leaderboard, linked from the home page. The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems, match screen/lifecycle, rating persistence orchestration and live sandbox verification remain pending.
@@ -24,6 +26,15 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Author and validate problems 1–20 through the new pipeline to enable pairing, then implement the match screen and lifecycle orchestration (pending activation/expiry, submissions and completion). Configure an isolated Judge0 instance and perform deployment smoke tests before enabling ranked play.
 
 ## Log
+### 2026-11-06 - Mobile layout polish
+- Selected the most valuable remaining item that can be completed without the unpublished catalog or live sandbox: making existing player flows usable on phones. Checked off only mobile layout polish.
+- Prevented long names, signatures and problem text from forcing grid/page overflow. Added compact phone spacing, full-width Play/search controls, wrapping account headers and rating badges, stable record cards and readable recent-duel rows. Header and table links have 44px minimum touch heights.
+- Kept wide standings/history tables locally scrollable with named, focusable regions and preserved native table semantics. Keyboard users can focus and scroll to hidden columns.
+- Added headless Chromium regression coverage using actual rendered page components and fixture data: signed-in/guest home and account, populated profile and weekly leaderboard, 24-character usernames, long unbroken text and large records at 320/375/768/1280px. Tests check document overflow, keyboard scrolling and action target heights. Added browser installation to CI and documented local setup.
+- Validation: all 170 tests across 20 files passed; lint, typecheck and production build passed. Corrected test targeting to select table scroll regions rather than semantic page sections, and used ArrowRight to verify horizontal keyboard scrolling.
+- Limits: browser coverage uses server-rendered fixture content, not a running deployment; live database/proxy/WebSocket smoke checks remain pending. Existing Docker, sandbox and development dependency blockers remain. Arena and results responsiveness will be addressed with those future screens.
+- Next: configure the isolated sandbox and author/validate problems 1–20, then implement the match screen and lifecycle orchestration.
+
 ### 2026-11-06 - Problem generation, validation and publication pipeline
 - Selected the problem pipeline as the highest-value dependency for real matchmaking. Checked off only this backlog item.
 - Added strict JSON draft parsing and a deterministic seeded integer/integer-array generator producing 2,000 random small inputs. Compared reference and brute-force solutions in separate sandbox namespaces with fresh argument copies, in bounded batches. No Python or author-supplied generator code executes on the host.

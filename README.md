@@ -18,6 +18,12 @@ Open http://localhost:3000. The supplied database credentials are for local deve
 
 ## Checks
 
+Install the Chromium test browser once after `npm ci` (Linux: use `--with-deps`):
+
+```powershell
+npx playwright install chromium
+```
+
 ```powershell
 npm test
 npm run lint
@@ -26,6 +32,8 @@ npm run build
 ```
 
 Vitest tests the entry page in jsdom and executes the actual SQL migration in PGlite (embedded Postgres). Tests need neither Docker nor an external database and never execute player code. Judge service tests mock the Judge0 HTTP boundary; live sandbox verification remains pending.
+
+The mobile regression test also renders the real page components with fixture data in headless Chromium at 320, 375, 768 and 1280 pixels. It checks page overflow, touch target heights and keyboard scrolling of wide tables, including long usernames and problem text. It does not exercise live database, proxy or WebSocket integration.
 
 ## Database
 
