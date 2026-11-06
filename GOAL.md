@@ -126,3 +126,4 @@ Never decide the project is finished. When the backlog is empty, look for more t
 - [x] Remember solution editor choice, text size and line wrapping across visits, with validated preferences and graceful storage failure feedback
 
 - [x] Show both participants' reservation readiness with accessible status badges and prevent repeated Ready actions after server confirmation
+- [x] Explain cancelled reservations with an accessible recovery panel, rating reassurance and a direct return to matchmaking while retaining visible code for export

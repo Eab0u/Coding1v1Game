@@ -11,6 +11,29 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('explains an already cancelled reservation and links back to matchmaking',()=>{
+  render(<Arena initial={{...initial,status:'cancelled'}}/>);
+  expect(screen.getByRole('region',{name:'Duel cancelled'})).toBeVisible();
+  expect(screen.getByText(/No ratings changed/)).toBeVisible();
+  expect(screen.getByRole('link',{name:'Back to matchmaking'})).toHaveAttribute('href','/');
+  expect(screen.queryByRole('button',{name:'Ready to duel'})).not.toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+  expect(screen.queryByRole('link',{name:'View results'})).not.toBeInTheDocument();
+});
+it('announces cancellation discovered by polling and retains code for export',async()=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status:'cancelled'})}));
+  render(<Arena initial={initial}/>);
+  expect(screen.queryByRole('region',{name:'Duel cancelled'})).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'def solve():\n    return 42'}});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  const panel=screen.getByRole('region',{name:'Duel cancelled'});
+  expect(panel.querySelector('[role="status"]')).toHaveTextContent('No ratings changed');
+  expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    return 42');
+  expect(screen.getByRole('button',{name:/Copy solution/})).toBeEnabled();
+  expect(screen.getByRole('button',{name:/Download/})).toBeEnabled();
+  expect(screen.queryByRole('region',{name:'Duel readiness'})).not.toBeInTheDocument();
+});
 it('resets a recovered draft to the full starter, persists it and clears the exit warning',()=>{
   vi.stubGlobal('fetch',vi.fn());
   sessionStorage.setItem('codeduel:draft:Ada:match','recovered solution');

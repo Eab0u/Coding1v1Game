@@ -95,6 +95,10 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <p>{playerReady ? "Waiting for the server to start the duel when both players are ready." : "Review the problem, then mark yourself ready to start."} Reservations expire 60 seconds after pairing.</p>
     </section>}
     {match.status==="completed" && <Link className="button button--primary" href={`/match/${match.id}/results`}>View results</Link>}
+    {match.status==="cancelled" && <section className="arena-cancelled" aria-labelledby="cancelled-title">
+      <div role="status"><h2 id="cancelled-title">Duel cancelled</h2><p>The reservation ended before both players were ready. No ratings changed.</p><p className="muted">Return home to find a new opponent. You can still copy or download the code visible in this tab before leaving.</p></div>
+      <Link className="button button--primary" href="/">Back to matchmaking</Link>
+    </section>}
     {error && !closed && <section className="arena-connection" aria-label="Live connection">
       <div><p role="alert">{error}</p><p className="muted">Your code stays in the editor. The server controls the clock and final result.</p></div>
       <button type="button" className="button button--secondary" disabled={refreshPending} onClick={()=>void retryRefresh.current?.()}>Retry live updates</button>
