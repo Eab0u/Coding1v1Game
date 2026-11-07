@@ -165,6 +165,31 @@ npm run problems -- validate problems/drafts/spaced-beacon-pairs.json
 npm run problems -- publish problems/drafts/spaced-beacon-pairs.json
 ```
 
+### Buffered Signal Gain
+
+`drafts/buffered-signal-gain.json` is an original easy array/greedy problem:
+maximize the signed gain between two ordered readings with at least one tick
+between them. Exactly one pair is required, so decreasing records have negative
+answers. Examples expose adjacent-pair, optional-selection and ordering errors.
+
+The reference tracks the smallest eligible earlier reading in O(n) time and O(1)
+space. The O(n^2) baseline enumerates all valid pairs. The generator supplies
+2,000 seeded small signed arrays. Fixtures include mandatory losses, duplicates,
+single valid pairs and both signed bounds. Three 100,000-reading benchmarks are
+rising, falling and flat; their answers are 99,999, -2 and 0 respectively, and
+each requires 4,999,850,001 baseline comparisons.
+
+Data-only tests compare exhaustive enumeration with an independent reverse
+suffix oracle, verify translation, positive scaling and reverse-negation
+invariance, and check benchmark formulas. Neither Python solution executes on
+the host. The proposed 1-second CPU and 64-MiB limits still require isolated
+sandbox measurement; this private draft is unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/buffered-signal-gain.json
+npm run problems -- publish problems/drafts/buffered-signal-gain.json
+```
+
 ### Relay Cooldown Score
 
 `drafts/relay-cooldown-score.json` is an original easy dynamic-programming
