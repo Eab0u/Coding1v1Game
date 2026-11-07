@@ -1,0 +1,61 @@
+{
+  "name": "coding1v1game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:watch": "vitest",
+    "db:migrate": "node --env-file=.env scripts/migrate.mjs",
+    "matchmaking": "tsx --env-file=.env scripts/matchmaking.ts",
+    "lifecycle": "tsx --env-file=.env scripts/lifecycle.ts",
+    "problems": "tsx --env-file=.env scripts/problems.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eab0u/Coding1v1Game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Eab0u/Coding1v1Game/issues"
+  },
+  "homepage": "https://github.com/Eab0u/Coding1v1Game#readme",
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "monaco-editor": "^0.56.0",
+    "next": "^16.4.5",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "ws": "^8.22.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
+    "@playwright/test": "^1.65.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/ws": "^8.18.2",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.5",
+    "jsdom": "^29.1.1",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
+  },
+  "private": true,
+  "overrides": {
+    "dompurify": "3.4.17"
+  }
+}

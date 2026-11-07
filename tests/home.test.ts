@@ -1,0 +1,32 @@
+// @vitest-environment node
+import { readFile } from "node:fs/promises";
+import { PGlite } from "@electric-sql/pglite";
+import type { Pool } from "pg";
+import { expect, it } from "vitest";
+import { loadHome } from "../src/lib/home";
+it("counts the current streak, excludes unfinished matches and keeps private problem fields private", async () => {
+  const db = new PGlite();
+  try {
+    await db.exec(await readFile(new URL("../db/migrations/001_initial.sql", import.meta.url), "utf8"));
+    const users = await db.query<{ id: string }>("INSERT INTO users (username) VALUES ('one'),('two') RETURNING id");
+    const [one, two] = users.rows.map(row => row.id);
+    const problems = await db.query<{ id: string }>(`INSERT INTO problems (slug,title,statement,function_signature,difficulty,constraints,reference_solution,brute_force_solution,test_generator,hidden_tests,cpu_limit_ms,memory_limit_kb,published_at)
+      VALUES ('public','Public','statement','def solve():','easy','n<10','SECRET','SECRET','SECRET','[]',1000,65536,now()),
+      ('draft','Draft','statement','def solve():','easy','n<10','SECRET','SECRET','SECRET','[]',1000,65536,null) RETURNING id`);
+    for (let i = 0; i < 8; i++) {
+      await db.query(`INSERT INTO matches (problem_id,player_one_id,player_two_id,status,winner_id,completed_at)
+        VALUES ($1,$2,$3,'completed',$4,now() + ($5::integer * interval '1 second'))`, [problems.rows[0].id, one, two, i < 2 ? null : one, i]);
+    }
+    const data = await loadHome(db as unknown as Pool, one);
+    expect(data.streak).toBe(6);
+    expect(data.recent).toHaveLength(5);
+    expect(data.daily?.title).toBe("Public");
+    expect(JSON.stringify(data)).not.toContain("SECRET");
+    const guest = await loadHome(db as unknown as Pool);
+    expect(guest.recent).toEqual([]);
+    expect(guest.daily).toEqual(data.daily);
+    await db.query(`INSERT INTO matches (problem_id,player_one_id,player_two_id,status,completed_at)
+      VALUES ($1,$2,$3,'completed',now() + interval '1 hour')`, [problems.rows[0].id, one, two]);
+    expect((await loadHome(db as unknown as Pool, one)).streak).toBe(0);
+  } finally { await db.close(); }
+}, 30000);

@@ -62,22 +62,106 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 - Do not do big refactors unless a backlog item requires it.
 - If blocked, write the blocker in PROGRESS.md and move to the next item.
 
+## Never stop improving
+Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
+
 ## Backlog (check off as done)
-- [ ] Project scaffold (Next.js, TS, lint, test setup, Postgres schema)
-- [ ] Design system: colors, buttons, typography, dark theme
-- [ ] Judge service: run code in the sandbox against tests, return pass count and CPU time
-- [ ] Scoring function with unit tests for all tiebreak cases
-- [ ] Rating system (Glicko-2) with unit tests
-- [ ] Auth (simple username and password or OAuth)
-- [ ] Matchmaking queue with WebSockets and rating bands
-- [ ] Match screen: editor, timers, opponent progress bar
-- [ ] Post-match results screen with rating change animation
-- [ ] Home page with Play button
-- [ ] Profile page with rating graph
-- [ ] Leaderboard
-- [ ] Problem pipeline: generate, validate, publish
+- [x] Recover unavailable account reads with a styled fresh-read retry, suppress credential forms while session state is unknown, and cover recovery and phone keyboard access
+- [x] Recover unavailable match results with a styled accessible fresh-read retry that preserves the match and rechecks authentication, with privacy, recovery and phone keyboard coverage
+- [x] Recover unavailable home dashboard reads with a styled accessible fresh-read retry, suppress misleading empty stats and queue controls, and cover recovery and phone keyboard access
+- [x] Recover unavailable friends reads with a styled accessible fresh-read retry and arena navigation, with privacy, recovery and phone keyboard coverage
+- [x] Recover unavailable player profiles with a styled accessible retry that preserves the requested player, with recovery and phone keyboard coverage
+- [x] Recover unavailable leaderboard reads with a styled accessible retry that preserves period and friends filters, with phone and keyboard coverage
+- [x] Validate account passwords against the server's UTF-8 byte limit before submission, with styled accessible inline feedback and correction recovery
+- [x] Present matchmaking wait and rating range as styled metrics without repeating screen-reader announcements on every server tick
+- [x] Show a server-based rematch invitation countdown with styled deadline feedback and disable elapsed invitation responses while awaiting authoritative confirmation
+- [x] Refresh rematch invitations immediately on tab return without overlapping reads or actions, and stop after terminal outcomes
+- [x] Recover failed rematch reads with a styled, accessible immediate retry, refresh feedback and duplicate-request protection
+- [x] Stop rematch polling after authoritative terminal states and provide styled, accessible outcomes with clear next actions
+- [x] Recover matchmaking from missing reservation confirmation with a bounded deadline and explicit reserving/cancelling feedback
+- [x] Replace the signed-in account dead end with a styled matchmaking action, current rating and profile, friends and leaderboard navigation
+- [x] Show a styled, accessible latest-submission panel distinguishing queued, judging, sandbox retry and judged states without exposing partial counts as a verdict
+- [x] Make starter-code reset confirmation keyboard-accessible with safe initial focus, Escape cancellation and predictable focus recovery
+- [x] Highlight the arena's final minute with accessible submission guidance that follows the authoritative clock and clears at expiry
+- [x] Show a styled, accessible plain-text editor cursor line, column and selection count, including read-only code and indentation edits
+- [x] Show your authoritative best judged arena progress separately from the latest attempt and current edits
+- [x] Project scaffold (Next.js, TS, lint, test setup, Postgres schema)
+- [x] Design system: colors, buttons, typography, dark theme
+- [x] Judge service: run code in the sandbox against tests, return pass count and CPU time
+- [x] Scoring function with unit tests for all tiebreak cases
+- [x] Rating system (Glicko-2) with unit tests
+- [x] Auth (simple username and password or OAuth)
+- [x] Matchmaking queue with WebSockets and rating bands
+- [x] Match screen: editor, timers, opponent progress bar
+- [x] Match lifecycle: activate/expire reservations, sandbox submissions, finalize scores and persist ratings exactly once
+- [x] Post-match results screen with rating change animation
+- [x] Home page with Play button
+- [x] Profile page with rating graph
+- [x] Leaderboard
+- [x] Problem pipeline: generate, validate, publish
 - [ ] Problems 1 to 20 passing validation
-- [ ] Sound effects and animations
-- [ ] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
+- [x] Sound effects and animations
+- [x] Anti-cheat basics: rate limits, disable paste in editor optionally, problem rotation
 - [ ] Problems 21 to 60
-- [ ] Mobile layout polish
+- [x] Mobile layout polish
+- [x] Friend relationships and friends-only leaderboard filter
+
+
+
+
+
+- [x] Consensual rematch invitations with opponent acceptance and expiry
+- [x] Recover tab-scoped arena drafts after refresh, isolate matches and players, and handle unavailable storage
+
+- [x] Connect authoritative arena verdicts to animated feedback and optional sound, once per submission
+- [x] Add authoritative results feedback for wins, losses and draws with optional sound and explicit replay
+
+- [x] Polish the phone arena scoreboard and submission controls; make problem code blocks keyboard-scrollable with browser regression coverage
+- [x] Refresh arena state immediately on tab return, prevent overlapping polls and stop polling ended matches
+- [x] Protect rematch actions from stale polls, isolate match views and abort actions on navigation
+
+- [x] Recover matchmaking from missing join/cancel acknowledgements and clean up connection timers
+- [x] Guard arena Ready/Submit against duplicate requests and abort pending actions on navigation
+- [x] Preserve arena code with a switchable plain-text editor and automatic fallback when Monaco fails
+
+- [x] Warn before browser reload or tab close when an unfinished arena contains edited code; clear warnings after match end
+- [x] Download the current Python solution from either editor, including completed matches, with failure feedback
+- [x] Reset arena solutions to the full starter code with explicit confirmation, draft persistence and completed-match protection
+- [x] Add Python newline indentation to the plain-text editor with caret preservation, accessible keyboard guidance and native Tab navigation
+
+- [x] Present arena examples as numbered input/output and explanation cards with accessible scrolling and phone layout coverage
+- [x] Add accessible plain-text Python block Indent/Outdent controls with selection preservation and native Tab navigation
+
+- [x] Add accessible, bounded solution text size controls shared by advanced and plain-text editors, including fallback and completed matches
+
+- [x] Add an accessible line-wrap toggle shared by advanced and plain-text solution editors, including fallback and completed matches
+
+- [x] Copy the current solution from either editor and completed matches with accessible feedback, retry and duplicate-request protection
+
+- [x] Add immediate retry for stale arena updates with accessible connection feedback, duplicate-request protection and preserved drafts
+
+- [x] Explain the deciding scoring rule on results pages with an accessible summary and honest historical-data fallback
+
+- [x] Remember solution editor choice, text size and line wrapping across visits, with validated preferences and graceful storage failure feedback
+
+- [x] Show both participants' reservation readiness with accessible status badges and prevent repeated Ready actions after server confirmation
+- [x] Explain cancelled reservations with an accessible recovery panel, rating reassurance and a direct return to matchmaking while retaining visible code for export
+- [x] Explain expired arena clocks with accessible pending-results guidance, preserved code export and authoritative completion recovery
+- [x] Distinguish current code from the last acknowledged submission, including in-flight edits, failed requests and deadline expiry
+
+- [x] Show a server-based reservation readiness countdown, disable expired Ready actions and await authoritative activation or cancellation
+
+- [x] Keep opponent progress on the best judged test count after weaker attempts, with accessible scoring guidance
+
+- [x] Show accessible submission size guidance and block blank or oversized arena submissions using shared server validation, preserving drafts and export
+
+- [x] Submit from either solution editor with Ctrl+Enter or Command+Enter, with accessible guidance and admission safeguards
+
+- [x] Show accessible in-flight Ready and Submit feedback while preserving editable drafts and distinguishing acknowledgement from judging
+
+- [x] Add accessible, independent password visibility controls to sign-in and sign-up with preserved input and phone-friendly styling
+
+- [x] Restore working friend action submissions and organize incoming requests, friends and sent requests into accessible counted sections with phone layout coverage
+
+- [x] Show styled, accessible rematch action feedback until server confirmation, with retry recovery and duplicate-action protection
+
