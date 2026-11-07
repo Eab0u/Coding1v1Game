@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Clarify read-only plain solutions with a styled accessible notice and copying guidance, preserving drafts, focus, selections and native keyboard behavior through mode changes
 - [x] Add discoverable Ctrl/Cmd bracket indentation shortcuts to the plain Python editor, preserving backward selections, native Tab navigation, read-only drafts and IME composition with regression tests
 - [x] Refresh silently autofilled password byte budgets and native validation through Show/Hide controls, with Unicode overflow, correction, empty-value, focus and independent-form tests
 - [x] Preserve native plain-editor Enter throughout IME composition when keyboard flags are missing, with selection preservation and composition-end and blur recovery tests

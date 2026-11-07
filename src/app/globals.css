@@ -327,6 +327,7 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 }
 
 .editor-hint { color: var(--color-text-muted, #b8b6b3); font-size: 0.875rem; line-height: 1.5; margin: 8px 0; }
+.editor-readonly-notice { margin: 8px 0; padding: 10px 14px; border-inline-start: 4px solid var(--color-accent, #81b64c); border-radius: 8px; background: var(--color-bg, #262421); color: var(--color-text, #fff); line-height: 1.5; overflow-wrap: anywhere; }
 .editor-position { display: block; padding: 8px 12px; margin-top: 6px; border-radius: 8px; background: var(--color-bg, #262421); color: var(--color-text-muted, #b8b6b3); font: 0.875rem/1.5 monospace; overflow-wrap: anywhere; }
 
 .arena-readiness { padding: 16px; margin-bottom: 20px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }

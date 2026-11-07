@@ -55,6 +55,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     onChange(value.slice(0, first) + block + value.slice(stop));
   }
   return <>
+    {readOnly && <p className="editor-readonly-notice" role="note" aria-label="Read-only solution">Read-only solution. You can select and copy your code.</p>}
     <div className="solution-editor-actions" role="group" aria-label="Python indentation">
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(false)}>Indent</button>
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(true)}>Outdent</button>
@@ -83,6 +84,8 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
         onChange(value.slice(0, start) + insertion + value.slice(end));
       }} />
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
-    <p id={hint} className="editor-hint">Enter keeps indentation and adds four spaces after a colon. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab).</p>
+    <p id={hint} className="editor-hint">{readOnly
+      ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Tab moves to the next control."
+      : "Enter keeps indentation and adds four spaces after a colon. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab)."}</p>
   </>;
 }

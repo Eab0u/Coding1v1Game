@@ -8,6 +8,40 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it("updates read-only guidance without replacing the draft, selection or focus", () => {
+  const change = vi.fn();
+  const value = "def solve():\n    return 1";
+  const { rerender } = render(<PlainPythonEditor value={value} onChange={change} readOnly={false}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(4, 9, "backward");
+  expect(screen.queryByRole("note")).not.toBeInTheDocument();
+  expect(input).toHaveAccessibleDescription(/Enter keeps indentation/);
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    rerender(<PlainPythonEditor value={value} onChange={change} readOnly/>);
+    expect(screen.getByRole("note")).toHaveTextContent("Read-only solution. You can select and copy your code.");
+    expect(input).toHaveAttribute("readonly");
+    expect(input).toHaveAccessibleDescription(/read-only.*Ctrl\+C or Cmd\+C.*Tab moves/);
+    expect(input).not.toHaveAccessibleDescription(/Enter keeps indentation/);
+    for (const event of [{ key: "c", ctrlKey: true }, { key: "c", metaKey: true }, { key: "Tab" }, { key: "Enter" }, { key: "]", ctrlKey: true }]) {
+      expect(fireEvent.keyDown(input, event)).toBe(true);
+    }
+    expect(input).toHaveValue(value);
+    expect(input.selectionStart).toBe(4);
+    expect(input.selectionEnd).toBe(9);
+    expect(input.selectionDirection).toBe("backward");
+    expect(input).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Indent" })).toBeDisabled();
+    rerender(<PlainPythonEditor value={value} onChange={change} readOnly={false}/>);
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
+    expect(input).not.toHaveAttribute("readonly");
+    expect(input).toHaveAccessibleDescription(/Enter keeps indentation/);
+    expect(screen.getByRole("button", { name: "Indent" })).toBeEnabled();
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
 it.each([false, true])("preserves native Enter during composition without keyboard flags (readOnly=%s)", readOnly => {
   const change = vi.fn();
   render(<PlainPythonEditor value="def solve():" onChange={change} readOnly={readOnly}/>);

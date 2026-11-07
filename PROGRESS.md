@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Read-only plain solution guidance
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Added a styled accessible read-only notice and replaced editing instructions with selection, copying and Tab guidance while editing is disabled. The persistent note remains separate from copy and editor-recovery status feedback.
+- Added regression coverage for repeated editable/read-only transitions, draft preservation, backward selections, focus, disabled indentation actions and native copy, Tab and editing-key handling. Existing solution-editor tests cover copy and fallback recovery alongside the notice.
+- Validation: all 840 tests across 60 files passed, including 92 focused editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Plain editor keyboard indentation
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor usability item.
 - Added Ctrl+] / Cmd+] to indent and Ctrl+[ / Cmd+[ to outdent the current line or selected lines, using the existing indentation behavior. Visible accessible guidance explains the shortcuts; Tab continues native focus navigation.
