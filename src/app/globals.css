@@ -409,3 +409,6 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 
 .home-ladder .badge { margin-bottom: var(--space-2, 0.5rem); }
 .home-tier-note { color: var(--text-muted, #bcb8b3); font-size: 0.875rem; line-height: 1.6; }
+
+.home-history-note { color: var(--text-muted, #bcb8b3); line-height: 1.6; }
+.home-history-link { margin-top: 16px; width: 100%; min-height: 44px; }

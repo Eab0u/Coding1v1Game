@@ -164,3 +164,20 @@ it("does not assign a personal tier to guests or unavailable dashboards", async 
   view.rerender(await Home());
   expect(view.container.querySelector(".home-ladder")).toBeNull();
 });
+
+it.each([false, true])("offers signed-in history navigation with recent matches=%s", async populated => {
+  mocks.current.mockResolvedValue({ id: "one", username: "A da", rating: 800 });
+  mocks.load.mockResolvedValue({ daily: null, streak: 0, recent: populated ? [{ id: "m", title: "Pairs", opponent: "Bob", winner_id: "one" }] : [] });
+  render(await Home());
+  expect(screen.getByRole("link", { name: "View your duel history" })).toHaveAttribute("href", "/profile/A%20da");
+  expect(screen.getByText(/Your latest five completed duels/)).toHaveTextContent("Your profile shows up to 20");
+});
+it("omits personal history navigation for guests and unavailable dashboards", async () => {
+  const view = render(await Home());
+  expect(screen.queryByRole("link", { name: "View your duel history" })).not.toBeInTheDocument();
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+  mocks.load.mockRejectedValue(new Error("unavailable"));
+  view.rerender(await Home());
+  expect(screen.queryByRole("link", { name: "View your duel history" })).not.toBeInTheDocument();
+  expect(screen.queryByText(/Your latest five completed duels/)).not.toBeInTheDocument();
+});

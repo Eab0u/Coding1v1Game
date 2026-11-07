@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Home duel history navigation
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent home navigation improvement.
+- Added a full-width styled personal history action to the recent-duels card, including the signed-in empty state. Explained that home previews five completed duels while the profile shows up to 20, plus the record and rating journey. Guest and unavailable dashboards do not show the personal action or guidance; destinations encode usernames.
+- Added component coverage for populated, empty, guest and unavailable states and encoded destinations. Chromium checks at 320, 375 and 1280px verify keyboard focus, visible focus styling, 44px touch height and containment without page overflow.
+- Validation: all 643 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Home dashboard rating tier
 - Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent home dashboard improvement.
 - Added a themed current-tier badge to the signed-in ladder card using shared full-precision thresholds. Explained display rounding; guests receive no personal tier, and unavailable dashboards continue to suppress account statistics.

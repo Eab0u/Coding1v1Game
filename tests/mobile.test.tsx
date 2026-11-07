@@ -816,3 +816,20 @@ it.each([320, 375, 1280])('keeps the home rating tier readable at %spx', async w
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('makes home history navigation visible to keyboard and touch at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const link = page.getByRole('link', { name: 'View your duel history', exact: true });
+    expect(await link.getAttribute('href')).toBe(`/profile/${username}`);
+    await link.focus();
+    expect(await link.evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await link.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
+    const bounds = (await link.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
