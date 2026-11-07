@@ -21,10 +21,29 @@ import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
 import Leaderboard from '../src/app/leaderboard/page';
 import Account from '../src/app/account/page';
+import ResultsPage from '../src/app/match/[id]/results/page';
+vi.mock('../src/lib/results', () => ({ loadResult: async () => { throw new Error('private'); } }));
 
 let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
+
+it('keeps results recovery actions visible and keyboard accessible on phones', async () => {
+  const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
+  try {
+    const content = await ResultsPage({ params: Promise.resolve({ id: 'match-id' }) });
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(content)}`);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    expect(await page.getByRole('alert').isVisible()).toBe(true);
+    const retry = page.getByRole('link', { name: 'Retry results' });
+    expect(await retry.getAttribute('href')).toBe('/match/match-id/results');
+    await retry.focus();
+    expect(await retry.evaluate(el => el === document.activeElement)).toBe(true);
+    expect((await retry.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', { name: 'Back to arena' }).evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { await page.close(); }
+});
 
 it('keeps dashboard recovery visible and keyboard accessible on phones', async () => {
   state.homeUnavailable = true;

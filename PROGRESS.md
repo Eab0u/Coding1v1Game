@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Match results read recovery
+- Reviewed the two unchecked catalog items; isolated Judge0 remains unavailable (only .env.example is present). Following the blocker rule, added and completed one independent results recovery item. Catalog items remain unchecked.
+- Replaced the results error dead end with the shared styled accessible recovery card, a fresh-document Retry results action preserving the match and Back to arena navigation. Session lookup failures also show recovery without querying private results. Retries recheck authentication and use the current session identity; missing/nonparticipant results retain the generic 404.
+- Added tests for private error suppression, session-failure query short-circuiting, successful retry, expired-session redirect and Chromium coverage for 320px overflow, touch height and keyboard focus order.
+- Validation: all 424 tests across 42 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and validate problems 1-20. Existing sandbox, live infrastructure smoke-check and dependency blockers remain.
+
 ### 2026-11-06 - Home dashboard read recovery
 - Reviewed both unchecked catalog items; isolated Judge0 remains unavailable (no configured sandbox environment or .env). Following the blocker rule, added and completed one independent dashboard recovery item. Catalog items remain unchecked.
 - Replaced the home error dead end with the shared styled accessible recovery card, a fresh-document Retry dashboard action and leaderboard navigation. Failed session/dashboard reads hide queue controls and misleading zero streak, empty history and daily challenge placeholders. Retry rechecks authentication and dashboard data.
