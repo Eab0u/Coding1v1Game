@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Direct advanced editor recovery
+- Retried the highest-value unchecked catalog validation item with Relay Order Conflicts; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor recovery item.
+- Added a styled Retry advanced editor action beside the automatic plain-text fallback. Retrying remounts the failed editor boundary without changing solution text or saved preferences. Repeated failures retain the editable fallback; focus returns to the solution group so recovery does not strand keyboard users when the retry button disappears.
+- Added editable and read-only regression cases covering repeated failure, successful recovery, fallback edits, text size, line wrapping, saved preferences and focus preservation.
+- Validation: all 813 tests across 60 files passed, including 43 focused editor tests; lint, typecheck and production build passed. Fixed an unsupported test-query typing option caught by typecheck. No player or author Python code executed on the host.
+- Limits: recovery covers rendering failures; persistent asset or infrastructure failures can still require a page reload. Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Expire stale solution clipboard feedback
 - Retried the highest-value unchecked catalog validation item using Relay Order Conflicts; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor feedback item.
 - Clipboard success and failure messages now belong to a draft revision. Editing permanently expires them, even if the previous code returns. Pending copy completions cannot revive stale feedback after an edit-and-restore sequence; fresh copy attempts still report their own outcome and code remains preserved.

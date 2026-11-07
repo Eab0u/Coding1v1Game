@@ -379,3 +379,29 @@ it.each([true, false])("discards pending clipboard feedback after editing and re
   expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
   expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
 });
+
+it.each([false, true])("retries advanced editor failures while preserving fallback work and settings, readOnly %s", readOnly => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  editor.fails = true;
+  render(<Harness readOnly={readOnly}/>);
+  fireEvent.click(screen.getByRole("button", { name: "Increase solution text size" }));
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  const code = readOnly ? "def solve():\n    pass" : "def solve():\n    return 'fallback work'";
+  if (!readOnly) fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: code } });
+  const preferences = localStorage.getItem("codeduel:editor-preferences:v1");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    fireEvent.click(screen.getByRole("button", { name: "Retry advanced editor" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Advanced editor unavailable");
+    expect(screen.getByLabelText("Python solution")).toHaveValue(code);
+  }
+  editor.fails = false;
+  fireEvent.click(screen.getByRole("button", { name: "Retry advanced editor" }));
+  expect(screen.queryByRole("button", { name: "Retry advanced editor" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Python solution")).toHaveValue(code);
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "soft");
+  expect(screen.getByLabelText("Python solution").hasAttribute("readonly")).toBe(readOnly);
+  expect(localStorage.getItem("codeduel:editor-preferences:v1")).toBe(preferences);
+  expect(screen.getByRole("group", { name: "Solution editor" })).toHaveFocus();
+});
