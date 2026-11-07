@@ -7,7 +7,7 @@ it.each([0, 3, 8])("distinguishes a judged score of %i without implying a duel v
   const panel = screen.getByRole("status", { name: "Latest submission" });
   expect(panel).toHaveAttribute("aria-atomic", "true");
   expect(panel).toHaveTextContent(`Latest solution: ${passed} / 8 tests passed.`);
-  expect(panel).toHaveTextContent(passed === 8 ? "All tests passed" : "Some tests failed");
+  expect(panel).toHaveTextContent(passed === 8 ? "All tests passed" : passed === 0 ? "No tests passed" : "Some tests failed");
   expect(panel).toHaveClass(passed === 8 ? "arena-verdict--passed" : "arena-verdict--partial");
   expect(panel).toHaveTextContent("Your best score and unsent edits are shown separately");
   if (passed === 8) expect(panel).toHaveTextContent("Runtime and submission time still break ties");
@@ -53,4 +53,22 @@ it("clears the previous verdict when a new attempt queues", () => {
   expect(screen.getByRole("status")).not.toHaveClass("arena-verdict--passed");
   rerender(<SubmissionStatus submission={null} />);
   expect(screen.queryByRole("status")).toBeNull();
+});
+
+it("removes zero-pass correction guidance through polling and a newly queued attempt", () => {
+  const { rerender } = render(<SubmissionStatus submission={{ status: "judged", passed: 0, total: 8 }} />);
+  expect(screen.getByRole("status")).toHaveTextContent("Check the function signature and public examples");
+  expect(screen.getByRole("status")).toHaveTextContent("Hidden test inputs stay private");
+  for (const submission of [
+    { status: "judged", passed: 3, total: 8 },
+    { status: "judged", passed: 8, total: 8 },
+    { status: "judged", passed: 0, total: 0 },
+    { status: "queued", passed: 0, total: 8 },
+  ]) {
+    rerender(<SubmissionStatus submission={submission} />);
+    expect(screen.queryByText("No tests passed")).toBeNull();
+    expect(screen.queryByText(/Check the function signature and public examples/)).toBeNull();
+    rerender(<SubmissionStatus submission={{ status: "judged", passed: 0, total: 8 }} />);
+    expect(screen.getByText("No tests passed")).toBeVisible();
+  }
 });

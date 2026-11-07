@@ -23,8 +23,9 @@ export function SubmissionStatus({ submission }: { submission: ArenaSnapshot["su
   return <div className={`arena-verdict${retrying ? " arena-verdict--retry" : ""}${verdictClass}`} role="status" aria-label="Latest submission" aria-atomic="true">
     <span className="eyebrow">Latest submission</span>
     <strong>{title}</strong>
-    {hasScore && <span className="badge arena-verdict-badge">{allPassed ? "All tests passed" : "Some tests failed"}</span>}
+    {hasScore && <span className="badge arena-verdict-badge">{allPassed ? "All tests passed" : submission.passed === 0 ? "No tests passed" : "Some tests failed"}</span>}
     <p>{detail}</p>
+    {hasScore && submission.passed === 0 && <p>Check the function signature and public examples, then submit a corrected solution. Hidden test inputs stay private.</p>}
     {allPassed && <p>Runtime and submission time still break ties. The final result is confirmed after the duel ends.</p>}
     <p className="muted">This describes the latest server-recorded attempt. Your best score and unsent edits are shown separately.</p>
   </div>;
