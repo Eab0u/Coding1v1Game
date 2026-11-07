@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 export function LoadingStatus() {
   const [delayed, setDelayed] = useState(false);
+  const guidanceId = useId();
   useEffect(() => {
     const timeout = window.setTimeout(() => setDelayed(true), 15_000);
     return () => window.clearTimeout(timeout);
@@ -14,6 +15,11 @@ export function LoadingStatus() {
       <span className="page-loading-mark" aria-hidden="true" />
       {delayed ? "This page is taking longer than usual." : "Loading page content…"}
     </p>
-    {delayed && <p className="page-loading-delay">You can keep waiting, reload this page with your browser, or use Back to arena below. Reloading does not pause a live duel or resend a code submission.</p>}
+    {delayed && <>
+      <p id={guidanceId} className="page-loading-delay">You can keep waiting, reload this page, or use Back to arena below. Unsaved changes may be lost. Reloading does not pause a live duel or resend a code submission.</p>
+      <div className="page-recovery-actions">
+        <button type="button" className="button button--secondary" aria-describedby={guidanceId} onClick={() => window.location.reload()}>Reload page</button>
+      </div>
+    </>}
   </>;
 }

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Stalled-loading reload recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: after fifteen seconds, loading pages offer an explicit Reload page button with prominent unsaved-change, live-clock and submission guidance. The action reloads the current document only when clicked.
+- Added tests for the delay boundary, actual reload invocation, stable accessible descriptions, retained keyboard focus, independent component instances and absence of automatic reload. Existing timer cleanup and reopening coverage still passes.
+- Validation: all 1,627 tests across 72 files passed with `npm test -- --maxWorkers=2`; focused loading tests (4), lint, production build, typecheck and whitespace checks passed. The initial full run reproduced the previously recorded rematch focus-test failure; all 86 rematch tests passed independently and the full rerun passed without changing rematch code or tests.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Loading-screen match recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: loading pages now explain home/Play recovery of an existing match with server-confirmed availability. Applied the shared prominent recovery-guidance styling and associated the Back to arena link with the visible live-clock and recovery instructions.

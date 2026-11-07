@@ -1,6 +1,7 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import Loading from "../src/app/loading";
+import { LoadingStatus } from "../src/components/loading-status";
 
 afterEach(() => vi.useRealTimers());
 
@@ -15,6 +16,7 @@ it("offers recovery after fifteen seconds without replacing the live region or s
   expect(guidance).toBeVisible();
   recovery.focus();
   act(() => vi.advanceTimersByTime(14_999));
+  expect(screen.queryByRole("button", { name: "Reload page" })).not.toBeInTheDocument();
   expect(status).toHaveTextContent("Loading page content…");
   expect(screen.queryByText(/You can keep waiting/)).not.toBeInTheDocument();
   act(() => vi.advanceTimersByTime(1));
@@ -28,6 +30,33 @@ it("offers recovery after fifteen seconds without replacing the live region or s
   expect(status).toHaveTextContent("This page is taking longer than usual.");
   expect(vi.getTimerCount()).toBe(0);
   unmount();
+});
+
+it("offers an explicit delayed reload with stable, instance-specific loss guidance", () => {
+  vi.useFakeTimers();
+  const first = render(<LoadingStatus />);
+  const reloadDocument = vi.fn();
+  act(() => vi.advanceTimersByTime(15_000));
+  const reload = within(first.container).getByRole("button", { name: "Reload page" });
+  expect(reload).toHaveAttribute("type", "button");
+  expect(reload).toHaveAccessibleDescription(/keep waiting.*Unsaved changes may be lost.*does not pause a live duel or resend a code submission/);
+  const id = reload.getAttribute("aria-describedby")!;
+  expect(document.getElementById(id)).toHaveClass("page-loading-delay");
+  reload.focus();
+  first.rerender(<LoadingStatus />);
+  expect(reload).toHaveFocus();
+  expect(reload).toHaveAttribute("aria-describedby", id);
+  const second = render(<LoadingStatus />);
+  expect(within(second.container).queryByRole("button")).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(15_000));
+  expect(within(second.container).getByRole("button").getAttribute("aria-describedby")).not.toBe(id);
+  expect(reload).toHaveFocus();
+  vi.stubGlobal("location", { reload: reloadDocument });
+  try {
+    expect(reloadDocument).not.toHaveBeenCalled();
+    fireEvent.click(reload);
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+  } finally { vi.unstubAllGlobals(); }
 });
 
 it("clears pending delay feedback on navigation and starts a fresh wait when reopened", () => {
