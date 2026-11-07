@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ current: vi.fn(), load: vi.fn() }));
 vi.mock("../src/lib/auth-server", () => ({ auth: { current: mocks.current }, database: () => ({}) }));
@@ -296,4 +296,30 @@ it.each(["guest", "empty", "unavailable"])("omits dashboard history shortcut for
   if (mode === "unavailable") mocks.load.mockRejectedValue(new Error("offline"));
   render(await Home());
   expect(screen.queryByRole("link", { name: "Jump to recent duels" })).not.toBeInTheDocument();
+});
+
+it.each([
+  [999.75, "Bronze"], [1000, "Silver"], [1199.75, "Silver"], [1200, "Gold"],
+  [1599.75, "Gold"], [1600, "Platinum"], [1999.75, "Platinum"], [2000, "Diamond"],
+  [2399.75, "Diamond"], [2400, "Master"],
+])("explains dashboard tiers at full precision for %s MMR", async (rating, tier) => {
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating });
+  const { container } = render(await Home());
+  const guide = container.querySelector("details.tier-guide")!;
+  expect(guide).not.toHaveAttribute("open");
+  expect(guide.querySelector("summary")).toHaveTextContent("Explore rating tiers");
+  const rows = within(guide as HTMLElement).getAllByRole("listitem", { hidden: true });
+  expect(rows).toHaveLength(6);
+  expect(guide.querySelectorAll(".tier-guide-current")).toHaveLength(1);
+  expect(guide.querySelector(".tier-guide-current")).toHaveTextContent(tier);
+  expect(guide).toHaveTextContent("even when the displayed MMR rounds up");
+  expect(guide).toHaveTextContent("Refresh this dashboard");
+});
+it.each(["guest", "unavailable"])("omits personal dashboard tier guidance for %s", async mode => {
+  if (mode === "unavailable") {
+    mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+    mocks.load.mockRejectedValue(new Error("private"));
+  }
+  const { container } = render(await Home());
+  expect(container.querySelector(".tier-guide")).toBeNull();
 });

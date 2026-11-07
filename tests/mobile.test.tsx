@@ -1423,3 +1423,27 @@ it.each([320, 375, 1280])('jumps past the dashboard introduction to recent duels
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('opens dashboard tier guidance by keyboard at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    state.signedIn = true;
+    state.accountUnavailable = false;
+    state.homeUnavailable = false;
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const summary = page.locator('.home-ladder .tier-guide summary');
+    const list = page.getByRole('list', {name:'Rating tier thresholds'});
+    expect(await list.isVisible()).toBe(false);
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    expect(await list.isVisible()).toBe(true);
+    expect(await list.locator('.tier-guide-current').textContent()).toBe('Bronze0+ MMRCurrent tier');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await page.keyboard.press('Space');
+    expect(await list.isVisible()).toBe(false);
+    expect(await summary.evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('region', {name:'Daily challenge function signature'}).evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { await page.close(); }
+});
