@@ -37,6 +37,12 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Python block-header indentation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Plain-editor Enter now adds four spaces only after a recognized Python block header ending in a code colon. Dictionary entries, slices and ordinary identifiers retain their existing indentation. Updated the visible keyboard guidance; async headers, match/case and except* remain supported.
+- Added 23 regression cases covering block keywords, keyword-like identifiers, dictionary/slice punctuation and selection replacement with suffix, focus and caret preservation. This remains a current-line convenience rather than a full Python parser; multiline context is outside its scope.
+- Validation: all 884 tests across 60 files passed, followed by all 90 editor tests after adding the final selection regression. Lint, typecheck and production build passed. No Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
 ### 2026-11-07 - Comment-aware plain-editor Enter
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and checked off one bounded editor correctness item.
 - Enter now scans the current line for comments outside quoted text. Comment-only colons keep the existing indentation, while block headers followed by comments receive four additional spaces. Updated the visible keyboard guidance.

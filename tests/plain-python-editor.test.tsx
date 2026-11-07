@@ -460,6 +460,12 @@ it("updates selected line counts after indentation and draft replacement", () =>
 });
 
 it.each([
+  ["    'key':", "    "],
+  ["    items[1:", "    "],
+  ["    value:", "    "],
+  ["    iffy:", "    "],
+  ["    async_value:", "    "],
+  ...["if ready", "elif ready", "else", "for item in items", "while ready", "try", "except ValueError", "except* ValueError", "finally", "with lock", "def solve(x)", "class Solver", "match value", "case 1", "async def solve(x)", "async for item in items", "async with lock"].map(header => [`    ${header}: # block`, "        "]),
   ["    # explain:", "    "],
   ["    value = 1 # note:", "    "],
   ["    if ready: # proceed", "        "],
@@ -492,4 +498,18 @@ it("replaces a selection after a commented block header and preserves the suffix
   expect(input).toHaveValue("if ready: # proceed\n    \nnext_call()");
   expect(input.selectionStart).toBe(start + 5);
   expect(input.selectionEnd).toBe(start + 5);
+});
+
+it("splits a dictionary entry without block indentation and preserves its selected suffix", () => {
+  const initial = "    'key': REMOVEvalue";
+  render(<Harness initial={initial}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  const start = initial.indexOf(" REMOVE");
+  input.focus();
+  input.setSelectionRange(start, start + 7, "backward");
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(input).toHaveValue("    'key':\n    value");
+  expect(input.selectionStart).toBe(start + 5);
+  expect(input.selectionEnd).toBe(start + 5);
+  expect(input).toHaveFocus();
 });
