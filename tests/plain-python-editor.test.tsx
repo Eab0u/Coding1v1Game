@@ -8,6 +8,32 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it.each([
+  ['text = """\n    if ready:', "    "],
+  ["text = '''\n    if ready:", "    "],
+  ['text = """\n# not a comment\n    if ready:', "    "],
+  ['text = """\n    escaped \\"""\n    if ready:', "    "],
+  ['text = """\nbody\n"""\nif ready:', "    "],
+  ["text = '''\nbody\n'''\nif ready:", "    "],
+  ['# """ ignored\nif ready:', "    "],
+  ['text = "# triple: \\\""\nif ready:', "    "],
+  ['items = [\n    if ready:', "    "],
+  ['items = [\n    1\n]\nif ready:', "    "],
+  ['text = """\nbody\n"""\n    if ready:', "        "],
+  ['if (\n    ready\n):', "    "],
+  ['# unmatched [ ignored\n    if ready: # comment', "        "],
+])("uses earlier-line lexical context for Enter: %s", (prefix, indentation) => {
+  render(<Harness initial={prefix + "replace suffix"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(prefix.length, prefix.length + 7, "backward");
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(input).toHaveValue(prefix + "\n" + indentation + " suffix");
+  expect(input.selectionStart).toBe(prefix.length + 1 + indentation.length);
+  expect(input.selectionEnd).toBe(input.selectionStart);
+  expect(input).toHaveFocus();
+});
+
 it.each(["compositionend", "blur"])("preserves IME selection through Select all code and recovers after %s", ending => {
   const change = vi.fn();
   const value = "    first\n    second";

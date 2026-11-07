@@ -1,7 +1,7 @@
 "use client";
 import { useId, useLayoutEffect, useRef } from "react";
 
-// Scan the current line so comments and unfinished delimiters cannot create a block indent.
+// Retain string and delimiter context from earlier lines when checking a header.
 function endsWithBlockColon(line: string) {
   let quote = "";
   let escaped = false;
@@ -18,7 +18,16 @@ function endsWithBlockColon(line: string) {
         quote = "";
       }
     } else {
-      if (character === "#") break;
+      if (character === "#") {
+        const newline = line.indexOf("\n", index);
+        if (newline < 0) break;
+        index = newline - 1;
+        continue;
+      }
+      if (character === "\n") {
+        code = brackets.length ? code + " " : "";
+        continue;
+      }
       code += character;
       if (character === "'" || character === '"') {
         quote = line.startsWith(character.repeat(3), index) ? character.repeat(3) : character;
@@ -134,7 +143,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
         const { selectionStart: start, selectionEnd: end } = event.currentTarget;
         const prefix = value.slice(value.slice(0, start).lastIndexOf("\n") + 1, start);
         const indent = prefix.match(/^[\t ]*/)?.[0] ?? "";
-        const insertion = "\n" + indent + (endsWithBlockColon(prefix) ? "    " : "");
+        const insertion = "\n" + indent + (endsWithBlockColon(value.slice(0, start)) ? "    " : "");
         event.preventDefault();
         caret.current = [start + insertion.length, start + insertion.length];
         onChange(value.slice(0, start) + insertion + value.slice(end));
@@ -142,6 +151,6 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
     <p id={hint} className="editor-hint">{readOnly
       ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
-      : "Enter keeps indentation and adds four spaces after a Python block header colon, ignoring trailing comments and colons inside unfinished strings or brackets on the current line. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+      : "Enter keeps indentation and adds four spaces after a Python block header colon, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
   </>;
 }
