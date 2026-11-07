@@ -84,7 +84,11 @@ it.each(['accepted','declined','cancelled','expired'])('stops polling an authori
   const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({status,outgoing:false,matchId:status==='accepted'?'next':null})});
   vi.stubGlobal('fetch',fetcher);
   render(<Rematch id="old"/>);
+  const announcement=screen.getByRole('status');
   await act(async()=>{});
+  expect(screen.getByRole('status')).toBe(announcement);
+  expect(announcement).toHaveAttribute('aria-live','polite');
+  expect(announcement).toHaveAttribute('aria-atomic','true');
   expect(screen.getByRole('status')).toHaveTextContent(status==='accepted'?'Rematch accepted':status==='declined'?'rematch was declined':status==='cancelled'?'invitation was cancelled':'invitation expired');
   const link=screen.getByRole('link',{name:status==='accepted'?'Open rematch arena':'Find a new opponent'});
   expect(link).toHaveAttribute('href',status==='accepted'?'/match/next':'/');
@@ -347,7 +351,33 @@ it.each([true,false])('retires expired invitation prompts for outgoing=%s, inclu
   expect(message).toHaveAttribute('aria-live','polite');
   expect(message).not.toHaveClass('rematch-pending');
   await act(async()=>{delayed.resolve(response('accepted'));});
-  expect(screen.getByText('Rematch accepted. Your next arena is ready.')).toBeInTheDocument();
+  expect(screen.getByRole('status')).toBe(message);
+  expect(message).toHaveTextContent('Rematch accepted. Your next arena is ready.');
+  expect(message).toHaveAttribute('aria-atomic','true');
+  expect(message).toHaveClass('rematch-summary');
   expect(screen.queryByText(/The invitation window has ended/)).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
+it.each(['accepted','declined','cancelled','expired'])('preserves the polite announcement region from loading through polled %s confirmation',async(status)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockResolvedValueOnce(response('pending')).mockResolvedValue({ok:true,json:async()=>({status,outgoing:false,matchId:status==='accepted'?'next':null})});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  const announcement=screen.getByRole('status');
+  expect(announcement).toHaveTextContent('Checking invitation');
+  await act(async()=>{});
+  expect(screen.getByRole('status')).toBe(announcement);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('status')).toBe(announcement);
+  expect(announcement).toHaveAttribute('aria-live','polite');
+  expect(announcement).toHaveAttribute('aria-atomic','true');
+  expect(announcement).toHaveClass('rematch-summary');
+  expect(announcement).not.toHaveClass('rematch-pending');
+  expect(announcement).toHaveTextContent(status==='accepted'?'Rematch accepted':status==='declined'?'rematch was declined':status==='cancelled'?'invitation was cancelled':'invitation expired');
+  const settledText=announcement.textContent;
+  await act(async()=>{await vi.advanceTimersByTimeAsync(10000);});
+  expect(announcement.textContent).toBe(settledText);
+  expect(fetcher).toHaveBeenCalledTimes(2);
  } finally {vi.useRealTimers();}
 });

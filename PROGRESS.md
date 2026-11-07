@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Stable rematch outcome announcements
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python solutions ran outside the sandbox.
+- Followed the blocker rule and added/completed one rematch accessibility improvement: one polite, atomic status region now stays mounted from loading through pending invitations, local expiry and authoritative acceptance, decline, cancellation or expiry. Confirmed outcomes retain settled styling and recovery/arena links.
+- Added DOM-identity regression checks for all four terminal outcomes on reopening and polling, plus both participants' delayed acceptance after local expiry. Checks preserve terminal polling shutdown and retire pending accents.
+- Validation: all 1,420 tests across 72 files passed; lint, typecheck and production build passed. Diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Actual assistive-technology announcement smoke checks remain pending; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Expired rematch invitation guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one rematch improvement: expired invitation windows replace acceptance/waiting/action prompts with polite, atomic server-confirmation guidance and retire busy styling. An authoritative delayed acceptance still replaces expiry guidance; local expiry does not claim a final outcome.
