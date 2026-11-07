@@ -6,6 +6,21 @@ import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
 const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:null}];
 beforeEach(()=>localStorage.clear());
+it.each([
+ [800,808,'+8','gain','MMR gained'],
+ [800,792,'-8','loss','MMR lost'],
+ [800,800,'+0','unchanged','MMR unchanged'],
+ [800.1,800.4,'+0','unchanged','MMR unchanged'],
+ [800.4,800.1,'+0','unchanged','MMR unchanged'],
+ [800.49,800.51,'+1','gain','MMR gained'],
+ [800.51,800.49,'-1','loss','MMR lost'],
+] as const)('styles and labels displayed rating changes %s to %s',(before,after,change,direction,label)=>{
+ render(<Results result={{title:'Sample',outcome:'DRAW',players:[{...players[0],before,after}]}}/>);
+ const badge=screen.getByLabelText(`Rating change ${change}`);
+ expect(badge).toHaveClass(`rating-change--${direction}`);
+ expect(badge).toHaveTextContent(label);
+ expect(screen.getByText('Change compares rounded MMR totals.')).toBeVisible();
+});
 it('provides a focusable results destination and encoded player profile links',()=>{
  render(<Results result={{title:'Sample',outcome:'WIN',players:[players[0],{...players[1],username:'Rival name/#'}]}}/>);
  expect(screen.getByRole('link',{name:'Skip to results'})).toHaveAttribute('href','#main-content');

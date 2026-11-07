@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Distinguish results MMR gains, losses and unchanged rounded totals with accessible text, shared theme colors, rounding guidance and phone browser coverage
 - [x] Show saved results completion timestamps in the outcome banner with semantic UTC dates, historical fallback and phone browser coverage
 - [x] Clarify the bounded profile rating journey with styled 50-duel window guidance, accurate timeline origin and accessible graph description, including phone coverage
 - [x] Show precise UTC profile duel completion timestamps with shared date styling, historical fallback and phone browser coverage

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Results rating change direction
+- Selected problems 1-20 as the highest-value unchecked item. Real Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Fixed rating losses appearing green: gains use the shared success color, losses use danger, and unchanged displayed totals use a neutral color. Visible MMR gained/lost/unchanged labels supplement the signed accessible change. Explained that changes compare rounded MMR totals; fractional movements within the same displayed total remain neutral.
+- Added seven direction/rounding cases and Chromium checks for distinct colors, visible labels and containment at 320, 375 and 1280px. Historical missing-rating behavior remains covered.
+- Validation: all 677 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Saved results completion timestamps
 - Selected problems 1-20 as the highest-value unchecked item. Real Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
 - Projected the saved match completion time through the participant-only results loader and displayed it in the outcome banner using shared semantic UTC date styling. Missing or invalid historical dates show an explicit fallback.

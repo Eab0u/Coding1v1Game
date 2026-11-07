@@ -119,6 +119,25 @@ it.each([320, 375, 1280])('makes weekly standings guidance and player links usab
   } finally { await page.close(); }
 });
 
+it.each([320, 375, 1280])('distinguishes result rating directions with contained labels at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    const player = { username, before: 800, after: 808, passed: 8, total: 8, cpu: 1, submitted: 1000 };
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<Results result={{ title: 'Sample', outcome: 'DRAW', players: [player, {...player, username:'Rival', after:792}, {...player, username:'Third', after:800}] }}/>)}`);
+    const colors = [];
+    for (const direction of ['gain', 'loss', 'unchanged']) {
+      const badge = page.locator(`.rating-change--${direction}`);
+      colors.push(await badge.evaluate(el => getComputedStyle(el).color));
+      const box = (await badge.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+      expect(await badge.locator('small').isVisible()).toBe(true);
+    }
+    expect(new Set(colors).size).toBe(3);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
+
 it.each([320, 375, 1280])('supports results skip navigation and player touch targets at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {
