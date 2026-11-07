@@ -155,7 +155,7 @@ it("updates visible queue metrics without changing the live announcement and cle
   event({ type: "queued", waitedSeconds: 20, ratingBand: 200 });
   expect(status.textContent).toBe(announcement);
   expect(screen.getByText("20s elapsed")).toBeInTheDocument();
-  expect(screen.getByText("?200 points")).toBeInTheDocument();
+  expect(screen.getByText("±200 points")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
   expect(screen.queryByLabelText("Current search details")).not.toBeInTheDocument();
   expect(status).toHaveTextContent("Waiting for server confirmation");
@@ -174,4 +174,28 @@ it("recovers from invalid queue metrics without rendering them", () => {
   expect(screen.queryByLabelText("Current search details")).not.toBeInTheDocument();
   expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response");
   expect(screen.getByRole("button", { name: "Play a duel" })).toBeEnabled();
+});
+
+
+it("renders readable matchmaking copy throughout connection, search, cancellation and reservation", () => {
+  render(<Play signedIn />);
+  expect(screen.getByRole("status")).toHaveTextContent("Python only · Rating bands widen as you wait.");
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  expect(screen.getByRole("button", { name: "Connecting…" })).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Connecting to the arena…");
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  expect(screen.getByRole("button", { name: "Finding opponent…" })).toBeDisabled();
+  expect(screen.getByText("±100 points")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  expect(screen.getByRole("button", { name: "Cancelling search…" })).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Cancelling your search… Waiting for server confirmation.");
+  event({ type: "left" });
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "matching" });
+  expect(screen.getByRole("button", { name: "Reserving match…" })).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Reserving your match… Waiting for server confirmation.");
+  event({ type: "matched", match: { id: "m", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("status")).toHaveTextContent("Matched with Ada (800) · easy.");
 });

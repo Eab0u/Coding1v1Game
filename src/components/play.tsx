@@ -86,7 +86,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     {matchId && <Link className="button button--primary" href={`/match/${matchId}`}>Open arena</Link>}
     {phase === "queued" && queueStats && <dl className="queue-stats" aria-label="Current search details" aria-live="off">
       <div><dt>Time searching</dt><dd>{queueStats.waitedSeconds}s elapsed</dd></div>
-      <div><dt>Rating range</dt><dd>?{queueStats.ratingBand} points</dd></div>
+      <div><dt>Rating range</dt><dd>±{queueStats.ratingBand} points</dd></div>
     </dl>}
     <p className="availability" role="status">{message}</p>
   </div>;

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Readable matchmaking rating range
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one UI polish item. Matchmaking now displays the rating band with a plus/minus symbol instead of a question mark, making the widening range understandable.
+- Updated the queue metric assertion and added a lifecycle regression covering readable connection, search, cancellation, reservation and matched copy, including the initial rating band.
+- Validation: all 1,476 tests across 72 files passed, including all 15 matchmaking component tests. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Accessible rematch deadline urgency
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one accessibility item. Final-ten-second urgency now enters the existing stable polite invitation summary and action descriptions. The announcement uses constant wording while seconds tick down and retires during actions, extended windows, expiry and terminal outcomes; the visual countdown remains unchanged.
