@@ -8,6 +8,29 @@ vi.mock("../src/lib/leaderboard", () => ({ loadLeaderboard: mocks.standings }));
 import Friends from "../src/app/friends/page";
 import Leaderboard from "../src/app/leaderboard/page";
 beforeEach(() => { vi.resetAllMocks(); mocks.current.mockResolvedValue({id:"actor"}); mocks.friends.mockResolvedValue([]); mocks.standings.mockResolvedValue([]); });
+it("links counted friend sections to focusable destinations and highlights waiting replies", async () => {
+  mocks.friends.mockResolvedValue([{username:"Ada",status:"pending",incoming:true},{username:"Eve",status:"accepted",incoming:false}]);
+  const view = render(await Friends({searchParams:Promise.resolve({})}));
+  const navigation = screen.getByRole("navigation", {name:"Friend sections"});
+  for (const [title, id, count] of [["Incoming requests", "incoming", 1], ["Your friends", "accepted", 1], ["Sent requests", "outgoing", 0]]) {
+    const link = within(navigation).getByRole("link", {name:`${title} ${count}`});
+    const destination = screen.getByRole("region", {name:`${title} ${count}`});
+    expect(link).toHaveAttribute("href", `#friend-section-${id}`);
+    expect(destination).toHaveAttribute("id", `friend-section-${id}`);
+    expect(destination).toHaveAttribute("tabindex", "-1");
+    expect(link.classList.contains("friend-jump--pending")).toBe(id === "incoming");
+  }
+  mocks.friends.mockResolvedValue([]);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.getByRole("link", {name:"Incoming requests 0"})).not.toHaveClass("friend-jump--pending");
+  mocks.current.mockResolvedValue(null);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.queryByRole("navigation", {name:"Friend sections"})).not.toBeInTheDocument();
+  mocks.current.mockResolvedValue({id:"actor"});
+  mocks.friends.mockRejectedValue(new Error("private"));
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.queryByRole("navigation", {name:"Friend sections"})).not.toBeInTheDocument();
+});
 it("shows invitation, incoming consent, outgoing cancellation and removal controls", async () => {
   mocks.friends.mockResolvedValue([{username:"Ada",status:"pending",incoming:true},{username:"Bob",status:"pending",incoming:false},{username:"Eve",status:"accepted",incoming:true}]);
   render(await Friends({searchParams:Promise.resolve({})}));

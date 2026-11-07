@@ -372,6 +372,12 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .account-form input[aria-invalid="true"] { border-color: var(--color-text); }
 
 .friend-groups { display: grid; gap: 2rem; margin-top: 2rem; }
+.friend-jumps { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.5rem; }
+.friend-jump { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 48px; padding: .75rem 1rem; flex: 1 1 12rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); text-decoration: none; font-weight: 700; }
+.friend-jump:hover { background: var(--color-hover); }
+.friend-jump--pending { border-color: var(--color-accent); }
+.friend-section { scroll-margin-top: 1.5rem; border-radius: var(--radius-sm); }
+.friend-section:target { outline: 2px solid var(--color-accent); outline-offset: 6px; }
 .friend-group-title { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .friend-list { list-style: none; padding: 0; }
 .friend-list li { min-width: 0; }

@@ -36,8 +36,13 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
         <p>Sign in or create a player account to invite friends, respond to requests and compare your ratings in friends standings. Friendships begin when the other player accepts.</p>
         <div className="ladder-empty-actions"><Link className="button button--primary" href="/account">Sign in to manage friends</Link><Link className="button button--secondary" href="/leaderboard">Explore public standings</Link></div>
       </Card> : <>
+        <nav className="friend-jumps" aria-label="Friend sections">
+          {groups.map(group => <a key={group.id} href={`#friend-section-${group.id}`} className={group.id === "incoming" && group.entries.length ? "friend-jump friend-jump--pending" : "friend-jump"}>
+            <span>{group.title}</span>{" "}<Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge>
+          </a>)}
+        </nav>
         <Card><h2>Invite a player</h2><form className="account-form" method="post" action="/api/friends"><input type="hidden" name="action" value="request"/><UsernameField mode="friend" /><Button type="submit">Send friend request</Button></form></Card>
-        <div className="friend-groups">{groups.map(group => <section key={group.id} aria-labelledby={`friends-${group.id}`}>
+        <div className="friend-groups">{groups.map(group => <section key={group.id} id={`friend-section-${group.id}`} tabIndex={-1} className="friend-section" aria-labelledby={`friends-${group.id}`}>
           <h2 className="friend-group-title" id={`friends-${group.id}`}>{group.title} <Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge></h2>
           {group.entries.length ? <ul className="friend-list">{group.entries.map(entry => <li key={entry.username}><Card><h3><Link className="standings-player" aria-label={`View ${entry.username}'s profile`} href={`/profile/${encodeURIComponent(entry.username)}`}>{entry.username}</Link></h3><p>{entry.status === "accepted" ? "Friends" : entry.incoming ? "Wants to be your friend" : "Request sent"}</p>
             <form aria-label={`Manage ${entry.username}`} className="friend-actions" method="post" action="/api/friends"><input type="hidden" name="username" value={entry.username}/>{entry.incoming && entry.status === "pending" && <Button type="submit" name="action" value="accept">Accept</Button>}<Button type="submit" variant="secondary" name="action" value="remove">{entry.status === "accepted" ? "Remove friend" : entry.incoming ? "Decline" : "Cancel request"}</Button></form>

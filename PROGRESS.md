@@ -29,7 +29,7 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 - SQL migrations are transactional and tracked in Postgres. PGlite executes schema tests without an external database.
 
 ## Blockers
-- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace now has a .env, but the configured Judge0 sandbox remains unavailable (the Relay Channel Chain and Relay Basin Storage validation commands returned JudgeUnavailableError on this run). Catalog validation remains blocked.
+- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace now has a .env, but the configured Judge0 sandbox remains unavailable (the Relay Basin Storage validation command returned JudgeUnavailableError again on this run). Catalog validation remains blocked.
 - Docker daemon is not running in this environment, so Docker Postgres startup and the network migration runner were not exercised. The SQL itself passes embedded Postgres tests.
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Friends section jump navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends-page usability item; catalog milestones remain unchecked.
+- Added styled native links to incoming requests, accepted friends and sent requests, with current counts and an accent when replies are waiting. Section destinations receive native fragment focus and a visible target outline. Navigation wraps on phones and is hidden for guests and unavailable data.
+- Added component coverage for counts, destination IDs, focusability, empty states, accent recovery and private-state suppression. Chromium checks at 320, 375 and 1280px verify touch sizes, focus visibility, Enter activation, destination focus, subsequent Tab navigation and overflow. Updated the existing skip-link regression to follow the new navigation order; corrected missing accessible-name spacing caught by tests.
+- Validation: all 1,051 tests across 66 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Wrapped plain-editor navigation
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability fix.
 - Line wrapping now preserves native textarea Home/End and Shift selection behavior instead of jumping across whole logical Python lines. Turning wrapping off restores indentation-aware Home and trailing-space-aware End. The keyboard guide explains both modes for editable and read-only solutions.

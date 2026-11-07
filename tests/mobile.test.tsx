@@ -31,6 +31,31 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
+it.each([320, 375, 1280])('jumps to friend sections with native keyboard focus at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Friends({searchParams:Promise.resolve({})}))}`);
+    const navigation = page.getByRole('navigation', {name:'Friend sections'});
+    for (const title of ['Incoming requests', 'Your friends', 'Sent requests']) {
+      const link = navigation.getByRole('link', {name:`${title} 1`});
+      const bounds = (await link.boundingBox())!;
+      expect(bounds.height).toBeGreaterThanOrEqual(44);
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+      await link.focus();
+      expect(await link.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
+      await page.keyboard.press('Enter');
+      const section = page.getByRole('region', {name:`${title} 1`});
+      expect(await section.evaluate(el => document.activeElement === el)).toBe(true);
+      expect(await section.evaluate(el => el.matches(':target'))).toBe(true);
+      expect(await section.evaluate(el => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
+      await page.keyboard.press('Tab');
+      expect(await section.getByRole('link').evaluate(el => document.activeElement === el)).toBe(true);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
+
 it.each([320, 375, 1280])('exposes home friends navigation to keyboards and touch at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {
@@ -847,6 +872,10 @@ it.each([320, 375, 1280])('keeps friend action recovery feedback readable at %sp
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole('link', { name: 'Skip to friends' }).focus();
     await page.keyboard.press('Enter');
+    for (const title of ['Incoming requests', 'Your friends', 'Sent requests']) {
+      await page.keyboard.press('Tab');
+      expect(await page.getByRole('navigation', {name:'Friend sections'}).getByRole('link', {name:`${title} 1`}).evaluate(el => el === document.activeElement)).toBe(true);
+    }
     await page.keyboard.press('Tab');
     expect(await page.getByLabel('Player username').evaluate(el => el === document.activeElement)).toBe(true);
   } finally { await page.close(); }
