@@ -11,6 +11,33 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it.each(['completed','cancelled'] as const)('keeps shortcut guidance aligned with activation, expiry and %s polling',async status=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot=initial;
+  const fetcher=vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={initial}/>);
+  const button=screen.getByRole('button',{name:'Submit solution'});
+  expect(button).toHaveAccessibleDescription(/shortcut becomes available when the duel starts/);
+  snapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(button).toHaveAccessibleDescription(/Ctrl\+Enter or Command\+Enter/);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAccessibleDescription(/Submissions are closed while the server confirms results/);
+  snapshot={...snapshot,status};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAccessibleDescription(/Submissions are closed. You can still copy or download/);
+  expect(button).not.toHaveAccessibleDescription(/press Ctrl/);
+  fireEvent.keyDown(screen.getByRole('textbox',{name:'Python solution'}),{key:'Enter',ctrlKey:true});
+  expect(fetcher.mock.calls.every(call=>call[1]?.method!=='POST')).toBe(true);
+});
+it.each(['pending','active','completed','cancelled'] as const)('shows phase-aware shortcut guidance when reopening %s',status=>{
+  render(<Arena initial={{...initial,status,deadline:status==='active' ? initial.serverTime : null}}/>);
+  const button=screen.getByRole('button',{name:'Submit solution'});
+  expect(button).toBeDisabled();
+  expect(button).toHaveAccessibleDescription(status==='pending' ? /shortcut becomes available/ : /Submissions are closed/);
+  expect(button).not.toHaveAccessibleDescription(/press Ctrl/);
+});
 it.each(['completed','cancelled'] as const)('updates both verified best-score descriptions after expiry and %s polling',async status=>{
   vi.useFakeTimers();
   let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z',bestProgress:{passed:8,total:8},progress:{passed:3,total:8}};

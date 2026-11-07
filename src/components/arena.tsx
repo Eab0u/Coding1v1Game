@@ -145,7 +145,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       }}>
         <SolutionEditor value={source} onChange={setSource} readOnly={closed} starter={`${initial.problem.signature}\n    pass\n`}/>
       </div>
-      <p className="muted" id="submit-shortcut">From the editor, press Ctrl+Enter or Command+Enter to submit your solution.</p>
+      <p className="muted" id="submit-shortcut">{closed ? "Submissions are closed. You can still copy or download your code." : match.status==="pending" ? "The submission shortcut becomes available when the duel starts." : seconds===0 ? "Submissions are closed while the server confirms results. You can still copy or download your code." : "From the editor, press Ctrl+Enter or Command+Enter to submit your solution."}</p>
       <ArenaProgress score={match.bestProgress} player phase={progressPhase}/>
       {!closed && <p role="status">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code."}</p>}
       <SubmissionStatus submission={match.submission} phase={progressPhase}/>
