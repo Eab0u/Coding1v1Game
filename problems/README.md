@@ -265,3 +265,28 @@ unpublished and unapproved. Once sandbox connectivity is restored, run:
 npm run problems -- validate problems/drafts/beacon-horizon-wait.json
 npm run problems -- publish problems/drafts/beacon-horizon-wait.json
 ```
+
+### Relay Balanced Cuts
+
+`drafts/relay-balanced-cuts.json` is an original easy prefix-sum problem:
+count internal gaps whose nonempty left and right portions have equal signed
+sums. Entries are never removed. Zero totals and repeated qualifying gaps count;
+a singleton has no legal cut.
+
+The reference computes the total and scans internal prefix sums in O(n) time
+and O(1) extra space. A cut qualifies exactly when twice its prefix equals the
+total. The O(n^2) baseline resums both portions at each gap, performing
+9,999,900,000 additions for each 100,000-entry benchmark. All-zero, constant
+positive and alternating-sign records have respectively 99,999, 1 and 49,999
+balanced cuts. The constant case also catches narrow intermediate sums.
+
+The generator supplies 2,000 seeded signed small cases. Data-only tests compare
+explicit left/right sums with a signed-balance walk, check reversal and nonzero
+scaling invariants, and verify fixture and benchmark answers. They never execute
+draft Python. The proposed 1-second CPU and 64-MiB limits need isolated sandbox
+calibration. This draft remains private, unpublished and unapproved. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-balanced-cuts.json
+npm run problems -- publish problems/drafts/relay-balanced-cuts.json
+```
