@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Reject ambiguous timezone-free completion dates across dashboard, profile and results, preserving absolute UTC display and covering invalid-history recovery
 - [x] Distinguish zero-pass arena latest verdicts and both best-progress cards with failure-colored accents, preserving unavailable states with transition and phone/desktop browser regression coverage
 - [x] Distinguish saved zero-pass results from partial success with failure-colored verdict badges and progress accents, participant-symmetric transition tests and phone/desktop browser coverage
 - [x] Distinguish incomplete saved rating pairs from wholly unrecorded history, preserving outcome and independent metrics with participant-symmetric recovery regression coverage

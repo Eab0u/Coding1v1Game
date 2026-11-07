@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Unambiguous completion timestamps
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one shared history fix. Dashboard, profile and results completion dates now reject date-only, timezone-free and locale-dependent strings instead of risking different server/browser interpretations. Date objects and ISO timestamps with explicit UTC or numeric offsets retain the existing UTC display; ambiguous history shows Completion date unavailable.
+- Expanded date component tests for ambiguous strings, invalid Date objects, invalid offsets, fractional seconds, non-hour offsets and recovery from unavailable history to a valid timestamp and back.
+- Validation: all 1,310 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Distinct zero-pass arena accents
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one arena visual improvement. Latest zero-pass verdicts and both participants' zero-pass best-progress cards now use the shared failure color, distinct from amber partial passes and green full passes. Explicit text badges and correction guidance remain available.

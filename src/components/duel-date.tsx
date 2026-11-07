@@ -1,6 +1,9 @@
 /** Stable UTC output avoids server/client locale and timezone differences. */
 export function DuelDate({ value }: { value: Date | string | null | undefined }) {
-  const date = value ? new Date(value) : null;
+  // Persisted strings must identify an instant. Date-only and timezone-free
+  // timestamps otherwise depend on parsing rules or the renderer's timezone.
+  const absolute = typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value);
+  const date = value instanceof Date || absolute ? new Date(value!) : null;
   if (!date || !Number.isFinite(date.getTime())) {
     return <small className="duel-date">Completion date unavailable</small>;
   }
