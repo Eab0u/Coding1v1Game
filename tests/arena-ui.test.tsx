@@ -11,6 +11,47 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('announces server activation in a stable region without repeating the countdown and clears it at expiry',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot=initial;
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={initial}/>);
+  const notice=screen.getByRole('status',{name:'Duel start'});
+  expect(notice).toBeEmptyDOMElement();
+  expect(notice).toHaveAttribute('aria-live','polite');
+  expect(notice).toHaveAttribute('aria-atomic','true');
+  snapshot={...initial,status:'active',deadline:'2026-11-06T12:05:00Z'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByRole('status',{name:'Duel start'})).toBe(notice);
+  expect(notice).toHaveClass('arena-started');
+  expect(notice).toHaveTextContent('Duel started. The clock is running. You can now submit');
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeEnabled();
+  const message=notice.textContent;
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(notice.textContent).toBe(message);
+  snapshot={...snapshot,serverTime:snapshot.deadline!};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(notice).toBeEmptyDOMElement();
+  expect(notice).toHaveClass('sr-only');
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+});
+it('shows start guidance when reopening a running duel',()=>{
+  render(<Arena initial={{...initial,status:'active',deadline:'2026-11-06T12:05:00Z'}}/>);
+  expect(screen.getByRole('status',{name:'Duel start'})).toHaveTextContent('submit your latest edits before time expires');
+});
+it.each(['completed','cancelled'] as const)('clears start guidance after polling a %s state',async status=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status})}));
+  render(<Arena initial={{...initial,status:'active',deadline:'2026-11-06T12:05:00Z'}}/>);
+  const notice=screen.getByRole('status',{name:'Duel start'});
+  expect(notice).not.toBeEmptyDOMElement();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(notice).toBeEmptyDOMElement();
+});
+it.each([null,initial.serverTime])('withholds running-clock claims for deadline %s',deadline=>{
+  render(<Arena initial={{...initial,status:'active',deadline}}/>);
+  expect(screen.getByRole('status',{name:'Duel start'})).toBeEmptyDOMElement();
+});
 it('shows completed-arena guidance and an accessible results destination on reopening',()=>{
   render(<Arena initial={{...initial,status:'completed'}}/>);
   const panel=screen.getByRole('region',{name:'Duel complete. Results are ready.'});
