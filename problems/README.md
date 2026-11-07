@@ -17,7 +17,7 @@ The seeded generator produces 2,000 small inputs. Reference and brute force run 
 
 After successful validation, publication inserts all public metadata, private solutions, generated-test specification, a SHA-256 draft digest, validation version/count and the example/hidden suite in one statement. Slugs are immutable: an existing slug causes an error, preserving suites already used by matches. Publish revisions under new slugs. There is no cached validation approval to reuse after changing a draft. A failed validation or unavailable sandbox produces no database write.
 
-The pipeline has no published catalog yet; the first original draft below is awaiting sandbox validation. Problems 1–20 and real sandbox validation remain separate backlog work. Unit tests mock sandbox results and exercise SQL with embedded Postgres; they do not execute Python. Before enabling ranked play, smoke-test CPU limits, network isolation and memory enforcement on the actual sandbox deployment.
+The pipeline has no published catalog yet; the original drafts below are awaiting sandbox validation. Problems 1–20 and real sandbox validation remain separate backlog work. Unit tests mock sandbox results and exercise SQL with embedded Postgres; they do not execute Python. Before enabling ranked play, smoke-test CPU limits, network isolation and memory enforcement on the actual sandbox deployment.
 
 ## Original problem drafts
 
@@ -52,3 +52,29 @@ npm run problems -- publish problems/drafts/relay-balance-window.json
 
 Both commands perform full sandbox validation; publication also requires Postgres.
 Never publish through direct SQL or treat mocked runner results as approval.
+
+### Spaced Beacon Pairs
+
+`drafts/spaced-beacon-pairs.json` adds an original easy counting problem: count
+pairs of equal channels separated by at least one tick. Positions, rather than
+channel values, distinguish pairs; adjacent equal values are excluded.
+
+The reference adds the channel two positions behind to an eligible frequency
+map before counting each right endpoint: O(n) time and O(n) space. The brute
+force visits every nonadjacent pair in O(n^2) time and O(1) extra space.
+The seeded generator provides 2,000 small signed-channel inputs. Authored cases
+cover singletons, adjacent duplicates, shared endpoints, zero and boundary values.
+Three 100,000-tick benchmarks cover all-equal, alternating and all-distinct
+channels, each requiring 4,999,850,001 brute-force comparisons. Dense answers
+exceed signed 32-bit range.
+
+Data-only fixture tests use an independent identity (all equal pairs minus equal
+neighbors) and verify that identity against enumeration on generated small cases.
+They do not execute or approve either Python implementation. The proposed
+1-second CPU and 64-MiB limits require isolated sandbox measurement. This draft
+is private and unpublished, pending full validation:
+
+```sh
+npm run problems -- validate problems/drafts/spaced-beacon-pairs.json
+npm run problems -- publish problems/drafts/spaced-beacon-pairs.json
+```
