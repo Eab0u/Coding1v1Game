@@ -1,0 +1,44 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { expect, it } from "vitest";
+import { UsernameField } from "../src/components/username-field";
+import { credentials } from "../src/lib/auth";
+import { USERNAME_HINT, usernameValidationMessage } from "../src/lib/username-validation";
+
+it.each(["abc", "A_0", "a".repeat(24)])("accepts valid names in the client and server: %s", name => {
+  expect(usernameValidationMessage(name)).toBe("");
+  expect(credentials(name, "valid password").username).toBe(name);
+});
+
+it.each(["", "ab", "a".repeat(25), "some name", "name-1", "éclair", "abc\n", "abc\r\n"])("rejects invalid names in the client and server: %j", name => {
+  expect(usernameValidationMessage(name)).toBe(USERNAME_HINT);
+  expect(() => credentials(name, "valid password")).toThrow(USERNAME_HINT);
+});
+
+it("provides independent accessible feedback and recovers without changing typed names", () => {
+  render(<form><UsernameField mode="login" /><UsernameField mode="signup" /></form>);
+  const [login, signup] = screen.getAllByLabelText<HTMLInputElement>("Username");
+  expect(login).toHaveAccessibleDescription(USERNAME_HINT);
+  expect(login).toHaveAttribute("autocapitalize", "none");
+  expect(login).toHaveAttribute("spellcheck", "false");
+  fireEvent.change(login, { target: { value: "invalid name" } });
+  expect(login).toBeInvalid();
+  expect(login).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getAllByRole("status")[0]).toHaveTextContent(USERNAME_HINT);
+  expect(screen.getAllByRole("status")[1]).toBeEmptyDOMElement();
+  expect(signup).not.toHaveAttribute("aria-invalid");
+  fireEvent.change(login, { target: { value: "Valid_Name" } });
+  expect(login).toBeValid();
+  expect(login).not.toHaveAttribute("aria-invalid");
+  expect(new FormData(login.form!).get("username")).toBe("Valid_Name");
+  expect(screen.getAllByRole("status")[0]).toBeEmptyDOMElement();
+});
+
+it("explains a required empty username when validation is attempted", () => {
+  render(<form><UsernameField mode="signup" /></form>);
+  const input = screen.getByLabelText("Username");
+  fireEvent.invalid(input);
+  expect(input).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getByRole("status")).toHaveTextContent(USERNAME_HINT);
+  fireEvent.change(input, { target: { value: "abc" } });
+  expect(input).toBeValid();
+});

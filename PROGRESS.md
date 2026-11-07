@@ -37,6 +37,20 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Password entry feedback
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent password-entry usability item. Catalog items remain unchecked.
+- Added styled, accessible Caps Lock status to each password field, updated from keydown and keyup and cleared on blur to avoid stale guidance. Warnings remain advisory, work with visible passwords and preserve credentials and native submission. Required-password validation now exposes inline feedback and clears after correction.
+- Added component coverage for independent warnings, key transitions, blur cleanup, accessible descriptions, unchanged values, advisory submission and required-field recovery. Added Chromium coverage for populated guidance at 320px and keyboard access to the visibility control; browser checks use static fixtures, with event behavior covered by component tests.
+- Validation: all 451 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Username guidance and validation
+- Reviewed both unchecked catalog items and made a bounded Judge0 connectivity probe; the configured endpoint still returns ECONNREFUSED. Following the blocker rule, added and completed one independent account usability item. Catalog items remain unchecked.
+- Added visible username rules to sign-in and sign-up, styled inline errors, accessible field descriptions, invalid-state feedback and correction recovery. Disabled automatic capitalization and spellcheck to preserve names on phone keyboards. Each form maintains its own feedback.
+- Shared username validation between browser and server, including exact string matching that rejects trailing newlines previously accepted by the server regex. Existing name lengths and allowed characters remain the same.
+- Added 13 tests for valid boundaries, invalid characters and lengths, trailing newlines, server agreement, independent form feedback, required input and recovery. All 447 tests across 44 files passed, including existing Chromium phone layout checks; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Arena page read recovery
 - Reviewed the two unchecked catalog items. A .env now exists, but a bounded connectivity probe to the configured Judge0 endpoint returned ECONNREFUSED. Following the blocker rule, added and completed one independent arena recovery item; catalog items remain unchecked.
 - Added the shared styled accessible recovery panel for arena session and match read failures, with a full-document Retry duel link preserving the encoded match ID and Back to arena navigation. Retry rechecks the current session; missing/nonparticipant matches keep the generic 404, and expired sessions redirect to account.

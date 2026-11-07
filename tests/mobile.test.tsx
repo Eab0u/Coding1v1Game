@@ -30,6 +30,32 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
+it('keeps populated password guidance within the phone account layout', async () => {
+  state.signedIn = false;
+  const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({ searchParams: Promise.resolve({}) }))}`);
+    // Static markup has no React handlers; populate the status regions for layout coverage.
+    await page.locator('.password-caps-lock').evaluateAll(elements => elements.forEach(element => {
+      element.textContent = 'Caps Lock is on. Passwords are case-sensitive.';
+    }));
+    await page.locator('.password-validation').evaluateAll(elements => elements.forEach(element => {
+      element.textContent = 'Use at least 12 characters.';
+    }));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    for (const warning of await page.locator('.password-caps-lock').all()) {
+      expect(await warning.isVisible()).toBe(true);
+      const bounds = (await warning.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(320);
+    }
+    const password = page.getByLabel('Password', { exact: true }).first();
+    await password.focus();
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('button', { name: 'Show sign-in password' }).evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { state.signedIn = true; await page.close(); }
+});
+
 it('keeps account recovery visible and keyboard accessible on phones', async () => {
   state.accountUnavailable = true;
   const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
