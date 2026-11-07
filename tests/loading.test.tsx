@@ -5,6 +5,53 @@ import { LoadingStatus } from "../src/components/loading-status";
 
 afterEach(() => vi.useRealTimers());
 
+it("shows initial offline recovery immediately and preserves controls through reconnection", () => {
+  vi.useFakeTimers();
+  const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+  try {
+    const view = render(<LoadingStatus />);
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent("Your browser reports that you are offline. Reconnect to continue loading.");
+    const reload = screen.getByRole("button", { name: "Reload page" });
+    expect(reload).toHaveAccessibleDescription(/Unsaved changes may be lost.*does not pause a live duel/);
+    reload.focus();
+    act(() => vi.advanceTimersByTime(15_000));
+    connection.mockReturnValue(true);
+    fireEvent(window, new Event("online"));
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status).toHaveTextContent("This page is taking longer than usual.");
+    expect(screen.getByRole("button")).toBe(reload);
+    expect(reload).toHaveFocus();
+    connection.mockReturnValue(false);
+    fireEvent(window, new Event("offline"));
+    expect(status).toHaveTextContent("Your browser reports that you are offline.");
+    expect(reload).toHaveFocus();
+    view.unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  } finally { connection.mockRestore(); }
+});
+
+it("cleans up connectivity listeners and retains recovery after an early reconnection", () => {
+  vi.useFakeTimers();
+  const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+  const remove = vi.spyOn(window, "removeEventListener");
+  try {
+    const view = render(<LoadingStatus />);
+    connection.mockReturnValue(false);
+    fireEvent(window, new Event("offline"));
+    expect(screen.getByRole("button")).toBeVisible();
+    connection.mockReturnValue(true);
+    fireEvent(window, new Event("online"));
+    expect(screen.getByRole("button")).toBeVisible();
+    expect(screen.getByRole("status")).not.toHaveTextContent("offline");
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(screen.getByRole("button")).toBeVisible();
+    view.unmount();
+    expect(remove).toHaveBeenCalledWith("online", expect.any(Function));
+    expect(remove).toHaveBeenCalledWith("offline", expect.any(Function));
+  } finally { connection.mockRestore(); remove.mockRestore(); }
+});
+
 it("offers recovery after fifteen seconds without replacing the live region or stealing focus", () => {
   vi.useFakeTimers();
   const { unmount } = render(<Loading />);

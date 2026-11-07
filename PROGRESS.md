@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Offline loading recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one loading improvement: browser-reported offline status immediately exposes the styled reload recovery and unsaved-change/live-clock guidance. Reconnection restores ordinary loading feedback without claiming server availability. Once offered, recovery controls remain mounted to preserve keyboard focus.
+- Added regression tests for initially offline browsers, offline/online transitions before and after the delay, stable polite status and recovery controls, focus preservation and connectivity listener cleanup.
+- Validation: all 1,629 tests across 72 files passed with `npm test -- --maxWorkers=2`; all six focused loading tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Stalled-loading reload recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: after fifteen seconds, loading pages offer an explicit Reload page button with prominent unsaved-change, live-clock and submission guidance. The action reloads the current document only when clicked.
