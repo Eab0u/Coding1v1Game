@@ -5,6 +5,38 @@ import { PasswordField } from "../src/components/password-field";
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
 afterEach(() => vi.restoreAllMocks());
 
+it.each(["login", "signup"] as const)("refreshes silent %s replacements when toggling password visibility", mode => {
+  const submit = vi.fn(event => event.preventDefault());
+  render(<form onSubmit={submit}><PasswordField mode={mode} /><PasswordField mode={mode === "login" ? "signup" : "login"} /></form>);
+  const [input, other] = screen.getAllByLabelText<HTMLInputElement>("Password");
+  const button = screen.getByRole("button", { name: mode === "login" ? "Show sign-in password" : "Show sign-up password" });
+  fireEvent.change(other, { target: { value: "short" } });
+  button.focus();
+  const cases = [
+    { value: "\u{1f600}".repeat(65), bytes: 260, error: "Use at most 256 bytes." },
+    { value: "corrected private password", bytes: 26, error: "" },
+    { value: "tiny", bytes: 4, error: "Use at least 12 characters." },
+    { value: "", bytes: 0, error: "" },
+  ];
+  cases.forEach(({ value, bytes, error }, index) => {
+    input.value = value;
+    fireEvent.click(button);
+    expect(input).toHaveValue(value);
+    expect(input).toHaveAttribute("type", index % 2 === 0 ? "text" : "password");
+    expect(input).toHaveAccessibleDescription(new RegExp(`${bytes} / 256 bytes`));
+    expect(input.validity.customError).toBe(Boolean(error));
+    if (error) expect(input.validationMessage).toContain(error);
+    else expect(input).not.toHaveAttribute("aria-invalid");
+    expect(button).toHaveFocus();
+    expect(other).toHaveAttribute("type", "password");
+    expect(other).toHaveValue("short");
+    expect(other).toHaveAccessibleDescription(/5 \/ 256 bytes/);
+    expect(other.validity.customError).toBe(true);
+  });
+  expect(input.validity.valueMissing).toBe(true);
+  expect(submit).not.toHaveBeenCalled();
+});
+
 it.each(["input", "button"])("conceals only the selected password with Escape from its %s", target => {
   const submit = vi.fn(event => event.preventDefault());
   const outerKey = vi.fn();

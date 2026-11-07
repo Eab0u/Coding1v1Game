@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Refresh autofilled passwords through visibility controls
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account-form correction.
+- Show/Hide now synchronizes the password byte budget and native/accessibility validation from the current input value. Silent password-manager replacements no longer leave stale feedback when players use the visibility control without focusing the input.
+- Added regression tests for both account modes covering Unicode overflow, valid replacements, short and empty values, repeated reveal/conceal, button focus, independent fields and prevention of accidental submission.
+- Validation: all 829 tests across 60 files passed; all 25 focused password-field tests passed after the final assertion cleanup. Lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Track plain-editor composition lifecycle
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor correction.
 - Track composition start/end independently of keyboard flags so IME confirmation Enter cannot replace selected code or insert an unintended indented newline during an active composition. Blur clears interrupted composition state so returning to the editor restores ordinary indentation.

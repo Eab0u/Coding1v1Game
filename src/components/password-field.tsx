@@ -79,7 +79,10 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
         autoCapitalize="none" spellCheck={false} />
       <Button variant="secondary" aria-controls={id} aria-pressed={visible}
         aria-label={`${visible ? "Hide" : "Show"} ${mode === "login" ? "sign-in" : "sign-up"} password`}
-        onClick={() => setVisible(value => !value)}>{visible ? "Hide" : "Show"}</Button>
+        onClick={() => {
+          if (inputRef.current) synchronizeValue(inputRef.current);
+          setVisible(value => !value);
+        }}>{visible ? "Hide" : "Show"}</Button>
     </div>
     <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape in the password field or Hide button to conceal a revealed password. Revealed passwords hide when you switch tabs. They also hide when you leave this page or submit this form, including when a field needs correction.</p>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
