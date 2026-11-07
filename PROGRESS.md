@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Unavailable-page match recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: unavailable pages now explain that live clocks continue and describe original-link or home/Play recovery for existing matches, with server-confirmed availability. Updated the heading and reused the prominent recovery-guidance styling.
+- Associated Back to arena with visible guidance. Added regression coverage for accessible descriptions, retained focus and stable guidance on rerender, plus phone/desktop guidance visibility and containment. Existing generic resource privacy and keyboard recovery remain covered.
+- Validation: all 1,626 tests across 72 files passed; focused recovery tests (195), lint, production build and typecheck passed. Additional browser assertions verified separately.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Full-page error recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: route and root error screens now offer an explicit full-page reload when view retries keep failing, with styled unsaved-change and live-clock guidance attached through independent stable accessible descriptions.

@@ -108,6 +108,14 @@ it.each([320, 375, 1280].flatMap(width => [ {width, interrupted: false}, {width,
   const page = await browser.newPage({ viewport: { width, height: 600 } });
   try {
     await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(interrupted ? <ErrorRecovery error={new Error("private")} reset={() => {}} /> : <NotFound />)}`);
+    if (!interrupted) {
+      const guidance = page.locator('#unavailable-match-guidance');
+      expect(await guidance.isVisible()).toBe(true);
+      expect(await page.getByRole('link', {name: 'Back to arena'}).getAttribute('aria-describedby')).toBe(await guidance.getAttribute('id'));
+      const bounds = (await guidance.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.keyboard.press('Tab');
     expect(await page.getByRole('link', {name:'Skip to page recovery'}).evaluate(el => document.activeElement === el)).toBe(true);
