@@ -11,6 +11,42 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it.each([false,true])('replaces expired readiness action feedback on reopening (ready %s)',ready=>{
+  render(<Arena initial={{...initial,player:{...initial.player,ready},reservationExpiresAt:initial.serverTime}}/>);
+  const button=screen.getByRole('button',{name:ready ? 'Ready confirmed' : 'Ready to duel'});
+  expect(button).toBeDisabled();
+  expect(button).toHaveAccessibleDescription(/Readiness is closed.*server confirmation/);
+  expect(button).not.toHaveAccessibleDescription(/Mark yourself ready|Waiting for the server to start/);
+});
+it.each(['pending','acknowledged','failed'] as const)('retires %s readiness feedback at expiry and ignores delayed responses',async response=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,reservationExpiresAt:'2026-11-06T12:00:01Z'};
+  let resolvePost!:(value:unknown)=>void;
+  const post=new Promise(resolve=>{resolvePost=resolve;});
+  const fetcher=vi.fn().mockImplementation((_url,options)=>options?.method==='POST' ? post : Promise.resolve({ok:true,json:async()=>snapshot}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={snapshot}/>);
+  const feedback=document.getElementById('submission-status')!;
+  const button=screen.getByRole('button',{name:'Ready to duel'});
+  fireEvent.click(button);
+  expect(feedback).toHaveTextContent('Confirming readiness');
+  const respond=async()=>{await act(async()=>{resolvePost({ok:response!=='failed',json:async()=>({status:'pending',error:'Please try readiness again.'})});});};
+  if(response==='acknowledged') await respond();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAttribute('aria-busy','false');
+  expect(button).toBeDisabled();
+  expect(feedback).not.toHaveClass('arena-action-pending');
+  if(response!=='acknowledged') await respond();
+  expect(feedback).toHaveTextContent('Readiness is closed. Waiting for server confirmation');
+  expect(feedback).not.toHaveTextContent(/Mark yourself ready|Waiting for both players|Please try readiness again/);
+  fireEvent.click(button);
+  expect(fetcher.mock.calls.filter(call=>call[1]?.method==='POST')).toHaveLength(1);
+  snapshot={...snapshot,status:'cancelled'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(document.getElementById('submission-status')).toBe(feedback);
+  expect(feedback).toHaveTextContent('No ratings changed');
+  expect(feedback).not.toHaveTextContent('Readiness is closed');
+});
 it.each(['completed','cancelled'] as const)('keeps shortcut guidance aligned with activation, expiry and %s polling',async status=>{
   vi.useFakeTimers();
   let snapshot:ArenaSnapshot=initial;
