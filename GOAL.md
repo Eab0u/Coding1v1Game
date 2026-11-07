@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Explain existing-match recovery on route and root error screens with prominent live-clock and server-confirmation guidance associated with home links, preserving stable descriptions and focus with regression coverage
 - [x] Show immediate browser-offline loading guidance with styled recovery controls, preserving keyboard focus through reconnection and covering connection transitions and listener cleanup
 - [x] Add explicit reload recovery after stalled page loading with styled unsaved-change and live-clock guidance, stable accessible descriptions and delay, focus, isolation and reload regression coverage
 - [x] Clarify loading-screen existing-match recovery with prominent live-clock and server-confirmation guidance associated with the recovery link, preserving focus and stable descriptions through delayed loading with regression coverage

@@ -68,3 +68,20 @@ it("offers a native current-document reload with stable loss guidance and indepe
     expect(reset).toHaveBeenCalledTimes(1);
   } finally { vi.unstubAllGlobals(); }
 });
+
+it("preserves described existing-match recovery and keyboard focus across failures", () => {
+  const reset = vi.fn();
+  const view = render(<ErrorRecovery error={new Error("first")} reset={reset} />);
+  const home = screen.getByRole("link", { name: "Back to arena" });
+  const id = home.getAttribute("aria-describedby")!;
+  const guidance = document.getElementById(id);
+  expect(home).toHaveAccessibleDescription(/The live duel server clock continues.*press Play to recover your existing match.*server confirms/);
+  expect(guidance).toHaveClass("recovery-guidance");
+  expect(guidance).toBeVisible();
+  home.focus();
+  view.rerender(<ErrorRecovery error={new Error("next")} reset={reset} />);
+  expect(home).toHaveFocus();
+  expect(home).toHaveAttribute("aria-describedby", id);
+  expect(document.getElementById(id)).toBe(guidance);
+  expect(reset).not.toHaveBeenCalled();
+});

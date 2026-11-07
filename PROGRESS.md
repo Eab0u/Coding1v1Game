@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Error-screen existing-match recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: route and root error screens now explain how home/Play recovers an existing match, remind players that the server clock continues, and qualify availability with server confirmation. Both home recovery links describe the prominent styled guidance.
+- Added regression coverage for visible accessible guidance, stable element associations across failures, distinct guidance IDs, route keyboard-focus preservation and standalone root-document hydration.
+- Validation: all 1,630 tests across 72 files passed with `npm test -- --maxWorkers=2`; all seven focused error-screen tests, lint, production build, typecheck and whitespace checks passed. Corrected a copy-encoding issue; the first full run overlapped that edit and read inconsistent source/test versions, so the full suite was rerun against unchanged final files and passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Offline loading recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one loading improvement: browser-reported offline status immediately exposes the styled reload recovery and unsaved-change/live-clock guidance. Reconnection restores ordinary loading feedback without claiming server availability. Once offered, recovery controls remain mounted to preserve keyboard focus.

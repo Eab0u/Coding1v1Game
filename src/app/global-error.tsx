@@ -7,6 +7,7 @@ import { useId } from "react";
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const guidanceId = useId();
   const reloadGuidanceId = useId();
+  const matchGuidanceId = useId();
 
   return <html lang="en"><head><title>Page recovery | CodeDuel</title></head><body>
     <style>{`
@@ -39,10 +40,11 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
         <p role="alert">We could not load the site view. Try loading it again.</p>
         <p id={guidanceId} className="recovery-guidance">Retrying this view does not submit code or start a new duel. If you were playing, the match clock may still be running.</p>
         <p id={reloadGuidanceId} className="recovery-guidance">If retrying keeps failing, reload the full page. Unsaved changes may be lost; a live match clock continues.</p>
+        <p id={matchGuidanceId} className="recovery-guidance">The live duel server clock continues while this page is unavailable. Return home and press Play to recover your existing match; availability depends on what the server confirms.</p>
         <nav aria-label="Page recovery">
           <button type="button" aria-describedby={guidanceId} onClick={reset}>Try this page again</button>
           <button className="recovery-reload" type="button" onClick={() => window.location.reload()} aria-describedby={reloadGuidanceId}>Reload full page</button>
-          <a href="/">Back to arena</a>
+          <a href="/" aria-describedby={matchGuidanceId}>Back to arena</a>
           <a href="/leaderboard">Explore standings</a>
         </nav>
       </main>
