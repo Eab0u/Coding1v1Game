@@ -5,6 +5,27 @@ import { LoadingStatus } from "../src/components/loading-status";
 
 afterEach(() => vi.useRealTimers());
 
+it("only announces reconnection after an outage and resets it on reopening", () => {
+  const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+  try {
+    const view = render(<LoadingStatus />);
+    fireEvent(window, new Event("online"));
+    expect(screen.getByRole("status")).not.toHaveTextContent("back online");
+    connection.mockReturnValue(false);
+    fireEvent(window, new Event("offline"));
+    const reload = screen.getByRole("button");
+    reload.focus();
+    connection.mockReturnValue(true);
+    fireEvent(window, new Event("online"));
+    expect(screen.getByText(/Your browser is back online/)).toHaveClass("page-loading-reconnected");
+    expect(reload).toHaveFocus();
+    view.unmount();
+    render(<LoadingStatus />);
+    expect(screen.getByRole("status")).not.toHaveTextContent("back online");
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  } finally { connection.mockRestore(); }
+});
+
 it("shows initial offline recovery immediately and preserves controls through reconnection", () => {
   vi.useFakeTimers();
   const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
@@ -19,12 +40,14 @@ it("shows initial offline recovery immediately and preserves controls through re
     connection.mockReturnValue(true);
     fireEvent(window, new Event("online"));
     expect(screen.getByRole("status")).toBe(status);
+    expect(status).toHaveTextContent("Your browser is back online. Server availability is not yet confirmed.");
     expect(status).toHaveTextContent("This page is taking longer than usual.");
     expect(screen.getByRole("button")).toBe(reload);
     expect(reload).toHaveFocus();
     connection.mockReturnValue(false);
     fireEvent(window, new Event("offline"));
     expect(status).toHaveTextContent("Your browser reports that you are offline.");
+    expect(status).not.toHaveTextContent("back online");
     expect(reload).toHaveFocus();
     view.unmount();
     expect(vi.getTimerCount()).toBe(0);
@@ -44,6 +67,7 @@ it("cleans up connectivity listeners and retains recovery after an early reconne
     fireEvent(window, new Event("online"));
     expect(screen.getByRole("button")).toBeVisible();
     expect(screen.getByRole("status")).not.toHaveTextContent("offline");
+    expect(screen.getByRole("status")).toHaveTextContent("Your browser is back online.");
     act(() => vi.advanceTimersByTime(15_000));
     expect(screen.getByRole("button")).toBeVisible();
     view.unmount();

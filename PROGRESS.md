@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Loading reconnection feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one loading improvement: a green reconnection notice appears inside the existing polite status after a browser-reported outage, explicitly retaining uncertainty about server availability. Existing delayed guidance, recovery controls and keyboard focus remain stable. A new outage retires the notice; reopening starts fresh.
+- Added regression coverage for initial online events, early and delayed reconnection, repeated outages, visual styling, preserved focus and reopening.
+- Validation: all 1,631 tests across 72 files passed with `npm test -- --maxWorkers=2`; all seven focused loading tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Error-screen existing-match recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: route and root error screens now explain how home/Play recovers an existing match, remind players that the server clock continues, and qualify availability with server confirmation. Both home recovery links describe the prominent styled guidance.
