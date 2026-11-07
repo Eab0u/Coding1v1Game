@@ -525,6 +525,16 @@ it.each([
   ["    if check({'key': [1, 2]}): # proceed", "        "],
   ['    if marker == "([{}])":', "        "],
   ["    if ready: # ([{", "        "],
+  ['    if """unfinished":', "    "],
+  ["    if '''unfinished':", "    "],
+  ['    if """unfinished"":', "    "],
+  ["    if '''unfinished'':", "    "],
+  ['    if """closed""":', "        "],
+  ["    if '''closed''':", "        "],
+  ['    if """# ([{ " quoted""": # comment', "        "],
+  ["    if '''# )]} ' quoted''':", "        "],
+  ['    if """escaped\\""":', "    "],
+  ['    if """escaped\\" then closed""":', "        "],
 ])("only adds block indentation outside balanced delimiters: %s", (initial, indentation) => {
   render(<Harness initial={initial + "REMOVEtail"}/>);
   const input = screen.getByRole("textbox") as HTMLTextAreaElement;

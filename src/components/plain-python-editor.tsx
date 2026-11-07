@@ -7,16 +7,24 @@ function endsWithBlockColon(line: string) {
   let escaped = false;
   let code = "";
   const brackets: string[] = [];
-  for (const character of line) {
+  for (let index = 0; index < line.length; index++) {
+    const character = line[index];
     if (quote) {
       code += character;
       if (escaped) escaped = false;
       else if (character === "\\") escaped = true;
-      else if (character === quote) quote = "";
+      else if (line.startsWith(quote, index)) {
+        index += quote.length - 1;
+        quote = "";
+      }
     } else {
       if (character === "#") break;
       code += character;
-      if (character === "'" || character === '"') quote = character;
+      if (character === "'" || character === '"') {
+        quote = line.startsWith(character.repeat(3), index) ? character.repeat(3) : character;
+        code += quote.slice(1);
+        index += quote.length - 1;
+      }
       else if ("([{".includes(character)) brackets.push(character);
       else if (")]}".includes(character)) {
         const opening = { ")": "(", "]": "[", "}": "{" }[character];
@@ -134,6 +142,6 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
     <p id={hint} className="editor-hint">{readOnly
       ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
-      : "Enter keeps indentation and adds four spaces after a Python block header colon, ignoring trailing comments and colons inside unfinished brackets on the current line. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+      : "Enter keeps indentation and adds four spaces after a Python block header colon, ignoring trailing comments and colons inside unfinished strings or brackets on the current line. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
   </>;
 }

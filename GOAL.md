@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Prevent plain-editor Enter from treating unfinished current-line Python triple-quoted strings as block headers, preserving quoted punctuation, selections and caret placement with regression coverage
 - [x] Prevent plain-editor Enter from adding block indentation for colons inside unfinished or mismatched current-line delimiters, preserving quoted/comment punctuation, selections and caret placement with regression coverage
 - [x] Restrict plain-editor Enter block indentation to Python block headers, preserving dictionary and slice colons, selections and caret placement with regression coverage
 - [x] Make plain-editor Enter ignore Python comment colons while indenting commented block headers, with quoted-marker, selection and caret regression coverage
