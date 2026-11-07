@@ -35,7 +35,12 @@ function jsonValue(value: unknown): boolean {
 
 /** Server-only Judge0 adapter. No local execution or fallback is permitted. */
 export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) {
-  const url = new URL(config.url);
+  let url: URL;
+  try { url = new URL(config.url); }
+  catch {
+    // URL parser errors retain the raw input, which may contain credentials.
+    throw new RangeError("Invalid judge configuration.");
+  }
   const timeout = config.requestTimeoutMs ?? 10_000;
   const maxPolls = config.maxPolls ?? 120;
   const pollInterval = config.pollIntervalMs ?? 250;

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Prevent malformed sandbox URLs from exposing configured credentials in parser errors, preserving fail-closed configuration validation with secret-retention and no-network regression coverage
 - [x] Report sandbox-unavailable catalog validation failures with actionable credential-safe recovery guidance, nonzero exit status and database cleanup, with validate/publish regression coverage
 - [x] Offer overdue loading recovery immediately when suspended pages resume, checking the elapsed deadline independently of delayed timers while preserving stable guidance and keyboard focus with boundary and reopening regression coverage
 - [x] Refresh loading-screen connectivity when suspended pages resume, preserving styled guidance, recovery controls and keyboard focus with missed-event and cleanup regression coverage

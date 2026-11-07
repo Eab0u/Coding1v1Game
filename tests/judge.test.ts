@@ -12,6 +12,25 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each([
+    "private-token@invalid-host",
+    "https://private-user:private-password@[invalid",
+    "https://sandbox.example:invalid/private-token",
+    "",
+    "https://private-user:private-password@sandbox.example",
+    "https://sandbox.example?token=private-token",
+    "https://sandbox.example#private-token",
+  ])("rejects unsafe URLs without retaining configuration secrets (%#)", url => {
+    const fetcher = vi.fn<typeof fetch>();
+    let failure: unknown;
+    try { createJudge({ ...config, url }, fetcher); } catch (error) { failure = error; }
+    expect(failure).toBeInstanceOf(RangeError);
+    expect((failure as Error).message).toBe("Invalid judge configuration.");
+    expect((failure as Error).cause).toBeUndefined();
+    expect(Object.getOwnPropertyNames(failure)).not.toContain("input");
+    expect(String((failure as Error).stack)).not.toMatch(/private-token|private-user|private-password/);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
   it("reports final execution statuses so catalog validation distinguishes timeouts from crashes", async () => {
     const onExecutionStatus = vi.fn();
     await createJudge({ ...config, onExecutionStatus }, sandbox([{ status: { id: 1 } }, { status: { id: 5 } }, { status: { id: 7 } }, done()]))(request);

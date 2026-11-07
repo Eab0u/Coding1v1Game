@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Credential-safe sandbox URL configuration errors
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the sandbox remains unavailable and both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one configuration safety item: malformed Judge0 URLs now produce the same generic configuration error as other rejected settings. Native URL parser errors retain raw input, potentially including credentials; the replacement error retains neither that input nor a parser cause. Existing URL restrictions remain enforced before network access.
+- Added seven regression cases covering malformed hosts/ports, empty input and credentials in user information, query strings and fragments. Tests verify generic error text, no retained input/cause or secrets in the stack, and no network calls.
+- Validation: all 1,652 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 45 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Catalog command sandbox recovery guidance
 - Retried the highest-value unchecked catalog milestone using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 deployment remains unavailable. Both catalog milestones remain unchecked. No draft Python ran on the host.
 - Followed the blocker rule and added/completed one catalog tooling improvement: validate and publish now explain sandbox availability failures, name the environment settings to verify, state that publication did not occur and provide retry guidance. The command retains a failing exit status and closes publication database resources; unrelated validation errors still propagate.
