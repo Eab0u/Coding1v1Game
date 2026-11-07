@@ -519,3 +519,9 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .editor-keyboard-guide summary { min-height: 44px; padding: 12px 0; font-weight: 700; line-height: 1.5; }
 .editor-keyboard-guide[open] summary { color: var(--color-accent); }
 .editor-keyboard-guide .editor-hint { margin: 0 0 12px; }
+
+.friend-empty p:first-child { margin-top: 0; }
+.friend-empty p:last-child { margin-bottom: 0; }
+.friend-empty .button { max-width: 100%; white-space: normal; text-align: center; }
+.friend-invite h2 { scroll-margin-top: 1.5rem; }
+.friend-invite h2:target { outline: 2px solid var(--color-accent); outline-offset: 6px; border-radius: var(--radius-sm); }

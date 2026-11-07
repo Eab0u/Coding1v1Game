@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Actionable Friends empty sections
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends usability item; catalog milestones remain unchecked.
+- Empty accepted-friend sections now direct players to waiting incoming requests when available, otherwise to the invitation form. Empty sent-request sections link to invitations, and empty incoming sections explain refresh behavior. Styled native actions wrap on phones; the invitation heading receives anchor focus and highlights the destination.
+- Added component tests for empty/populated transitions and context-aware destinations, plus Chromium checks at 320, 375 and 1280px for 44px actions, Enter navigation, subsequent Tab focus on the username field and no page overflow.
+- Validation: all 1,059 tests across 66 files passed; targeted Friends/browser tests (130), lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Friends refresh and snapshot guidance
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends usability item; catalog milestones remain unchecked.
 - Added a wrapping, styled Check for updates panel explaining that invitations, friendships and ratings reflect page load. Refresh friends uses a native /friends link for a fresh server read and clears stale action-query feedback. Guests and unavailable lists retain their existing recovery flows.

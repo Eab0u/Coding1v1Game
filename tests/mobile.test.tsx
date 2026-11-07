@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 
 const username = 'abcdefghijklmnopqrstuvwx';
-const state = vi.hoisted(() => ({ signedIn: true, accountUnavailable: false, leaderboardUnavailable: false, leaderboardEmpty: false, profileUnavailable: false, profileEmpty: false, friendsUnavailable: false, homeUnavailable: false, homeOutcomes: false }));
+const state = vi.hoisted(() => ({ signedIn: true, accountUnavailable: false, leaderboardUnavailable: false, leaderboardEmpty: false, profileUnavailable: false, profileEmpty: false, friendsUnavailable: false, friendsEmpty: false, homeUnavailable: false, homeOutcomes: false }));
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current: async () => { if (state.accountUnavailable) throw new Error('private'); return state.signedIn ? ({ id: '1', username: 'abcdefghijklmnopqrstuvwx', rating: 800 }) : null; } } }));
 vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), topics: ['arrays', 'dynamic programming', 'T'.repeat(200)], examples: [{ args: ['X'.repeat(300)], expected: 1, explanation: 'Read the signal.' }], statement: 'B'.repeat(200), constraints: '1 <= n <= 100000\n' + 'C'.repeat(200), function_signature: `def solve_${'long_name_'.repeat(20)}(values: list[int]) -> list[int]:`, difficulty: 'easy' }, recent: [...(state.homeOutcomes ? [{ id: 'loss', title: 'Lost duel', opponent: 'another_long_player_name', winner_id: '2' }, { id: 'draw', title: 'Drawn duel', opponent: 'another_long_player_name', winner_id: null }] : []), { id: '1', delta: 12.6, completed_at: new Date('2026-11-06T23:05:00Z'), title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
@@ -16,7 +16,7 @@ vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
 vi.mock('../src/lib/profile', async importOriginal => ({ ...await importOriginal<typeof import('../src/lib/profile')>(), loadProfile: async () => { if (state.profileUnavailable) throw new Error('private'); if (state.profileEmpty) return {username, rating:800, record:{wins:0,losses:0,draws:0},ratings:[],history:[]}; return ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [{ rating_before: 800, rating_after: 1234, completed_at: new Date('2026-11-01Z') }], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }); } }));
 import { Arena } from '../src/components/arena';
 import { Results } from '../src/components/results';
-vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 999.75, status: 'pending', incoming: true }, { username: 'another_long_player_name', rating: 999.75, status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', rating: 999.75, status: 'pending', incoming: false }]; } }));
+vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); if (state.friendsEmpty) return []; return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 999.75, status: 'pending', incoming: true }, { username: 'another_long_player_name', rating: 999.75, status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', rating: 999.75, status: 'pending', incoming: false }]; } }));
 import Friends from '../src/app/friends/page';
 import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
@@ -1108,4 +1108,20 @@ it.each([false, true])('keeps the plain editor keyboard guide usable on phones (
     expect(await guide.isVisible()).toBe(false);
     expect(await editor.inputValue()).toBe('    return 1');
   } finally { await page.close(); }
+});
+
+it.each([320, 375, 1280])('links empty friend sections to the invitation form at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  state.friendsEmpty = true;
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Friends({searchParams:Promise.resolve({})}))}`);
+    const action = page.getByRole('region', {name:'Your friends 0'}).getByRole('link', {name:'Invite a player'});
+    expect((await action.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await action.focus();
+    await page.keyboard.press('Enter');
+    expect(await page.locator('#friend-invite').evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('textbox', {name:'Player username'}).evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { state.friendsEmpty = false; await page.close(); }
 });

@@ -292,3 +292,18 @@ it("shows current rounded MMR with tiers selected before rounding for every rela
   expect(view.container.querySelector(".friend-rating")).toBeNull();
   expect(screen.queryByText(/Player cards show current MMR/)).not.toBeInTheDocument();
 });
+
+it("guides empty friend sections toward invitations or waiting replies", async () => {
+  const view = render(await Friends({searchParams:Promise.resolve({})}));
+  const accepted = screen.getByRole("region", {name:"Your friends 0"});
+  expect(within(accepted).getByRole("link", {name:"Invite a player"})).toHaveAttribute("href", "#friend-invite");
+  expect(screen.getByRole("heading", {name:"Invite a player"})).toHaveAttribute("tabindex", "-1");
+  expect(screen.getByRole("heading", {name:"Invite a player"})).toHaveAttribute("id", "friend-invite");
+  expect(within(screen.getByRole("region", {name:"Incoming requests 0"})).getByText("New invitations appear here after you refresh.")).toBeVisible();
+  mocks.friends.mockResolvedValue([{username:"Ada",rating:800,status:"pending",incoming:true}]);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(within(screen.getByRole("region", {name:"Your friends 0"})).getByRole("link", {name:"Review incoming requests"})).toHaveAttribute("href", "#friend-section-incoming");
+  mocks.friends.mockResolvedValue([{username:"Ada",rating:800,status:"accepted",incoming:false}]);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(within(screen.getByRole("region", {name:"Your friends 1"})).queryByRole("link", {name:"Invite a player"})).not.toBeInTheDocument();
+});
