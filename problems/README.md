@@ -522,3 +522,27 @@ timeouts per benchmark. This draft remains private, unpublished and unapproved.
 ```sh
 npm run problems -- validate problems/drafts/relay-channel-chain.json
 ```
+
+## Relay Basin Storage (draft 20)
+
+Original medium array/two-pointer problem about coolant held between unit-width
+dividers. Empty, short, flat and monotone trays store zero; unequal boundaries
+and interior peaks determine local depths. Answers can exceed 32-bit integers.
+
+The reference processes the side with the smaller known boundary maximum.
+The opposite known maximum bounds that side, so any depth committed there is
+final; a new taller divider contributes zero. Each step consumes one column,
+giving O(n) time and O(1) extra space. The baseline scans both sides at every
+column, performing n(n+1) inner visits regardless of the tray shape.
+
+Three 100,000-column benchmarks cover a deep enclosed basin (99,998,000,000),
+alternating tall dividers and zeroes (49,999,000,000; the final zero drains),
+and a rising tray (0). Each requires 10,000,100,000 baseline visits. Data-only
+tests compare prefix/suffix maxima with horizontal layer counting on 2,000
+seeded trays and verify reversal, translation, scaling and zero padding.
+
+No authored Python executes on the host. Proposed 1-second CPU and 64-MiB
+limits require sandbox calibration, solution agreement and three baseline
+timeouts for every benchmark. This draft is private, unpublished and unapproved.
+
+Validate with: npm run problems -- validate problems/drafts/relay-basin-storage.json
