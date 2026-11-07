@@ -83,6 +83,26 @@ describe("sandbox judge", () => {
     expect(Buffer.from(body.source_code, "base64").toString()).toContain("_namespace[\"solve\"](*_payload)");
   });
 
+  it.each([true, false])("rejects CPU conversion overflow before scoring (correct=%s)", async correct => {
+    const fetcher = sandbox([done(correct ? 42 : 43, "1" + "0".repeat(306))]);
+    await expect(createJudge(config, fetcher)(request)).rejects.toBeInstanceOf(JudgeUnavailableError);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects benchmark total overflow even when individual CPU samples are finite", async () => {
+    const output = done(42, "6" + "0".repeat(304));
+    const fetcher = sandbox(Array.from({ length: 9 }, () => output));
+    await expect(createJudge(config, fetcher)({ ...request, tests: Array.from({ length: 3 }, () => request.tests[0]) }))
+      .rejects.toBeInstanceOf(JudgeUnavailableError);
+    expect(fetcher).toHaveBeenCalledTimes(18);
+  });
+
+  it("rejects CPU limits that overflow milliseconds before making requests", () => {
+    const fetcher = vi.fn<typeof fetch>();
+    expect(() => createJudge({ ...config, cpuLimitSeconds: Number.MAX_VALUE }, fetcher)).toThrow("Invalid judge configuration.");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("counts ordinary tests once and sums multiple benchmark suites", async () => {
     const fetcher = sandbox([done(), done(), done(), done(), done(), done(), done()]);
     const result = await createJudge(config, fetcher)({ ...request, tests: [{ args: [], expected: 42 }, ...request.tests, ...request.tests] });

@@ -131,6 +131,8 @@ full CPU limit for that run. Judge0 averaging and wall-clock measurements are no
 Network is disabled, processes and files are limited, and CPU, wall and memory limits
 are set on every submission.
 
+Configured CPU limits must remain finite in milliseconds. CPU timing conversions and
+benchmark totals that overflow are rejected before scoring.
 HTTP failures, exhausted polling, missing CPU timing and Judge0 internal errors throw
 `JudgeUnavailableError`; callers must retry or report unavailability without recording
 a loss or rating update. Requests have an abort timeout and polling is bounded; there

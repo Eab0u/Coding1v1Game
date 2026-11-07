@@ -47,6 +47,7 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash ||
       !Number.isSafeInteger(config.pythonLanguageId) || config.pythonLanguageId <= 0 ||
       !Number.isFinite(config.cpuLimitSeconds) || config.cpuLimitSeconds <= 0 ||
+      !Number.isFinite(config.cpuLimitSeconds * 1000) ||
       !Number.isSafeInteger(config.memoryLimitKb) || config.memoryLimitKb <= 0 ||
       !Number.isSafeInteger(timeout) || timeout <= 0 || !Number.isSafeInteger(maxPolls) || maxPolls <= 0 ||
       !Number.isSafeInteger(pollInterval) || pollInterval < 0) throw new RangeError("Invalid judge configuration.");
@@ -102,7 +103,7 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
         config.onExecutionStatus?.(status);
         // Failed programs get the full limit, so immediate crashes cannot win on CPU.
         if (status !== 3) return { passed: false, cpuMs: config.cpuLimitSeconds * 1000 };
-        if (typeof result.time !== "string" || !/^(\d+)(\.\d+)?$/.test(result.time) || !Number.isFinite(Number(result.time))) throw new JudgeUnavailableError();
+        if (typeof result.time !== "string" || !/^(\d+)(\.\d+)?$/.test(result.time) || !Number.isFinite(Number(result.time) * 1000)) throw new JudgeUnavailableError();
         let passed = false;
         try {
           if (typeof result.stdout === "string") passed = isDeepStrictEqual(JSON.parse(Buffer.from(result.stdout, "base64").toString("utf8")), test.expected);
@@ -120,7 +121,10 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
       const second = await run(test);
       const third = await run(test);
       testsPassed += Number(first.passed && second.passed && third.passed);
-      [first, second, third].forEach((result, index) => { samples[index] += result.cpuMs; });
+      [first, second, third].forEach((result, index) => {
+        samples[index] += result.cpuMs;
+        if (!Number.isFinite(samples[index])) throw new JudgeUnavailableError();
+      });
     }
     return { testsPassed, testsTotal: request.tests.length, largestTestsCpuMs: samples, submittedAtMs: request.submittedAtMs };
   };
