@@ -552,3 +552,7 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .page-loading-status { display: flex; align-items: center; gap: 12px; font-weight: 700; }
 .page-loading-mark { width: 20px; height: 20px; flex: 0 0 20px; border: 3px solid var(--color-border); border-top-color: var(--color-accent); border-radius: 50%; animation: page-loading-spin 1s linear infinite; }
 @keyframes page-loading-spin { to { transform: rotate(360deg); } }
+
+.account-standing { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.account-standing .account-rating { margin: 0; }
+.account-rating-note { color: var(--color-muted); font-size: 0.875rem; line-height: 1.6; }

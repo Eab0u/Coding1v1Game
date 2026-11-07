@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Account rating tier clarity
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. JudgeUnavailableError still blocks sandbox validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded account improvement.
+- Added the signed-in account tier badge beside explicitly labeled MMR, using full-precision rating thresholds and visible, accessible rounding guidance. Responsive wrapping keeps the rating and badge contained on phones. Guests and unavailable sessions show no rating summary.
+- Added component regressions at every tier boundary, including ratings that round into the next tier, and guest/error coverage. Chromium checks cover styled badge containment and guidance at 320, 375 and 1280px.
+- Validation: targeted tests passed (167 tests); lint, typecheck, production build and whitespace checks passed. All 1,114 tests across 70 files passed. No authored or player Python executed on the host. Browser checks use rendered fixture markup.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Dashboard snapshot refresh
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks isolated sandbox validation. Following the blocker rule, added and completed one bounded dashboard improvement. Catalog milestones remain unchecked.
 - Added a visible native Refresh dashboard action for successful guest and signed-in dashboards. A responsive bordered guide explains that ratings, streaks, recent duels and the daily preview reflect page load, and recommends refreshing after a completed duel or a new UTC day. A document request reloads the session and dashboard; failed reads retain only the existing recovery flow.

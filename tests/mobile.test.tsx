@@ -1276,3 +1276,19 @@ it.each([320, 375, 1280])('keeps dashboard refresh visible and keyboard accessib
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps account rating and tier contained at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({ searchParams: Promise.resolve({}) }))}`);
+    const standing = page.locator('.account-standing');
+    expect(await standing.textContent()).toBe('800 MMRBronze');
+    expect(await standing.evaluate(el => getComputedStyle(el).display)).toBe('flex');
+    expect(await page.locator('.account-rating-note').isVisible()).toBe(true);
+    const outer = (await standing.boundingBox())!;
+    const badge = (await standing.locator('.badge').boundingBox())!;
+    expect(badge.x).toBeGreaterThanOrEqual(outer.x);
+    expect(badge.x + badge.width).toBeLessThanOrEqual(outer.x + outer.width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});

@@ -2,7 +2,8 @@
 import { cookies } from "next/headers";
 import { auth } from "../../lib/auth-server";
 import { SESSION_COOKIE } from "../../lib/auth";
-import { Button, Card } from "../../components/ui";
+import { ratingTier } from "../../lib/profile";
+import { Badge, Button, Card } from "../../components/ui";
 import { Play } from "../../components/play";
 import { PasswordField } from "../../components/password-field";
 import { UsernameField } from "../../components/username-field";
@@ -26,7 +27,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         {/* A document request rechecks the session instead of reusing cached account state. */}
         <a className="button button--primary" href="/account">Retry account</a>
         <Link className="button button--secondary" href="/">Back to arena</Link>
-      </Card> : user ? <div className="account-grid"><Card className="account-play"><p className="eyebrow">READY FOR YOUR NEXT DUEL</p><h2>Your arena awaits</h2><p className="account-rating"><strong>{Math.round(user.rating)}</strong> current rating</p><p>Race an opponent on the same Python problem. Correctness comes first, then runtime and submission time.</p><Play signedIn /></Card>
+      </Card> : user ? <div className="account-grid"><Card className="account-play"><p className="eyebrow">READY FOR YOUR NEXT DUEL</p><h2>Your arena awaits</h2><div className="account-standing" aria-describedby="account-rating-note"><p className="account-rating"><strong>{Math.round(user.rating)}</strong> MMR</p><Badge tone="accent">{ratingTier(user.rating)}</Badge></div><p id="account-rating-note" className="account-rating-note">Your tier follows your current MMR at full precision. Displayed ratings are rounded.</p><p>Race an opponent on the same Python problem. Correctness comes first, then runtime and submission time.</p><Play signedIn /></Card>
         <Card><h2>Your player hub</h2><nav className="account-links" aria-label="Player account"><Link className="button button--secondary" href={`/profile/${encodeURIComponent(user.username)}`}>View your profile</Link><Link className="button button--secondary" href="/friends">Manage friends</Link><Link className="button button--secondary" href="/leaderboard">View leaderboard</Link></nav><form method="post" action="/api/auth/logout"><Button type="submit" variant="ghost">Sign out</Button></form></Card></div> :
         <><nav className="account-entry-nav" aria-label="Account options"><a className="button button--secondary" href="#account-login">Go to sign in</a><a className="button button--secondary" href="#account-signup">Go to create account</a></nav>
         <div className="account-grid">{(["login", "signup"] as const).map(mode => <Card key={mode}><h2 id={`account-${mode}`} tabIndex={-1}>{mode === "login" ? "Welcome back" : "Create your player"}</h2><p>{mode === "login" ? "Pick up where you left off." : "Start at 800. Earn every point."}</p>

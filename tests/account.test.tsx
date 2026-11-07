@@ -197,3 +197,26 @@ it("clears the chosen credential form without submitting or clearing its neighbo
   expect(signup).toHaveValue("Other_Player");
   expect(submit).not.toHaveBeenCalled();
 });
+
+it.each([
+  [999.75, "1000", "Bronze"], [1000, "1000", "Silver"],
+  [1199.75, "1200", "Silver"], [1200, "1200", "Gold"],
+  [1599.75, "1600", "Gold"], [1600, "1600", "Platinum"],
+  [1999.75, "2000", "Platinum"], [2000, "2000", "Diamond"],
+  [2399.75, "2400", "Diamond"], [2400, "2400", "Master"],
+])("shows the full-precision account tier for %s MMR", async (rating, displayed, tier) => {
+  current.mockResolvedValue({ id: "1", username: "Duelist", rating });
+  const { container } = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  const standing = container.querySelector(".account-standing")!;
+  expect(standing).toHaveTextContent(`${displayed} MMR${tier}`);
+  expect(standing).toHaveAccessibleDescription("Your tier follows your current MMR at full precision. Displayed ratings are rounded.");
+});
+it("hides account rating tiers for guests and unavailable sessions", async () => {
+  current.mockResolvedValue(null);
+  const guest = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(guest.container.querySelector(".account-standing")).toBeNull();
+  guest.unmount();
+  current.mockRejectedValue(new Error("unavailable"));
+  const failed = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(failed.container.querySelector(".account-standing")).toBeNull();
+});
