@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Accessible rematch deadline urgency
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item. Final-ten-second urgency now enters the existing stable polite invitation summary and action descriptions. The announcement uses constant wording while seconds tick down and retires during actions, extended windows, expiry and terminal outcomes; the visual countdown remains unchanged.
+- Added participant-symmetric regression coverage for stable announcements, unchanged text across countdown and server-clock updates, action descriptions and urgency retirement; extended existing deadline lifecycle assertions.
+- Validation: all 1,475 tests across 72 files passed; all 86 rematch UI tests also passed separately. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Rematch invitation sending keyboard recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one accessibility item. Sending an invitation from the focused Rematch button now focuses the stable visible invitation guidance after direct or polled confirmation removes that button. Independent navigation and background updates preserve focus; failed sends clear focus intent.
