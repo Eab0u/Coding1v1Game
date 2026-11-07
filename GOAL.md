@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Conceal revealed account passwords when the browser window loses focus, preserving values, validation and explicit reveal recovery with regression coverage
 - [x] Explain leaderboard shared ranks, full-precision ordering and tied-player cutoff with a compact styled disclosure and public/friends regression coverage
 - [x] Show the weekly leaderboard UTC date window with clear reset guidance and responsive styling, covering Monday rollover, year boundaries, leap days and both scopes
 - [x] Distinguish weekly leaderboard rounded gains, losses and unchanged values with visible text and color accents, preserving rounding and public/friends snapshot transitions with regression coverage

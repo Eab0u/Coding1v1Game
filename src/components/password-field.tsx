@@ -44,9 +44,11 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
     };
     document.addEventListener("visibilitychange", conceal);
     window.addEventListener("pagehide", concealOnDeparture);
+    window.addEventListener("blur", concealOnDeparture);
     return () => {
       document.removeEventListener("visibilitychange", conceal);
       window.removeEventListener("pagehide", concealOnDeparture);
+      window.removeEventListener("blur", concealOnDeparture);
     };
   }, []);
   const synchronizeValue = (input: HTMLInputElement, reportEmpty = false) => {
@@ -84,7 +86,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
           setVisible(value => !value);
         }}>{visible ? "Hide" : "Show"}</Button>
     </div>
-    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape in the password field or Hide button to conceal a revealed password. Revealed passwords hide when you switch tabs. They also hide when you leave this page or submit this form, including when a field needs correction.</p>
+    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape in the password field or Hide button to conceal a revealed password. Revealed passwords hide when you switch tabs. They also hide when the browser window loses focus, when you leave this page or submit this form, including when a field needs correction.</p>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
       <strong>{bytes} / {PASSWORD_MAX_BYTES} bytes</strong>
       <span>Emoji and some letters use more than one byte.</span>

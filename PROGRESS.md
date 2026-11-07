@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Conceal passwords on window focus loss
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account improvement: revealed sign-in and sign-up passwords conceal when the browser window loses focus, including switching to another application or window. Visible field guidance explains the behavior.
+- Added regression coverage for both forms, repeated blur events, internal field blur, preserved values and validation, cleared Caps Lock warnings, explicit reveal recovery and listener cleanup.
+- Validation: all 1,592 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed. Restored Unicode test fixtures after a PowerShell encoding change caused three failures in the first suite run.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Leaderboard rank and tie guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one improvement: a compact native ranking disclosure explaining shared places, full-precision ordering despite rounded displays, alphabetical tie ordering and the 100-player cutoff. It appears on populated public and friends ladders for both periods and uses responsive accented disclosure cards.

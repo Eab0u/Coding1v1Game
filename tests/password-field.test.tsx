@@ -5,6 +5,44 @@ import { PasswordField } from "../src/components/password-field";
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
 afterEach(() => vi.restoreAllMocks());
 
+it("conceals both passwords on window blur without clearing values or validation and allows explicit reveal afterward", () => {
+  render(<><PasswordField mode="login" /><PasswordField mode="signup" /></>);
+  const inputs = screen.getAllByLabelText<HTMLInputElement>("Password");
+  for (const input of inputs) {
+    fireEvent.change(input, { target: { value: "short" } });
+    fireEvent.keyDown(input, { key: "A", modifierCapsLock: true });
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-up password" }));
+  // Moving between controls inside the page must preserve the reveal.
+  fireEvent.blur(inputs[0]);
+  expect(inputs[0]).toHaveAttribute("type", "text");
+  fireEvent.blur(window);
+  fireEvent.blur(window);
+  for (const input of inputs) {
+    expect(input).toHaveAttribute("type", "password");
+    expect(input).toHaveValue("short");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input.validationMessage).toContain("Use at least 12 characters.");
+    expect(input).toHaveAccessibleDescription(/browser window loses focus/);
+  }
+  expect(screen.queryByText(warning)).not.toBeInTheDocument();
+  fireEvent.focus(window);
+  expect(inputs[0]).toHaveAttribute("type", "password");
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  expect(inputs[0]).toHaveAttribute("type", "text");
+  expect(inputs[1]).toHaveAttribute("type", "password");
+});
+
+it("removes the window blur listener on unmount", () => {
+  const add = vi.spyOn(window, "addEventListener");
+  const remove = vi.spyOn(window, "removeEventListener");
+  const { unmount } = render(<PasswordField mode="login" />);
+  const listener = add.mock.calls.find(([name]) => name === "blur")![1];
+  unmount();
+  expect(remove).toHaveBeenCalledWith("blur", listener);
+});
+
 it.each(["login", "signup"] as const)("refreshes silent %s replacements when toggling password visibility", mode => {
   const submit = vi.fn(event => event.preventDefault());
   render(<form onSubmit={submit}><PasswordField mode={mode} /><PasswordField mode={mode === "login" ? "signup" : "login"} /></form>);
