@@ -2,6 +2,40 @@ import {act,render,screen,fireEvent,waitFor} from '@testing-library/react';
 import {it,expect,vi,afterEach} from 'vitest';
 import {Rematch} from '../src/components/rematch';
 afterEach(()=>vi.unstubAllGlobals());
+it.each([true,false])('highlights the final ten invitation seconds and retires urgency across lifecycle changes (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const snapshot={status:'pending',outgoing,matchId:null,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:00:11Z'};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>snapshot});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  const timer=screen.getByRole('timer');
+  expect(timer).toHaveTextContent('10s remaining');
+  expect(timer).toHaveAttribute('aria-live','off');
+  expect(timer.parentElement).toHaveClass('rematch-deadline--soon');
+  expect(screen.getByText('Invitation closing soon')).toBeInTheDocument();
+  // An authoritative extended window clears the local warning.
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...snapshot,expiresAt:'2026-11-07T12:01:00Z'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...snapshot,expiresAt:'2026-11-07T12:00:01Z'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByText('Invitation closing soon')).toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+  expect(timer.parentElement).toHaveClass('rematch-deadline--elapsed');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  const pending=deferred<ReturnType<typeof response>>();
+  fetcher.mockReturnValueOnce(pending.promise);
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Decline'}));
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+  await act(async()=>{pending.resolve(response(outgoing?'cancelled':'declined'));});
+  expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
 it.each([true,false])('shows invitation direction only while actionable (outgoing=%s)',async(outgoing)=>{
  vi.useFakeTimers();
  try {

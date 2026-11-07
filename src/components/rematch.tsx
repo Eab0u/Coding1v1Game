@@ -65,6 +65,7 @@ function RematchSession({id}:{id:string}) {
     return ()=>clearInterval(timer);
   },[state]);
   const deadlinePassed=state?.status==='pending' && remaining===0;
+  const deadlineSoon=remaining!==null && remaining>0 && remaining<=10 && !busy;
   useEffect(()=>()=>{revision.current++;actionController.current?.abort();},[]);
   useEffect(()=>{
     if (busy || terminal) return;
@@ -123,8 +124,9 @@ function RematchSession({id}:{id:string}) {
     </div>
     <p id={summaryId} role="status" aria-live="polite" aria-atomic="true" className={terminal?'rematch-summary':busy && !deadlinePassed?'rematch-pending':undefined}>{terminal?terminalMessages[state.status]:deadlinePassed?'The invitation window has ended. Acceptance and invitation changes are closed. Waiting for server confirmation; no rematch is confirmed yet.':busy?pendingMessages[pendingAction]:!state && pollError?'Invitation status is unavailable. Automatic retries continue; no rematch is confirmed yet.':!state?'Checking invitation…':state.status==='none'?'Invite your opponent to a fresh ranked duel. They have 60 seconds to accept.':state.status==='pending'?(state.outgoing?'Waiting for your opponent. Invitation expires after 60 seconds.':'Your opponent invited you to a fresh ranked duel. Accept within 60 seconds.'):`Invitation ${state.status}.`}</p>
     {state?.status==='none' && <button aria-describedby={summaryId} className="button button--secondary" disabled={busy} onClick={()=>void act('invite')}>Rematch</button>}
-    {state?.status==='pending' && remaining!==null && <div className={`rematch-deadline${deadlinePassed?' rematch-deadline--elapsed':''}`}>
+    {state?.status==='pending' && remaining!==null && <div className={`rematch-deadline${deadlinePassed?' rematch-deadline--elapsed':deadlineSoon?' rematch-deadline--soon':''}`}>
       <p role="timer" aria-live="off" aria-label="Invitation time remaining">{remaining}s remaining</p>
+      {deadlineSoon && <p className="rematch-deadline-warning">Invitation closing soon</p>}
       {deadlinePassed && <p role="status">Invitation deadline reached. Waiting for server confirmation.</p>}
     </div>}
     {state?.status==='pending' && (state.outgoing?<button aria-describedby={summaryId} className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('cancel')}>Cancel invitation</button>:<div className="result-actions"><button aria-describedby={summaryId} ref={acceptButton} className="button button--primary" disabled={busy || deadlinePassed} onClick={()=>void act('accept')}>Accept rematch</button><button aria-describedby={summaryId} className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('decline')}>Decline</button></div>)}
