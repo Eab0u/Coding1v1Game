@@ -1258,3 +1258,21 @@ it.each([320, 375, 1280])('keeps profile refresh visible and keyboard accessible
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps dashboard refresh visible and keyboard accessible at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const refresh = page.getByRole('link', {name:'Refresh dashboard'});
+    expect(await refresh.getAttribute('href')).toBe('/');
+    expect(await page.locator('#dashboard-refresh-note').isVisible()).toBe(true);
+    await page.getByRole('link', {name:`Account: ${username}`,exact:true}).focus();
+    await page.keyboard.press('Tab');
+    expect(await refresh.evaluate(el => el === document.activeElement)).toBe(true);
+    const bounds = (await refresh.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});

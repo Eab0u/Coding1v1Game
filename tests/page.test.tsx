@@ -6,6 +6,25 @@ vi.mock("../src/lib/home", () => ({ loadHome: mocks.load }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 import Home from "../src/app/page";
 beforeEach(() => { mocks.current.mockResolvedValue(null); mocks.load.mockResolvedValue({ daily: null, recent: [], streak: 0 }); });
+it.each([false, true])("offers a native dashboard refresh with snapshot guidance signedIn=%s", async signedIn => {
+  mocks.current.mockResolvedValue(signedIn ? { id: "one", username: "Ada", rating: 800 } : null);
+  const view = render(await Home());
+  const refresh = screen.getByRole("link", { name: "Refresh dashboard" });
+  expect(refresh).toHaveAttribute("href", "/");
+  expect(refresh).toHaveAccessibleDescription(/reflect when this page loaded/);
+  expect(refresh).toHaveAccessibleDescription(/completed duel or a new UTC day/);
+  mocks.load.mockResolvedValue({ daily: null, recent: [], streak: 4 });
+  view.rerender(await Home());
+  expect(mocks.load).toHaveBeenCalledTimes(2);
+  if (signedIn) expect(screen.getByText("4 consecutive wins")).toBeVisible();
+});
+it("keeps the recovery action instead of snapshot refresh when loading fails", async () => {
+  mocks.load.mockRejectedValue(new Error("private"));
+  render(await Home());
+  expect(screen.queryByRole("link", { name: "Refresh dashboard" })).not.toBeInTheDocument();
+  expect(screen.queryByText("Your dashboard at a glance")).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Retry dashboard" })).toHaveAttribute("href", "/");
+});
 it("offers guests a sign-in path and truthful empty states", async () => {
   render(await Home());
   expect(screen.getByRole("link", { name: "Sign in to play" })).toHaveAttribute("href", "/account");

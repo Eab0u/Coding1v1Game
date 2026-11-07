@@ -29,6 +29,12 @@ export default async function Home() {
         <a href="/account">{user ? `Account: ${user.username}` : "Sign in / Create account"}</a>
       </header>
       <main id="main" tabIndex={-1}>
+        {!unavailable && <aside className="dashboard-refresh" aria-labelledby="dashboard-refresh-title">
+          <div><h2 id="dashboard-refresh-title">Your dashboard at a glance</h2><p id="dashboard-refresh-note">Ratings, streaks, recent duels and the daily preview reflect when this page loaded. Refresh after a completed duel or a new UTC day to see the latest available data.</p></div>
+          {/* A document request reloads both the session and dashboard data. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a className="button button--secondary" href="/" aria-describedby="dashboard-refresh-note">Refresh dashboard</a>
+        </aside>}
         <section className="hero" aria-labelledby="welcome">
           <div>
             <p className="eyebrow">ONE PROBLEM. TWO PLAYERS.</p>

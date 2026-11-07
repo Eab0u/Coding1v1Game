@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Dashboard snapshot refresh
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks isolated sandbox validation. Following the blocker rule, added and completed one bounded dashboard improvement. Catalog milestones remain unchecked.
+- Added a visible native Refresh dashboard action for successful guest and signed-in dashboards. A responsive bordered guide explains that ratings, streaks, recent duels and the daily preview reflect page load, and recommends refreshing after a completed duel or a new UTC day. A document request reloads the session and dashboard; failed reads retain only the existing recovery flow.
+- Added component coverage for guest and signed-in snapshots, accessible descriptions, fresh data reads and failure states. Chromium checks at 320, 375 and 1280px verify keyboard focus, overflow and 44px action height.
+- Validation: all 1,100 tests across 70 files passed; targeted component/browser tests, lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host. Browser checks use rendered fixture markup; deployed navigation and live database smoke checks remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Profile snapshot refresh
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded profile improvement. Catalog milestones remain unchecked.
 - Added a visible native Refresh profile action on empty and populated player profiles, targeting the loaded player's canonical username. A responsive bordered guide explains that rating, tier, record and history reflect page load and recommends refreshing after completed duels. Failed reads retain their existing retry flow.

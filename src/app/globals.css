@@ -372,6 +372,10 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .account-form input[aria-invalid="true"] { border-color: var(--color-text); }
 
 .friend-groups { display: grid; gap: 2rem; margin-top: 2rem; }
+.dashboard-refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--color-muted); border-radius: var(--radius-card, 12px); }
+.dashboard-refresh > div { flex: 1 1 18rem; min-width: 0; }
+.dashboard-refresh h2 { margin-top: 0; }
+.dashboard-refresh p { margin-bottom: 0; color: var(--color-muted); }
 .profile-refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--color-muted); border-radius: var(--radius-card, 12px); }
 .profile-refresh > div { flex: 1 1 18rem; min-width: 0; }
 .profile-refresh h2 { margin-top: 0; }
