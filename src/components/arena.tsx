@@ -115,8 +115,9 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <div><h2 id="completed-title">Duel complete. Results are ready.</h2><p>View the outcome, score comparison and recorded rating changes on your results page.</p><p className="muted">You can still copy or download the code visible in this tab before leaving.</p></div>
       <Link className="button button--primary" href={`/match/${match.id}/results`}>View results</Link>
     </section>}
+    <div role="status" aria-label="Duel settlement" aria-live="polite" aria-atomic="true" className="sr-only">{match.status==="active" && seconds===0 ? "Time is up. Submissions are closed. Waiting for the server to finish judging before confirming results and rating changes. This page keeps checking automatically; you can still copy or download your code." : ""}</div>
     {match.status==="active" && seconds===0 && <section className="arena-settlement" aria-labelledby="settlement-title">
-      <div role="status"><span className="badge">Results pending</span><h2 id="settlement-title">Time is up. Waiting for results.</h2><p>Submissions are closed. The server will finish judging submitted solutions before confirming the result and rating changes.</p><p className="muted">Sandbox delays can take longer. This page keeps checking automatically; your code is still available to copy or download.</p></div>
+      <div><span className="badge">Results pending</span><h2 id="settlement-title">Time is up. Waiting for results.</h2><p>Submissions are closed. The server will finish judging submitted solutions before confirming the result and rating changes.</p><p className="muted">Sandbox delays can take longer. This page keeps checking automatically; your code is still available to copy or download.</p></div>
     </section>}
     <div role="status" aria-label="Duel cancellation" aria-live="polite" aria-atomic="true" className="sr-only">{match.status==="cancelled" ? "Duel cancelled. No ratings changed. Return home to find a new opponent. You can still copy or download your code before leaving." : ""}</div>
     {match.status==="cancelled" && <section className="arena-cancelled" aria-labelledby="cancelled-title">

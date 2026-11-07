@@ -669,11 +669,19 @@ it('announces local clock expiry, preserves export and waits for authoritative c
   const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>active});
   vi.stubGlobal('fetch',fetcher);
   render(<Arena initial={active}/>);
+  const settlement=screen.getByRole('status',{name:'Duel settlement'});
+  expect(settlement).toBeEmptyDOMElement();
+  expect(settlement).toHaveAttribute('aria-live','polite');
+  expect(settlement).toHaveAttribute('aria-atomic','true');
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my solution'}});
   expect(screen.queryByRole('region',{name:'Time is up. Waiting for results.'})).not.toBeInTheDocument();
   await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
   const panel=screen.getByRole('region',{name:'Time is up. Waiting for results.'});
-  expect(panel.querySelector('[role="status"]')).toHaveTextContent('before confirming the result and rating changes');
+  expect(panel.querySelector('[role="status"]')).toBeNull();
+  expect(screen.getByRole('status',{name:'Duel settlement'})).toBe(settlement);
+  expect(settlement).toHaveTextContent('Submissions are closed. Waiting for the server');
+  expect(settlement).toHaveTextContent('copy or download your code');
+  const announcement=settlement.textContent;
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
   expect(screen.getByRole('button',{name:'Copy solution'})).toBeEnabled();
   expect(screen.getByRole('button',{name:/Download solution/})).toBeEnabled();
@@ -682,11 +690,13 @@ it('announces local clock expiry, preserves export and waits for authoritative c
   fetcher.mockRejectedValueOnce(new Error('offline'));
   await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
   expect(panel).toBeVisible();
+  expect(settlement.textContent).toBe(announcement);
   expect(screen.getByRole('button',{name:'Retry live updates'})).toBeEnabled();
   fetcher.mockResolvedValue({ok:true,json:async()=>({...active,status:'completed'})});
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
   expect(screen.queryByRole('region',{name:'Time is up. Waiting for results.'})).not.toBeInTheDocument();
   expect(screen.getByRole('link',{name:'View results'})).toBeVisible();
+  expect(settlement).toBeEmptyDOMElement();
 });
 
 it('shows settlement guidance when reopening an expired active match',()=>{
@@ -695,6 +705,29 @@ it('shows settlement guidance when reopening an expired active match',()=>{
   render(<Arena initial={{...initial,status:'active',deadline:initial.serverTime}}/>);
   expect(screen.getByRole('region',{name:'Time is up. Waiting for results.'})).toBeVisible();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+  expect(screen.getByRole('status',{name:'Duel settlement'})).toHaveTextContent('Time is up. Submissions are closed.');
+});
+
+it.each([
+  {...initial},
+  {...initial,status:'active' as const,deadline:null},
+  {...initial,status:'active' as const,deadline:'2026-11-06T12:05:00Z'},
+  {...initial,status:'completed' as const,deadline:initial.serverTime},
+  {...initial,status:'cancelled' as const,deadline:initial.serverTime},
+])('keeps settlement announcements silent outside expired active matches: %j',snapshot=>{
+  render(<Arena initial={snapshot}/>);
+  expect(screen.getByRole('status',{name:'Duel settlement'})).toBeEmptyDOMElement();
+});
+
+it('clears settlement feedback when polling confirms cancellation',async()=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status:'cancelled'})}));
+  render(<Arena initial={{...initial,status:'active',deadline:initial.serverTime}}/>);
+  const notice=screen.getByRole('status',{name:'Duel settlement'});
+  expect(notice).not.toBeEmptyDOMElement();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByRole('status',{name:'Duel settlement'})).toBe(notice);
+  expect(notice).toBeEmptyDOMElement();
 });
 
 it('counts down the server reservation window and awaits authoritative cancellation at zero',async()=>{
