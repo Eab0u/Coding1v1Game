@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Compact weekly standings guidance
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured isolated Judge0 service returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one usability item: weekly scoring guidance now starts collapsed in a native details/summary disclosure, bringing standings closer on phones. Preserved all scoring explanations and the existing public/friends, empty, unavailable and sign-in safeguards.
+- Styled the summary with a 44px minimum touch height, a visible expanded accent and a pointer cursor. Updated component coverage for native collapsed markup and retained guide content; browser coverage at 320, 375 and 1280px verifies Enter/Space expansion, focus retention, touch height and readable layouts.
+- Validation: all 1,200 tests across 70 files passed; focused leaderboard/browser coverage (221 tests), lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run the documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Clear unavailable public examples
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; the configured isolated Judge0 service returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
 - Followed the blocker rule to add and complete one usability item. Empty arrays, null and missing public examples now show a named, styled notice instead of raw storage values. The notice directs players to the statement, constraints and signature, explains that hidden tests determine correctness and repeats the return-value function contract. Existing populated and legacy examples retain their rendering.

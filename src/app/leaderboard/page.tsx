@@ -48,14 +48,14 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
           <div><h2 id="standings-refresh-title">Check the latest standings</h2><p id="standings-refresh-note">Rankings, ratings and weekly gains reflect when this page loaded. Refresh to see completed duels and changes to your friends circle. Your selected filters stay in place.</p></div>
           <a className="button button--secondary" href={retryHref} aria-describedby="standings-refresh-note">Refresh standings</a>
         </section>}
-        {period === "weekly" && !unavailable && !needsLogin && <section className="weekly-guide" aria-labelledby="weekly-guide-title">
-          <h2 id="weekly-guide-title">How the weekly climb works</h2>
+        {period === "weekly" && !unavailable && !needsLogin && <details className="weekly-guide">
+          <summary>How the weekly climb works</summary>
           <dl>
             <div><dt>Weekly gain</dt><dd>Your rating changes from completed rated duels since Monday 00:00 UTC, added together. For example, +12 and -7 give a weekly gain of +5 MMR.</dd></div>
             <div><dt>Every rated result counts</dt><dd>Wins, losses and draws all qualify. Zero or negative weekly gains stay on the ladder; higher gains rank first.</dd></div>
             <div><dt>Current rating</dt><dd>The Rating column shows your current MMR. Weekly rank uses Weekly gain, so the highest current rating may not lead this ladder.</dd></div>
           </dl>
-        </section>}
+        </details>}
         {needsLogin ? <section className="ladder-empty" aria-labelledby="friends-login-title">
           <p className="eyebrow">YOUR CIRCLE</p><h2 id="friends-login-title">Climb with familiar rivals.</h2>
           <p>Sign in to compare your rating with accepted friends. Pending invitations stay out of the standings.</p>

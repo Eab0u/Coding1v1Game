@@ -131,7 +131,8 @@ code { font-family: var(--font-mono); }
 .standings-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 20px; border-bottom: 1px solid var(--color-border); }
 .standings-summary h2 { margin: 0; font-size: 1.5rem; }
 .weekly-guide { padding: 20px; border-bottom: 1px solid var(--color-border); }
-.weekly-guide h2 { margin: 0 0 16px; font-size: 1.25rem; }
+.weekly-guide summary { min-height: 44px; padding: 12px 0; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.weekly-guide[open] summary { color: var(--color-accent); margin-bottom: 16px; }
 .weekly-guide dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; margin: 0; }
 .weekly-guide dl > div { padding: 16px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); min-width: 0; }
 .weekly-guide dt { font-weight: 800; margin-bottom: 8px; }

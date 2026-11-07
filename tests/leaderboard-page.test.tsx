@@ -148,7 +148,9 @@ it.each(["empty", "unavailable", "signed-out"])("omits the populated summary for
 it.each(["public", "friends", "empty"])("explains weekly scoring for %s standings", async state => {
   if (state !== "empty") mocks.load.mockResolvedValue([{ username: "Ada", rating: 912, score: -7, rank: 1 }]);
   render(await Leaderboard({ searchParams: Promise.resolve({ period: "weekly", ...(state === "friends" ? { scope: "friends" } : {}) }) }));
-  const guide = screen.getByRole("region", { name: "How the weekly climb works" });
+  const summary = screen.getByText("How the weekly climb works", { selector: "summary" });
+  const guide = summary.closest("details")!;
+  expect(guide).not.toHaveAttribute("open");
   expect(guide.querySelectorAll("dt")).toHaveLength(3);
   expect(guide).toHaveTextContent("+12 and -7 give a weekly gain of +5 MMR");
   expect(guide).toHaveTextContent("Zero or negative weekly gains stay on the ladder");
@@ -159,7 +161,7 @@ it.each(["global", "unavailable", "signed-out"])("omits weekly scoring guidance 
   if (state === "unavailable") mocks.load.mockRejectedValue(new Error("private"));
   if (state === "signed-out") mocks.current.mockResolvedValue(null);
   render(await Leaderboard({ searchParams: Promise.resolve({ period: state === "global" ? "global" : "weekly", scope: "friends" }) }));
-  expect(screen.queryByRole("region", { name: "How the weekly climb works" })).not.toBeInTheDocument();
+  expect(screen.queryByText("How the weekly climb works", { selector: "summary" })).not.toBeInTheDocument();
 });
 
 
