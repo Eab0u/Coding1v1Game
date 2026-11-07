@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Incomplete saved test-count history
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one saved-results fix: a missing passed count paired with a present or invalid total now shows Test score unavailable and an explicit explanation instead of silently claiming the counts were not recorded. Both-null history retains its legacy Not recorded state; the recorded match outcome remains visible.
+- Added participant-symmetric component regressions for valid, zero, negative, non-finite, unsafe, undefined and string totals paired with missing passes, plus absent-history and corrected-history recovery. Updated the existing missing-total regression to distinguish absent from inconsistent history.
+- Validation: all 1,294 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Results comparison shortcut
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one usability improvement: a native Compare players action in the results banner jumps past scoring guidance to a focusable Player comparison heading. The action has a 44px minimum touch height and fills the available width on phones; empty player history hides both action and heading.

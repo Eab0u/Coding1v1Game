@@ -72,7 +72,8 @@ it('removes verdict styling for invalid or absent scores and recovers corrected 
 it.each([null,0])('does not invent a correctness meter for unavailable totals %s',total=>{
  render(<Results result={{title:'Legacy',outcome:'DRAW',players:[{...players[0],passed:null,total}]}}/>);
  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
- expect(screen.getAllByText('Not recorded')).toHaveLength(2);
+ expect(screen.getAllByText('Not recorded')).toHaveLength(total===null?2:1);
+ expect(screen.queryByText('Test score unavailable')!==null).toBe(total!==null);
 });
 it('gives both player meters distinct label associations',()=>{
  render(<Results result={{title:'Sample',outcome:'WIN',players:[players[0],{...players[1],submitted:2000}]}}/>);
@@ -347,4 +348,26 @@ it('links directly to a focusable comparison and hides the shortcut without play
  view.rerender(<Results result={{...result,players:[]}}/>);
  expect(screen.queryByRole('link',{name:'Compare players'})).toBeNull();
  expect(screen.queryByRole('heading',{name:'Player comparison'})).toBeNull();
+});
+
+it.each([0,1])('distinguishes incomplete saved test pairs for participant %s and recovers',index=>{
+ const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p}))};
+ const view=render(<Results result={result}/>);
+ const card=()=>within(screen.getByRole('region',{name:index===0?'Your result':'Opponent result'}));
+ for(const total of [0,8,-1,NaN,Infinity,Number.MAX_SAFE_INTEGER+1,undefined,'8']) {
+  const updated=result.players.map((p,i)=>i===index?{...p,passed:null,total}:p);
+  view.rerender(<Results result={{...result,players:updated} as DuelResult}/>);
+  expect(card().getByText('Test score unavailable')).toBeVisible();
+  expect(card().getByText('Unavailable')).toBeVisible();
+  expect(card().queryByRole('progressbar')).toBeNull();
+  expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
+  expect(screen.getByText(/detailed scoring explanation is unavailable/)).toBeVisible();
+ }
+ view.rerender(<Results result={{...result,players:result.players.map((p,i)=>i===index?{...p,passed:null,total:null}:p)}}/>);
+ expect(card().queryByText('Test score unavailable')).toBeNull();
+ expect(card().getAllByText('Not recorded')).toHaveLength(2);
+ view.rerender(<Results result={result}/>);
+ expect(card().queryByText('Test score unavailable')).toBeNull();
+ expect(card().getByRole('progressbar')).toBeVisible();
+ expect(screen.getByText(/^You passed more hidden tests/)).toBeVisible();
 });
