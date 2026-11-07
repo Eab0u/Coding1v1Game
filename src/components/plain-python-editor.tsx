@@ -19,7 +19,10 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     const line = before.split("\n").length;
     const column = active - before.lastIndexOf("\n");
     const selected = end - start;
-    position.current.textContent = `Line ${line}, column ${column}${selected ? ` · ${selected} code unit${selected === 1 ? "" : "s"} selected` : ""}`;
+    // Match block indentation: ending at the next line start excludes that line.
+    const selectionStop = end > start && editor.value[end - 1] === "\n" ? end - 1 : end;
+    const selectedLines = editor.value.slice(start, selectionStop).split("\n").length;
+    position.current.textContent = `Line ${line}, column ${column}${selected ? ` · ${selected} code unit${selected === 1 ? "" : "s"} selected across ${selectedLines} line${selectedLines === 1 ? "" : "s"}` : ""}`;
   }
   useLayoutEffect(() => {
     if (caret.current !== null) {

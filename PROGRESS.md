@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Plain editor selected line scope
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Extended visible, accessible cursor feedback with singular/plural selected line counts, matching the indentation rule that excludes a following line when the selection ends at its start. Forward/backward selections, read-only copying and active cursor positions are preserved.
+- Added regression tests for partial lines, newline-only selections, trailing newlines, select-all copying, collapsed selections, indentation/outdent recovery and replacement drafts in editable/read-only views.
+- Validation: all 845 tests across 60 files passed; typecheck and production build passed after correcting an unsupported test query option. Lint passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Plain solution selection for manual copying
 - Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
 - Added a styled Select all code button and visible copying guidance to the plain editor. The action focuses the editor, selects the current entire solution and refreshes cursor feedback, including read-only and empty solutions, without modifying the draft.

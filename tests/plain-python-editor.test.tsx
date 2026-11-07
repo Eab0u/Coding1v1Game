@@ -321,3 +321,41 @@ it.each([false, true])("protects composing and read-only drafts from shortcuts (
   expect(fireEvent.keyDown(input, { key: "]", metaKey: true })).toBe(readOnly);
   expect(change).toHaveBeenCalledTimes(readOnly ? 0 : 1);
 });
+
+it.each([false, true])("reports selection line scope without changing selections (readOnly=%s)", readOnly => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value={"ab\ncd\nef\n"} onChange={change} readOnly={readOnly}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  const position = screen.getByLabelText("Solution cursor position");
+  input.focus();
+  for (const direction of ["forward", "backward"] as const) {
+    for (const [start, end, lines] of [[0, 1, 1], [0, 3, 1], [1, 4, 2], [0, 6, 2], [0, 9, 3], [2, 3, 1], [3, 6, 1], [2, 7, 3]]) {
+      input.setSelectionRange(start, end, direction);
+      fireEvent.select(input);
+      expect(position).toHaveTextContent(`${end - start} code unit${end - start === 1 ? "" : "s"} selected across ${lines} line${lines === 1 ? "" : "s"}`);
+      expect(input.selectionStart).toBe(start);
+      expect(input.selectionEnd).toBe(end);
+      expect(input.selectionDirection).toBe(direction);
+      expect(input).toHaveFocus();
+    }
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Select all code" }));
+  expect(position).toHaveTextContent("9 code units selected across 3 lines");
+  input.setSelectionRange(9, 9);
+  fireEvent.select(input);
+  expect(position).toHaveTextContent("Line 4, column 1");
+  expect(position).not.toHaveTextContent("selected across");
+  expect(change).not.toHaveBeenCalled();
+});
+
+it("updates selected line counts after indentation and draft replacement", () => {
+  const { rerender } = render(<Harness initial={"ab\ncd\nef"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.setSelectionRange(0, 6, "backward");
+  fireEvent.click(screen.getByRole("button", { name: "Indent" }));
+  expect(screen.getByLabelText("Solution cursor position")).toHaveTextContent("10 code units selected across 2 lines");
+  fireEvent.click(screen.getByRole("button", { name: "Outdent" }));
+  expect(screen.getByLabelText("Solution cursor position")).toHaveTextContent("6 code units selected across 2 lines");
+  rerender(<PlainPythonEditor value="x" onChange={vi.fn()} readOnly/>);
+  expect(screen.getByLabelText("Solution cursor position")).not.toHaveTextContent("selected across");
+});
