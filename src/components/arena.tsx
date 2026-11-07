@@ -108,7 +108,11 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <div><span className={`badge${playerReady ? " arena-ready" : ""}`}>You: {playerReady ? "Ready" : "Not ready"}</span><span className={`badge${match.opponent.ready ? " arena-ready" : ""}`}>Opponent: {match.opponent.ready ? "Ready" : "Not ready"}</span></div>
       <p>{reservationExpired ? "The readiness window has ended. Checking with the server for activation or cancellation; no result is confirmed yet." : playerReady ? "Waiting for the server to start the duel when both players are ready." : "Review the problem, then mark yourself ready to start."} Reservations expire 60 seconds after pairing.</p>
     </section>}
-    {match.status==="completed" && <Link className="button button--primary" href={`/match/${match.id}/results`}>View results</Link>}
+    <div role="status" aria-label="Duel completion" aria-live="polite" aria-atomic="true" className="sr-only">{match.status==="completed" ? "Duel complete. Results are ready. View results for the outcome and recorded rating changes." : ""}</div>
+    {match.status==="completed" && <section className="arena-completed" aria-labelledby="completed-title">
+      <div><h2 id="completed-title">Duel complete. Results are ready.</h2><p>View the outcome, score comparison and recorded rating changes on your results page.</p><p className="muted">You can still copy or download the code visible in this tab before leaving.</p></div>
+      <Link className="button button--primary" href={`/match/${match.id}/results`}>View results</Link>
+    </section>}
     {match.status==="active" && seconds===0 && <section className="arena-settlement" aria-labelledby="settlement-title">
       <div role="status"><span className="badge">Results pending</span><h2 id="settlement-title">Time is up. Waiting for results.</h2><p>Submissions are closed. The server will finish judging submitted solutions before confirming the result and rating changes.</p><p className="muted">Sandbox delays can take longer. This page keeps checking automatically; your code is still available to copy or download.</p></div>
     </section>}

@@ -383,11 +383,11 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .arena-source-limit p { margin: 4px 0; }
 .arena-source-limit--invalid { border-left: 4px solid #e5b96b; }
 .arena-settlement p { margin: 8px 0 0; }
-.arena-cancelled { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--color-border); border-left: 4px solid var(--color-accent); border-radius: 12px; background: var(--color-surface); }
-.arena-cancelled > div { flex: 1 1 280px; min-width: 0; overflow-wrap: anywhere; }
-.arena-cancelled h2 { margin: 0 0 8px; }
-.arena-cancelled p { margin: 8px 0 0; }
-.arena-cancelled .button { white-space: normal; text-align: center; }
+.arena-completed, .arena-cancelled { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--color-border); border-left: 4px solid var(--color-accent); border-radius: 12px; background: var(--color-surface); }
+.arena-completed > div, .arena-cancelled > div { flex: 1 1 280px; min-width: 0; overflow-wrap: anywhere; }
+.arena-completed h2, .arena-cancelled h2 { margin: 0 0 8px; }
+.arena-completed p, .arena-cancelled p { margin: 8px 0 0; }
+.arena-completed .button, .arena-cancelled .button { white-space: normal; text-align: center; }
 .arena-ready { color: var(--color-success); border: 1px solid currentColor; }
 
 .arena-clock--reservation p { color: var(--color-accent); }

@@ -11,6 +11,45 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('shows completed-arena guidance and an accessible results destination on reopening',()=>{
+  render(<Arena initial={{...initial,status:'completed'}}/>);
+  const panel=screen.getByRole('region',{name:'Duel complete. Results are ready.'});
+  expect(panel).toHaveClass('arena-completed');
+  expect(panel).toHaveTextContent('recorded rating changes');
+  expect(panel).toHaveTextContent('copy or download');
+  expect(screen.getByRole('link',{name:'View results'})).toHaveAttribute('href','/match/match/results');
+  expect(screen.getByRole('status',{name:'Duel completion'})).toHaveTextContent('Duel complete. Results are ready.');
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+});
+it('announces authoritative completion once while retaining code and removing pending-results guidance',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:initial.serverTime};
+  const fetchMock=vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot}));
+  vi.stubGlobal('fetch',fetchMock);
+  render(<Arena initial={snapshot}/>);
+  const announcement=screen.getByRole('status',{name:'Duel completion'});
+  expect(announcement).toBeEmptyDOMElement();
+  expect(announcement).toHaveAttribute('aria-live','polite');
+  expect(announcement).toHaveAttribute('aria-atomic','true');
+  expect(screen.getByRole('region',{name:'Time is up. Waiting for results.'})).toBeVisible();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my final code'}});
+  snapshot={...snapshot,status:'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByRole('status',{name:'Duel completion'})).toBe(announcement);
+  expect(announcement).toHaveTextContent('View results for the outcome and recorded rating changes.');
+  expect(screen.queryByRole('region',{name:'Time is up. Waiting for results.'})).not.toBeInTheDocument();
+  expect(screen.getByRole('region',{name:'Duel complete. Results are ready.'})).toBeVisible();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('my final code');
+  expect(screen.getByRole('button',{name:'Copy solution'})).toBeEnabled();
+  expect(screen.getByRole('button',{name:/Download solution/})).toBeEnabled();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+it.each(['pending','active','cancelled'] as const)('keeps completion feedback silent in a %s arena',status=>{
+  render(<Arena initial={{...initial,status}}/>);
+  expect(screen.getByRole('status',{name:'Duel completion'})).toBeEmptyDOMElement();
+  expect(screen.queryByRole('region',{name:'Duel complete. Results are ready.'})).not.toBeInTheDocument();
+});
 it.each(['pending','active','completed','cancelled'] as const)('explains hidden tests and ordered scoring in the %s arena',status=>{
   render(<Arena initial={{...initial,status}}/>);
   const guide=screen.getByRole('complementary',{name:'How your solution is judged'});

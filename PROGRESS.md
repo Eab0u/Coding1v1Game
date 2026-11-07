@@ -38,6 +38,14 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Arena completion feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: completed matches now show a prominent responsive green-accented results panel, an outcome/comparison/rating destination and code-export guidance. A stable polite atomic live region announces authoritative completion; pending, active and cancelled states stay silent.
+- Added five regression cases covering reopening completed arenas, polling from expired-clock settlement into completion, stable announcements, retained editable code contents and export controls, stopped polling and other match states.
+- Validation: all 1,349 tests across 72 files passed; targeted arena tests passed (97 tests). Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech and visual inspection of the new panel remain manual checks.
+
+
 ### 2026-11-07 - Arena connection recovery feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: a visible green-accented notice and stable polite live region confirm when match status and progress refresh after a connection failure. Healthy initial polling stays silent; repeated successful polls preserve the message without changing it. Another outage clears it until recovery, including recovery into completed/cancelled states.
