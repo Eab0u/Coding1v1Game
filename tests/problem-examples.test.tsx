@@ -2,6 +2,17 @@ import { render, screen, within } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { ProblemExamples } from "../src/components/problem-examples";
 
+it("explains JSON values and the Python function contract without changing example data", () => {
+  render(<ProblemExamples examples={[{ args: [true, false, null], expected: null, explanation: "Nullable result." }]}/>);
+  const guide = screen.getByRole("complementary", { name: "Example format guide" });
+  expect(guide).toHaveTextContent("true is True, false is False, and null is None");
+  expect(guide).toHaveTextContent("one value per function argument, in signature order");
+  expect(guide).toHaveTextContent("return its result");
+  expect(guide).toHaveTextContent("do not need to read input or print the answer");
+  expect(JSON.parse(screen.getByRole("region", { name: "Example 1 input" }).textContent!)).toEqual([true, false, null]);
+  expect(screen.getByRole("region", { name: "Example 1 expected output" })).toHaveTextContent("null");
+});
+
 it("presents ordered arguments, outputs and explanations as separate accessible examples", () => {
   render(<ProblemExamples examples={[
     { args: [[1, 2], 3], expected: false, explanation: "No matching pair." },
@@ -26,6 +37,7 @@ it("renders explanation markup as text", () => {
 it.each([[], null, undefined, [{ input: 1, output: 2 }], [{ args: [], explanation: "Missing output" }]])("preserves legacy or unavailable examples safely: %j", examples => {
   render(<ProblemExamples examples={examples}/>);
   const fallback = screen.getByRole("region", { name: "Problem examples" });
+  expect(screen.queryByRole("complementary", { name: "Example format guide" })).not.toBeInTheDocument();
   expect(fallback.textContent).toBe(JSON.stringify(examples, null, 2) ?? "No examples available.");
   expect(fallback).toHaveAttribute("tabindex", "0");
 });

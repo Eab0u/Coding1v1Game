@@ -468,6 +468,13 @@ it('keeps the arena readable with keyboard-scrollable code on narrow screens', a
         await page.setViewportSize({ width, height: 900 });
         await page.setContent(`<style>${css}</style>${content}`);
         expect(await page.evaluate(() => document.documentElement.scrollWidth), `${status} overflow at ${width}px`).toBeLessThanOrEqual(width);
+        const guide = page.getByRole('complementary', { name: 'Example format guide' });
+        expect(await guide.isVisible()).toBe(true);
+        expect(await guide.textContent()).toContain('return its result');
+        const guideBounds = (await guide.boundingBox())!;
+        expect(guideBounds.x).toBeGreaterThanOrEqual(0);
+        expect(guideBounds.x + guideBounds.width).toBeLessThanOrEqual(width);
+        expect(await guide.evaluate(el => getComputedStyle(el).borderLeftWidth)).toBe('4px');
         for (const label of ['Function signature', 'Example 1 input', 'Example 1 expected output']) {
           const region = page.getByRole('region', { name: label, exact: true });
           await region.focus();
