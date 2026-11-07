@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Retire obsolete arena action feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena correction: action acknowledgements and errors are scoped to their originating match phase. Activation, completion and cancellation replace obsolete readiness/queue messages with current guidance, even when an earlier POST resolves after polling changes the phase. Pending styling and submission busy feedback also follow the current phase; the existing status element stays mounted.
+- Added six regression cases for readiness and submission transitions, cancellation, completion and late acknowledgements. Existing same-phase readiness, submission and error recovery tests remain passing.
+- Validation: all 1,364 tests across 72 files passed, including 112 arena UI tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Stable arena cancellation feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one cancellation improvement: a persistent polite atomic live region announces server-confirmed cancellation, unchanged ratings, matchmaking recovery and code export. Removed the nested transient status region from the visible panel to avoid duplicate announcements. Other match states keep the persistent region empty.

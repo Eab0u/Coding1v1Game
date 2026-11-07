@@ -932,3 +932,31 @@ it.each(['pending','active','completed','cancelled'] as const)('announces recove
     expect(recovery).toHaveTextContent('Live updates restored.');
   }
 });
+
+it.each([
+  ['ready','active',false],['ready','cancelled',false],
+  ['submit','completed',false],['submit','cancelled',false],
+  ['ready','active',true],['submit','completed',true],
+] as const)('retires %s feedback after %s polling, including delayed acknowledgement %s',async(action,status,delayed)=>{
+  vi.useFakeTimers();
+  const start:ArenaSnapshot=action==='ready' ? initial : {...initial,status:'active',deadline:'2026-11-06T12:05:00Z'};
+  let snapshot=start;
+  let resolvePost!:(value:unknown)=>void;
+  const post=new Promise(resolve=>{resolvePost=resolve;});
+  vi.stubGlobal('fetch',vi.fn().mockImplementation((_url,options)=>options?.method==='POST' ? post : Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={start}/>);
+  const feedback=document.getElementById('submission-status')!;
+  fireEvent.click(screen.getByRole('button',{name:action==='ready' ? 'Ready to duel' : 'Submit solution'}));
+  const acknowledge=async()=>{await act(async()=>{resolvePost({ok:true,json:async()=>({status:action==='ready' ? 'pending' : 'queued'})});});};
+  if (!delayed) {
+    await acknowledge();
+    expect(feedback).toHaveTextContent(action==='ready' ? 'Ready. Waiting for both players' : 'Solution queued.');
+  }
+  snapshot={...start,status,deadline:status==='active' ? '2026-11-06T12:05:00Z' : start.deadline};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  if (delayed) await acknowledge();
+  expect(document.getElementById('submission-status')).toBe(feedback);
+  expect(feedback).not.toHaveTextContent(/Waiting for both players|Solution queued|Confirming readiness|Sending your solution/);
+  expect(feedback).not.toHaveClass('arena-action-pending');
+  expect(feedback).toHaveTextContent(status==='completed' ? 'Results are ready' : status==='cancelled' ? 'No ratings changed' : 'Your best judged solution counts');
+});
