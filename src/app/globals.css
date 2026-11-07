@@ -556,3 +556,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .account-standing { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .account-standing .account-rating { margin: 0; }
 .account-rating-note { color: var(--color-muted); font-size: 0.875rem; line-height: 1.6; }
+
+.account-refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--color-muted); border-radius: var(--radius-card, 12px); }
+.account-refresh > div { flex: 1 1 18rem; min-width: 0; }
+.account-refresh h2 { margin-top: 0; }
+.account-refresh p { margin-bottom: 0; color: var(--color-muted); }

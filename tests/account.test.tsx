@@ -220,3 +220,31 @@ it("hides account rating tiers for guests and unavailable sessions", async () =>
   const failed = render(await AccountPage({ searchParams: Promise.resolve({}) }));
   expect(failed.container.querySelector(".account-standing")).toBeNull();
 });
+
+it("offers a described native account refresh and reloads current rating and session state", async () => {
+  current.mockResolvedValueOnce({ id: "1", username: "Duelist", rating: 999.75 });
+  const first = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  const refresh = screen.getByRole("link", { name: "Refresh account" });
+  expect(refresh).toHaveAttribute("href", "/account");
+  expect(refresh).toHaveAccessibleDescription(/reflect when this page loaded/);
+  expect(refresh).toHaveAccessibleDescription(/account change in another tab/);
+  expect(screen.getByText("Bronze")).toBeInTheDocument();
+  first.unmount();
+  current.mockResolvedValueOnce({ id: "1", username: "Duelist", rating: 1000 });
+  const second = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByText("Silver")).toBeInTheDocument();
+  second.unmount();
+  current.mockResolvedValueOnce(null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.queryByRole("link", { name: "Refresh account" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
+  expect(current).toHaveBeenCalledTimes(3);
+});
+
+it("preserves account retry without snapshot guidance when session lookup fails", async () => {
+  current.mockRejectedValue(new Error("private"));
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.queryByRole("link", { name: "Refresh account" })).not.toBeInTheDocument();
+  expect(screen.queryByText("Your account at a glance")).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Retry account" })).toHaveAttribute("href", "/account");
+});

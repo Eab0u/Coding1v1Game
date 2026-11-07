@@ -1292,3 +1292,22 @@ it.each([320, 375, 1280])('keeps account rating and tier contained at %spx', asy
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps account refresh visible and keyboard accessible at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({ searchParams: Promise.resolve({}) }))}`);
+    const refresh = page.getByRole('link', { name: 'Refresh account' });
+    expect(await refresh.getAttribute('href')).toBe('/account');
+    expect(await page.locator('#account-refresh-note').isVisible()).toBe(true);
+    expect(await page.locator('.account-refresh').evaluate(el => getComputedStyle(el).display)).toBe('flex');
+    await page.locator('.brand').focus();
+    await page.keyboard.press('Tab');
+    expect(await refresh.evaluate(el => document.activeElement === el)).toBe(true);
+    const bounds = (await refresh.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});

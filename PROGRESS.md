@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Account snapshot refresh
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. JudgeUnavailableError still blocks sandbox validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded account improvement.
+- Added a native Refresh account action for signed-in players and a responsive bordered snapshot guide explaining that MMR, tier and session identity reflect page load. Refresh makes a document request to recheck the session after a completed duel or an account change in another tab. Guest forms and service-failure recovery retain their existing behavior.
+- Added component tests for full-precision tier changes, refreshed guest state, accessible guidance and unavailable sessions. Chromium checks at 320, 375 and 1280px cover styling, native Tab focus, 44px action height and page overflow. Corrected the new browser test's brand selector after initial timeouts.
+- Validation: all 1,119 tests across 70 files passed; targeted tests (172), lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host. Browser checks use rendered fixture markup; deployed navigation and live database checks remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Account rating tier clarity
 - Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. JudgeUnavailableError still blocks sandbox validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded account improvement.
 - Added the signed-in account tier badge beside explicitly labeled MMR, using full-precision rating thresholds and visible, accessible rounding guidance. Responsive wrapping keeps the rating and badge contained on phones. Guests and unavailable sessions show no rating summary.

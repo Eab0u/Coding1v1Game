@@ -22,6 +22,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   return <div className="shell"><a className="skip-link" href="#account-main">Skip to account</a><header className="site-header"><Link href="/" className="brand">Code<span className="accent">Duel</span></Link><span>Player account</span></header>
     <main id="account-main" tabIndex={-1} className="account"><p className="eyebrow">YOUR NEXT RIVAL IS WAITING</p><h1>{user ? `Welcome, ${user.username}` : "Enter the arena."}</h1>
       {!unavailable && feedback && <div className="account-error" role="alert"><h2>Account action needs attention</h2><p>{feedback.message}</p><p>{feedback.guidance}</p></div>}
+      {user && <aside className="account-refresh" aria-labelledby="account-refresh-title">
+        <div><h2 id="account-refresh-title">Your account at a glance</h2><p id="account-refresh-note">Your MMR, tier and signed-in player reflect when this page loaded. Refresh after a completed duel or an account change in another tab to check the latest available state.</p></div>
+        <a className="button button--secondary" href="/account" aria-describedby="account-refresh-note">Refresh account</a>
+      </aside>}
       {unavailable ? <Card className="ladder-recovery">
         <div role="alert"><h2>Account service unavailable</h2><p>We could not check your account. Try again to refresh your session and player options.</p></div>
         {/* A document request rechecks the session instead of reusing cached account state. */}
