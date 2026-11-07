@@ -307,7 +307,7 @@ it.each([320, 1280])('distinguishes final full, partial and zero-pass scores vis
       const badge = page.locator('.result-correctness-badge');
       expect(await badge.textContent()).toBe(passed===8?'All hidden tests passed':passed===0?'No hidden tests passed':'Some hidden tests passed');
       expect(await badge.isVisible()).toBe(true);
-      const color = passed===8?'rgb(164, 210, 117)':'rgb(229, 181, 103)';
+      const color = passed===8?'rgb(164, 210, 117)':passed===0?'rgb(255, 170, 163)':'rgb(229, 181, 103)';
       expect(await badge.evaluate(el=>getComputedStyle(el).color)).toBe(color);
       expect(await page.getByRole('progressbar').evaluate(el=>getComputedStyle(el).accentColor)).toBe(color);
       const box = (await badge.boundingBox())!;

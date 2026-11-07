@@ -6,6 +6,22 @@ import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
 const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:2000}];
 beforeEach(()=>localStorage.clear());
+it.each([0,1])('updates zero-pass verdict accents independently for participant %s',index=>{
+ const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p}))};
+ const view=render(<Results result={result}/>);
+ const card=screen.getByRole('region',{name:index===0?'Your result':'Opponent result'});
+ const other=screen.getByRole('region',{name:index===0?'Opponent result':'Your result'});
+ for(const passed of [0,3,8,0]) {
+  view.rerender(<Results result={{...result,players:players.map((p,i)=>i===index?{...p,passed}:p)}}/>);
+  expect(within(card).getByRole('progressbar').parentElement).toHaveClass(`result-correctness--${passed===0?'zero':passed===8?'full':'partial'}`);
+  expect(other.querySelector('.result-correctness--zero')).toBeNull();
+ }
+ for(const score of [{passed:0,total:8,submitted:null},{passed:-1,total:8,submitted:1000},{passed:0,total:8,submitted:NaN}]) {
+  view.rerender(<Results result={{...result,players:players.map((p,i)=>i===index?{...p,...score}:p)}}/>);
+  expect(card.querySelector('.result-correctness--zero')).toBeNull();
+  expect(within(card).queryByText('No hidden tests passed')).toBeNull();
+ }
+});
 it.each([0,1])('distinguishes incomplete rating history for participant %s and recovers complete history',index=>{
  const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p}))};
  const view=render(<Results result={result}/>);
@@ -75,7 +91,7 @@ it.each([[0,'No hidden tests passed'],[5,'Some hidden tests passed'],[8,'All hid
  expect(meter).toHaveAttribute('aria-valuetext',`${passed} of 8 hidden tests passed`);
  expect(screen.getByText(label)).toBeVisible();
  expect(screen.getByText(label)).toHaveClass('badge','result-correctness-badge');
- expect(meter.parentElement).toHaveClass(`result-correctness--${passed===8?'full':'partial'}`);
+ expect(meter.parentElement).toHaveClass(`result-correctness--${passed===8?'full':passed===0?'zero':'partial'}`);
 });
 it('removes verdict styling for invalid or absent scores and recovers corrected scores',()=>{
  const result={title:'Sample',outcome:'WIN' as const,players:[players[0]]};
@@ -84,11 +100,11 @@ it('removes verdict styling for invalid or absent scores and recovers corrected 
   view.rerender(<Results result={{...result,players:[{...players[0],...score}]}}/>);
   expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   expect(view.container.querySelector('.result-correctness-badge')).toBeNull();
-  expect(view.container.querySelector('.result-correctness--full, .result-correctness--partial')).toBeNull();
+  expect(view.container.querySelector('.result-correctness--full, .result-correctness--partial, .result-correctness--zero')).toBeNull();
  }
  view.rerender(<Results result={{...result,players:[{...players[0],passed:0}]}}/>);
  expect(screen.getByText('No hidden tests passed')).toHaveClass('result-correctness-badge');
- expect(screen.getByRole('progressbar').parentElement).toHaveClass('result-correctness--partial');
+ expect(screen.getByRole('progressbar').parentElement).toHaveClass('result-correctness--zero');
  view.rerender(<Results result={result}/>);
  expect(screen.getByRole('progressbar').parentElement).toHaveClass('result-correctness--full');
  view.rerender(<Results result={{...result,players:[{...players[0],passed:0,submitted:null}]}}/>);

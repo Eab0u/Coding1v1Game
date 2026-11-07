@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Distinct zero-pass results accents
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one visual results improvement. Zero-pass judged submissions now use the shared failure color for their explicit verdict badge and progress accent, separating them from amber partial passes and green full passes. No-submission and unavailable-history cards retain their existing guidance.
+- Updated component and phone/desktop browser assertions and added participant-symmetric transitions between zero, partial and full scores, plus guards for invalid scores, invalid timestamps and fallback no-submission history.
+- Validation: all 1,302 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed. Corrected the outdated zero-pass style assertion found by the first run.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Incomplete saved rating history
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one results-page fix. A saved rating pair with only one value now shows Rating unavailable with explicit guidance instead of Rating not recorded. Fully absent pairs retain the historical empty state; the recorded outcome and independent score metrics remain visible.
