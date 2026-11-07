@@ -106,7 +106,7 @@ function RematchSession({id}:{id:string}) {
     {state?.status==='pending' && (state.outgoing?<button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('cancel')}>Cancel invitation</button>:<div className="result-actions"><button className="button button--primary" disabled={busy || deadlinePassed} onClick={()=>void act('accept')}>Accept rematch</button><button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('decline')}>Decline</button></div>)}
     {state?.matchId && <Link className="button button--primary" href={`/match/${state.matchId}`}>Open rematch arena</Link>}
     {terminal && state.status!=='accepted' && <Link className="button button--primary" href="/">Find a new opponent</Link>}
-    {error && <p role="alert">{error}</p>}
+    {error && !terminal && !deadlinePassed && <p role="alert">{error}</p>}
     {pollError && !terminal && <div className="rematch-recovery">
       <p role="alert">{pollError}</p>
       <button className="button button--secondary" disabled={busy || refreshing} onClick={retry}>Retry invitation update</button>

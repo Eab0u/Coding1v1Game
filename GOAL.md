@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Retire obsolete rematch action errors at invitation deadlines and authoritative outcomes, preserving active-window retry feedback with participant-symmetric and delayed-failure regression coverage
 - [x] Preserve one stable polite rematch announcement region through authoritative acceptance, decline, cancellation and expiry, with reopening, polling and delayed-action regression coverage
 - [x] Retire expired rematch invitation prompts and busy styling with polite server-confirmation guidance, incoming/outgoing reopening and delayed-action regression coverage
 - [x] Retire expired arena submission action feedback and busy indicators, preserving server-confirmation and code-export guidance with reopening, delayed-response and terminal polling regression coverage

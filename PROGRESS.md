@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Retire obsolete rematch action errors
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still prevents sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one rematch improvement: action error alerts retire at local invitation expiry and authoritative acceptance, decline, cancellation or expiry. Active-window failures remain visible for retry; server-confirmation and recovery guidance remain available.
+- Added eight regression cases covering all four polled outcomes, incoming/outgoing deadlines and both participants' delayed action failures after expiry.
+- Validation: all 1,426 tests across 72 files passed before the last two delayed-failure cases; all 39 focused rematch tests passed with those cases included. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
 
 ### 2026-11-07 - Stable rematch outcome announcements
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python solutions ran outside the sandbox.
