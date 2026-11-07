@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Keyboard password concealment
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account usability improvement.
+- Escape in a revealed password input or its Hide button now conceals that password without moving focus, submitting the form, changing credentials or clearing validation and byte-budget feedback. The adjacent form remains independent. Inline guidance explains the shortcut; Escape remains available to enclosing controls when the password is already concealed.
+- Added regression coverage for input and button focus, independent controls, unrelated keys, handled versus repeated Escape, preserved credentials and validation, re-reveal and correction recovery.
+- Validation: all 780 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Conceal passwords on page departure
 - Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account lifecycle fix.
 - Revealed sign-in and sign-up passwords now conceal on page departure, including back/forward cache navigation when visibility remains visible. Credentials, byte budgets and validation errors remain intact; stale Caps Lock feedback clears. Returning leaves passwords concealed until the user selects Show again. Inline guidance explains this behavior.

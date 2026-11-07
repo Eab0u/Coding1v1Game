@@ -37,7 +37,14 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
   const id = `${mode}-password`;
   return <>
     <label htmlFor={id}>Password</label>
-    <div className="password-field">
+    <div className="password-field" onKeyDown={event => {
+      if (event.key === "Escape" && visible) {
+        event.preventDefault();
+        event.stopPropagation();
+        setVisible(false);
+        setCapsLock(false);
+      }
+    }}>
       <input ref={inputRef} id={id} name="password" type={visible ? "text" : "password"}
         autoComplete={mode === "login" ? "current-password" : "new-password"}
         required minLength={PASSWORD_MIN_LENGTH} maxLength={PASSWORD_MAX_BYTES}
@@ -57,7 +64,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
         aria-label={`${visible ? "Hide" : "Show"} ${mode === "login" ? "sign-in" : "sign-up"} password`}
         onClick={() => setVisible(value => !value)}>{visible ? "Hide" : "Show"}</Button>
     </div>
-    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Revealed passwords hide when you switch tabs. They also hide when you leave this page.</p>
+    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape in the password field or Hide button to conceal a revealed password. Revealed passwords hide when you switch tabs. They also hide when you leave this page.</p>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
       <strong>{bytes} / {PASSWORD_MAX_BYTES} bytes</strong>
       <span>Emoji and some letters use more than one byte.</span>

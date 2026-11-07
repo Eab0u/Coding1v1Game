@@ -5,6 +5,43 @@ import { PasswordField } from "../src/components/password-field";
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
 afterEach(() => vi.restoreAllMocks());
 
+it.each(["input", "button"])("conceals only the selected password with Escape from its %s", target => {
+  const submit = vi.fn(event => event.preventDefault());
+  const outerKey = vi.fn();
+  render(<form onSubmit={submit} onKeyDown={outerKey}><PasswordField mode="login" /><PasswordField mode="signup" /></form>);
+  const [login, signup] = screen.getAllByLabelText<HTMLInputElement>("Password");
+  fireEvent.change(login, { target: { value: "short" } });
+  fireEvent.change(signup, { target: { value: "another private password" } });
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-up password" }));
+  const button = screen.getByRole("button", { name: "Hide sign-in password" });
+  const focused = target === "input" ? login : button;
+  focused.focus();
+  fireEvent.keyDown(focused, { key: "ArrowLeft" });
+  expect(login).toHaveAttribute("type", "text");
+  outerKey.mockClear();
+  expect(fireEvent.keyDown(focused, { key: "Escape" })).toBe(false);
+  expect(outerKey).not.toHaveBeenCalled();
+  expect(focused).toHaveFocus();
+  expect(login).toHaveAttribute("type", "password");
+  expect(login).toHaveValue("short");
+  expect(login).toHaveAttribute("aria-invalid", "true");
+  expect(login.validationMessage).toBe("Use at least 12 characters.");
+  expect(login).toHaveAccessibleDescription(/5 \/ 256 bytes/);
+  expect(login).toHaveAccessibleDescription(/Press Escape/);
+  expect(button).toHaveAccessibleName("Show sign-in password");
+  expect(button).toHaveAttribute("aria-pressed", "false");
+  expect(signup).toHaveAttribute("type", "text");
+  expect(signup).toHaveValue("another private password");
+  expect(fireEvent.keyDown(focused, { key: "Escape" })).toBe(true);
+  expect(outerKey).toHaveBeenCalledTimes(1);
+  expect(submit).not.toHaveBeenCalled();
+  fireEvent.click(button);
+  expect(login).toHaveAttribute("type", "text");
+  fireEvent.change(login, { target: { value: "corrected private password" } });
+  expect(login).toBeValid();
+});
+
 it.each([false, true])("conceals passwords on page departure (cached: %s) and preserves field feedback", persisted => {
   vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
   render(<><PasswordField mode="login" /><PasswordField mode="signup" /></>);
