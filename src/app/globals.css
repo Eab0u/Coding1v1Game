@@ -617,3 +617,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .arena-progress--zero .arena-progress-badge { color: var(--color-danger); }
 .arena-verdict--zero { border-left-color: var(--color-danger); }
 .arena-verdict--zero .arena-verdict-badge { color: var(--color-danger); }
+
+.arena-connection-recovered { padding:12px 16px; margin:0 0 20px; border-left:4px solid var(--color-accent); border-radius:8px; background:var(--color-surface); overflow-wrap:anywhere; }

@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Arena connection recovery feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: a visible green-accented notice and stable polite live region confirm when match status and progress refresh after a connection failure. Healthy initial polling stays silent; repeated successful polls preserve the message without changing it. Another outage clears it until recovery, including recovery into completed/cancelled states.
+- Added four regression cases covering healthy polling, repeated failures, manual retry, automatic recovery, recurring outages and all four match states.
+- Validation: all 1,344 tests across 72 files passed; targeted arena tests passed (92 tests). Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech still needs manual verification.
+
 ### 2026-11-07 - Live arena best-score announcements
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one accessibility item: both arena progress cards now have stable, polite, atomic live regions identifying the participant and exact verified hidden-test counts. Missing and invalid scores announce their honest status, and corrected polling restores counts. Announcements omit repeated scoring explanations and win claims.

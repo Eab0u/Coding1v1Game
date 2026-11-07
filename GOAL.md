@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Announce restored arena live updates after connection failures with visible snapshot feedback and retry, recurring-outage and terminal-state regression coverage
 - [x] Announce both players' arena best-score changes through stable polite live regions, with exact verified counts, unavailable-state recovery and participant-symmetric polling regression coverage
 - [x] Withhold arena best-score and tiebreak claims for missing or invalid progress, restoring associated guidance after verified polling updates with participant-symmetric regression coverage
 - [x] Associate each saved-results progress bar with visible best-submission and tiebreak guidance, preserving unavailable-history safeguards with participant-symmetric recovery tests

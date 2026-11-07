@@ -803,3 +803,38 @@ it.each(['pending','active','completed','cancelled'] as const)('preserves the fu
   expect(region).toHaveAccessibleDescription('Keep this function name and parameters in your solution. Long signatures scroll sideways; focus the code and use the arrow keys, or swipe.');
   expect(region.querySelector('code')?.textContent).toBe(signature);
 });
+
+it.each(['pending','active','completed','cancelled'] as const)('announces recovery into %s only after a failed update',async(status)=>{
+  vi.useFakeTimers();
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>initial});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={initial}/>);
+  const recovery=screen.getByRole('status',{name:'Live update recovery'});
+  expect(recovery).toBeEmptyDOMElement();
+  expect(recovery).toHaveAttribute('aria-live','polite');
+  expect(recovery).toHaveAttribute('aria-atomic','true');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(recovery).toBeEmptyDOMElement();
+  fetcher.mockRejectedValue(new Error('offline'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('alert')).toHaveTextContent('Live updates unavailable');
+  expect(recovery).toBeEmptyDOMElement();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(recovery).toBeEmptyDOMElement();
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...initial,status})});
+  await act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Retry live updates'}));});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByRole('status',{name:'Live update recovery'})).toBe(recovery);
+  expect(recovery).toHaveTextContent('Live updates restored. Match status and progress refreshed from the server.');
+  expect(recovery).toHaveClass('arena-connection-recovered');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(recovery).toHaveTextContent('Live updates restored.');
+  if (status==='pending' || status==='active') {
+    fetcher.mockResolvedValue({ok:false});
+    await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+    expect(recovery).toBeEmptyDOMElement();
+    fetcher.mockResolvedValue({ok:true,json:async()=>({...initial,status})});
+    await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+    expect(recovery).toHaveTextContent('Live updates restored.');
+  }
+});

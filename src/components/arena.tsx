@@ -34,6 +34,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const sourceError=solutionError(source);
   const [elapsed,setElapsed]=useState(0);
   const [error,setError]=useState("");
+  const [connectionRecovered,setConnectionRecovered]=useState(false);
   const [refreshPending,setRefreshPending]=useState(false);
   const retryRefresh=useRef<(()=>Promise<void>)|null>(null);
   const [sending,setSending]=useState<"ready"|"submit"|null>(null);
@@ -67,6 +68,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
     const clock=setInterval(()=>setElapsed(performance.now()-received.current),250);
     let stopped=false;
     let refreshing=false;
+    let connectionFailed=false;
     const controller=new AbortController();
     async function refresh() {
       if (stopped || refreshing) return;
@@ -77,8 +79,8 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         const response=await fetch(`/api/matches/${initial.id}`,{cache:"no-store",signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])});
         if (!response.ok) throw new Error();
         const next:ArenaSnapshot=await response.json();
-        if (!stopped) { received.current=performance.now();setElapsed(0);setMatch(next);setError(""); }
-      } catch { if (!stopped) setError("Live updates unavailable. Retrying; progress may be out of date."); }
+        if (!stopped) { received.current=performance.now();setElapsed(0);setMatch(next);setError("");if (connectionFailed) setConnectionRecovered(true);connectionFailed=false; }
+      } catch { if (!stopped) {connectionFailed=true;setConnectionRecovered(false);setError("Live updates unavailable. Retrying; progress may be out of date.");} }
       refreshing=false;
       if (!stopped) setRefreshPending(false);
       if (!stopped) timer=setTimeout(refresh,2000);
@@ -119,6 +121,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <button type="button" className="button button--secondary" disabled={refreshPending} onClick={()=>void retryRefresh.current?.()}>Retry live updates</button>
       <span role="status">{refreshPending ? "Refreshing match state…" : "Automatic retries continue every two seconds."}</span>
     </section>}
+    <p role="status" aria-label="Live update recovery" aria-live="polite" aria-atomic="true" className={connectionRecovered ? "arena-connection-recovered" : "sr-only"}>{connectionRecovered ? "Live updates restored. Match status and progress refreshed from the server." : ""}</p>
     <ArenaProgress score={match.progress}/>
     <div className="arena-columns"><section className="card arena-editor"><div className="arena-panel-heading"><h1 id="arena-solution-title" tabIndex={-1}>Your solution</h1><span className="badge">Python 3</span></div>
       <div onKeyDownCapture={event=>{
