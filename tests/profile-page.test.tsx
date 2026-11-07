@@ -231,3 +231,19 @@ it('does not offer snapshot refresh when profile loading fails', async () => {
   expect(screen.queryByRole('link', {name:'Refresh profile'})).not.toBeInTheDocument();
   expect(screen.queryByText(/reflect when this page loaded/)).not.toBeInTheDocument();
 });
+
+it('offers a native recent-duels shortcut only when history is available', async () => {
+  const view = render(await Profile({params}));
+  expect(screen.queryByRole('link', {name:'Jump to recent duels'})).not.toBeInTheDocument();
+  view.unmount();
+  mocks.load.mockResolvedValue({username:'Ada',rating:800,record:{wins:1,losses:0,draws:0},ratings:[],history:[{id:'1',title:'Test',opponent:'Bob',result:'WIN',delta:8,completed_at:new Date('2026-01-01Z')}]});
+  const populated = render(await Profile({params}));
+  expect(screen.getByRole('link', {name:'Jump to recent duels'})).toHaveAttribute('href','#recent-duels-title');
+  expect(screen.getByRole('heading', {name:'Recent duels'})).toHaveAttribute('id','recent-duels-title');
+  expect(screen.getByRole('heading', {name:'Recent duels'})).toHaveAttribute('tabindex','-1');
+  populated.unmount();
+  mocks.load.mockRejectedValue(new Error('private'));
+  render(await Profile({params}));
+  expect(screen.queryByRole('link', {name:'Jump to recent duels'})).not.toBeInTheDocument();
+  expect(document.getElementById('recent-duels-title')).toBeNull();
+});

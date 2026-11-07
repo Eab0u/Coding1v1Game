@@ -1278,6 +1278,8 @@ it.each([320, 375, 1280])('keeps profile refresh visible and keyboard accessible
     expect(await page.locator('#profile-refresh-note').isVisible()).toBe(true);
     await page.getByRole('link', {name:'Your account',exact:true}).focus();
     await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', {name:'Jump to recent duels'}).evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
     expect(await refresh.evaluate(el => el === document.activeElement)).toBe(true);
     const bounds = (await refresh.boundingBox())!;
     expect(bounds.height).toBeGreaterThanOrEqual(44);
@@ -1378,5 +1380,26 @@ it.each([320, 375, 1280])('opens leaderboard tier guidance with native keyboard 
     expect(await guide.getAttribute('open')).toBeNull();
     await page.keyboard.press('Tab');
     expect(await page.getByRole('link', { name: 'Refresh standings' }).evaluate(el => document.activeElement === el)).toBe(true);
+  } finally { await page.close(); }
+});
+
+it.each([320, 375, 1280])('jumps past profile details to duel history at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    state.profileUnavailable = false;
+    state.profileEmpty = false;
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Profile({params:Promise.resolve({username})}))}`);
+    await page.getByRole('link', {name:'Your account'}).focus();
+    await page.keyboard.press('Tab');
+    const jump = page.getByRole('link', {name:'Jump to recent duels'});
+    expect(await jump.evaluate(el => document.activeElement === el)).toBe(true);
+    expect((await jump.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Enter');
+    expect(await page.locator('#recent-duels-title').evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('region', {name:'Recent duel history'}).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', {name:username, exact:true}).evaluate(el => document.activeElement === el)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Direct keyboard access to recent profile duels
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks validation. Left both catalog milestones unchecked and followed the blocker rule to add and complete one bounded profile usability item.
+- Added a visible native Jump to recent duels action before profile refresh and rating details when completed history exists. Its heading accepts fragment focus without adding a Tab stop; subsequent Tabs reach the scrollable history region and opponent links. Empty and unavailable profiles omit the action.
+- Reused the secondary button styling and added component safeguards plus Chromium keyboard, touch-height and page-overflow checks at 320, 375 and 1280 pixels. Updated existing refresh keyboard checks for the new preceding shortcut.
+- Validation: all 1,161 tests across 70 files passed; focused profile/mobile tests (199 tests), lint, typecheck, production build and whitespace checks passed. An initial focused run also encountered an arena scrolling timing failure; subsequent focused and full runs passed without changing that test. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
 ### 2026-11-07 - Direct keyboard access to standings
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded leaderboard usability item.
 - Added a visible native Jump to standings action ahead of filters and ranking guides on populated global, weekly and friends ladders. Its heading destination accepts fragment focus without adding a Tab stop; the next Tab reaches the keyboard-scrollable standings region and then player links. Empty, unavailable and signed-out friends views omit the shortcut.
