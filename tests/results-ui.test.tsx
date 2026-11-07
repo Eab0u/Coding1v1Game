@@ -163,3 +163,31 @@ it('distinguishes fallback scores from measured zero-pass attempts and missing h
  expect(screen.queryByText('No judged submission')).not.toBeInTheDocument();
  expect(screen.queryByText('Fallback benchmark CPU')).not.toBeInTheDocument();
 });
+
+it.each([
+ {passed:-1,total:8}, {passed:9,total:8}, {passed:1.5,total:8},
+ {passed:0,total:0}, {passed:1,total:null}, {passed:1,total:8.5},
+ {passed:NaN,total:8}, {passed:1,total:Infinity},
+ {passed:Number.MAX_SAFE_INTEGER+1,total:Number.MAX_SAFE_INTEGER+1},
+])('withholds invalid saved correctness and recovers valid results %j',score=>{
+ const result: DuelResult={title:'Saved duel',outcome:'WIN',players:[{...players[0],...score}]};
+ const {rerender}=render(<Results result={result}/>);
+ expect(screen.queryByRole('progressbar')).toBeNull();
+ expect(screen.getByText('Test score unavailable')).toBeVisible();
+ expect(screen.getByText('Unavailable',{exact:true})).toBeVisible();
+ expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
+ expect(screen.getByText(/recorded match outcome above still applies/)).toBeVisible();
+ rerender(<Results result={{...result,players:[{...result.players[0],submitted:null}]}}/>);
+ expect(screen.queryByText('No judged submission')).toBeNull();
+ expect(screen.queryByText('Fallback benchmark CPU')).toBeNull();
+ for (const passed of [0,3,8]) {
+  rerender(<Results result={{...result,players:[{...players[0],passed}]}}/>);
+  expect(screen.getByRole('progressbar')).toHaveAttribute('value',String(passed));
+  expect(screen.queryByText('Test score unavailable')).toBeNull();
+  expect(screen.queryByText('Unavailable',{exact:true})).toBeNull();
+ }
+ rerender(<Results result={{...result,players:[{...players[0],passed:null,total:null}]}}/>);
+ expect(screen.queryByRole('progressbar')).toBeNull();
+ expect(screen.queryByText('Test score unavailable')).toBeNull();
+ expect(screen.getAllByText('Not recorded').length).toBeGreaterThan(0);
+});

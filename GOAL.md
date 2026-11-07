@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Validate saved results test counts before rendering progress, fallback-score guidance or numeric comparisons, with explicit unavailable feedback and recovery regression coverage
 - [x] Distinguish zero-pass latest and best arena scores from partial success with explicit badges, correction guidance and polling regression coverage
 - [x] Recover verdict feedback after reopening an arena with an unavailable initial judged score, preserving silent valid history and once-only polling recovery
 - [x] Distinguish partial and full arena best scores with responsive text badges and amber/green progress accents, explicit full-pass result guidance and polling-transition regression coverage

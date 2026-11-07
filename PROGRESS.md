@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Validate saved results correctness
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured Judge0 service returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one results-page fix. Saved correctness now uses the shared safe-integer score validator before rendering progress bars, numeric test-count comparisons or fallback-score guidance. Invalid counts show a styled unavailable notice explaining that the recorded outcome still applies; absent historical scores retain their Not recorded state.
+- Added nine regression cases covering negative, excessive, fractional, missing-total, zero-total, nonfinite and unsafe-integer counts, invalid no-submission snapshots, and recovery to zero/partial/full valid scores and absent history.
+- Validation: all 1,264 tests across 72 files passed, including 44 results UI tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Explicit zero-pass arena feedback
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
 - Followed the blocker rule to add and complete one arena feedback improvement. Latest-attempt and player/opponent best-score badges now distinguish No tests passed from partial success. Valid zero-pass latest attempts suggest checking the function signature and public examples before submitting a correction, without exposing hidden inputs.
