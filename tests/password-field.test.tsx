@@ -264,3 +264,48 @@ it("refreshes the byte budget when a silently filled password fails native valid
   expect(input).toBeValid();
   expect(input).not.toHaveAttribute("aria-invalid");
 });
+
+it.each(["login", "signup"] as const)("conceals only the submitted %s form and preserves credentials", mode => {
+  const submit = vi.fn(event => event.preventDefault());
+  render(<><form aria-label="login" onSubmit={submit}><PasswordField mode="login" /></form><form aria-label="signup" onSubmit={submit}><PasswordField mode="signup" /></form></>);
+  const inputs = screen.getAllByLabelText<HTMLInputElement>("Password");
+  inputs.forEach(input => fireEvent.change(input, { target: { value: "private password" } }));
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-up password" }));
+  const selected = inputs[mode === "login" ? 0 : 1];
+  const other = inputs[mode === "login" ? 1 : 0];
+  fireEvent.keyDown(selected, { key: "A", modifierCapsLock: true });
+  fireEvent.submit(screen.getByRole("form", { name: mode }));
+  expect(submit).toHaveBeenCalledTimes(1);
+  expect(selected).toHaveAttribute("type", "password");
+  expect(selected).toHaveValue("private password");
+  expect(selected).toHaveAccessibleDescription(/16 \/ 256 bytes/);
+  expect(selected).toHaveAccessibleDescription(/including when a field needs correction/);
+  expect(other).toHaveAttribute("type", "text");
+  expect(screen.queryByText(warning)).not.toBeInTheDocument();
+});
+
+it.each(["username", "password"])("conceals on native %s validation failure and allows correction and reveal", field => {
+  render(<form><input aria-label="Username" required /><PasswordField mode="login" /></form>);
+  const password = screen.getByLabelText<HTMLInputElement>("Password");
+  fireEvent.change(password, { target: { value: "short" } });
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  fireEvent.invalid(field === "password" ? password : screen.getByLabelText("Username"));
+  expect(password).toHaveAttribute("type", "password");
+  expect(password).toHaveValue("short");
+  expect(password.validationMessage).toBe("Use at least 12 characters.");
+  expect(password).toHaveAttribute("aria-invalid", "true");
+  fireEvent.change(password, { target: { value: "corrected password" } });
+  expect(password.validity.customError).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  expect(password).toHaveAttribute("type", "text");
+});
+
+it("removes form concealment listeners on unmount", () => {
+  const { unmount } = render(<form aria-label="credentials"><PasswordField mode="login" /></form>);
+  const form = screen.getByRole("form", { name: "credentials" });
+  const remove = vi.spyOn(form, "removeEventListener");
+  unmount();
+  expect(remove).toHaveBeenCalledWith("submit", expect.any(Function), true);
+  expect(remove).toHaveBeenCalledWith("invalid", expect.any(Function), true);
+});

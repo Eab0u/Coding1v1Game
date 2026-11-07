@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Conceal revealed account passwords on form submission and native validation failure, preserving independent forms, credentials and correction feedback with listener cleanup tests
 - [x] Refresh username native validation and accessible feedback on focus after silent autofill replacements, preserving independent account and friend forms with correction and empty-field tests
 - [x] Refresh password byte budgets and native validation on focus after silent password-manager fills, preserving reveal state and independent forms with recovery tests
 - [x] Restrict account action feedback to recognized errors and provide specific recovery guidance while rejecting arbitrary URL messages

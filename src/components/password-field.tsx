@@ -18,6 +18,21 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
     setBytes(new TextEncoder().encode(input.value).byteLength);
   }, []));
   useEffect(() => {
+    const form = inputRef.current?.form;
+    if (!form) return;
+    const conceal = () => {
+      setVisible(false);
+      setCapsLock(false);
+    };
+    form.addEventListener("submit", conceal, true);
+    // Invalid does not bubble; capture also covers an invalid username.
+    form.addEventListener("invalid", conceal, true);
+    return () => {
+      form.removeEventListener("submit", conceal, true);
+      form.removeEventListener("invalid", conceal, true);
+    };
+  }, [inputRef]);
+  useEffect(() => {
     const concealOnDeparture = () => {
       setVisible(false);
       setCapsLock(false);
@@ -66,7 +81,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
         aria-label={`${visible ? "Hide" : "Show"} ${mode === "login" ? "sign-in" : "sign-up"} password`}
         onClick={() => setVisible(value => !value)}>{visible ? "Hide" : "Show"}</Button>
     </div>
-    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape in the password field or Hide button to conceal a revealed password. Revealed passwords hide when you switch tabs. They also hide when you leave this page.</p>
+    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape in the password field or Hide button to conceal a revealed password. Revealed passwords hide when you switch tabs. They also hide when you leave this page or submit this form, including when a field needs correction.</p>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
       <strong>{bytes} / {PASSWORD_MAX_BYTES} bytes</strong>
       <span>Emoji and some letters use more than one byte.</span>
