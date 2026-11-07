@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Exact accessible arena progress
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item: both arena progress bars now expose exact passed/total hidden-test counts through aria-valuetext instead of leaving assistive technology to announce percentages. Existing labels, scoring descriptions and unavailable-state safeguards remain intact.
+- Added participant-symmetric polling tests for zero, partial and full counts, unavailable scores, corrected totals and separate simultaneous player descriptions. Preserved all existing progress regression tests.
+- Validation: full suite passed (1,324 tests across 72 files); final progress test file passed all 5 tests after preserving the existing cases. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog. Added a future visual-polish item for empty arena progress cards; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Calendar-safe completion dates
 - Retried the highest-value unchecked catalog milestone using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. No Python ran outside the sandbox and catalog milestones remain unchecked.
 - Followed the blocker rule and added/completed one history-display fix: shared completion dates now reject impossible calendar days and 24:00 normalization instead of showing a different completion instant. Dashboard, profile and results inherit the fix.

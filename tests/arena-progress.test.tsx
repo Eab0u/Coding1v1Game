@@ -41,3 +41,31 @@ it.each([false, true])("recovers best progress after invalid polling counts (pla
   expect(screen.queryByText("No tests passed")).toBeNull();
   expect(screen.getByRole("region")).not.toHaveClass("arena-progress--full", "arena-progress--partial", "arena-progress--zero");
 });
+
+it.each([true, false])("announces exact best-test counts through polling for player=%s", player => {
+  const { rerender } = render(<ArenaProgress player={player} score={null} />);
+  expect(screen.queryByRole("progressbar")).toBeNull();
+  for (const passed of [0, 3, 8]) {
+    rerender(<ArenaProgress player={player} score={{ passed, total: 8 }} />);
+    const bar = screen.getByRole("progressbar", { name: `${player ? "Your" : "Opponent"} best tests passed: ${passed} / 8` });
+    expect(bar).toHaveAttribute("aria-valuetext", `${passed} of 8 hidden tests passed`);
+    expect(bar).toHaveAttribute("value", String(passed));
+    expect(bar).toHaveAttribute("max", "8");
+    expect(bar).toHaveAccessibleDescription(/runtime and submission time break ties/);
+  }
+  rerender(<ArenaProgress player={player} score={{ passed: 9, total: 8 }} />);
+  expect(screen.queryByRole("progressbar")).toBeNull();
+  expect(screen.getByText(/Score unavailable/)).toBeVisible();
+  rerender(<ArenaProgress player={player} score={{ passed: 1, total: 10 }} />);
+  expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuetext", "1 of 10 hidden tests passed");
+});
+
+it("keeps both players' progress names and descriptions separate", () => {
+  render(<><ArenaProgress player score={{ passed: 2, total: 8 }} /><ArenaProgress score={{ passed: 5, total: 8 }} /></>);
+  const own = screen.getByRole("progressbar", { name: /Your best/ });
+  const opponent = screen.getByRole("progressbar", { name: /Opponent best/ });
+  expect(own).toHaveAttribute("aria-valuetext", "2 of 8 hidden tests passed");
+  expect(opponent).toHaveAttribute("aria-valuetext", "5 of 8 hidden tests passed");
+  expect(own).toHaveAccessibleDescription(/current edits were submitted/);
+  expect(opponent).not.toHaveAccessibleDescription(/current edits were submitted/);
+});
