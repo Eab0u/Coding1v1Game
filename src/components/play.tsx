@@ -94,8 +94,8 @@ export function Play({ signedIn }: { signedIn: boolean }) {
         if (reserving && (data.type === "queued" || data.type === "matching")) return;
         if (["queued", "matching", "matched", "left", "error"].includes(data.type)) clearResponseTimer();
         if (data.type === "queued") {
-          if (!Number.isFinite(data.waitedSeconds) || data.waitedSeconds < 0 || !Number.isFinite(data.ratingBand) || data.ratingBand < 0) throw new Error("Invalid queue status");
-          setQueueStats({ waitedSeconds: Math.floor(data.waitedSeconds), ratingBand: Math.floor(data.ratingBand) });
+          if (!Number.isSafeInteger(data.waitedSeconds) || data.waitedSeconds < 0 || !Number.isSafeInteger(data.ratingBand) || data.ratingBand < 100 || data.ratingBand > 800 || data.ratingBand % 50 !== 0) throw new Error("Invalid queue status");
+          setQueueStats({ waitedSeconds: data.waitedSeconds, ratingBand: data.ratingBand });
           setPhase("queued"); setMessage("Finding opponent. Rating bands widen as you wait. Wait estimate unavailable.");
         }
         else if (data.type === "matching") {

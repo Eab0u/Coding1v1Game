@@ -484,3 +484,38 @@ it.each([null, [], {}, { type: "unknown" }, { type: 1 },
   event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
   expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
 });
+it.each([
+  { waitedSeconds: 0.5 }, { waitedSeconds: Number.MAX_SAFE_INTEGER + 1 },
+  { waitedSeconds: "10" }, { waitedSeconds: null }, { waitedSeconds: -1 },
+  { ratingBand: 0 }, { ratingBand: 99 }, { ratingBand: 125 },
+  { ratingBand: 800.5 }, { ratingBand: 850 }, { ratingBand: "100" },
+])("rejects impossible queue statistics %j and restores a usable retry", invalid => {
+  vi.useFakeTimers();
+  const ws = start();
+  event({ type: "queued", waitedSeconds: 10, ratingBand: 150 });
+  screen.getByRole("button", { name: "Cancel search" }).focus();
+  event({ type: "queued", waitedSeconds: 10, ratingBand: 150, ...invalid });
+  expect(screen.queryByRole("definition")).not.toBeInTheDocument();
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toBeEnabled();
+  expect(play).toHaveFocus();
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(ws.close).toHaveBeenCalledOnce();
+  expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response. Please try again.");
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response");
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 140, ratingBand: 800 });
+  expect(screen.getByText("140s elapsed")).toBeInTheDocument();
+  event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
+
+it.each([100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800])("accepts supported queue band %i", ratingBand => {
+  start();
+  event({ type: "queued", waitedSeconds: 0, ratingBand });
+  expect(screen.getByText("0s elapsed")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Cancel search" })).toBeEnabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Finding opponent");
+});

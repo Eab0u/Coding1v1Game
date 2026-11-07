@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Queue statistics validation
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking recovery item. Queue wait times now require nonnegative safe integers, and rating bands must match the server's supported 100-800 point range in 50-point increments. Invalid frames close the connection and restore actionable retry guidance rather than displaying rounded or impossible statistics.
+- Added 26 regression cases covering malformed statistics, keyboard focus recovery, cleared busy state, timer cleanup, successful retry and all 15 supported rating bands.
+- Validation: all 1,550 tests across 72 files passed, including 89 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Reservation keyboard handoff
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one keyboard navigation item. A reservation that removes the focused Cancel search control now preserves focus intent until the confirmed Open arena link appears. Independent navigation is respected, and new searches clear prior reservation intent.
