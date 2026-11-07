@@ -1447,3 +1447,25 @@ it.each([320, 375, 1280])('opens dashboard tier guidance by keyboard at %spx', a
     expect(await page.getByRole('region', {name:'Daily challenge function signature'}).evaluate(el => el === document.activeElement)).toBe(true);
   } finally { await page.close(); }
 });
+
+
+it.each([320, 375, 1280])('jumps to the daily preview by keyboard at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const jump = page.getByRole('link', {name:'Jump to daily challenge'});
+    await page.getByRole('link', {name:'Jump to recent duels'}).focus();
+    await page.keyboard.press('Tab');
+    expect(await jump.evaluate(el => document.activeElement === el)).toBe(true);
+    expect((await jump.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Enter');
+    expect(await page.locator('#home-daily-challenge-title').evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('region', {name:'Daily challenge function signature'}).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.locator('.daily-statement summary').evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Enter');
+    expect(await page.locator('.daily-statement').getAttribute('open')).not.toBeNull();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Direct keyboard access to the daily challenge
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Left catalog milestones unchecked and followed the blocker rule to add and complete one bounded dashboard usability item.
+- Added a styled native Jump to daily challenge action for guests and signed-in players with a published preview. Its heading accepts fragment focus without an extra Tab stop; subsequent Tab navigation reaches the function signature and statement disclosure. Empty and unavailable dashboards omit the action.
+- Added component safeguards and Chromium regression checks at 320, 375 and 1280 pixels for keyboard activation, heading focus, subsequent navigation, opening the statement, touch height and page overflow.
+- Validation: all 1,190 tests across 70 files passed; focused dashboard/mobile tests (235 tests), lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
 ### 2026-11-07 - Dashboard rating-tier guide
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Left both catalog milestones unchecked and followed the blocker rule to add and complete one bounded dashboard usability item.
 - Added a native expandable tier guide beside signed-in dashboard MMR, using shared thresholds and existing responsive styling. Highlights exactly one current tier at full precision and explains rounded boundary values, starting MMR and refreshing after completed duels. Guest and unavailable dashboards omit the personal guide.

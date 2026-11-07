@@ -323,3 +323,17 @@ it.each(["guest", "unavailable"])("omits personal dashboard tier guidance for %s
   const { container } = render(await Home());
   expect(container.querySelector(".tier-guide")).toBeNull();
 });
+
+
+it.each([false, true])("offers daily challenge access for signed-in=%s", async signedIn => {
+  if (signedIn) mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+  mocks.load.mockResolvedValue({ daily: { title: "Signal", difficulty: "easy", statement: "Solve it", function_signature: "def solve():" }, recent: [], streak: 0 });
+  render(await Home());
+  expect(screen.getByRole("link", {name: "Jump to daily challenge"})).toHaveAttribute("href", "#home-daily-challenge-title");
+  expect(screen.getByRole("heading", {name: "Signal"})).toHaveAttribute("tabindex", "-1");
+});
+it.each([false, true])("omits daily shortcut when unavailable=%s and no preview exists", async unavailable => {
+  if (unavailable) mocks.load.mockRejectedValue(new Error("private"));
+  render(await Home());
+  expect(screen.queryByRole("link", {name: "Jump to daily challenge"})).not.toBeInTheDocument();
+});
