@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Reservation keyboard handoff
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one keyboard navigation item. A reservation that removes the focused Cancel search control now preserves focus intent until the confirmed Open arena link appears. Independent navigation is respected, and new searches clear prior reservation intent.
+- Added four regression cases for confirmed reservations, independent navigation, unfocused background updates and failed reservations followed by direct successful retry.
+- Validation: all 1,524 tests across 72 files passed. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Malformed matchmaking response recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one matchmaking recovery item. Unknown response types, invalid envelopes and missing, non-text or blank server error guidance now close the connection and restore actionable retry feedback before updating the UI.

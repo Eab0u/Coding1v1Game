@@ -15,6 +15,26 @@ beforeEach(() => { vi.stubGlobal("WebSocket", Socket); });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 function start() { render(<Play signedIn />); fireEvent.click(screen.getByRole("button", { name: "Play a duel" })); act(() => Socket.latest.onopen()); return Socket.latest; }
 function event(data: object) { act(() => Socket.latest.onmessage({ data: JSON.stringify(data) })); }
+it.each(["confirmed", "independent navigation", "unfocused", "failure then retry"])("preserves reservation focus intent through %s", outcome => {
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  if (outcome !== "unfocused") screen.getByRole("button", { name: "Cancel search" }).focus();
+  event({ type: "matching" });
+  expect(screen.queryByRole("button", { name: "Cancel search" })).not.toBeInTheDocument();
+  if (outcome === "independent navigation") screen.getByRole("link", { name: "View profile" }).focus();
+  if (outcome === "failure then retry") {
+    event({ type: "error", message: "Reservation failed. Please retry." });
+    fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+    act(() => Socket.latest.onopen());
+  }
+  event({ type: "matched", match: { id: "reserved", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  const arena = screen.getByRole("link", { name: "Open arena" });
+  if (outcome === "confirmed") expect(arena).toHaveFocus();
+  else expect(arena).not.toHaveFocus();
+  if (outcome === "independent navigation") expect(screen.getByRole("link", { name: "View profile" })).toHaveFocus();
+});
 it("recovers from a browser connection setup failure and permits a successful retry", () => {
   vi.useFakeTimers();
   vi.stubGlobal("WebSocket", class { constructor() { throw new DOMException("Blocked", "SecurityError"); } });

@@ -45,6 +45,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
   }
   function join() {
     if (socket.current) return;
+    focusArena.current = false;
     feedback.unlock();
     setPhase("connecting"); setMessage("Connecting to the arena…");
     const url = new URL("/matchmaking", window.location.href);
@@ -99,6 +100,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
         }
         else if (data.type === "matching") {
           reserving = true;
+          focusArena.current = !!panel.current?.querySelector("[data-search-cancel]")?.matches(":focus");
           setPhase("matching"); setMessage("Reserving your match… Waiting for server confirmation.");
           awaitResponse("Your reservation was not confirmed. Connection closed; retry to recover any reserved match.");
         }
@@ -112,7 +114,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
             throw new Error("Invalid match confirmation");
           }
           const active = document.activeElement;
-          focusArena.current = !!active && !!panel.current?.contains(active) && active.matches(".play-button, [data-search-cancel]");
+          focusArena.current = (focusArena.current && active === document.body) || !!active && !!panel.current?.contains(active) && active.matches(".play-button, [data-search-cancel]");
           feedback.notify("matched"); setMatchId(data.match.id); setPhase("matched"); setMessage(`Matched with ${data.opponent.username} (${Math.round(data.opponent.rating)}) · ${data.match.difficulty}. Your match is reserved. Open the arena to prepare.`); socket.current = null; ws.close(); }
         else if (data.type === "left" || data.type === "error") { socket.current = null; ws.close(); restoreIdle(); setMessage(data.type === "error" ? data.message : "Search cancelled. Ready when you are."); }
       } catch { clearResponseTimer(); socket.current = null; ws.close(); restoreIdle(); setMessage("Unexpected server response. Please try again."); }
