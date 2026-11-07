@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Recent home duel rating changes
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent home-dashboard improvement.
+- Recent home duels now display the signed-in player's MMR change from persisted rating history. A player-scoped left join preserves older duels without rating snapshots, which explicitly say "Rating change unavailable". Styled labels include units and signed gains, normalize rounded negative zero, and explain that a displayed zero may include a small gain or loss.
+- Extended embedded Postgres tests for separate participant deltas, missing history and unchanged preview limits; added component cases for gains, losses, zero, fractional rounding and absent data. Added Chromium containment and styling checks at 320, 375 and 1280px.
+- Validation: all 738 tests across 54 files passed; lint, typecheck, production build and diff whitespace checks passed. An initial concurrent targeted run hit an existing arena keyboard-scroll timing failure; the full suite and isolated 101-test Chromium rerun passed that check. No Python solution executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the eight authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Home win-streak clarity
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent home-dashboard improvement.
 - Replaced the plain streak line with a styled semantic statistic and an associated explanation: completed wins extend the streak, a loss or draw resets it, and cancelled reservations do not count. Added correct singular wording and an encouraging zero-streak state. Guests retain the starting-rating invitation without invented streak data; failed dashboard reads still suppress statistics.

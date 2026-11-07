@@ -22,6 +22,16 @@ it("counts the current streak, excludes unfinished matches and keeps private pro
     const data = await loadHome(db as unknown as Pool, one);
     expect(data.streak).toBe(6);
     expect(data.recent).toHaveLength(5);
+    expect(data.recent.every(row => row.delta === null)).toBe(true);
+    const matchId = data.recent[0].id;
+    await db.query(`INSERT INTO rating_history (user_id,match_id,rating_before,rating_after) VALUES
+      ($1,$3,800,812.6),($2,$3,800,777)`, [one, two, matchId]);
+    const personal = await loadHome(db as unknown as Pool, one);
+    expect(personal.recent[0].delta).toBeCloseTo(12.6);
+    expect(personal.recent).toHaveLength(5);
+    const opponent = await loadHome(db as unknown as Pool, two);
+    expect(opponent.recent[0].delta).toBe(-23);
+    expect(personal.recent[1].delta).toBeNull();
     expect(data.daily?.title).toBe("Public");
     expect(data.daily?.examples).toEqual(examples);
     expect(data.daily?.topics).toEqual(["arrays", "greedy"]);

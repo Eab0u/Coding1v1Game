@@ -489,3 +489,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .home-streak dd { margin: 0.4rem 0 0; font-size: 1.35rem; font-weight: 800; overflow-wrap: anywhere; }
 .home-streak p { font-size: 0.875rem; line-height: 1.6; }
 .home-streak .home-streak-empty { color: var(--color-accent); font-weight: 700; }
+
+.home-rating-change { display: block; margin-block: 0.35rem; color: var(--color-text); font-size: 0.875rem; font-weight: 700; overflow-wrap: anywhere; }

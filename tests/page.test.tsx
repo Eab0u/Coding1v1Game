@@ -255,3 +255,11 @@ it("does not invent a guest streak", async () => {
   expect(container.querySelector(".home-streak")).toBeNull();
   expect(screen.getByText(/Your starting rating. Sign in/)).toBeVisible();
 });
+
+it.each([[12.6, "+13 MMR change"], [-8.7, "-9 MMR change"], [0, "0 MMR change"], [-0.2, "0 MMR change"], [null, "Rating change unavailable"], [undefined, "Rating change unavailable"]])("shows personal recent-duel rating change %s", async (delta, label) => {
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+  mocks.load.mockResolvedValue({ daily: null, streak: 0, recent: [{ id: "m", title: "Pairs", opponent: "Bob", winner_id: "one", delta }] });
+  render(await Home());
+  expect(screen.getByText(label)).toHaveClass("home-rating-change");
+  expect(screen.getByText(/a displayed zero can include a small gain or loss/)).toBeVisible();
+});
