@@ -9,6 +9,7 @@ export function ArenaProgress({ score, player = false }: {
   const full = valid && score.passed === score.total;
   const summary = valid ? `${score.passed} / ${score.total}` : score ? "Score unavailable" : "No judged submission yet";
   return <section className={`arena-progress${valid ? full ? " arena-progress--full" : score.passed === 0 ? " arena-progress--zero" : " arena-progress--partial" : score ? " arena-progress--unavailable" : " arena-progress--empty"}`} aria-label={player ? "Your best progress" : "Opponent progress"}>
+    <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{player ? "Your" : "Opponent"} best progress: {valid ? `${score.passed} of ${score.total} hidden tests passed.` : `${summary}.`}</span>
     {valid ? <label htmlFor={id}>{player ? "Your" : "Opponent"} best tests passed: {summary}</label>
       : <div className="arena-progress-placeholder"><p className="arena-progress-eyebrow">{player ? "Your" : "Opponent"} best tests passed</p><p className="arena-progress-summary">{summary}</p></div>}
     {!score && <p className="arena-progress-next">{player ? "Submit your solution when ready. Your best judged score will appear here." : "Their best judged score will appear here after they submit. Keep working on your solution."}</p>}

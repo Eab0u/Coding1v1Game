@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Live arena best-score announcements
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item: both arena progress cards now have stable, polite, atomic live regions identifying the participant and exact verified hidden-test counts. Missing and invalid scores announce their honest status, and corrected polling restores counts. Announcements omit repeated scoring explanations and win claims.
+- Added participant-symmetric tests for zero/partial/full scores, unavailable/missing transitions, recovery, stable regions during repeated polling and independent participant updates. Updated an existing visible-score assertion to distinguish it from the new announcement.
+- Validation: all 1,340 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed. Actual screen-reader speech behavior still needs manual verification.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Verified arena scoring guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one arena clarity item: missing and invalid progress no longer presents best-score or tiebreak claims. Existing waiting and automatic-update guidance remains visible; valid zero/partial/full scores restore individually associated scoring explanations and unsent-edit guidance.

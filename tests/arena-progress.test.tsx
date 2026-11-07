@@ -2,6 +2,38 @@ import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { ArenaProgress } from "../src/components/arena-progress";
 
+it.each([true, false])("keeps a stable polite score announcement through polling (player=%s)", player => {
+  const view = render(<ArenaProgress player={player} />);
+  const status = screen.getByRole("status");
+  const name = player ? "Your" : "Opponent";
+  expect(status).toHaveAttribute("aria-live", "polite");
+  expect(status).toHaveAttribute("aria-atomic", "true");
+  expect(status).toHaveClass("sr-only");
+  expect(status).toHaveTextContent(`${name} best progress: No judged submission yet.`);
+  for (const score of [{ passed: 0, total: 8 }, { passed: 3, total: 8 }, { passed: 8, total: 8 }, { passed: 9, total: 8 }, { passed: NaN, total: 8 }, { passed: 2, total: 10 }, null]) {
+    view.rerender(<ArenaProgress player={player} score={score} />);
+    expect(screen.getByRole("status")).toBe(status);
+    const valid = score && Number.isFinite(score.passed) && score.passed <= score.total;
+    const text = valid ? `${score.passed} of ${score.total} hidden tests passed.` : score ? "Score unavailable." : "No judged submission yet.";
+    expect(status).toHaveTextContent(`${name} best progress: ${text}`);
+    expect(status).not.toHaveTextContent(/NaN|9 of 8|win/i);
+    const previous = status.firstChild;
+    view.rerender(<ArenaProgress player={player} score={score && { ...score }} />);
+    expect(status.firstChild).toBe(previous);
+  }
+});
+
+it("announces each participant independently without including scoring guidance", () => {
+  const view = render(<><ArenaProgress player score={{ passed: 2, total: 8 }} /><ArenaProgress score={{ passed: 5, total: 8 }} /></>);
+  const [own, opponent] = screen.getAllByRole("status");
+  expect(own).toHaveTextContent("Your best progress: 2 of 8 hidden tests passed.");
+  expect(opponent).toHaveTextContent("Opponent best progress: 5 of 8 hidden tests passed.");
+  view.rerender(<><ArenaProgress player score={{ passed: 8, total: 8 }} /><ArenaProgress score={{ passed: 5, total: 8 }} /></>);
+  expect(own).toHaveTextContent("Your best progress: 8 of 8 hidden tests passed.");
+  expect(opponent).toHaveTextContent("Opponent best progress: 5 of 8 hidden tests passed.");
+  for (const status of [own, opponent]) expect(status).not.toHaveTextContent(/Later attempts|runtime|confirm a win/);
+});
+
 it.each([false, true])("recovers best progress after invalid polling counts (player=%s)", player => {
   const { rerender } = render(<ArenaProgress player={player} score={null}/>);
   expect(screen.getByRole("region")).toHaveTextContent("No judged submission yet");
@@ -55,7 +87,7 @@ it.each([true, false])("announces exact best-test counts through polling for pla
   }
   rerender(<ArenaProgress player={player} score={{ passed: 9, total: 8 }} />);
   expect(screen.queryByRole("progressbar")).toBeNull();
-  expect(screen.getByText(/Score unavailable/)).toBeVisible();
+  expect(screen.getByText("Score unavailable", { exact: true })).toBeVisible();
   rerender(<ArenaProgress player={player} score={{ passed: 1, total: 10 }} />);
   expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuetext", "1 of 10 hidden tests passed");
 });
