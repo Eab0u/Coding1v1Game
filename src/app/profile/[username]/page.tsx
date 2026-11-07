@@ -17,7 +17,7 @@ export default async function Profile({ params }: { params: Promise<{ username: 
   const completed = data ? data.record.wins + data.record.losses + data.record.draws : 0;
   const winRate = completed && data ? `${(100 * data.record.wins / completed).toFixed(1)}%` : null;
   const values = data?.ratings.length ? [data.ratings[0].rating_before, ...data.ratings.map(row => row.rating_after)] : [];
-  const change = values.length ? Math.round(values.at(-1)!) - Math.round(values[0]) : 0;
+  const change = values.length ? Math.round(values.at(-1)! - values[0]) : 0;
   const low = Math.max(0, Math.floor((Math.min(...values) - 20) / 20) * 20);
   const high = Math.ceil((Math.max(...values) + 20) / 20) * 20;
   const points = values.map((value, index) => `${20 + index / (values.length - 1) * 560},${160 - (value - low) / (high - low) * 140}`).join(" ");
@@ -63,9 +63,9 @@ export default async function Profile({ params }: { params: Promise<{ username: 
           </div>
           <div className="rating-timeline"><span>Before first duel in this window</span><span>Latest: <time dateTime={new Date(data.ratings.at(-1)!.completed_at).toISOString()}>{new Date(data.ratings.at(-1)!.completed_at).toISOString().slice(0, 10)}</time> UTC</span></div>
           <details className="rating-history"><summary>Rating history data</summary>
-            <p>Oldest to newest within this history window. Dates are UTC. MMR values and changes are rounded for display.</p>
+            <p>Oldest to newest within this history window. Dates are UTC. MMR values and changes are rounded independently from full precision. A displayed zero change can include a small gain or loss; subtracting the displayed ratings may differ from the displayed change.</p>
             <ol aria-label="Rated duel changes">{data.ratings.map((row, i) => {
-              const delta = Math.round(row.rating_after) - Math.round(row.rating_before);
+              const delta = Math.round(row.rating_after - row.rating_before);
               const date = new Date(row.completed_at).toISOString();
               return <li key={i}>
                 <time dateTime={date}>{date.slice(0, 10)} UTC</time>

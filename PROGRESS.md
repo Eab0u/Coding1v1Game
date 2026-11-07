@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Consistent profile rating changes
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation; JudgeUnavailableError still blocks it. Both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded profile correctness improvement.
+- Rating journey totals and individual disclosed changes now round full-precision differences, matching recent duels and results instead of subtracting rounded endpoints. Added guidance explaining independent rounding and small gains/losses displayed as zero.
+- Added fractional gain/loss boundary, negative-zero, cross-view consistency and cumulative-window regression coverage. The window change rounds once rather than summing individually rounded changes.
+- Validation: the full suite passed (1,143 tests across 70 files); after adding the cumulative-window regression, all 47 profile component tests passed. Lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
 ### 2026-11-07 - Public leaderboard rating tier guide
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still prevents sandbox validation. Both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded leaderboard improvement.
 - Added a native expandable tier guide to public and friends standings in both periods, including empty, signed-out and unavailable states. Reused the bordered responsive guide styling and shared six-tier thresholds. Explained full-precision boundaries with a rounding example and distinguished weekly rank from current-rating tiers.

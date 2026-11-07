@@ -80,7 +80,10 @@ it.each([
   { before: 800, after: 840, change: '+40 MMR', low: 780, high: 860 },
   { before: 840, after: 800, change: '-40 MMR', low: 780, high: 860 },
   { before: 0, after: 0, change: '0 MMR', low: 0, high: 20 },
-  { before: 800.4, after: 800.6, change: '+1 MMR', low: 780, high: 840 },
+  { before: 800.4, after: 800.6, change: '0 MMR', low: 780, high: 840 },
+  { before: 800.6, after: 800.4, change: '0 MMR', low: 780, high: 840 },
+  { before: 800.4, after: 801.8, change: '+1 MMR', low: 780, high: 840 },
+  { before: 801.8, after: 800.4, change: '-1 MMR', low: 780, high: 840 },
 ])('labels rating history honestly for $before to $after MMR', async ({before, after, change, low, high}) => {
   mocks.load.mockResolvedValue({username:'Ada',rating:after,record:{wins:0,losses:0,draws:0},history:[],ratings:[{rating_before:before,rating_after:after,completed_at:new Date('2026-01-02T01:00:00Z')}]});
   const {container} = render(await Profile({params}));
@@ -104,6 +107,17 @@ it('scales the chart to intermediate peaks and shows the whole window change', a
   expect(screen.getByRole('img')).toHaveAccessibleName(/from 800 to 810 MMR; vertical scale 780 to 1020 MMR/);
   expect(container.querySelector('.rating-change strong')).toHaveTextContent('+10 MMR');
   expect(container.querySelector('.profile-climb')).toHaveTextContent('Last 2 rated duels');
+});
+
+it('rounds the full history window once rather than adding rounded duel changes', async () => {
+  mocks.load.mockResolvedValue({username:'Ada',rating:801.3,record:{wins:3,losses:0,draws:0},history:[],ratings:[
+    {rating_before:800.1,rating_after:800.5,completed_at:new Date('2026-01-01Z')},
+    {rating_before:800.5,rating_after:800.9,completed_at:new Date('2026-01-02Z')},
+    {rating_before:800.9,rating_after:801.3,completed_at:new Date('2026-01-03Z')},
+  ]});
+  const {container} = render(await Profile({params}));
+  expect(container.querySelector('.rating-change strong')).toHaveTextContent('+1 MMR');
+  expect(Array.from(container.querySelectorAll('.rating-history-change')).map(el => el.textContent)).toEqual(Array(3).fill('0 MMR change'));
 });
 
 
@@ -135,10 +149,22 @@ it('shows chronological rating changes with machine-readable dates and consisten
   const {container} = render(await Profile({params}));
   const list = screen.getByRole('list',{name:'Rated duel changes',hidden:true});
   expect(list.querySelectorAll('li')).toHaveLength(3);
-  expect(Array.from(list.querySelectorAll('strong')).map(el => el.textContent)).toEqual(['+11 MMR change','-1 MMR change','0 MMR change']);
+  expect(Array.from(list.querySelectorAll('strong')).map(el => el.textContent)).toEqual(['+10 MMR change','-1 MMR change','0 MMR change']);
   expect(Array.from(list.querySelectorAll('time')).map(el => el.dateTime)).toEqual(['2026-01-01T00:00:00.000Z','2026-01-02T00:00:00.000Z','2026-01-03T00:00:00.000Z']);
   expect(container.querySelector('.rating-history')).not.toHaveAttribute('open');
   expect(screen.getByText(/Oldest to newest/)).toHaveTextContent('Dates are UTC');
+  expect(screen.getByText(/Oldest to newest/)).toHaveTextContent('rounded independently from full precision');
+});
+
+it.each([[800.4, 800.6], [800.6, 800.4], [800.4, 801.8], [801.8, 800.4]])('agrees with recent duel changes for fractional ratings %s to %s', async (before, after) => {
+  const delta = after - before;
+  mocks.load.mockResolvedValue({username:'Ada',rating:after,record:{wins:1,losses:0,draws:0},ratings:[{rating_before:before,rating_after:after,completed_at:new Date('2026-01-01Z')}],history:[{id:'1',title:'Test',opponent:'Bob',result:'WIN',delta,completed_at:new Date('2026-01-01Z')}]});
+  const {container} = render(await Profile({params}));
+  const expected = `${Math.round(delta) > 0 ? '+' : ''}${Math.round(delta) || 0} MMR`;
+  expect(container.querySelector('.rating-change strong')?.textContent).toBe(expected);
+  expect(container.querySelector('.rating-history-change')?.textContent).toBe(`${expected} change`);
+  expect(screen.getByRole('table').querySelector('tbody tr td:nth-last-child(2)')?.textContent).toBe(expected);
+  expect(container.querySelector('.rating-change strong')).not.toHaveTextContent('-0 MMR');
 });
 
 
