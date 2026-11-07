@@ -10,7 +10,7 @@ beforeEach(() => { mocks.load.mockResolvedValue({username:'Ada',rating:800,recor
 it('shows a new player record and honest graph and history empty states', async () => {
   render(await Profile({params}));
   expect(screen.getByRole('heading',{name:'Ada'})).toBeVisible();
-  expect(screen.getByText('Bronze')).toBeVisible();
+  expect(screen.getByText('Bronze', {selector:'.badge'})).toBeVisible();
   expect(screen.getByText(/Players start at 800 MMR/)).toBeVisible();
   expect(screen.queryByRole('img')).not.toBeInTheDocument();
   expect(screen.getByRole('link',{name:'Find a duel'})).toHaveAttribute('href','/');
@@ -31,8 +31,28 @@ it('contains infrastructure errors without showing false empty records', async (
   expect(screen.getByRole('alert')).toHaveTextContent('Profile unavailable');
   expect(screen.queryByText(/SECRET|No completed duels|Players start at 800 MMR/)).not.toBeInTheDocument();
   expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  expect(screen.queryByText('Explore rating tiers')).not.toBeInTheDocument();
   expect(screen.getByRole('link', {name:'Retry profile'})).toHaveAttribute('href','/profile/Ada');
   expect(screen.getByRole('link', {name:'Back to arena'})).toHaveAttribute('href','/');
+});
+
+it.each([
+  [0, 'Bronze'], [999.9, 'Bronze'], [1000, 'Silver'], [1199.9, 'Silver'],
+  [1200, 'Gold'], [1599.9, 'Gold'], [1600, 'Platinum'], [1999.9, 'Platinum'],
+  [2000, 'Diamond'], [2399.9, 'Diamond'], [2400, 'Master'], [9000, 'Master'],
+])('explains thresholds and marks exactly one current tier at %s MMR', async (rating, tier) => {
+  mocks.load.mockResolvedValue({username:'Ada',rating,record:{wins:0,losses:0,draws:0},history:[],ratings:[]});
+  const {container} = render(await Profile({params}));
+  const guide = container.querySelector('.tier-guide')!;
+  expect(guide).not.toHaveAttribute('open');
+  expect(guide).toHaveTextContent('tier boundaries use the full rating');
+  const list = screen.getByRole('list', {name:'Rating tier thresholds', hidden:true});
+  expect(Array.from(list.querySelectorAll('li')).map(el => el.textContent?.replace('Current tier', ''))).toEqual([
+    'Bronze0+ MMR', 'Silver1000+ MMR', 'Gold1200+ MMR', 'Platinum1600+ MMR', 'Diamond2000+ MMR', 'Master2400+ MMR',
+  ]);
+  expect(list.querySelectorAll('.tier-guide-current')).toHaveLength(1);
+  expect(list.querySelector('.tier-guide-current strong')).toHaveTextContent(tier);
+  expect(guide).toHaveTextContent('A tier can rise or fall');
 });
 it('returns not found for unknown or invalid players', async () => {
   mocks.load.mockResolvedValue(null);

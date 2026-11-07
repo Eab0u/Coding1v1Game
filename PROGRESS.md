@@ -37,6 +37,12 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Profile rating tier guide
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command again failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent profile usability item; both catalog validation items remain unchecked.
+- Added a styled, collapsed-by-default rating tier guide with all six minimum MMR thresholds, a text-labeled current tier, starting-rating guidance and an explanation that tier boundaries use unrounded ratings. Shared the threshold definitions with badge assignment to prevent drift.
+- Added component coverage across exact and fractional tier boundaries, the top tier, a zero rating and unavailable profiles. Chromium checks at 320, 375 and 1280px verify Enter/Space disclosure controls, onward Tab navigation, touch target height and expanded layout without document overflow. Corrected an ambiguous existing text query exposed by the first test run.
+- Validation: all 579 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
 ### 2026-11-06 - Readable daily challenge signatures
 - Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent daily-preview usability item; both catalog items remain unchecked.
 - Preserved Python signature whitespace and indentation without splitting long lines. Added a named, focusable horizontal scroll region with associated visible keyboard guidance and existing theme focus styling.

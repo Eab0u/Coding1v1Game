@@ -13,7 +13,7 @@ vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
   if (state.leaderboardEmpty) return [];
   return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 1234, score: 123, rank: 1 }];
 } }));
-vi.mock('../src/lib/profile', () => ({ ratingTier: () => 'Bronze', loadProfile: async () => { if (state.profileUnavailable) throw new Error('private'); if (state.profileEmpty) return {username, rating:800, record:{wins:0,losses:0,draws:0},ratings:[],history:[]}; return ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [{ rating_before: 800, rating_after: 1234, completed_at: new Date('2026-11-01Z') }], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }); } }));
+vi.mock('../src/lib/profile', async importOriginal => ({ ...await importOriginal<typeof import('../src/lib/profile')>(), loadProfile: async () => { if (state.profileUnavailable) throw new Error('private'); if (state.profileEmpty) return {username, rating:800, record:{wins:0,losses:0,draws:0},ratings:[],history:[]}; return ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [{ rating_before: 800, rating_after: 1234, completed_at: new Date('2026-11-01Z') }], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }); } }));
 import { Arena } from '../src/components/arena';
 import { Results } from '../src/components/results';
 vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); return [{ username: 'abcdefghijklmnopqrstuvwx', status: 'pending', incoming: true }, { username: 'another_long_player_name', status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', status: 'pending', incoming: false }]; } }));
@@ -30,6 +30,32 @@ vi.mock('../src/lib/results', () => ({ loadResult: async () => { throw new Error
 let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
+
+it.each([320, 375, 1280])('opens the rating tier guide with the keyboard at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Profile({params:Promise.resolve({username})}))}`);
+    const summary = page.locator('.tier-guide summary');
+    const list = page.getByRole('list', {name:'Rating tier thresholds'});
+    expect(await list.isVisible()).toBe(false);
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    expect(await list.isVisible()).toBe(true);
+    expect(await list.locator('li').count()).toBe(6);
+    expect(await list.locator('.tier-guide-current').textContent()).toBe('Bronze0+ MMRCurrent tier');
+    for (const row of await list.locator('li').all()) {
+      const bounds = (await row.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await page.keyboard.press('Space');
+    expect(await list.isVisible()).toBe(false);
+    await page.keyboard.press('Tab');
+    expect(await page.locator('.rating-history summary').evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { await page.close(); }
+});
 
 it.each([320, 375, 1280])('makes friend profile links visible and keyboard accessible at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 900 } });

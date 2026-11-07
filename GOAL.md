@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Explain profile rating tiers with a styled keyboard-accessible threshold guide, current-tier marker and fractional-boundary and phone browser coverage
 - [x] Preserve daily challenge signature formatting with a named keyboard-scrollable code region, visible guidance and phone browser coverage
 - [x] Clarify populated leaderboard context with a styled selected-period and player-scope summary, accurate displayed counts and top-100 guidance, including phone browser coverage
 - [x] Author the original Relay Cooldown Score easy dynamic-programming draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending

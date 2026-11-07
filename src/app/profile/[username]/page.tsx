@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, Card } from "../../../components/ui";
 import { database } from "../../../lib/auth-server";
-import { loadProfile, ratingTier } from "../../../lib/profile";
+import { loadProfile, ratingTier, RATING_TIERS } from "../../../lib/profile";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +31,14 @@ export default async function Profile({ params }: { params: Promise<{ username: 
       </Card> : data && <>
         <p className="eyebrow">PLAYER PROFILE</p><h1>{data.username}</h1>
         <div className="profile-rating"><strong>{Math.round(data.rating)} <small>MMR</small></strong><Badge tone="accent">{ratingTier(data.rating)}</Badge></div>
+        <details className="tier-guide">
+          <summary>Explore rating tiers</summary>
+          <p>Tier badges follow current MMR. Ratings are rounded for display; tier boundaries use the full rating.</p>
+          <ul aria-label="Rating tier thresholds">{RATING_TIERS.map(tier => <li key={tier.name} className={ratingTier(data.rating) === tier.name ? "tier-guide-current" : undefined}>
+            <strong>{tier.name}</strong><span>{tier.minimum}+ MMR</span>{ratingTier(data.rating) === tier.name && <span className="tier-guide-marker">Current tier</span>}
+          </li>)}</ul>
+          <p>New players enter Bronze at 800 MMR. A tier can rise or fall as ratings change after completed duels.</p>
+        </details>
         <section className="profile-record-section" aria-labelledby="record-title" aria-describedby="record-rules">
           <h2 id="record-title">All-time match record</h2>
           <p className="profile-record-summary"><strong>{completed} completed {completed === 1 ? "duel" : "duels"}</strong><span>{winRate ? `${winRate} win rate` : "Win rate appears after the first completed duel."}</span></p>
