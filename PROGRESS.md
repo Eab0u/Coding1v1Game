@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Saved results completion timestamps
+- Selected problems 1-20 as the highest-value unchecked item. Real Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Projected the saved match completion time through the participant-only results loader and displayed it in the outcome banner using shared semantic UTC date styling. Missing or invalid historical dates show an explicit fallback.
+- Added embedded database coverage for the saved instant, UI coverage for UTC day boundaries and historical fallbacks, and Chromium timestamp containment checks at 320, 375 and 1280px.
+- Validation: all 667 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Rating journey window guidance
 - Selected problems 1-20 as the highest-value unchecked item. Real Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent profile improvement.
 - Added a styled explanation of the graph's 50-rated-duel window and displayed count, distinguished it from the all-time completed record (which includes unrated duels), and connected the explanation to the graph's accessible description. Clarified that the timeline begins before the first duel in this window.

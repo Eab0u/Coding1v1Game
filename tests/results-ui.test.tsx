@@ -75,3 +75,15 @@ it('labels unchanged tiers and explains saved duel precision',()=>{
  expect(screen.getAllByText('Bronze',{selector:'.badge'})).toHaveLength(2);
  expect(screen.getAllByText('Tier after this duel, based on full-precision MMR before display rounding.')).toHaveLength(2);
 });
+
+it('shows the saved completion instant in UTC across a date boundary',()=>{
+ render(<Results result={{title:'Sample',outcome:'WIN',players,completedAt:'2026-11-07T01:15:00+03:00'}}/>);
+ const date=screen.getByText('Nov 6, 2026, 22:15 UTC');
+ expect(date).toHaveAttribute('datetime','2026-11-06T22:15:00.000Z');
+ expect(screen.getByRole('region',{name:'Match outcome'})).toContainElement(date);
+});
+it.each([undefined,null,'invalid'])('handles historical completion dates safely (%s)',completedAt=>{
+ const {container}=render(<Results result={{title:'Legacy',outcome:'DRAW',players,completedAt}}/>);
+ expect(screen.getByText('Completion date unavailable')).toBeVisible();
+ expect(container.querySelector('time')).toBeNull();
+});

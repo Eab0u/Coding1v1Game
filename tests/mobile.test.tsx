@@ -123,7 +123,7 @@ it.each([320, 375, 1280])('supports results skip navigation and player touch tar
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {
     const player = { username, before: 999.9, after: 1000, passed: 8, total: 8, cpu: 1, submitted: 1000 };
-    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<Results result={{ title: 'Sample', outcome: 'WIN', players: [player, { ...player, username: 'another_long_player_name' }] }}/>)}`);
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<Results result={{ title: 'Sample', completedAt: '2026-11-06T23:45:00Z', outcome: 'WIN', players: [player, { ...player, username: 'another_long_player_name' }] }}/>)}`);
     await page.keyboard.press('Tab');
     const skip = page.getByRole('link', { name: 'Skip to results' });
     expect(await skip.evaluate(el => el === document.activeElement)).toBe(true);
@@ -131,6 +131,11 @@ it.each([320, 375, 1280])('supports results skip navigation and player touch tar
     await page.keyboard.press('Enter');
     expect(await page.getByRole('main').evaluate(el => el === document.activeElement)).toBe(true);
     await page.keyboard.press('Tab');
+    const timestamp = page.locator('.result-banner time');
+    expect(await timestamp.getAttribute('datetime')).toBe('2026-11-06T23:45:00.000Z');
+    const dateBox = (await timestamp.boundingBox())!;
+    expect(dateBox.x).toBeGreaterThanOrEqual(0);
+    expect(dateBox.x + dateBox.width).toBeLessThanOrEqual(width);
     const links = page.locator('.result-player h2 a');
     expect(await page.locator('.result-tier .badge').allTextContents()).toEqual(['Silver', 'Silver']);
     expect(await page.getByText('Tier changed from Bronze to Silver').count()).toBe(2);
