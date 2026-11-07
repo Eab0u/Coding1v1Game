@@ -40,6 +40,9 @@ function RematchSession({id}:{id:string}) {
   const acceptButton=useRef<HTMLButtonElement|null>(null);
   const arenaLink=useRef<HTMLAnchorElement|null>(null);
   const focusAcceptedArena=useRef(false);
+  const recoveryLink=useRef<HTMLAnchorElement|null>(null);
+  const recoveryActionButton=useRef<HTMLButtonElement|null>(null);
+  const focusRecovery=useRef(false);
   const terminal=state!==null && terminalStatuses.has(state.status);
   useEffect(()=>{
     if (!terminal || !focusAcceptedArena.current) return;
@@ -47,6 +50,11 @@ function RematchSession({id}:{id:string}) {
     if (state?.status==='accepted' && (document.activeElement===document.body || document.activeElement===acceptButton.current)) {
       arenaLink.current?.focus();
     }
+  },[terminal,state]);
+  useEffect(()=>{
+    if (!terminal || !focusRecovery.current) return;
+    focusRecovery.current=false;
+    if ((state?.status==='declined' || state?.status==='cancelled') && (document.activeElement===document.body || document.activeElement===recoveryActionButton.current)) recoveryLink.current?.focus();
   },[terminal,state]);
   const [countdown,setCountdown]=useState<{source:RematchState;seconds:number}|null>(null);
   const expires=Date.parse(state?.expiresAt??'');
@@ -106,6 +114,7 @@ function RematchSession({id}:{id:string}) {
     const controller=new AbortController();
     actionController.current=controller;
     focusAcceptedArena.current=action==='accept' && document.activeElement===acceptButton.current;
+    focusRecovery.current=(action==='decline' || action==='cancel') && document.activeElement===recoveryActionButton.current;
     revision.current++;
     setBusy(true);setPendingAction(action);setError('');setErrorInvitation(invitationKey(state));
     try {
@@ -116,7 +125,7 @@ function RematchSession({id}:{id:string}) {
       // Restart polling so an older in-flight read cannot replace the action result.
       setUpdatesRestored(hadPollError.current);hadPollError.current=false;
       setRefresh(n=>n+1);setState(data);setPollError('');
-    } catch(e) {if (!controller.signal.aborted) {focusAcceptedArena.current=false;setError(e instanceof Error?e.message:'Unable to send invitation.');}}
+    } catch(e) {if (!controller.signal.aborted) {focusAcceptedArena.current=false;focusRecovery.current=false;setError(e instanceof Error?e.message:'Unable to send invitation.');}}
     finally {if (!controller.signal.aborted) {actionController.current=null;setBusy(false);setPendingAction('');}}
   }
   const actionBusy=(action:string)=>busy && !deadlinePassed && pendingAction===action;
@@ -130,9 +139,9 @@ function RematchSession({id}:{id:string}) {
       {deadlineSoon && <p className="rematch-deadline-warning">Invitation closing soon</p>}
       {deadlinePassed && <p role="status">Invitation deadline reached. Waiting for server confirmation.</p>}
     </div>}
-    {state?.status==='pending' && (state.outgoing?<button aria-describedby={summaryId} className="button button--secondary" disabled={busy || deadlinePassed} aria-busy={actionBusy('cancel')} onClick={()=>void act('cancel')}>{actionBusy('cancel')?'Cancelling invitation?':'Cancel invitation'}</button>:<div className="result-actions"><button aria-describedby={summaryId} ref={acceptButton} className="button button--primary" disabled={busy || deadlinePassed} aria-busy={actionBusy('accept')} onClick={()=>void act('accept')}>{actionBusy('accept')?'Accepting rematch?':'Accept rematch'}</button><button aria-describedby={summaryId} className="button button--secondary" disabled={busy || deadlinePassed} aria-busy={actionBusy('decline')} onClick={()=>void act('decline')}>{actionBusy('decline')?'Declining invitation?':'Decline'}</button></div>)}
+    {state?.status==='pending' && (state.outgoing?<button ref={recoveryActionButton} aria-describedby={summaryId} className="button button--secondary" disabled={busy || deadlinePassed} aria-busy={actionBusy('cancel')} onClick={()=>void act('cancel')}>{actionBusy('cancel')?'Cancelling invitation?':'Cancel invitation'}</button>:<div className="result-actions"><button aria-describedby={summaryId} ref={acceptButton} className="button button--primary" disabled={busy || deadlinePassed} aria-busy={actionBusy('accept')} onClick={()=>void act('accept')}>{actionBusy('accept')?'Accepting rematch?':'Accept rematch'}</button><button ref={recoveryActionButton} aria-describedby={summaryId} className="button button--secondary" disabled={busy || deadlinePassed} aria-busy={actionBusy('decline')} onClick={()=>void act('decline')}>{actionBusy('decline')?'Declining invitation?':'Decline'}</button></div>)}
     {state?.matchId && <Link aria-describedby={summaryId} ref={arenaLink} className="button button--primary" href={`/match/${state.matchId}`}>Open rematch arena</Link>}
-    {terminal && state.status!=='accepted' && <Link aria-describedby={summaryId} className="button button--primary" href="/">Find a new opponent</Link>}
+    {terminal && state.status!=='accepted' && <Link ref={recoveryLink} aria-describedby={summaryId} className="button button--primary" href="/">Find a new opponent</Link>}
     {error && errorInvitation===invitationKey(state) && !terminal && !deadlinePassed && <p role="alert">{error}</p>}
     <div aria-live="polite" aria-atomic="true">{updatesRestored && !terminal && <p className="rematch-restored">Invitation updates restored. Showing the latest server snapshot; automatic updates continue.</p>}</div>
     {pollError && !terminal && <div className="rematch-recovery">

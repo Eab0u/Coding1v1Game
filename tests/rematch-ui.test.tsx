@@ -730,3 +730,39 @@ it.each([true,false])('explains unavailable initial invitations and recovers (ma
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
  } finally {vi.useRealTimers();}
 });
+
+it.each(['decline','cancel'] as const)('restores keyboard focus after %s with direct and polled confirmation',async(action)=>{
+ vi.useFakeTimers();
+ try {
+  for (const polled of [false,true]) {
+   const pending={ok:true,json:async()=>({status:'pending',outgoing:action==='cancel',matchId:null})};
+   const ended={ok:true,json:async()=>({status:action==='cancel'?'cancelled':'declined',matchId:null})};
+   const fetcher=vi.fn().mockResolvedValueOnce(pending).mockResolvedValueOnce(polled?pending:ended).mockResolvedValue(ended);
+   vi.stubGlobal('fetch',fetcher);const view=render(<Rematch id="old"/>);
+   await act(async()=>{});
+   const button=screen.getByRole('button',{name:action==='cancel'?'Cancel invitation':'Decline'});
+   button.focus();fireEvent.click(button);await act(async()=>{});
+   expect(screen.getByRole('link',{name:'Find a new opponent'})).toHaveFocus();
+   view.unmount();
+  }
+ } finally {vi.useRealTimers();}
+});
+it.each(['decline','cancel'] as const)('preserves independent focus on %s and background outcomes',async(action)=>{
+ vi.useFakeTimers();
+ try {
+  for (const explicit of [false,true]) {
+   const result=deferred<{ok:boolean;json:()=>Promise<{status:string;matchId:null}>}>();
+   const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>({status:'pending',outgoing:action==='cancel',matchId:null})}).mockReturnValueOnce(result.promise);
+   vi.stubGlobal('fetch',fetcher);const view=render(<><button>Other navigation</button><Rematch id="old"/></>);
+   await act(async()=>{});
+   if (explicit) {
+    const button=screen.getByRole('button',{name:action==='cancel'?'Cancel invitation':'Decline'});
+    button.focus();fireEvent.click(button);
+   } else {await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});}
+   const other=screen.getByRole('button',{name:'Other navigation'});other.focus();
+   await act(async()=>{result.resolve({ok:true,json:async()=>({status:action==='cancel'?'cancelled':'declined',matchId:null})});});
+   expect(screen.getByRole('link',{name:'Find a new opponent'})).toBeInTheDocument();
+   expect(other).toHaveFocus();view.unmount();
+  }
+ } finally {vi.useRealTimers();}
+});

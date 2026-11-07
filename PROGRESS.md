@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Rematch decline and cancellation keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item. Explicit keyboard decline and cancellation now move focus to Find a new opponent after authoritative confirmation, including confirmation received through polling. Background outcomes and independent navigation retain their focus; failed actions clear the pending focus intent.
+- Added participant-symmetric regression coverage for direct/polled confirmations, independent navigation and background outcomes.
+- Validation: all 1,461 tests across 72 files passed, including 72 rematch UI tests; lint, typecheck and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Rematch recovery button feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery usability item. The rematch recovery button now displays "Refreshing invitation..." and aria-busy during manual and automatic retries, preserving disabled controls and associated snapshot guidance. Failed reads restore the retry label and idle state; successful reads remove recovery controls.
