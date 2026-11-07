@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Explicit Python line continuations
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
+- Plain-editor Enter now joins explicit backslash-newline continuations outside strings and comments when recognizing block headers. Repeated continuations retain the header context; ordinary newlines still reset it. Updated visible keyboard guidance. This remains a lexical convenience rather than Python syntax validation.
+- Added ten regression cases covering continued and async headers, repeated joins, assignments, subsequent statements, quoted/comment backslashes and a backslash followed by whitespace. All cases check backward selection replacement, suffix preservation, focus and caret placement.
+- Validation: all 928 tests across 60 files passed, including 133 plain-editor tests; lint, typecheck, production build and diff whitespace checks passed. No Python solution code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Document-context plain-editor indentation
 - Retried problems 1-20 validation with Relay Order Conflicts; JudgeUnavailableError still blocks catalog validation. Following the blocker rule, added and completed one editor correctness item; catalog milestones remain unchecked.
 - Enter now scans the draft before the caret, retaining earlier-line string and bracket context. Multiline string content cannot masquerade as a block header, comments skip only their own line, and closed multiline bracket headers can receive block indentation. Updated visible keyboard guidance.

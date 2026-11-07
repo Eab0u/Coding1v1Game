@@ -9,6 +9,29 @@ function Harness({ initial }: { initial: string }) {
 }
 
 it.each([
+  ["if ready and \\\n    available:", "        "],
+  ["async with first, \\\n    second:", "        "],
+  ["if ready and \\\n    available and \\\n    enabled:", "        "],
+  ["value = \\\n    {'key':", "    "],
+  ["value = \\\n    1\nif ready:", "    "],
+  ["# ignored \\\nif ready:", "    "],
+  ['text = """\\\n    if ready:', "    "],
+  ['text = "\\\\"\nif ready:', "    "],
+  ["value = 1 # ignored \\\nif ready:", "    "],
+  ["value = \\ \n    if ready:", "        "],
+])("handles explicit line continuation for Enter: %s", (prefix, indentation) => {
+  render(<Harness initial={prefix + "replace suffix"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(prefix.length, prefix.length + 7, "backward");
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(input).toHaveValue(prefix + "\n" + indentation + " suffix");
+  expect(input.selectionStart).toBe(prefix.length + 1 + indentation.length);
+  expect(input.selectionEnd).toBe(input.selectionStart);
+  expect(input).toHaveFocus();
+});
+
+it.each([
   ['text = """\n    if ready:', "    "],
   ["text = '''\n    if ready:", "    "],
   ['text = """\n# not a comment\n    if ready:', "    "],

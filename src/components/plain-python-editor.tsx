@@ -18,6 +18,12 @@ function endsWithBlockColon(line: string) {
         quote = "";
       }
     } else {
+      // Python joins a backslash immediately followed by a newline outside strings.
+      if (character === "\\" && line[index + 1] === "\n") {
+        code += " ";
+        index++;
+        continue;
+      }
       if (character === "#") {
         const newline = line.indexOf("\n", index);
         if (newline < 0) break;
@@ -151,6 +157,6 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
     <p id={hint} className="editor-hint">{readOnly
       ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
-      : "Enter keeps indentation and adds four spaces after a Python block header colon, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+      : "Enter keeps indentation and adds four spaces after a Python block header colon, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
   </>;
 }
