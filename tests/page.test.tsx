@@ -77,3 +77,15 @@ it("presents daily problems as expandable previews with intact plain text", asyn
   expect(container.querySelector(".daily-signature code")?.textContent).toBe("def signal(values):\n    pass");
   expect(screen.getByText(/Practice submissions are not available yet/)).toBeVisible();
 });
+
+it.each([
+  ["one", "WIN", "win"], ["two", "LOSS", "loss"], [null, "DRAW", "draw"],
+])("labels and styles home outcome %s consistently with profile history", async (winner, label, tone) => {
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+  mocks.load.mockResolvedValue({ daily: null, streak: 0, recent: [
+    { id: "result", title: "Signals", winner_id: winner, opponent: "Bob" },
+  ] });
+  render(await Home());
+  expect(screen.getByText(label)).toHaveClass("history-result", `history-result--${tone}`);
+  expect(screen.getByRole("link", { name: "View results for Signals against Bob" })).toHaveAttribute("href", "/match/result/results");
+});

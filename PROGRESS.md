@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Accurate home duel outcome badges
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent home usability item. Catalog items remain unchecked.
+- Fixed recent home losses and draws inheriting green win styling. Reused the profile history badges for green WIN, red LOSS and neutral DRAW outcomes, with explicit text, borders and consistent spacing. Preserved result and opponent links.
+- Added component tests for all three authoritative outcomes and Chromium checks at 320, 375 and 1280px for distinct computed colors, visible labels and borders, keyboard navigation, 44px link targets and document overflow.
+- Validation: all 515 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Empty public profile guidance
 - Reviewed both unchecked catalog items and probed the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
 - Corrected empty public profiles to describe the viewed player rather than implying the visitor owns the profile. Added a bordered guidance panel explaining completed-history eligibility, with styled duel and public standings actions. Reused the responsive action layout and avoided duplicate duel links.
