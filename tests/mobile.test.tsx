@@ -4,11 +4,14 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 
 const username = 'abcdefghijklmnopqrstuvwx';
-const state = vi.hoisted(() => ({ signedIn: true }));
+const state = vi.hoisted(() => ({ signedIn: true, leaderboardUnavailable: false }));
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current: async () => state.signedIn ? ({ id: '1', username: 'abcdefghijklmnopqrstuvwx', rating: 800 }) : null } }));
 vi.mock('../src/lib/home', () => ({ loadHome: async () => ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: 'def solve_very_long_function_name(values: list[int]) -> list[int]:', difficulty: 'easy' }, recent: [{ id: '1', title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }) }));
-vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => [{ username: 'abcdefghijklmnopqrstuvwx', rating: 1234, score: 123, rank: 1 }] }));
+vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
+  if (state.leaderboardUnavailable) throw new Error('unavailable');
+  return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 1234, score: 123, rank: 1 }];
+} }));
 vi.mock('../src/lib/profile', () => ({ ratingTier: () => 'Bronze', loadProfile: async () => ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }) }));
 import { Arena } from '../src/components/arena';
 import { Results } from '../src/components/results';
@@ -22,6 +25,23 @@ import Account from '../src/app/account/page';
 let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
+
+it('keeps leaderboard recovery actions visible and keyboard accessible on phones', async () => {
+  state.leaderboardUnavailable = true;
+  const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
+  try {
+    const content = await Leaderboard({ searchParams: Promise.resolve({ period: 'weekly' }) });
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(content)}`);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    expect(await page.getByRole('alert').isVisible()).toBe(true);
+    const retry = page.getByRole('link', { name: 'Retry standings' });
+    await retry.focus();
+    expect(await retry.evaluate(el => el === document.activeElement)).toBe(true);
+    expect((await retry.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', { name: 'Back to arena' }).evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { state.leaderboardUnavailable = false; await page.close(); }
+});
 
 it('keeps populated pages within phone, tablet and desktop viewports with usable scroll regions', async () => {
   const pages = [<Results key="results" result={{title:'X'.repeat(150),outcome:'WIN',players:[{username,before:800,after:808,passed:8,total:8,cpu:1,submitted:1000},{username:'another_long_player_name',before:800,after:792,passed:0,total:8,cpu:1000,submitted:null}]}}/>, await Friends({ searchParams: Promise.resolve({}) }), await Home(), await Profile({ params: Promise.resolve({ username }) }), await Leaderboard({ searchParams: Promise.resolve({ period: 'weekly' }) }), await Account({ searchParams: Promise.resolve({}) })];

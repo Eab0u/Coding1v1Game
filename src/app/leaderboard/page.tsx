@@ -11,6 +11,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
   const scope = (await searchParams).scope === "friends";
   let needsLogin = false;
   const period = (await searchParams).period === "weekly" ? "weekly" : "global";
+  const retryHref = `/leaderboard?period=${period}${scope ? "&scope=friends" : ""}`;
   let entries: LeaderboardEntry[] = [];
   let unavailable = false;
   try {
@@ -35,7 +36,11 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       {scope && <p>You and your accepted friends, ranked within your circle.</p>}
       <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
       <Card className="ladder-card">
-        {needsLogin ? <p><Link href="/account">Sign in to see friends standings</Link></p> : unavailable ? <p role="alert">Standings unavailable. Please try again later.</p> : entries.length ?
+        {needsLogin ? <p><Link href="/account">Sign in to see friends standings</Link></p> : unavailable ? <div className="ladder-recovery">
+          <div role="alert"><h2>Standings unavailable</h2><p>We couldn’t load this ladder. Try again to refresh your selected standings.</p></div>
+          <a className="button button--primary" href={retryHref}>Retry standings</a>
+          <Link className="button button--secondary" href="/">Back to arena</Link>
+        </div> : entries.length ?
           <div className="ladder-scroll" role="region" aria-label="Leaderboard standings" tabIndex={0}><table className="ladder-table" aria-describedby="ranking-rules">
             <caption>{period === "weekly" ? "Weekly climb" : "Global rating"} standings</caption>
             <thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Rating</th>{period === "weekly" && <th scope="col">Weekly gain</th>}</tr></thead>

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Leaderboard read recovery
+- Reviewed the unchecked catalog items; both remain blocked by the missing isolated Judge0 configuration (only .env.example is present). Added and completed one independent leaderboard usability item; catalog items remain unchecked.
+- Replaced the error dead end with a styled, accessible recovery panel, primary Retry standings action and Back to arena link. Retry performs a fresh page request while preserving the normalized period and friends scope. Infrastructure details remain private and signed-out friends views retain their sign-in action.
+- Added regression tests for global fallback, both friends periods, private error containment and signed-out behavior. Chromium coverage verifies the actual rendered recovery panel at 320px, no horizontal overflow, touch target height and keyboard focus order.
+- Validation: all 413 tests across 42 files passed; lint, typecheck and production build passed. No player code executed. Live database/deployment smoke checks remain pending.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Password validation before credential submission
 - Reviewed both unchecked catalog items; they remain blocked by the unavailable isolated Judge0 deployment (only .env.example is present). Added and completed one independent account usability fix; catalog tasks remain unchecked.
 - Sign-in and sign-up now share password length and UTF-8 byte validation with the server. Unicode passwords over 256 bytes are blocked by native form validation before navigation can discard the entered credentials.
