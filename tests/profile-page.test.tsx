@@ -88,7 +88,7 @@ it.each([
   expect(container.querySelector('.rating-axis')).toHaveTextContent(`${high} MMR${low} MMR`);
   expect(screen.getByRole('img')).toHaveAccessibleName(new RegExp(`vertical scale ${low} to ${high} MMR`));
   expect(screen.getByRole('img').innerHTML).not.toMatch(/NaN|Infinity/);
-  expect(screen.getByText('Before first duel')).toBeVisible();
+  expect(screen.getByText('Before first duel in this window')).toBeVisible();
   expect(container.querySelector('.rating-timeline time')).toHaveAttribute('datetime', '2026-01-02T01:00:00.000Z');
   expect(container.querySelector('.profile-climb')).toHaveTextContent('Last 1 rated duel');
   expect(container.querySelector('.profile-climb')).not.toHaveTextContent('Last 1 rated duels');
@@ -180,4 +180,13 @@ it.each([
   const time = container.querySelector('.profile-history time');
   if (iso) expect(time).toHaveAttribute('datetime',iso);
   else expect(time).toBeNull();
+});
+
+it.each([1, 49, 50])('explains the bounded rating window for %s rated duels', async count => {
+  mocks.load.mockResolvedValue({username:'Ada',rating:900,record:{wins:100,losses:20,draws:2},history:[],ratings:Array.from({length:count}, () => ({rating_before:800,rating_after:900,completed_at:new Date('2026-01-01Z')}))});
+  render(await Profile({params}));
+  expect(screen.getByText(new RegExp(`Showing ${count} of up to 50 recent rated duels`))).toHaveTextContent('including unrated duels');
+  expect(screen.getByRole('img')).toHaveAccessibleDescription(/Older rated duels may fall outside this window/);
+  expect(screen.getByText('Before first duel in this window')).toBeVisible();
+  expect(screen.getByText('122 completed duels')).toBeVisible();
 });

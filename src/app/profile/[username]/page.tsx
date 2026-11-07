@@ -48,15 +48,16 @@ export default async function Profile({ params }: { params: Promise<{ username: 
         </section>
         <Card className="profile-climb"><h2>Rating journey</h2>{values.length ? <>
           <p>Last {data.ratings.length} rated {data.ratings.length === 1 ? "duel" : "duels"} · {Math.round(values[0])} → {Math.round(values.at(-1)!)} MMR</p>
+          <p id="rating-window-note" className="rating-window-note">Showing {data.ratings.length} of up to 50 recent rated duels. Older rated duels may fall outside this window. The all-time record above includes every completed duel, including unrated duels.</p>
           <p className="rating-change"><strong>{change > 0 ? "+" : ""}{change} MMR</strong><span>over this history window</span></p>
           <div className="rating-plot">
             <div className="rating-axis" aria-hidden="true"><span>{high} MMR</span><span>{low} MMR</span></div>
-            <svg className="rating-chart" viewBox="0 0 600 180" preserveAspectRatio="none" role="img" aria-label={`Rating over the last ${data.ratings.length} rated duels, from ${Math.round(values[0])} to ${Math.round(values.at(-1)!)} MMR; vertical scale ${low} to ${high} MMR`}>
+            <svg className="rating-chart" viewBox="0 0 600 180" preserveAspectRatio="none" role="img" aria-describedby="rating-window-note" aria-label={`Rating over the last ${data.ratings.length} rated duels, from ${Math.round(values[0])} to ${Math.round(values.at(-1)!)} MMR; vertical scale ${low} to ${high} MMR`}>
               {[20, 90, 160].map(y => <line key={y} className="rating-grid" x1="20" x2="580" y1={y} y2={y} />)}
               <polyline points={points} fill="none" stroke="currentColor" strokeWidth="3" vectorEffect="non-scaling-stroke" />
             </svg>
           </div>
-          <div className="rating-timeline"><span>Before first duel</span><span>Latest: <time dateTime={new Date(data.ratings.at(-1)!.completed_at).toISOString()}>{new Date(data.ratings.at(-1)!.completed_at).toISOString().slice(0, 10)}</time> UTC</span></div>
+          <div className="rating-timeline"><span>Before first duel in this window</span><span>Latest: <time dateTime={new Date(data.ratings.at(-1)!.completed_at).toISOString()}>{new Date(data.ratings.at(-1)!.completed_at).toISOString().slice(0, 10)}</time> UTC</span></div>
           <details className="rating-history"><summary>Rating history data</summary>
             <p>Oldest to newest within this history window. Dates are UTC. MMR values and changes are rounded for display.</p>
             <ol aria-label="Rated duel changes">{data.ratings.map((row, i) => {

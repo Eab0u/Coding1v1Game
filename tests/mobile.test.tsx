@@ -478,7 +478,7 @@ it('keeps rating scales, timeline and history data usable at phone and desktop w
     for (const width of [320, 375, 1280]) {
       await page.setViewportSize({width, height:900});
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-      for (const selector of ['.rating-axis', '.rating-chart', '.rating-timeline', '.rating-change']) {
+      for (const selector of ['.rating-axis', '.rating-chart', '.rating-timeline', '.rating-change', '.rating-window-note']) {
         const element = page.locator(selector);
         expect(await element.isVisible()).toBe(true);
         const bounds = (await element.boundingBox())!;
