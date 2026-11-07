@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Clarify the arena function contract with styled signature formatting, visible keyboard-scroll guidance and match-state and phone browser coverage
 - [x] Make arena constraints prominent with optional input-size and complexity guidance, preserved formatting and phone keyboard coverage
 - [x] Author the original Buffered Signal Gain easy greedy draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending
 - [x] Explain hidden tests versus examples and ordered best-submission scoring in a styled accessible arena guide, with phone browser coverage

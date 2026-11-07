@@ -732,3 +732,12 @@ it.each(['pending','active','completed','cancelled'] as const)('preserves constr
   expect(details).toHaveTextContent('about 5 billion comparisons');
   expect(details).toHaveTextContent('not a required approach or a guarantee');
 });
+
+it.each(['pending','active','completed','cancelled'] as const)('preserves the function contract and explains signature scrolling in the %s arena',status=>{
+  const signature='def solve(\n    values: list[int],\n) -> int:';
+  render(<Arena initial={{...initial,status,problem:{...initial.problem,signature}}}/>);
+  const region=screen.getByRole('region',{name:'Function signature'});
+  expect(region).toHaveAttribute('tabindex','0');
+  expect(region).toHaveAccessibleDescription('Keep this function name and parameters in your solution. Long signatures scroll sideways; focus the code and use the arrow keys, or swipe.');
+  expect(region.querySelector('code')?.textContent).toBe(signature);
+});

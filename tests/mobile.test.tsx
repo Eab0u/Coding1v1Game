@@ -479,6 +479,11 @@ it('keeps the arena readable with keyboard-scrollable code on narrow screens', a
           await page.keyboard.press('Enter');
           expect(await page.locator(target).evaluate(el => el === document.activeElement)).toBe(true);
         }
+        const signature = page.getByRole('region', { name: 'Function signature', exact: true });
+        expect(await signature.getAttribute('aria-describedby')).toBe('arena-signature-hint');
+        expect(await page.locator('#arena-signature-hint').isVisible()).toBe(true);
+        expect(await signature.evaluate(el => getComputedStyle(el).whiteSpace)).toBe('pre');
+        expect(await signature.evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('1px');
         const constraints = page.getByRole('region', { name: 'Constraints', exact: true });
         expect(await constraints.locator('.arena-text').textContent()).toBe('N'.repeat(200));
         const complexity = constraints.locator('details');
