@@ -337,3 +337,14 @@ it.each([0,1])('withholds verdict cues for invalid submission history for player
  expect(screen.getAllByRole('progressbar')).toHaveLength(2);
  expect(screen.getByText(/^You passed more hidden tests/)).toBeVisible();
 });
+
+it('links directly to a focusable comparison and hides the shortcut without players',()=>{
+ const result:DuelResult={title:'Saved duel',outcome:'WIN',players};
+ const view=render(<Results result={result}/>);
+ expect(screen.getByRole('link',{name:'Compare players'})).toHaveAttribute('href','#player-comparison');
+ expect(screen.getByRole('heading',{name:'Player comparison'})).toHaveAttribute('tabindex','-1');
+ expect(screen.getByRole('heading',{name:'Player comparison'})).toHaveAttribute('id','player-comparison');
+ view.rerender(<Results result={{...result,players:[]}}/>);
+ expect(screen.queryByRole('link',{name:'Compare players'})).toBeNull();
+ expect(screen.queryByRole('heading',{name:'Player comparison'})).toBeNull();
+});

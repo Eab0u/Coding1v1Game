@@ -598,3 +598,7 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 
 .example-format-details summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 700; color: var(--color-text, #fff); border-radius: 4px; }
 .example-format-details summary:hover, .example-format-details[open] summary { color: var(--color-accent, #81b64c); }
+
+.result-comparison-shortcut { margin-top: 1rem; min-height: 44px; }
+#player-comparison { scroll-margin-top: 1rem; }
+@media (max-width: 600px) { .result-comparison-shortcut { width: 100%; } }

@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Results comparison shortcut
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one usability improvement: a native Compare players action in the results banner jumps past scoring guidance to a focusable Player comparison heading. The action has a 44px minimum touch height and fills the available width on phones; empty player history hides both action and heading.
+- Added component coverage for destination semantics and empty-history recovery, plus Chromium keyboard and layout regressions at 320, 375 and 1280px. Updated the existing disclosure regression to verify the new Tab order without removing its checks.
+- Validation: all 1,292 tests across 72 files passed, including 177 mobile browser tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Invalid saved submission history
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one saved-results fix: invalid submission timestamps now show explicit Submission history unavailable guidance and withhold progress/verdict styling. Valid saved counts and the recorded outcome remain visible. Detailed scoring explanations reject invalid timestamps before any tiebreak.

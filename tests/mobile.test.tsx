@@ -330,6 +330,8 @@ it.each([320, 375, 1280])('supports results skip navigation and player touch tar
     await page.keyboard.press('Enter');
     expect(await page.getByRole('main').evaluate(el => el === document.activeElement)).toBe(true);
     await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', { name: 'Compare players' }).evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
     const timestamp = page.locator('.result-banner time');
     expect(await timestamp.getAttribute('datetime')).toBe('2026-11-06T23:45:00.000Z');
     const dateBox = (await timestamp.boundingBox())!;
@@ -1646,4 +1648,23 @@ it.each([320, 375, 1280])('jumps between public examples with native keyboard fo
     expect(await page.getByRole('region', { name: 'Example 2 input', exact: true }).evaluate(el => document.activeElement === el)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
+});
+
+it.each([320,375,1280])('jumps to results comparison with native keyboard focus at %spx',async width=>{
+ const page=await browser.newPage({viewport:{width,height:600}});
+ try {
+  const player={username:'Ada',before:800,after:808,passed:8,total:8,cpu:12,submitted:1000};
+  await page.setContent(`<style>${readFileSync('src/app/globals.css','utf8')}</style>${renderToStaticMarkup(<Results result={{title:'Sample',outcome:'WIN',players:[player,{...player,username:'Bob'}]}}/>)}`);
+  const link=page.getByRole('link',{name:'Compare players'});
+  await link.focus();
+  const bounds=(await link.boundingBox())!;
+  expect(bounds.height).toBeGreaterThanOrEqual(44);
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.x+bounds.width).toBeLessThanOrEqual(width);
+  await page.keyboard.press('Enter');
+  expect(await page.getByRole('heading',{name:'Player comparison'}).evaluate(el=>el===document.activeElement)).toBe(true);
+  await page.keyboard.press('Tab');
+  expect(await page.getByRole('link',{name:'Ada',exact:true}).evaluate(el=>el===document.activeElement)).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ } finally {await page.close();}
 });
