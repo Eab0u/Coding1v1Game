@@ -721,3 +721,14 @@ it('provides named arena navigation and focusable jump destinations after match 
   expect(screen.getByRole('heading',{name:'Sample'})).toHaveAttribute('tabindex','-1');
   expect(screen.getByRole('heading',{name:'Your solution'})).toHaveAttribute('tabindex','-1');
 });
+
+it.each(['pending','active','completed','cancelled'] as const)('preserves constraints and offers optional complexity guidance in the %s arena',status=>{
+  render(<Arena initial={{...initial,status,problem:{...initial.problem,constraints:'1 <= n <= 100,000\nValues may be negative.'}}}/>);
+  const constraints=screen.getByRole('region',{name:'Constraints'});
+  expect(constraints.querySelector('.arena-text')?.textContent).toBe('1 <= n <= 100,000\nValues may be negative.');
+  const details=constraints.querySelector('details')!;
+  expect(details).not.toHaveAttribute('open');
+  expect(details.querySelector('summary')).toHaveTextContent('Use input limits to plan your solution');
+  expect(details).toHaveTextContent('about 5 billion comparisons');
+  expect(details).toHaveTextContent('not a required approach or a guarantee');
+});

@@ -479,6 +479,23 @@ it('keeps the arena readable with keyboard-scrollable code on narrow screens', a
           await page.keyboard.press('Enter');
           expect(await page.locator(target).evaluate(el => el === document.activeElement)).toBe(true);
         }
+        const constraints = page.getByRole('region', { name: 'Constraints', exact: true });
+        expect(await constraints.locator('.arena-text').textContent()).toBe('N'.repeat(200));
+        const complexity = constraints.locator('details');
+        const summary = complexity.locator('summary');
+        expect(await complexity.getAttribute('open')).toBeNull();
+        expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+        await summary.focus();
+        await page.keyboard.press('Enter');
+        expect(await complexity.locator('p').first().isVisible()).toBe(true);
+        expect(await complexity.textContent()).toContain('about 5 billion comparisons');
+        const constraintBounds = (await constraints.boundingBox())!;
+        expect(constraintBounds.x).toBeGreaterThanOrEqual(0);
+        expect(constraintBounds.x + constraintBounds.width).toBeLessThanOrEqual(width);
+        expect(await constraints.evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('1px');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+        await page.keyboard.press('Space');
+        expect(await complexity.getAttribute('open')).toBeNull();
         const judging = page.getByRole('complementary', { name: 'How your solution is judged' });
         expect(await judging.isVisible()).toBe(true);
         expect(await judging.locator('ol li').count()).toBe(3);

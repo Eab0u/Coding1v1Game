@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Arena constraints and solution planning
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent arena improvement.
+- Made constraints a named, bordered panel with preserved multiline formatting and monospace text. Added a collapsed native disclosure explaining largest-input planning with a concrete pairwise-versus-single-pass comparison and honest guidance that suggested techniques do not guarantee passing CPU limits.
+- Added component coverage for pending, active, completed and cancelled arenas, preserving exact constraint text. Extended Chromium coverage at 320, 375, 768 and 1280px for keyboard expansion/collapse, 44px disclosure targets, styled containment and long-text overflow.
+- Validation: all 706 tests across 53 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Buffered Signal Gain catalog draft
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Both the existing Relay Cooldown Score and new draft validation commands returned JudgeUnavailableError. Catalog validation and problems 21-60 remain blocked and unchecked; followed the blocker rule by adding and completing one catalog-authoring item.
 - Authored the original easy Buffered Signal Gain problem: maximize the signed difference between ordered readings separated by at least one tick, with mandatory pair selection. Included examples, constraints, O(n) constant-space Python reference, O(n^2) baseline, 2,000 seeded small cases, signed edge fixtures and three 100,000-reading benchmarks. Documented authoring rationale and pending sandbox limits in problems/README.md.
