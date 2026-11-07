@@ -207,3 +207,19 @@ it.each([undefined, "", "  "])("omits absent daily constraints (%s) without inve
   const { container } = render(await Home());
   expect(container.querySelector(".daily-constraints")).toBeNull();
 });
+
+it("shows only public daily examples as safely rendered input/output cards", async () => {
+  mocks.load.mockResolvedValue({ daily: { title: "Signal", statement: "Solve it", difficulty: "easy", function_signature: "def solve(values):", examples: [{ args: [[1, 2]], expected: 3, explanation: "Sum the values.\n<script>bad()</script>" }] }, recent: [], streak: 0 });
+  const { container } = render(await Home());
+  const section = screen.getByRole("region", { name: "Public examples", hidden: true });
+  expect(section).toHaveTextContent("separate hidden tests");
+  expect(screen.getByRole("region", { name: "Example 1 input", hidden: true }).textContent).toBe(JSON.stringify([[1, 2]], null, 2));
+  expect(screen.getByRole("region", { name: "Example 1 expected output", hidden: true })).toHaveTextContent("3");
+  expect(section).toHaveTextContent("<script>bad()</script>");
+  expect(container.querySelector("script")).toBeNull();
+});
+it.each([undefined, [], null])("omits unavailable daily examples (%s)", async examples => {
+  mocks.load.mockResolvedValue({ daily: { title: "Signal", statement: "Solve it", difficulty: "easy", function_signature: "def solve():", examples }, recent: [], streak: 0 });
+  render(await Home());
+  expect(screen.queryByRole("region", { name: "Public examples", hidden: true })).not.toBeInTheDocument();
+});

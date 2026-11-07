@@ -472,3 +472,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .daily-constraints h3 { margin: 0 0 8px; font-size: 1rem; }
 .daily-constraints-note { color: var(--color-muted); font-size: .875rem; line-height: 1.6; }
 .daily-constraints-text { margin-bottom: 0; font-family: var(--font-mono), monospace; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+
+.daily-examples { min-width: 0; margin: 20px 0; line-height: 1.6; }
+.daily-examples > p { color: var(--color-muted); }
+.daily-examples pre { max-width: 100%; overflow-x: auto; white-space: pre; overflow-wrap: normal; padding: 14px; background: var(--color-bg); border-radius: var(--radius-sm); }
+.daily-examples .arena-text { white-space: pre-wrap; overflow-wrap: anywhere; }
