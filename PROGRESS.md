@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Friends player ratings and tiers
+- Retried problems 1-20 passing validation with Relay Basin Storage; JudgeUnavailableError still blocks that milestone. Following the blocker rule, added and completed one bounded Friends improvement; catalog milestones remain unchecked.
+- Incoming, accepted and outgoing player cards now show current rounded MMR and shared rating-tier badges in a wrapping row. Accessible guidance explains whole-number display and full-precision tier thresholds. The database query adds only public rating data.
+- Added database coverage for fractional, refreshed ratings and the exact public projection; component coverage for zero ratings, all relationship states, tier boundaries, refreshed tiers and guest suppression; and Chromium checks for styled rating rows without overflow at 320, 375 and 1280px.
+- Validation: all 1,054 tests across 66 files passed; targeted Friends/browser tests (126), lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Player-specific Friends action names
 - Retried problems 1-20 passing validation with Relay Basin Storage; JudgeUnavailableError still blocks the catalog milestone. Following the blocker rule, added and completed one bounded Friends accessibility item. Catalog milestones remain unchecked.
 - Accept, Decline, Cancel request and Remove friend buttons now include the target username in their accessible names, making repeated actions distinguishable when navigating buttons with assistive technology. Visible labels and native POST controls are preserved.

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { auth, database } from "../../lib/auth-server";
 import { SESSION_COOKIE } from "../../lib/auth";
 import { loadFriends, type FriendEntry } from "../../lib/friends";
+import { ratingTier } from "../../lib/profile";
 import { Badge, Button, Card } from "../../components/ui";
 import { UsernameField } from "../../components/username-field";
 export const dynamic = "force-dynamic";
@@ -48,12 +49,12 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
             <div><dt>You control your requests</dt><dd>Decline dismisses an incoming invitation. Cancel request withdraws an invitation you sent.</dd></div>
             <div><dt>Removing ends the friendship</dt><dd>Remove friend removes the relationship for both players. To reconnect, send a new invitation and wait for acceptance.</dd></div>
           </dl>
-          <p>Friends standings compare accepted friends and your own rating. Pending invitations do not count.</p>
+          <p>Friends standings compare accepted friends and your own rating. Pending invitations do not count.</p><p id="friend-rating-note">Player cards show current MMR rounded to a whole number. Tiers use the full rating before rounding.</p>
         </Card>
         <Card><h2>Invite a player</h2><form className="account-form" method="post" action="/api/friends"><input type="hidden" name="action" value="request"/><UsernameField mode="friend" /><Button type="submit">Send friend request</Button></form></Card>
         <div className="friend-groups">{groups.map(group => <section key={group.id} id={`friend-section-${group.id}`} tabIndex={-1} className="friend-section" aria-labelledby={`friends-${group.id}`}>
           <h2 className="friend-group-title" id={`friends-${group.id}`}>{group.title} <Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge></h2>
-          {group.entries.length ? <ul className="friend-list">{group.entries.map(entry => <li key={entry.username}><Card><h3><Link className="standings-player" aria-label={`View ${entry.username}'s profile`} href={`/profile/${encodeURIComponent(entry.username)}`}>{entry.username}</Link></h3><p>{entry.status === "accepted" ? "Friends" : entry.incoming ? "Wants to be your friend" : "Request sent"}</p>
+          {group.entries.length ? <ul className="friend-list">{group.entries.map(entry => <li key={entry.username}><Card><h3><Link className="standings-player" aria-label={`View ${entry.username}'s profile`} href={`/profile/${encodeURIComponent(entry.username)}`}>{entry.username}</Link></h3><div className="friend-rating" aria-describedby="friend-rating-note"><strong>{Math.round(entry.rating)} <span>MMR</span></strong><Badge tone="accent">{ratingTier(entry.rating)}</Badge></div><p>{entry.status === "accepted" ? "Friends" : entry.incoming ? "Wants to be your friend" : "Request sent"}</p>
             <form aria-label={`Manage ${entry.username}`} className="friend-actions" method="post" action="/api/friends"><input type="hidden" name="username" value={entry.username}/>{entry.incoming && entry.status === "pending" && <Button type="submit" name="action" value="accept" aria-label={`Accept: ${entry.username}`}>Accept</Button>}<Button type="submit" variant="secondary" name="action" value="remove" aria-label={`${entry.status === "accepted" ? "Remove friend" : entry.incoming ? "Decline" : "Cancel request"}: ${entry.username}`}>{entry.status === "accepted" ? "Remove friend" : entry.incoming ? "Decline" : "Cancel request"}</Button></form>
           </Card></li>)}</ul> : <p className="friend-empty">{group.empty}</p>}
         </section>)}</div>

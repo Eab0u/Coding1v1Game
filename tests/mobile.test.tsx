@@ -16,7 +16,7 @@ vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
 vi.mock('../src/lib/profile', async importOriginal => ({ ...await importOriginal<typeof import('../src/lib/profile')>(), loadProfile: async () => { if (state.profileUnavailable) throw new Error('private'); if (state.profileEmpty) return {username, rating:800, record:{wins:0,losses:0,draws:0},ratings:[],history:[]}; return ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [{ rating_before: 800, rating_after: 1234, completed_at: new Date('2026-11-01Z') }], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }); } }));
 import { Arena } from '../src/components/arena';
 import { Results } from '../src/components/results';
-vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); return [{ username: 'abcdefghijklmnopqrstuvwx', status: 'pending', incoming: true }, { username: 'another_long_player_name', status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', status: 'pending', incoming: false }]; } }));
+vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 999.75, status: 'pending', incoming: true }, { username: 'another_long_player_name', rating: 999.75, status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', rating: 999.75, status: 'pending', incoming: false }]; } }));
 import Friends from '../src/app/friends/page';
 import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
@@ -35,6 +35,13 @@ it.each([320, 375, 1280])('jumps to friend sections with native keyboard focus a
   const page = await browser.newPage({ viewport: { width, height: 600 } });
   try {
     await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Friends({searchParams:Promise.resolve({})}))}`);
+    const ratings = page.locator('.friend-rating');
+    expect(await ratings.count()).toBe(3);
+    for (const rating of await ratings.all()) {
+      expect(await rating.textContent()).toBe('1000 MMRBronze');
+      expect(await rating.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      expect(await rating.evaluate(el => getComputedStyle(el).display)).toBe('flex');
+    }
     const navigation = page.getByRole('navigation', {name:'Friend sections'});
     const guide = page.locator('.friend-guide');
     expect(await guide.getByRole('heading', {name:'How your circle works'}).isVisible()).toBe(true);

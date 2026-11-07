@@ -29,7 +29,7 @@ it("explains invitation consent, reversible requests and mutual removal before m
   expect(screen.queryByRole("heading", {name:"How your circle works"})).not.toBeInTheDocument();
 });
 it("links counted friend sections to focusable destinations and highlights waiting replies", async () => {
-  mocks.friends.mockResolvedValue([{username:"Ada",status:"pending",incoming:true},{username:"Eve",status:"accepted",incoming:false}]);
+  mocks.friends.mockResolvedValue([{username:"Ada",rating: 999.75, status:"pending",incoming:true},{username:"Eve",rating: 999.75, status:"accepted",incoming:false}]);
   const view = render(await Friends({searchParams:Promise.resolve({})}));
   const navigation = screen.getByRole("navigation", {name:"Friend sections"});
   for (const [title, id, count] of [["Incoming requests", "incoming", 1], ["Your friends", "accepted", 1], ["Sent requests", "outgoing", 0]]) {
@@ -52,14 +52,14 @@ it("links counted friend sections to focusable destinations and highlights waiti
   expect(screen.queryByRole("navigation", {name:"Friend sections"})).not.toBeInTheDocument();
 });
 it("shows invitation, incoming consent, outgoing cancellation and removal controls", async () => {
-  mocks.friends.mockResolvedValue([{username:"Ada",status:"pending",incoming:true},{username:"Bob",status:"pending",incoming:false},{username:"Eve",status:"accepted",incoming:true}]);
+  mocks.friends.mockResolvedValue([{username:"Ada",rating: 999.75, status:"pending",incoming:true},{username:"Bob",rating: 999.75, status:"pending",incoming:false},{username:"Eve",rating: 999.75, status:"accepted",incoming:true}]);
   render(await Friends({searchParams:Promise.resolve({})}));
   expect(screen.getByLabelText("Player username")).toBeRequired();
   for (const name of ["Accept: Ada","Decline: Ada","Cancel request: Bob","Remove friend: Eve"]) expect(screen.getByRole("button",{name})).toBeVisible();
   expect(screen.getByRole("link",{name:"View Ada's profile"})).toHaveAttribute("href","/profile/Ada");
 });
 it("names and styles profile links across incoming, accepted and outgoing friends", async () => {
-  mocks.friends.mockResolvedValue([{ username: "Ada", status: "pending", incoming: true }, { username: "Eve", status: "accepted", incoming: false }, { username: "Bob", status: "pending", incoming: false }]);
+  mocks.friends.mockResolvedValue([{ username: "Ada", rating: 999.75, status: "pending", incoming: true }, { username: "Eve", rating: 999.75, status: "accepted", incoming: false }, { username: "Bob", rating: 999.75, status: "pending", incoming: false }]);
   render(await Friends({ searchParams: Promise.resolve({}) }));
   for (const username of ["Ada", "Eve", "Bob"]) {
     const link = screen.getByRole("link", { name: `View ${username}'s profile` });
@@ -97,7 +97,7 @@ it("recovers friends on a fresh read and removes the retry after success", async
   mocks.friends.mockRejectedValueOnce(new Error("private connection detail"));
   const view = render(await Friends({searchParams:Promise.resolve({})}));
   expect(screen.getByRole("link", {name:"Retry friends"})).toHaveAttribute("href", "/friends");
-  mocks.friends.mockResolvedValue([{username:"Ada",status:"pending",incoming:true}]);
+  mocks.friends.mockResolvedValue([{username:"Ada",rating: 999.75, status:"pending",incoming:true}]);
   view.rerender(await Friends({searchParams:Promise.resolve({})}));
   expect(mocks.current).toHaveBeenCalledTimes(2);
   expect(mocks.friends).toHaveBeenCalledTimes(2);
@@ -118,10 +118,10 @@ it("offers recovery when session lookup fails without querying relationships", a
 
 it("groups relationships with counts and submits the clicked action for the correct player", async () => {
   mocks.friends.mockResolvedValue([
-    {username:"Eve",status:"accepted",incoming:true},
-    {username:"Bob",status:"pending",incoming:false},
-    {username:"Ada",status:"pending",incoming:true},
-    {username:"Zoe",status:"accepted",incoming:false},
+    {username:"Eve",rating: 999.75, status:"accepted",incoming:true},
+    {username:"Bob",rating: 999.75, status:"pending",incoming:false},
+    {username:"Ada",rating: 999.75, status:"pending",incoming:true},
+    {username:"Zoe",rating: 999.75, status:"accepted",incoming:false},
   ]);
   render(await Friends({searchParams:Promise.resolve({})}));
   const incoming = screen.getByRole("region", {name:"Incoming requests 1"});
@@ -225,11 +225,11 @@ it("ignores arbitrary URL messages and suppresses results when session or data i
 
 it("identifies repeated friend actions by player and refreshes names after relationship changes", async () => {
   mocks.friends.mockResolvedValue([
-    {username:"Ada",status:"pending",incoming:true},
-    {username:"Grace",status:"pending",incoming:true},
-    {username:"Bob",status:"pending",incoming:false},
-    {username:"Eve",status:"accepted",incoming:false},
-    {username:"Lin",status:"accepted",incoming:true},
+    {username:"Ada",rating: 999.75, status:"pending",incoming:true},
+    {username:"Grace",rating: 999.75, status:"pending",incoming:true},
+    {username:"Bob",rating: 999.75, status:"pending",incoming:false},
+    {username:"Eve",rating: 999.75, status:"accepted",incoming:false},
+    {username:"Lin",rating: 999.75, status:"accepted",incoming:true},
   ]);
   const view = render(await Friends({searchParams:Promise.resolve({})}));
   for (const [username, labels] of [
@@ -244,10 +244,33 @@ it("identifies repeated friend actions by player and refreshes names after relat
       expect(new FormData(form).get("username")).toBe(username);
     }
   }
-  mocks.friends.mockResolvedValue([{username:"Ada",status:"accepted",incoming:false}]);
+  mocks.friends.mockResolvedValue([{username:"Ada",rating: 999.75, status:"accepted",incoming:false}]);
   view.rerender(await Friends({searchParams:Promise.resolve({})}));
   expect(screen.getByRole("button", {name:"Remove friend: Ada"})).toBeVisible();
   expect(screen.queryByRole("button", {name:"Accept: Ada"})).not.toBeInTheDocument();
   expect(screen.queryByRole("button", {name:"Decline: Ada"})).not.toBeInTheDocument();
   expect(screen.queryByRole("button", {name:"Accept: Grace"})).not.toBeInTheDocument();
+});
+
+it("shows current rounded MMR with tiers selected before rounding for every relationship", async () => {
+  mocks.friends.mockResolvedValue([
+    {username:"Ada",rating:999.75,status:"pending",incoming:true},
+    {username:"Bob",rating:1200,status:"accepted",incoming:false},
+    {username:"Eve",rating:0,status:"pending",incoming:false},
+  ]);
+  const view = render(await Friends({searchParams:Promise.resolve({})}));
+  for (const [username, mmr, tier] of [["Ada", "1000", "Bronze"], ["Bob", "1200", "Gold"], ["Eve", "0", "Bronze"]]) {
+    const card = screen.getByRole("link", {name:`View ${username}'s profile`}).closest("li")!;
+    const rating = card.querySelector(".friend-rating")!;
+    expect(rating).toHaveTextContent(`${mmr} MMR`);
+    expect(rating).toHaveTextContent(tier);
+    expect(rating).toHaveAccessibleDescription("Player cards show current MMR rounded to a whole number. Tiers use the full rating before rounding.");
+  }
+  mocks.friends.mockResolvedValue([{username:"Ada",rating:1000,status:"accepted",incoming:false}]);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.getByRole("link", {name:"View Ada's profile"}).closest("li")).toHaveTextContent("Silver");
+  mocks.current.mockResolvedValue(null);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(view.container.querySelector(".friend-rating")).toBeNull();
+  expect(screen.queryByText(/Player cards show current MMR/)).not.toBeInTheDocument();
 });

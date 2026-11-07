@@ -388,6 +388,9 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .friend-list { list-style: none; padding: 0; }
 .friend-list li { min-width: 0; }
 .friend-list h3 { margin-top: 0; font-size: 1.25rem; }
+.friend-rating { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-block: .75rem; font-variant-numeric: tabular-nums; }
+.friend-rating strong { font-size: 1.25rem; }
+.friend-rating strong span { font-size: .875rem; color: var(--color-muted); }
 .friend-empty { color: var(--color-muted); padding: 1rem; border: 1px dashed var(--color-border); border-radius: var(--radius-md); }
 
 .rematch-panel { margin-top: 24px; min-width: 0; overflow-wrap: anywhere; }
