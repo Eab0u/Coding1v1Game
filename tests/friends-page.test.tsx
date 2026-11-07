@@ -105,3 +105,28 @@ it("shows honest empty sections and hides private sections from guests", async (
   expect(screen.queryByRole("region")).not.toBeInTheDocument();
   expect(mocks.friends).not.toHaveBeenCalled();
 });
+
+it("guides friend invitations, blocks invalid names and recovers with the exact requested player", async () => {
+  render(await Friends({searchParams:Promise.resolve({})}));
+  const input = screen.getByLabelText<HTMLInputElement>("Player username");
+  expect(input).toHaveAccessibleDescription(/3.*24 letters, numbers or underscores for a player username/);
+  expect(input).toHaveAttribute("autocapitalize", "none");
+  expect(input).toHaveAttribute("spellcheck", "false");
+  expect(input).toHaveAttribute("autocomplete", "off");
+  fireEvent.invalid(input);
+  expect(input).toHaveAttribute("aria-invalid", "true");
+  for (const value of ["ab", "a".repeat(25), "Player Name", "Player-Name"]) {
+    fireEvent.change(input, {target:{value}});
+    expect(input).toBeInvalid();
+    expect(input).toHaveAccessibleDescription(/a player username/);
+    expect(screen.getByRole("status")).not.toBeEmptyDOMElement();
+  }
+  fireEvent.change(input, {target:{value:"Ada_123"}});
+  expect(input).toBeValid();
+  expect(input).not.toHaveAttribute("aria-invalid");
+  expect(screen.getByRole("status")).toBeEmptyDOMElement();
+  const form = input.form!;
+  expect(new FormData(form).get("username")).toBe("Ada_123");
+  expect(new FormData(form).get("action")).toBe("request");
+  expect(form).toHaveAttribute("action", "/api/friends");
+});

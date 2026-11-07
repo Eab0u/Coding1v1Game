@@ -264,3 +264,25 @@ it('keeps the arena readable with keyboard-scrollable code on narrow screens', a
   } finally { await page.close(); }
 }, 30000);
 
+
+it('keeps friend invitation feedback and keyboard submission usable at 320px', async () => {
+  const wasSignedIn = state.signedIn;
+  state.signedIn = true;
+  const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Friends({ searchParams: Promise.resolve({}) }))}`);
+    // Component tests cover events; populate the static fixture to check error layout.
+    const feedback = page.locator('#friend-username-error');
+    await feedback.evaluate(element => { element.textContent = 'Use 3?24 letters, numbers or underscores for a player username.'; });
+    expect(await feedback.isVisible()).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    const bounds = (await feedback.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(320);
+    await page.getByLabel('Player username').focus();
+    await page.keyboard.press('Tab');
+    const submit = page.getByRole('button', { name: 'Send friend request' });
+    expect(await submit.evaluate(element => element === document.activeElement)).toBe(true);
+    expect((await submit.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  } finally { state.signedIn = wasSignedIn; await page.close(); }
+});

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Friend invitation username guidance
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent friend invitation usability item. Catalog items remain unchecked.
+- Reused shared username validation for friend invitations with visible player-specific rules, styled accessible inline errors and correction recovery. Disabled automatic capitalization, spellcheck and account autofill for the rival's username while preserving native POST actions and exact typed names.
+- Added page interaction coverage for required and invalid names, accessible feedback, recovery and request payloads. Added Chromium coverage for populated feedback at 320px, keyboard submission access and the 44px action target. Fixed fixture authentication state leakage exposed by the new browser check; static browser fixtures cover layout while component tests cover events.
+- Validation: all 453 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Password entry feedback
 - Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent password-entry usability item. Catalog items remain unchecked.
 - Added styled, accessible Caps Lock status to each password field, updated from keydown and keyup and cleared on blur to avoid stale guidance. Warnings remain advisory, work with visible passwords and preserve credentials and native submission. Required-password validation now exposes inline feedback and clears after correction.

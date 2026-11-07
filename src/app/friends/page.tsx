@@ -4,6 +4,7 @@ import { auth, database } from "../../lib/auth-server";
 import { SESSION_COOKIE } from "../../lib/auth";
 import { loadFriends, type FriendEntry } from "../../lib/friends";
 import { Badge, Button, Card } from "../../components/ui";
+import { UsernameField } from "../../components/username-field";
 export const dynamic = "force-dynamic";
 export default async function Friends({ searchParams }: { searchParams: Promise<{ message?: string }> }) {
   let user = null;
@@ -27,7 +28,7 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
         <a className="button button--primary" href="/friends">Retry friends</a>
         <Link className="button button--secondary" href="/">Back to arena</Link>
       </Card> : !user ? <Link href="/account">Sign in to manage friends</Link> : <>
-        <Card><h2>Invite a player</h2><form className="account-form" method="post" action="/api/friends"><input type="hidden" name="action" value="request"/><label htmlFor="friend-username">Player username</label><input id="friend-username" name="username" required minLength={3} maxLength={24} pattern="[A-Za-z0-9_]{3,24}"/><Button type="submit">Send friend request</Button></form></Card>
+        <Card><h2>Invite a player</h2><form className="account-form" method="post" action="/api/friends"><input type="hidden" name="action" value="request"/><UsernameField mode="friend" /><Button type="submit">Send friend request</Button></form></Card>
         <div className="friend-groups">{groups.map(group => <section key={group.id} aria-labelledby={`friends-${group.id}`}>
           <h2 className="friend-group-title" id={`friends-${group.id}`}>{group.title} <Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge></h2>
           {group.entries.length ? <ul className="friend-list">{group.entries.map(entry => <li key={entry.username}><Card><h3><Link href={`/profile/${entry.username}`}>{entry.username}</Link></h3><p>{entry.status === "accepted" ? "Friends" : entry.incoming ? "Wants to be your friend" : "Request sent"}</p>
