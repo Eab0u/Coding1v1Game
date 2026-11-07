@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Clear friend action feedback
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent friend-action feedback item; catalog validation remains unchecked.
+- Replaced the raw URL-message paragraph with themed feedback cards for the three supported action outcomes. Added contextual guidance to review relationships before retrying an unconfirmed action or correcting a request. Arbitrary URL text is ignored, and results are hidden for guests and unavailable reads. URL feedback is informational; current relationship data remains authoritative.
+- Added component checks for all supported outcomes, arbitrary messages, guests and unavailable reads. Chromium coverage at 320, 375 and 1280px verifies card styling, visible recovery guidance, document overflow and keyboard access to the invitation field.
+- Validation: all 589 tests across 51 files passed; lint, production build and typecheck passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Discoverable home friends navigation
 - Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent navigation item; both catalog validation items remain unchecked.
 - Added a direct Friends link to the signed-in home header using the existing theme and 44px touch target styling. The link remains available if dashboard data fails after successful authentication, and is absent for guests or failed session reads.

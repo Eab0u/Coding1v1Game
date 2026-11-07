@@ -701,3 +701,18 @@ it.each([320, 375, 1280])('scrolls daily signatures with the keyboard at %spx', 
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+it.each([320, 375, 1280])('keeps friend action recovery feedback readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Friends({ searchParams: Promise.resolve({ message: 'Friends unavailable. Please try again later.' }) }))}`);
+    const feedback = page.locator('.friend-feedback');
+    expect(await feedback.getByRole('heading', { name: 'Action could not be confirmed' }).isVisible()).toBe(true);
+    expect(await feedback.textContent()).toContain('before trying again');
+    expect(await feedback.evaluate(el => getComputedStyle(el).borderLeftWidth)).toBe('4px');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.getByRole('link', { name: 'Skip to friends' }).focus();
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Tab');
+    expect(await page.getByLabel('Player username').evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { await page.close(); }
+});

@@ -20,9 +20,13 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
     { id: "outgoing", title: "Sent requests", empty: "No outstanding invitations.", entries: entries.filter(entry => entry.status === "pending" && !entry.incoming) },
   ];
   const { message } = await searchParams;
+  const feedback = message === "Friend list updated." ? { title: "Friend list updated", detail: "Your action was processed. Review your friends and invitations below." }
+    : message === "No request sent. Check the username or your existing relationships." ? { title: "No request sent", detail: "Check the player username and your incoming, sent and accepted relationships below before trying again." }
+    : message === "Friends unavailable. Please try again later." ? { title: "Action could not be confirmed", detail: "Review your current friends and invitations below before trying again." }
+    : null;
   return <div className="shell"><a className="skip-link" href="#main-content">Skip to friends</a><header className="site-header"><Link className="brand" href="/">CodeDuel<span className="accent">.</span></Link><Link href="/leaderboard?scope=friends">Friends standings</Link></header>
     <main className="account" id="main-content" tabIndex={-1}><p className="eyebrow">BETTER WITH RIVALS</p><h1>Your circle.</h1><p className="intro">Add friends, follow their climb, and find your next rival.</p>
-      {message && <p role="status">{message.slice(0, 200)}</p>}
+      {feedback && user && !unavailable && <Card className="friend-feedback"><div role="status"><h2>{feedback.title}</h2><p>{feedback.detail}</p></div></Card>}
       {unavailable ? <Card className="ladder-recovery">
         <div role="alert"><h2>Friends unavailable</h2><p>We could not load your circle. Try again to refresh your friends and invitations.</p></div>
         <a className="button button--primary" href="/friends">Retry friends</a>

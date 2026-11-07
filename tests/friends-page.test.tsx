@@ -157,3 +157,25 @@ it("guides guests to accounts and public standings without showing private contr
   expect(screen.queryByText(/No friends yet/)).not.toBeInTheDocument();
   expect(mocks.friends).not.toHaveBeenCalled();
 });
+it.each([
+  ["Friend list updated.", "Friend list updated", "Review your friends"],
+  ["No request sent. Check the username or your existing relationships.", "No request sent", "Check the player username"],
+  ["Friends unavailable. Please try again later.", "Action could not be confirmed", "before trying again"],
+])("explains friend action result %s", async (message, title, guidance) => {
+  render(await Friends({searchParams:Promise.resolve({message})}));
+  const feedback = screen.getByRole("heading", {name:title}).closest("[role=status]")!;
+  expect(feedback).toHaveTextContent(guidance);
+  expect(feedback.parentElement).toHaveClass("friend-feedback");
+});
+it("ignores arbitrary URL messages and suppresses results when session or data is unavailable", async () => {
+  const view = render(await Friends({searchParams:Promise.resolve({message:"Invented success message"})}));
+  expect(screen.queryByText("Invented success message")).not.toBeInTheDocument();
+  mocks.current.mockResolvedValue(null);
+  view.rerender(await Friends({searchParams:Promise.resolve({message:"Friend list updated."})}));
+  expect(screen.queryByText("Friend list updated")).not.toBeInTheDocument();
+  mocks.current.mockResolvedValue({id:"actor"});
+  mocks.friends.mockRejectedValue(new Error("private"));
+  view.rerender(await Friends({searchParams:Promise.resolve({message:"Friend list updated."})}));
+  expect(screen.queryByText("Friend list updated")).not.toBeInTheDocument();
+  expect(screen.getByRole("alert")).toHaveTextContent("Friends unavailable");
+});
