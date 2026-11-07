@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Consistent malformed judge suite rejection
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge validation item. Validate every suite entry before inspecting benchmark selection, so null, undefined and sparse entries produce the intended request validation error instead of an incidental property-access error. Explicitly reject array and primitive entries before network access.
+- Added regression coverage for malformed entries before/after valid benchmarks and alone, sparse suites with/without benchmarks, zero network access on rejection and successful adapter reuse. Updated the documented request contract.
+- Validation: all 1,699 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 89 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Strict judge benchmark metadata
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge correctness item. Requests now reject non-boolean benchmark flags and non-string function names before network access. Truthy malformed flags can no longer silently add tests to runtime scoring, and coercible function names cannot produce an invalid sandbox function lookup.

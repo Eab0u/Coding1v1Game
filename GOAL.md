@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Reject malformed and sparse judge suite entries with consistent request validation before benchmark lookup or network access, preserving adapter reuse with regression coverage
 - [x] Reject non-boolean judge benchmark flags and non-string function names before network access, preserving explicit benchmark selection with regression coverage
 - [x] Snapshot validated judge request suites and submission timestamps before network access so asynchronous caller mutations cannot change answers, benchmark selection, test totals or tiebreakers, with nested-mutation regression coverage
 - [x] Snapshot validated sandbox configuration so caller mutations cannot change credentials, resource limits, diagnostics or scoring penalties during execution, with before/during-execution and adapter-reuse regression coverage

@@ -14,6 +14,25 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each([null, undefined, false, 0, "test", [], {}])("rejects malformed suite entries (%j) in either position before network access", async entry => {
+    const fetcher = vi.fn<typeof fetch>();
+    const judge = createJudge(config, fetcher);
+    for (const tests of [[entry, ...request.tests], [...request.tests, entry], [entry]]) {
+      await expect(judge({ ...request, tests } as JudgeRequest)).rejects.toThrow("Invalid judge request; include JSON tests and a largest-test benchmark.");
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("rejects sparse suites before network access and remains reusable", async () => {
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    for (const tests of [new Array(2), [, ...request.tests], [...request.tests, ,]]) {
+      await expect(judge({ ...request, tests } as JudgeRequest)).rejects.toThrow("Invalid judge request; include JSON tests and a largest-test benchmark.");
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
   it.each(["false", "true", 0, 1, null, [], {}])("rejects malformed benchmark flags (%j) before network access", async benchmark => {
     const fetcher = vi.fn<typeof fetch>();
     const input = { ...request, tests: [...request.tests, { args: [42], expected: 42, benchmark }] };
