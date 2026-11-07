@@ -443,6 +443,30 @@ timeouts per benchmark. This draft is private, unpublished and unapproved.
 npm run problems -- validate problems/drafts/relay-missing-slot.json
 ```
 
+### Relay Target Bursts
+
+`drafts/relay-target-bursts.json` is an original medium prefix-sum counting
+problem. Count nonempty contiguous spans with a specified signed energy total.
+Negative entries prevent a monotonic sliding window. The reference counts prior
+prefix sums equal to the current prefix minus the target; seed prefix zero once
+to include spans starting at index zero. Query before inserting the current
+prefix to exclude empty spans when the target is zero. Expected time is O(n),
+space O(n). The baseline enumerates every span in O(n squared) time.
+
+Three 100,000-entry benchmarks use zeroes, ones and alternating signs. Answers
+are 5,000,050,000, 50,001 and 2,500,000,000. Every baseline performs
+5,000,050,000 inner iterations; counts require more than signed 32-bit storage.
+Tests compare direct span enumeration with ordered prefix-position pairs on
+2,000 deterministic small inputs, check reversal and sign symmetry, and certify
+large answers using closed forms. No authored Python executes on the host.
+Proposed 1-second CPU and 64-MiB limits require isolated sandbox calibration,
+solution agreement and three baseline timeouts per benchmark. The draft remains
+private, unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/relay-target-bursts.json
+```
+
 ### Relay Unique Span
 
 `drafts/relay-unique-span.json` is an original medium sliding-window problem:

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Author the original Relay Target Bursts medium prefix-sum counting draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending
 - [x] Author the original Relay Unique Span medium sliding-window draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending
 - [x] Author the original Relay Missing Slot easy hash-set draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending
 - [x] Normalize plain-editor CRLF and CR line endings to textarea offsets for Enter, Backspace, block indentation, selections and size feedback, with regression tests
