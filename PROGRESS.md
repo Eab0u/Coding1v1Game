@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Silence audio on page departure
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded audio lifecycle item.
+- Page departure now disposes active and scheduled duel audio even when visibility remains visible and React does not unmount, including browser back/forward cache preservation. Returning preserves sound consent and visual feedback but requires a fresh local gesture to unlock audio. Repeated departure is safe and the pagehide listener is removed on unmount.
+- Added regression coverage for ordinary and cached departures, repeated events, silent restoration, preserved preference and visual feedback, fresh audio unlock and cleanup.
+- Validation: all 775 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally. Browser cache lifecycle is tested with dispatched page-transition events; live browser cache behavior remains a deployment smoke check.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Silence audio on tab hide
 - Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded sound lifecycle fix.
 - Hiding a tab now immediately disposes active duel audio, including already scheduled notes. Sound consent and visual feedback are preserved. Returning to the tab does not autoplay; a visible local user gesture must unlock a fresh audio context. Hidden-tab unlock attempts are ignored, repeated hiding is safe and the visibility listener is removed on unmount.

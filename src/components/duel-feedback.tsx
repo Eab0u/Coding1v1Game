@@ -25,13 +25,17 @@ export function useDuelFeedback() {
       // Remote consent updates the control, but audio still needs a local gesture.
       if (!enabledRef.current) { sound.current?.dispose(); sound.current = null; }
     }
+    function silence() { sound.current?.dispose(); sound.current = null; }
     function silenceHiddenTab() {
-      if (document.visibilityState === "hidden") { sound.current?.dispose(); sound.current = null; }
+      if (document.visibilityState === "hidden") silence();
     }
     document.addEventListener("visibilitychange", silenceHiddenTab);
+    // Cached pages may leave without unmounting or first becoming hidden.
+    window.addEventListener("pagehide", silence);
     window.addEventListener("storage", syncPreference);
     return () => {
       window.removeEventListener("storage", syncPreference);
+      window.removeEventListener("pagehide", silence);
       document.removeEventListener("visibilitychange", silenceHiddenTab);
       sound.current?.dispose(); sound.current = null;
     };

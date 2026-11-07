@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Stop duel audio on ordinary and cached page departure, preserve consent and visual feedback, and require a fresh local gesture after return; cover repeated departure and listener cleanup
 - [x] Stop active duel audio when a tab is hidden, preserve sound preference and visual feedback, and require a visible local gesture to resume; cover lifecycle cleanup and repeated hiding
 - [x] Synchronize saved duel sound preferences across tabs, immediately dispose audio on remote mute or storage clear, and require local gesture unlock after remote enablement
 - [x] Add account Clear form actions with independent native reset recovery for username validation, password visibility, byte budgets and Caps Lock feedback; cover cancelled resets and correction

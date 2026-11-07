@@ -72,6 +72,35 @@ it("degrades gracefully without audio or storage and silences hidden tabs", () =
 function remotePreference(newValue: string | null, key: string | null = "codeduel-sound", storageArea: Storage = localStorage) {
   fireEvent(window, new StorageEvent("storage", { key, newValue, storageArea }));
 }
+it.each([false, true])("silences page departure (cached: %s) and keeps restored pages silent until a gesture", persisted => {
+  vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+  const remove = vi.spyOn(window, "removeEventListener");
+  const view = render(<Harness />);
+  fireEvent.click(screen.getByRole("button", { name: "Sound off" }));
+  const audio = Audio.latest;
+  const count = nodes.length;
+  fireEvent(window, new PageTransitionEvent("pagehide", { persisted }));
+  fireEvent(window, new PageTransitionEvent("pagehide", { persisted }));
+  expect(audio.close).toHaveBeenCalledOnce();
+  fireEvent(window, new PageTransitionEvent("pageshow", { persisted }));
+  fireEvent.click(screen.getByText("win"));
+  expect(nodes).toHaveLength(count);
+  expect(screen.getByText("Victory")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Sound on" })).toHaveAttribute("aria-pressed", "true");
+  expect(localStorage.getItem("codeduel-sound")).toBe("on");
+  fireEvent.click(screen.getByText("Unlock audio"));
+  fireEvent.click(screen.getByText("win"));
+  expect(Audio.latest).not.toBe(audio);
+  expect(nodes).toHaveLength(count + cueNotes.win.length);
+  const restoredAudio = Audio.latest;
+  view.unmount();
+  expect(restoredAudio.close).toHaveBeenCalledOnce();
+  const listener = remove.mock.calls.find(([type]) => type === "pagehide")?.[1];
+  expect(listener).toEqual(expect.any(Function));
+  // A removed departure listener must not affect an already unmounted hook.
+  fireEvent(window, new PageTransitionEvent("pagehide", { persisted }));
+  expect(restoredAudio.close).toHaveBeenCalledOnce();
+});
 it.each(["off", null, "invalid"])("silences active audio when another tab saves %s", value => {
   render(<Harness />);
   fireEvent.click(screen.getByRole("button", { name: "Sound off" }));
