@@ -8,6 +8,23 @@ vi.mock("../src/lib/leaderboard", () => ({ loadLeaderboard: mocks.standings }));
 import Friends from "../src/app/friends/page";
 import Leaderboard from "../src/app/leaderboard/page";
 beforeEach(() => { vi.resetAllMocks(); mocks.current.mockResolvedValue({id:"actor"}); mocks.friends.mockResolvedValue([]); mocks.standings.mockResolvedValue([]); });
+it("offers scoped rating and weekly comparisons only when accepted friends exist", async () => {
+  mocks.friends.mockResolvedValue([{username:"Ada", rating:1200, status:"pending", incoming:true}]);
+  const view = render(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.queryByRole("link", {name:"Compare friends ratings"})).not.toBeInTheDocument();
+  mocks.friends.mockResolvedValue([{username:"Ada", rating:1200, status:"accepted", incoming:false}]);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  const section = screen.getByRole("region", {name:"Your friends 1"});
+  const ratings = within(section).getByRole("link", {name:"Compare friends ratings"});
+  const weekly = within(section).getByRole("link", {name:"Compare friends this week"});
+  expect(ratings).toHaveAttribute("href", "/leaderboard?scope=friends");
+  expect(weekly).toHaveAttribute("href", "/leaderboard?scope=friends&period=weekly");
+  expect(weekly).toHaveAccessibleDescription(/Monday 00:00 UTC.*Only players with completed duels this week/);
+  expect(ratings).toHaveAccessibleDescription(/global standings rank current MMR/);
+  mocks.friends.mockResolvedValue([]);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.queryByRole("link", {name:"Compare friends this week"})).not.toBeInTheDocument();
+});
 it("offers a fresh native page read with snapshot guidance only for available private lists", async () => {
   const view = render(await Friends({searchParams:Promise.resolve({message:"Friend list updated."})}));
   const refresh = screen.getByRole("link", {name:"Refresh friends"});

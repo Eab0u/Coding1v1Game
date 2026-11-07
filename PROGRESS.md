@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Contextual friends standings comparisons
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded usability item; catalog milestones remain unchecked.
+- Added a styled, wrapping comparison panel beside accepted friends with direct global and weekly friends standings links. Guidance explains current MMR ranking, weekly rating gains since Monday 00:00 UTC and weekly participation requirements. Pending-only and empty circles do not show the panel.
+- Added component coverage for accepted/pending/empty transitions, scoped destinations and accessible descriptions. Updated Chromium coverage at 320, 375 and 1280px for comparison touch targets, overflow and keyboard order after section jumps.
+- Validation: all 1,060 tests across 66 files passed; lint, production build and typecheck passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Actionable Friends empty sections
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends usability item; catalog milestones remain unchecked.
 - Empty accepted-friend sections now direct players to waiting incoming requests when available, otherwise to the invitation form. Empty sent-request sections link to invitations, and empty incoming sections explain refresh behavior. Styled native actions wrap on phones; the invitation heading receives anchor focus and highlights the destination.

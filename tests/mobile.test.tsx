@@ -43,6 +43,13 @@ it.each([320, 375, 1280])('jumps to friend sections with native keyboard focus a
       expect(await rating.evaluate(el => getComputedStyle(el).display)).toBe('flex');
     }
     const navigation = page.getByRole('navigation', {name:'Friend sections'});
+    const comparisons = page.locator('.friend-standings');
+    expect(await comparisons.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    for (const link of await comparisons.getByRole('link').all()) {
+      const bounds = (await link.boundingBox())!;
+      expect(bounds.height).toBeGreaterThanOrEqual(44);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
     const guide = page.locator('.friend-guide');
     expect(await guide.getByRole('heading', {name:'How your circle works'}).isVisible()).toBe(true);
     expect(await guide.locator('dt').count()).toBe(3);
@@ -64,7 +71,12 @@ it.each([320, 375, 1280])('jumps to friend sections with native keyboard focus a
       expect(await section.evaluate(el => el.matches(':target'))).toBe(true);
       expect(await section.evaluate(el => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
       await page.keyboard.press('Tab');
-      expect(await section.getByRole('link').evaluate(el => document.activeElement === el)).toBe(true);
+      expect(await section.getByRole('link').first().evaluate(el => document.activeElement === el)).toBe(true);
+      if (title === 'Your friends') {
+        expect(await section.getByRole('link', {name:'Compare friends ratings'}).evaluate(el => document.activeElement === el)).toBe(true);
+        await page.keyboard.press('Tab');
+        expect(await section.getByRole('link', {name:'Compare friends this week'}).evaluate(el => document.activeElement === el)).toBe(true);
+      }
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }

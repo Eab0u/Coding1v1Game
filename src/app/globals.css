@@ -389,6 +389,10 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .friend-section { scroll-margin-top: 1.5rem; border-radius: var(--radius-sm); }
 .friend-section:target { outline: 2px solid var(--color-accent); outline-offset: 6px; }
 .friend-group-title { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.friend-standings { padding: 1rem; border: 1px solid var(--color-accent); border-radius: var(--radius-md); background: var(--color-surface); }
+.friend-standings p { margin-top: 0; color: var(--color-muted); }
+.friend-standings > div { display: flex; flex-wrap: wrap; gap: .75rem; }
+.friend-standings .button { max-width: 100%; white-space: normal; text-align: center; }
 .friend-list { list-style: none; padding: 0; }
 .friend-list li { min-width: 0; }
 .friend-list h3 { margin-top: 0; font-size: 1.25rem; }
