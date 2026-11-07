@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Friends read recovery
+- Reviewed both unchecked catalog items; isolated Judge0 configuration remains unavailable (only .env.example is present). Following the blocker rule, added and completed one independent friends usability item. Catalog items remain unchecked.
+- Replaced the friends error dead end with a styled accessible recovery card, Retry friends link issuing a fresh page request and Back to arena navigation. Reused the shared recovery styling. Failed session or relationship reads hide mutation controls and empty relationship counts; retry rechecks the session and relationships.
+- Added tests for private error containment, session failures without relationship queries, retry destination and successful fresh-read recovery. Chromium coverage verifies the panel at 320px, no page overflow, a 44px retry target and keyboard focus order.
+- Validation: all 418 tests across 42 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing infrastructure blockers and live deployment smoke checks remain.
+
 ### 2026-11-06 - Player profile read recovery
 - Reviewed the unchecked catalog items; both remain blocked by missing isolated Judge0 configuration (only .env.example is present). Added and completed one independent profile usability item; catalog items remain unchecked.
 - Replaced the profile error dead end with a styled accessible recovery card, Retry profile action preserving the requested username and Back to arena navigation. Retry uses a fresh page request; infrastructure details and false empty records remain hidden. Invalid and unknown players retain their 404 behavior.

@@ -32,6 +32,34 @@ it("contains private service failures", async () => {
   render(await Friends({searchParams:Promise.resolve({})}));
   expect(screen.getByRole("alert")).toHaveTextContent("Friends unavailable");
   expect(screen.queryByText(/SECRET/)).not.toBeInTheDocument();
+  expect(screen.getByRole("link", {name:"Retry friends"})).toHaveAttribute("href", "/friends");
+  expect(screen.getByRole("link", {name:"Back to arena"})).toHaveAttribute("href", "/");
+  expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  expect(screen.queryByRole("region")).not.toBeInTheDocument();
+  expect(screen.queryByText(/No friends yet/)).not.toBeInTheDocument();
+});
+
+it("recovers friends on a fresh read and removes the retry after success", async () => {
+  mocks.friends.mockRejectedValueOnce(new Error("private connection detail"));
+  const view = render(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.getByRole("link", {name:"Retry friends"})).toHaveAttribute("href", "/friends");
+  mocks.friends.mockResolvedValue([{username:"Ada",status:"pending",incoming:true}]);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(mocks.current).toHaveBeenCalledTimes(2);
+  expect(mocks.friends).toHaveBeenCalledTimes(2);
+  expect(screen.getByRole("region", {name:"Incoming requests 1"})).toBeVisible();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", {name:"Retry friends"})).not.toBeInTheDocument();
+});
+
+it("offers recovery when session lookup fails without querying relationships", async () => {
+  mocks.current.mockRejectedValue(new Error("private session detail"));
+  render(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.getByRole("alert")).toHaveTextContent("Friends unavailable");
+  expect(screen.getByRole("link", {name:"Retry friends"})).toBeVisible();
+  expect(screen.queryByText(/private session detail/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", {name:"Sign in to manage friends"})).not.toBeInTheDocument();
+  expect(mocks.friends).not.toHaveBeenCalled();
 });
 
 it("groups relationships with counts and submits the clicked action for the correct player", async () => {

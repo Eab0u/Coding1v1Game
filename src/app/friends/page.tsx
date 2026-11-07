@@ -22,7 +22,11 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
   return <div className="shell"><header className="site-header"><Link className="brand" href="/">CodeDuel<span className="accent">.</span></Link><Link href="/leaderboard?scope=friends">Friends standings</Link></header>
     <main className="account"><p className="eyebrow">BETTER WITH RIVALS</p><h1>Your circle.</h1><p className="intro">Add friends, follow their climb, and find your next rival.</p>
       {message && <p role="status">{message.slice(0, 200)}</p>}
-      {unavailable ? <p role="alert">Friends unavailable. Please try again later.</p> : !user ? <Link href="/account">Sign in to manage friends</Link> : <>
+      {unavailable ? <Card className="ladder-recovery">
+        <div role="alert"><h2>Friends unavailable</h2><p>We could not load your circle. Try again to refresh your friends and invitations.</p></div>
+        <a className="button button--primary" href="/friends">Retry friends</a>
+        <Link className="button button--secondary" href="/">Back to arena</Link>
+      </Card> : !user ? <Link href="/account">Sign in to manage friends</Link> : <>
         <Card><h2>Invite a player</h2><form className="account-form" method="post" action="/api/friends"><input type="hidden" name="action" value="request"/><label htmlFor="friend-username">Player username</label><input id="friend-username" name="username" required minLength={3} maxLength={24} pattern="[A-Za-z0-9_]{3,24}"/><Button type="submit">Send friend request</Button></form></Card>
         <div className="friend-groups">{groups.map(group => <section key={group.id} aria-labelledby={`friends-${group.id}`}>
           <h2 className="friend-group-title" id={`friends-${group.id}`}>{group.title} <Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge></h2>
