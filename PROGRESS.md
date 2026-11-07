@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Password minimum-length guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one usability item: sign-in and sign-up password budgets now explain exactly how many characters are still needed, then confirm when the minimum length is met. Guidance shares the existing responsive budget layout and accessible input description without per-keystroke live announcements.
+- Added regression tests for both forms covering minimum boundaries, byte overflow remaining independently invalid, correction, silent replacement on focus, reveal, independent state and reset. Fixed a shared selector caught by the existing phone/desktop browser tests.
+- Validation: all 1,610 tests across 72 files passed, including phone/desktop browser coverage; lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Username character budgets
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks the highest-value unchecked catalog milestone. Catalog items remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one interface improvement: responsive username character budgets across sign-in, sign-up and friend invitations. Inputs describe minimum-length guidance, remaining capacity, exact limits and overflow. Overflow has explicit text and a danger-colored border; updates avoid per-keystroke live announcements.

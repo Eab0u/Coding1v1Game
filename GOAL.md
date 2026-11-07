@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Show remaining password minimum-length requirements alongside the responsive byte budget, preserving independent forms, replacement values, reveal and reset with regression coverage
 - [x] Show responsive username character budgets across account and friend forms, preserving validation, independent state and reset/replacement recovery with regression coverage
 - [x] Detect Caps Lock when players click into either password field before typing, preserving independent warnings, values and validation with regression coverage
 - [x] Add a styled, politely announced password visibility notice and describe reveal controls with concealment guidance, preserving independent forms and automatic concealment with regression coverage

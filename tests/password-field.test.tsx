@@ -468,3 +468,36 @@ it("removes form concealment listeners on unmount", () => {
   expect(remove).toHaveBeenCalledWith("submit", expect.any(Function), true);
   expect(remove).toHaveBeenCalledWith("invalid", expect.any(Function), true);
 });
+
+it.each(["login", "signup"] as const)("tracks %s minimum length independently through replacements, reveal and reset", async mode => {
+  render(<><form><PasswordField mode="login" /></form><form><PasswordField mode="signup" /></form></>);
+  const input = document.getElementById(`${mode}-password`)! as HTMLInputElement;
+  const otherMode = mode === "login" ? "signup" : "login";
+  const budget = document.getElementById(`${mode}-password-budget`)!;
+  expect(input).toHaveAccessibleDescription(/At least 12 more characters needed/);
+  expect(budget).not.toHaveAttribute("aria-live");
+  expect(budget).not.toHaveAttribute("role");
+  for (const [value, message] of [
+    ["a", "At least 11 more characters needed"],
+    ["a".repeat(11), "At least 1 more character needed"],
+    ["a".repeat(12), "Minimum length met"],
+    ["a".repeat(257), "Minimum length met"],
+    ["short", "At least 7 more characters needed"],
+  ]) {
+    fireEvent.change(input, { target: { value } });
+    expect(budget).toHaveTextContent(message);
+    expect(input).toHaveAccessibleDescription(new RegExp(message));
+    expect(document.getElementById(`${otherMode}-password-budget`)).toHaveTextContent("At least 12 more characters needed");
+  }
+  input.value = "replacement password";
+  fireEvent.focus(input);
+  expect(budget).toHaveTextContent("Minimum length met");
+  fireEvent.click(screen.getByRole("button", { name: mode === "login" ? "Show sign-in password" : "Show sign-up password" }));
+  expect(input).toHaveAttribute("type", "text");
+  expect(budget).toHaveTextContent("Minimum length met");
+  expect(input.validity.valid).toBe(true);
+  await act(async () => input.form!.reset());
+  expect(budget).toHaveTextContent("At least 12 more characters needed");
+  expect(input).toHaveValue("");
+  expect(input).toHaveAttribute("type", "password");
+});

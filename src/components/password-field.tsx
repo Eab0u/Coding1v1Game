@@ -10,12 +10,14 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
   const [error, setError] = useState("");
   const [capsLock, setCapsLock] = useState(false);
   const [bytes, setBytes] = useState(0);
+  const [length, setLength] = useState(0);
   const inputRef = useFieldReset(useCallback((input: HTMLInputElement) => {
     input.setCustomValidity("");
     setError("");
     setVisible(false);
     setCapsLock(false);
     setBytes(new TextEncoder().encode(input.value).byteLength);
+    setLength(input.value.length);
   }, []));
   useEffect(() => {
     const form = inputRef.current?.form;
@@ -53,6 +55,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
   }, []);
   const synchronizeValue = (input: HTMLInputElement, reportEmpty = false) => {
     setBytes(new TextEncoder().encode(input.value).byteLength);
+    setLength(input.value.length);
     const message = passwordValidationMessage(input.value);
     input.setCustomValidity(input.value || reportEmpty ? message : "");
     setError(input.value || reportEmpty ? message : "");
@@ -91,6 +94,9 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
     <p id={`${mode}-password-visibility`} className="password-visibility" role="status">{visible ? "Password is visible. Hide it when you finish checking." : ""}</p>
     <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape in the password field or Hide button to conceal a revealed password. Revealed passwords hide when you switch tabs. They also hide when the browser window loses focus, when you leave this page or submit this form, including when a field needs correction.</p>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
+      <span>{length < PASSWORD_MIN_LENGTH
+        ? `At least ${PASSWORD_MIN_LENGTH - length} more ${PASSWORD_MIN_LENGTH - length === 1 ? "character" : "characters"} needed`
+        : "Minimum length met"}</span>
       <strong>{bytes} / {PASSWORD_MAX_BYTES} bytes</strong>
       <span className="password-budget-capacity">{bytes > PASSWORD_MAX_BYTES
         ? `${bytes - PASSWORD_MAX_BYTES} ${bytes - PASSWORD_MAX_BYTES === 1 ? "byte" : "bytes"} over limit`
