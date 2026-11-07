@@ -19,7 +19,7 @@ it("joins once and shows server wait and cancellation acknowledgement", () => {
   expect(ws.url.pathname).toBe("/matchmaking");
   expect(ws.send).toHaveBeenCalledExactlyOnceWith('{"type":"join"}');
   event({ type: "queued", waitedSeconds: 12, ratingBand: 150 });
-  expect(screen.getByRole("status")).toHaveTextContent("12s elapsed");
+  expect(screen.getByText("12s elapsed")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
   expect(ws.send).toHaveBeenLastCalledWith('{"type":"leave"}');
   event({ type: "left" });
@@ -144,4 +144,34 @@ it("clears the reservation deadline after confirmation and on unmount", () => {
   event({ type: "matching" });
   pending.unmount();
   expect(vi.getTimerCount()).toBe(0);
+});
+
+it("updates visible queue metrics without changing the live announcement and clears them on cancellation", () => {
+  start();
+  event({ type: "queued", waitedSeconds: 12, ratingBand: 150 });
+  const status = screen.getByRole("status");
+  const announcement = status.textContent;
+  expect(screen.getByLabelText("Current search details")).toHaveAttribute("aria-live", "off");
+  event({ type: "queued", waitedSeconds: 20, ratingBand: 200 });
+  expect(status.textContent).toBe(announcement);
+  expect(screen.getByText("20s elapsed")).toBeInTheDocument();
+  expect(screen.getByText("?200 points")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  expect(screen.queryByLabelText("Current search details")).not.toBeInTheDocument();
+  expect(status).toHaveTextContent("Waiting for server confirmation");
+});
+
+it("hides queue metrics when reserving", () => {
+  start();
+  event({ type: "queued", waitedSeconds: 1, ratingBand: 100 });
+  event({ type: "matching" });
+  expect(screen.queryByLabelText("Current search details")).not.toBeInTheDocument();
+});
+
+it("recovers from invalid queue metrics without rendering them", () => {
+  start();
+  event({ type: "queued", waitedSeconds: -1, ratingBand: 100 });
+  expect(screen.queryByLabelText("Current search details")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response");
+  expect(screen.getByRole("button", { name: "Play a duel" })).toBeEnabled();
 });

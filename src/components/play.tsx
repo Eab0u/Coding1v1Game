@@ -15,6 +15,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     responseTimer.current = null;
   }
   const [phase, setPhase] = useState("idle");
+  const [queueStats, setQueueStats] = useState<{ waitedSeconds: number; ratingBand: number } | null>(null);
   const [matchId, setMatchId] = useState<string | null>(null);
   const [message, setMessage] = useState("Python only · Rating bands widen as you wait.");
   useEffect(() => () => { const ws = socket.current; socket.current = null; clearResponseTimer(); ws?.close(); }, []);
@@ -56,7 +57,11 @@ export function Play({ signedIn }: { signedIn: boolean }) {
         // Reservation frames must not renew the deadline or return us to the queue.
         if (reserving && (data.type === "queued" || data.type === "matching")) return;
         if (["queued", "matching", "matched", "left", "error"].includes(data.type)) clearResponseTimer();
-        if (data.type === "queued") { setPhase("queued"); setMessage(`Finding opponent… ${data.waitedSeconds}s elapsed · Rating range ±${data.ratingBand}. Wait estimate unavailable.`); }
+        if (data.type === "queued") {
+          if (!Number.isFinite(data.waitedSeconds) || data.waitedSeconds < 0 || !Number.isFinite(data.ratingBand) || data.ratingBand < 0) throw new Error("Invalid queue status");
+          setQueueStats({ waitedSeconds: Math.floor(data.waitedSeconds), ratingBand: Math.floor(data.ratingBand) });
+          setPhase("queued"); setMessage("Finding opponent. Rating bands widen as you wait. Wait estimate unavailable.");
+        }
         else if (data.type === "matching") {
           reserving = true;
           setPhase("matching"); setMessage("Reserving your match… Waiting for server confirmation.");
@@ -79,6 +84,10 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     </>}
     {signedIn && <DuelFeedback feedback={feedback} />}
     {matchId && <Link className="button button--primary" href={`/match/${matchId}`}>Open arena</Link>}
+    {phase === "queued" && queueStats && <dl className="queue-stats" aria-label="Current search details" aria-live="off">
+      <div><dt>Time searching</dt><dd>{queueStats.waitedSeconds}s elapsed</dd></div>
+      <div><dt>Rating range</dt><dd>?{queueStats.ratingBand} points</dd></div>
+    </dl>}
     <p className="availability" role="status">{message}</p>
   </div>;
 }

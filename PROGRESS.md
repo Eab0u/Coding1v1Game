@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Readable, quiet matchmaking search updates
+- Reviewed both unchecked catalog items; they remain blocked by the missing isolated Judge0 deployment (only .env.example is present). Added and completed one independent matchmaking usability item; catalog items remain unchecked.
+- Split authoritative search time and rating range into styled, responsive definition-list cards with tabular numerals. The live status stays unchanged across queue ticks, avoiding repeated screen-reader announcements; wait estimates remain explicitly unavailable.
+- Hide metrics immediately on cancellation, reservation and other phase changes. Reject malformed negative or nonnumeric queue metrics through the existing recoverable connection error path.
+- Updated and added regression tests for visible metrics, stable live status, cancellation/reservation transitions and invalid server data. All 398 tests across 41 files passed; lint, typecheck, production build and diff whitespace checks passed. No player code executed. Visual browser inspection was not performed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing live database, WebSocket and sandbox smoke-check blockers remain.
+
 ### 2026-11-06 - Rematch invitation deadline guidance
 - Reviewed the unchecked catalog tasks; both still require an unavailable isolated Judge0 deployment (only .env.example is present). Added and completed one independent rematch usability item; catalog tasks remain unchecked.
 - Invitation responses now include server time. A styled, accessible countdown uses server timestamps and a monotonic elapsed clock, so local clock skew does not change the deadline. Per-second changes are not announced by screen readers.
