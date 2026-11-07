@@ -290,3 +290,48 @@ it("does not transfer focus after a failed search or from an obsolete connection
   event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
   expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
 });
+it("connects matchmaking controls to stable guidance throughout the search lifecycle", () => {
+  start();
+  const status = screen.getByRole("status");
+  const id = status.id;
+  const play = screen.getByRole("button", { name: "Connecting…" });
+  expect(id).toBeTruthy();
+  expect(play).toHaveAttribute("aria-describedby", id);
+  expect(play).toHaveAttribute("aria-busy", "true");
+  expect(screen.getByRole("button", { name: "Cancel search" })).toHaveAttribute("aria-describedby", id);
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  expect(play).toHaveAttribute("aria-busy", "false");
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  expect(play).toHaveAttribute("aria-busy", "true");
+  event({ type: "left" });
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(screen.getByRole("status")).toBe(status);
+  expect(play).toHaveAccessibleDescription("Search cancelled. Ready when you are.");
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: "matching" });
+  expect(play).toHaveAttribute("aria-busy", "true");
+  event({ type: "matched", match: { id: "accessible", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveAttribute("aria-describedby", id);
+  expect(screen.getByRole("status")).toBe(status);
+});
+
+it.each(["timeout", "error", "disconnect"])("clears pending matchmaking busy feedback after %s", outcome => {
+  vi.useFakeTimers();
+  start();
+  if (outcome === "timeout") act(() => vi.advanceTimersByTime(10000));
+  if (outcome === "error") event({ type: "error", message: "Please retry" });
+  if (outcome === "disconnect") act(() => Socket.latest.onclose());
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(play).toHaveAccessibleDescription(screen.getByRole("status").textContent!);
+});
+
+it("keeps guidance associations unique across matchmaking panels", () => {
+  render(<><Play signedIn /><Play signedIn /></>);
+  const buttons = screen.getAllByRole("button", { name: "Play a duel" });
+  const statuses = screen.getAllByRole("status");
+  expect(statuses[0].id).not.toBe(statuses[1].id);
+  buttons.forEach((button, index) => expect(button).toHaveAttribute("aria-describedby", statuses[index].id));
+});

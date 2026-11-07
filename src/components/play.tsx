@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "./ui";
 import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
 import type { QueueEvent } from "../lib/matchmaking";
@@ -7,6 +7,7 @@ import Link from "next/link";
 
 export function Play({ signedIn }: { signedIn: boolean }) {
   const feedback = useDuelFeedback();
+  const guidanceId = useId();
   const panel = useRef<HTMLDivElement>(null);
   const arenaLink = useRef<HTMLAnchorElement>(null);
   const focusArena = useRef(false);
@@ -97,8 +98,8 @@ export function Play({ signedIn }: { signedIn: boolean }) {
   }
   return <div ref={panel} className={`play-panel play-panel--${phase}`}>
     {!signedIn ? <a className="button button--primary play-button" href="/account">Sign in to play</a> : <>
-      <Button className="play-button" onClick={join} disabled={phase !== "idle"}>{phase === "idle" ? "Play a duel" : phase === "matched" ? "Match reserved" : phase === "matching" ? "Reserving match…" : phase === "cancelling" ? "Cancelling search…" : phase === "connecting" ? "Connecting…" : "Finding opponent…"}</Button>
-      {(phase === "queued" || phase === "connecting") && <Button data-search-cancel variant="ghost" onClick={() => {
+      <Button className="play-button" aria-describedby={guidanceId} aria-busy={["connecting", "cancelling", "matching"].includes(phase)} onClick={join} disabled={phase !== "idle"}>{phase === "idle" ? "Play a duel" : phase === "matched" ? "Match reserved" : phase === "matching" ? "Reserving match…" : phase === "cancelling" ? "Cancelling search…" : phase === "connecting" ? "Connecting…" : "Finding opponent…"}</Button>
+      {(phase === "queued" || phase === "connecting") && <Button data-search-cancel aria-describedby={guidanceId} variant="ghost" onClick={() => {
         focusAfterCancel.current = !!panel.current?.querySelector("[data-search-cancel]")?.matches(":focus");
         const ws = socket.current;
         if (ws?.readyState === WebSocket.OPEN) { setPhase("cancelling"); setMessage("Cancelling your search… Waiting for server confirmation."); leave.current?.(); }
@@ -106,11 +107,11 @@ export function Play({ signedIn }: { signedIn: boolean }) {
       }}>Cancel search</Button>}
     </>}
     {signedIn && <DuelFeedback feedback={feedback} />}
-    {matchId && <Link ref={arenaLink} className="button button--primary" href={`/match/${matchId}`}>Open arena</Link>}
+    {matchId && <Link ref={arenaLink} aria-describedby={guidanceId} className="button button--primary" href={`/match/${matchId}`}>Open arena</Link>}
     {phase === "queued" && queueStats && <dl className="queue-stats" aria-label="Current search details" aria-live="off">
       <div><dt>Time searching</dt><dd>{queueStats.waitedSeconds}s elapsed</dd></div>
       <div><dt>Rating range</dt><dd>±{queueStats.ratingBand} points</dd></div>
     </dl>}
-    <p className="availability" role="status">{message}</p>
+    <p id={guidanceId} className="availability" role="status">{message}</p>
   </div>;
 }
