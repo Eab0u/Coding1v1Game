@@ -638,3 +638,7 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 
 .weekly-window { display: grid; gap: 8px; padding: 16px; border-left: 4px solid var(--color-accent); border-radius: var(--radius-sm); background: var(--color-surface); overflow-wrap: anywhere; }
 .weekly-window span { color: var(--color-muted); line-height: 1.6; }
+
+.account-form .username-budget { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); overflow-wrap: anywhere; }
+.username-budget strong { color: var(--color-text); font-variant-numeric: tabular-nums; }
+.username-budget[data-over-limit="true"] { border-color: var(--color-danger); color: var(--color-danger); }

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Username character budgets
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks the highest-value unchecked catalog milestone. Catalog items remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one interface improvement: responsive username character budgets across sign-in, sign-up and friend invitations. Inputs describe minimum-length guidance, remaining capacity, exact limits and overflow. Overflow has explicit text and a danger-colored border; updates avoid per-keystroke live announcements.
+- Added regression coverage for all three modes: boundaries, invalid characters, independent fields, silent replacements, validation and reset recovery. Chromium checks verify layout and overflow accents at 320px and 1280px.
+- Validation: all 1,606 tests across 72 files passed; after adding browser coverage, all 213 tests in the two affected files passed. Lint, production build, typecheck and diff whitespace checks passed. Fixed accessible spacing caught by focused testing.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Caps Lock warning before typing
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog items remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one account improvement: clicking either password field now reads Caps Lock state, so players can see the existing advisory before typing. Later clicks refresh the warning; existing keyboard and concealment behavior remains in place.

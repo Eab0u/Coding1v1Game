@@ -1801,3 +1801,23 @@ it.each([320, 375, 1280])('keeps the rank and tie guide readable at %spx', async
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+
+it.each([320, 1280])('keeps username budgets readable at %spx', async width => {
+  const { UsernameField } = await import('../src/components/username-field');
+  const page = await browser.newPage({ viewport: { width, height: 700 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<div className="shell"><form className="account-form"><UsernameField mode="signup" /></form></div>)}`);
+    const budget = page.locator('.username-budget');
+    expect(await budget.innerText()).toContain('At least 3 more characters needed');
+    const bounds = (await budget.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    await budget.evaluate(el => el.setAttribute('data-over-limit', 'true'));
+    expect(await budget.evaluate(el => getComputedStyle(el).borderTopColor)).toBe(await page.evaluate(() => {
+      const el = document.createElement('span');
+      el.style.color = 'var(--color-danger)'; document.body.append(el);
+      const color = getComputedStyle(el).color; el.remove(); return color;
+    }));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});
