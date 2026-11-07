@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Rematch invitation direction cues
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks catalog validation. No Python ran outside the sandbox; both catalog milestones remain unchecked.
+- Followed the blocker rule and added/completed one visual improvement: incoming rematches show a green “Your move” badge beside the heading; outgoing invitations show “Invitation sent.” The heading wraps on narrow screens. Cues retire during pending actions, deadline expiry and authoritative outcomes, leaving the existing stable announcement and recovery guidance intact.
+- Added participant-symmetric regression coverage for initial loading, incoming/outgoing styling, expiry, restored invitation windows, pending actions and terminal outcomes.
+- Validation: all 1,452 tests across 72 files passed; all 63 focused rematch tests passed. Lint, typecheck, production build and diff whitespace checks passed. Live browser visual inspection remains pending.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then perform live deployment smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Initial invitation lookup recovery guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks both catalog milestones. No Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one improvement: failed initial rematch lookups now replace indefinite checking feedback with explicit unavailable-status, automatic-retry and unconfirmed-rematch guidance. The stable polite summary also describes the retry control and persists during recovery requests.

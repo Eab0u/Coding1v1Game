@@ -2,6 +2,33 @@ import {act,render,screen,fireEvent,waitFor} from '@testing-library/react';
 import {it,expect,vi,afterEach} from 'vitest';
 import {Rematch} from '../src/components/rematch';
 afterEach(()=>vi.unstubAllGlobals());
+it.each([true,false])('shows invitation direction only while actionable (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const snapshot={status:'pending',outgoing,matchId:null,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:00:01Z'};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>snapshot});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  expect(screen.queryByText('Your move')).not.toBeInTheDocument();
+  expect(screen.queryByText('Invitation sent')).not.toBeInTheDocument();
+  await act(async()=>{});
+  const cue=screen.getByText(outgoing?'Invitation sent':'Your move');
+  expect(cue).toHaveClass('rematch-cue');
+  expect(cue.classList.contains('rematch-cue--incoming')).toBe(!outgoing);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(cue).not.toBeInTheDocument();
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...snapshot,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:01:00Z'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.getByText(outgoing?'Invitation sent':'Your move')).toBeInTheDocument();
+  const pending=deferred<ReturnType<typeof response>>();
+  fetcher.mockReturnValueOnce(pending.promise);
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Decline'}));
+  expect(screen.queryByText(outgoing?'Invitation sent':'Your move')).not.toBeInTheDocument();
+  await act(async()=>{pending.resolve(response(outgoing?'cancelled':'declined'));});
+  expect(screen.queryByText(outgoing?'Invitation sent':'Your move')).not.toBeInTheDocument();
+  expect(screen.getByRole('link',{name:'Find a new opponent'})).toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
 it.each([[true,true],[true,false],[false,true],[false,false]])('announces recovery across recurring invitation outages (outgoing=%s, manual=%s)',async(outgoing,manual)=>{
  vi.useFakeTimers();
  try {

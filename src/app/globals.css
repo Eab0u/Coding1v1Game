@@ -453,6 +453,10 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .friend-empty { color: var(--color-muted); padding: 1rem; border: 1px dashed var(--color-border); border-radius: var(--radius-md); }
 
 .rematch-panel { margin-top: 24px; min-width: 0; overflow-wrap: anywhere; }
+.rematch-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.rematch-heading h2 { margin: 0; }
+.rematch-cue { padding: 6px 12px; border: 1px solid var(--color-muted); border-radius: 999px; color: var(--color-muted); font-size: .875rem; font-weight: 700; }
+.rematch-cue--incoming { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-surface); }
 .rematch-panel--settled { border-left: 4px solid var(--color-accent); }
 .rematch-summary { color: var(--color-muted); line-height: 1.6; }
 .rematch-restored { padding: 12px 16px; border-left: 4px solid var(--color-accent); border-radius: 8px; background: var(--color-surface); line-height: 1.6; }
