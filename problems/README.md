@@ -494,3 +494,31 @@ timeouts per benchmark. This draft remains private, unpublished and unapproved.
 ```sh
 npm run problems -- validate problems/drafts/relay-unique-span.json
 ```
+
+### Relay Channel Chain
+
+`drafts/relay-channel-chain.json` is an original medium hash-set problem: find
+how many distinct consecutive integer channel labels form the longest chain.
+Arrival order and duplicate labels do not matter; negative labels and zero are
+ordinary channels. Empty logs return zero.
+
+The reference only walks forward from labels with no predecessor. Each label
+belongs to one chain and is visited once by a walk, so expected time is O(n)
+and space O(n). Skipping non-start labels is essential: the baseline walks from
+every distinct label and takes O(n squared) on consecutive inputs.
+
+Three 100,000-entry benchmarks cover ascending nonnegative labels, descending
+nonpositive labels and two 50,000-label chains separated by one missing label.
+Answers are 100000, 100000 and 50000. The baseline performs 5,000,050,000,
+5,000,050,000 and 2,500,050,000 successful membership iterations respectively.
+Data-only tests compare sorted adjacency with independent start enumeration on
+2,000 deterministic small inputs, verify reversal, duplication, translation and
+sign symmetry, and certify benchmark structure and answers.
+
+No authored Python runs on the host. Proposed 1-second CPU and 64-MiB limits
+require isolated sandbox calibration, solution agreement and three baseline
+timeouts per benchmark. This draft remains private, unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/relay-channel-chain.json
+```
