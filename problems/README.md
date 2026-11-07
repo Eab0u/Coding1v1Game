@@ -315,6 +315,31 @@ npm run problems -- validate problems/drafts/relay-floor-repair.json
 npm run problems -- publish problems/drafts/relay-floor-repair.json
 ```
 
+### Relay Parity Streak
+
+`drafts/relay-parity-streak.json` is an original easy array/dynamic-programming
+problem: find the longest contiguous section with alternating even and odd
+levels. Negative integers and zero are supported; singleton streaks are valid.
+
+The reference tracks the longest valid suffix: extend it on a parity change,
+otherwise reset to one. Every valid section ends at some index, so the maximum
+of these suffix lengths is optimal. This takes O(n) time and O(1) extra space.
+The baseline extends a fresh streak from every start, taking quadratic time on
+alternating input. Two fully alternating 100,000-entry benchmarks return
+100,000; a central parity break returns 50,000 and still forces billions of
+baseline comparisons. The seeded generator provides 2,000 small cases.
+
+Data-only tests compare exhaustive section checks with independent boundary
+partitioning and verify reversal, negation, parity flipping, odd scaling and
+duplicate-append invariants. Python is never executed locally. Proposed
+1-second CPU and 64-MiB limits require isolated sandbox calibration, Python
+reference/baseline agreement and three baseline timeouts per benchmark.
+This draft remains private, unpublished and unapproved. Validate with:
+
+```sh
+npm run problems -- validate problems/drafts/relay-parity-streak.json
+```
+
 ### Relay Prefix Diversity
 
 `drafts/relay-prefix-diversity.json` is an original easy array/hash-set problem:

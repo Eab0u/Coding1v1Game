@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Author the original Relay Parity Streak easy dynamic-programming draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending
 - [x] Author the original Relay Floor Repair easy greedy draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending
 - [x] Author the original Relay Prefix Diversity easy hash-set draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending
 - [x] Author the original Relay Balanced Cuts easy prefix-sum draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending
