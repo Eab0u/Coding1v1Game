@@ -8,6 +8,7 @@ export function explainResult(result: DuelResult): string {
   const [you, opponent] = result.players;
   const valid = (n: number | null): n is number => n !== null && Number.isFinite(n) && n >= 0;
   if (![you, opponent].every(p => hasSubmissionScore(p) && valid(p.cpu)) || you.total !== opponent.total) return unavailable;
+  if ([you, opponent].some(p => p.submitted === null && p.passed !== 0)) return unavailable;
   let comparison: number;
   let reason: string;
   if (you.passed !== opponent.passed) {

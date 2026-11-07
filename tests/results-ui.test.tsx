@@ -4,7 +4,7 @@ import { RATING_TIERS } from '../src/lib/profile';
 import { DuelSound } from '../src/lib/duel-sound';
 import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
-const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:null}];
+const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:2000}];
 beforeEach(()=>localStorage.clear());
 it('keeps the explanation consistent with unsafe score cards and recovers corrected history',()=>{
  const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p,total:Number.MAX_SAFE_INTEGER+1,submitted:1000}))};
@@ -65,7 +65,7 @@ it('removes verdict styling for invalid or absent scores and recovers corrected 
  expect(screen.getByRole('progressbar').parentElement).toHaveClass('result-correctness--partial');
  view.rerender(<Results result={result}/>);
  expect(screen.getByRole('progressbar').parentElement).toHaveClass('result-correctness--full');
- view.rerender(<Results result={{...result,players:[{...players[0],submitted:null}]}}/>);
+ view.rerender(<Results result={{...result,players:[{...players[0],passed:0,submitted:null}]}}/>);
  expect(screen.getByText('No judged submission')).toBeVisible();
  expect(view.container.querySelector('.result-correctness-badge')).toBeNull();
 });
@@ -153,7 +153,7 @@ it.each(['WIN','LOSS','DRAW'] as const)('shows authoritative %s and side by side
  expect(screen.getByLabelText('Rating change -8')).toBeVisible();
  expect(screen.getByText('12.35 ms')).toBeVisible();
  expect(screen.getByText('1.25 s')).toBeVisible();
- expect(screen.getByText('No submission')).toBeVisible();
+ expect(screen.getByText('2.00 s')).toBeVisible();
  expect(screen.getByRole('link',{name:'New match'})).toHaveAttribute('href','/');
  expect(screen.queryByText('Rematch invitations are not available yet.')).not.toBeInTheDocument();
 });
@@ -267,7 +267,7 @@ it.each([-1, NaN, Infinity, -Infinity, undefined])('withholds invalid saved timi
  view.rerender(<Results result={{...result,players:[players[0]]}}/>);
  expect(panel.getByText('12.35 ms')).toBeVisible();
  expect(panel.getByText('1.25 s')).toBeVisible();
- view.rerender(<Results result={{...result,players:[{...players[0],cpu:null,submitted:null}]}}/>);
+ view.rerender(<Results result={{...result,players:[{...players[0],passed:0,cpu:null,submitted:null}]}}/>);
  expect(panel.getByText('Not recorded')).toBeVisible();
  expect(panel.getByText('No submission')).toBeVisible();
 });
@@ -290,4 +290,28 @@ it.each(['before','after'] as const)('reports corrupt %s ratings even when the o
  view.rerender(<Results result={result}/>);
  expect(screen.getByLabelText('Rating change +8')).toBeVisible();
  expect(screen.queryByText('Rating not recorded')).not.toBeInTheDocument();
+});
+
+it.each([0,1])('withholds false no-submission guidance for player %s and recovers',index=>{
+ const result:DuelResult={title:'Saved duel',outcome:'DRAW',players:players.map(p=>({...p,passed:8,cpu:10,submitted:1000}))};
+ result.players[index].submitted=null;
+ const view=render(<Results result={result}/>);
+ const panel=within(screen.getByRole('region',{name:index===0?'Your result':'Opponent result'}));
+ expect(panel.getByText('Submission history unavailable')).toBeVisible();
+ expect(panel.queryByText('No judged submission')).toBeNull();
+ expect(panel.queryByText('No submission')).toBeNull();
+ expect(panel.queryByText('Fallback benchmark CPU')).toBeNull();
+ expect(panel.getByText('Unavailable')).toBeVisible();
+ expect(screen.getByRole('region',{name:'How this duel was decided'})).toHaveTextContent('explanation is unavailable');
+ expect(screen.getByRole('heading',{name:'DRAW'})).toBeVisible();
+ result.players[index].submitted=1000;
+ view.rerender(<Results result={{...result}}/>);
+ expect(panel.queryByText('Submission history unavailable')).toBeNull();
+ expect(panel.getByText('All hidden tests passed')).toBeVisible();
+ expect(screen.getByRole('region',{name:'How this duel was decided'})).toHaveTextContent('were all tied');
+ result.players[index].submitted=null;
+ result.players[index].passed=0;
+ view.rerender(<Results result={{...result}}/>);
+ expect(panel.getByText('No judged submission')).toBeVisible();
+ expect(panel.getByText('Fallback benchmark CPU')).toBeVisible();
 });

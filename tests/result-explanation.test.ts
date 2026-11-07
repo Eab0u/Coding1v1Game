@@ -60,3 +60,15 @@ it("preserves the safe integer boundary and recovers a corrected explanation", (
   duel.players.forEach(p => { p.total = Number.MAX_SAFE_INTEGER; p.passed = Number.MAX_SAFE_INTEGER; });
   expect(explainResult(duel)).toMatch(/^You had the lower median/);
 });
+
+it.each([0, 1])("withholds inconsistent missing submission explanations for player %s and recovers", index => {
+  const duel = result({}, "DRAW");
+  duel.players[index].submitted = null;
+  expect(explainResult(duel)).toContain("unavailable");
+  duel.players.forEach(p => { p.submitted = null; });
+  expect(explainResult(duel)).toContain("unavailable");
+  duel.players.forEach(p => { p.passed = 0; });
+  expect(explainResult(duel)).toContain("Neither player had a judged submission");
+  duel.players.forEach(p => { p.passed = 8; p.submitted = 1000; });
+  expect(explainResult(duel)).toContain("were all tied");
+});
