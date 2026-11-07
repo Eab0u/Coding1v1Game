@@ -1,12 +1,11 @@
 import type { ArenaSnapshot } from "../lib/arena";
+import { hasSubmissionScore } from "../lib/submission-score";
 
 export function SubmissionStatus({ submission }: { submission: ArenaSnapshot["submission"] }) {
   if (!submission) return null;
   const judged = submission.status === "judged";
   const retrying = submission.status === "error";
-  const hasScore = judged && Number.isSafeInteger(submission.passed) && Number.isSafeInteger(submission.total)
-    && submission.passed !== null && submission.total !== null
-    && submission.total > 0 && submission.passed >= 0 && submission.passed <= submission.total;
+  const hasScore = judged && hasSubmissionScore(submission);
   const allPassed = hasScore && submission.passed === submission.total;
   const verdictClass = hasScore ? allPassed ? " arena-verdict--passed" : " arena-verdict--partial" : "";
   const title = judged ? "Judging complete" : retrying ? "Waiting for sandbox recovery" : submission.status === "queued" ? "Queued for judging" : submission.status === "running" ? "Judging in progress" : "Checking submission status";

@@ -431,6 +431,33 @@ it('keeps editing and submission working when browser storage is unavailable',as
   expect(fetcher).toHaveBeenCalledWith('/api/matches/match',expect.objectContaining({body:JSON.stringify({action:'submit',source:'still editable'})}));
 });
 
+it.each([
+  {passed:null,total:8}, {passed:0,total:null}, {passed:0,total:0},
+  {passed:-1,total:8}, {passed:9,total:8}, {passed:1.5,total:8},
+  {passed:1,total:8.5}, {passed:NaN,total:8}, {passed:1,total:Infinity},
+])('withholds sound and visual verdicts for invalid scores and announces a corrected attempt once: %j',async(score)=>{
+  vi.useFakeTimers();
+  const play=vi.spyOn(DuelSound.prototype,'play').mockImplementation(()=>{});
+  vi.spyOn(DuelSound.prototype,'unlock').mockImplementation(()=>{});
+  let submission:ArenaSnapshot['submission']={id:'new',status:'judged',...score};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(async()=>({ok:true,json:async()=>({...initial,submission})})));
+  render(<Arena initial={initial}/>);
+  fireEvent.click(screen.getByRole('button',{name:'Sound off'}));
+  const preview=screen.getByText('Test passed');
+  play.mockClear();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(play).not.toHaveBeenCalled();
+  expect(screen.getByText('Test passed')).toBe(preview);
+  expect(screen.queryByText('Test failed')).not.toBeInTheDocument();
+  expect(screen.getByRole('status',{name:'Latest submission'})).toHaveTextContent('score is unavailable');
+  submission={id:'new',status:'judged',passed:0,total:8};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledExactlyOnceWith('failed');
+  expect(screen.getByText('Test failed')).toBeVisible();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledTimes(1);
+});
+
 it('announces each newly judged submission once, including identical scores, without replaying history',async()=>{
   vi.useFakeTimers();
   const play=vi.spyOn(DuelSound.prototype,'play').mockImplementation(()=>{});

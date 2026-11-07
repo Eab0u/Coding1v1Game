@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Consistent judged-score feedback
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena feedback fix. Sound and visual verdict cues now require the same valid integer test counts as submission status. Invalid attempts do not consume their event ID, so a corrected score can announce once on a later poll; existing judged history remains silent when reopening an arena.
+- Added nine polling regression cases for missing, zero-total, negative, excessive, fractional and nonfinite counts, checking silent invalid feedback, zero-pass recovery and duplicate suppression. Existing full-pass and history tests remain intact.
+- Validation: all 1,243 tests across 71 files passed; lint, typecheck, production build and whitespace checks passed. Browser visual inspection was not performed for this feedback guard change.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Unavailable submission score feedback
 - Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
 - Followed the blocker rule to add and complete one arena feedback fix. Judged attempts with missing or invalid counts now explain that their test score is unavailable and to wait for the next automatic update, instead of rendering null counts. Verdict badges and green/amber accents require safe integer counts within a positive test total.

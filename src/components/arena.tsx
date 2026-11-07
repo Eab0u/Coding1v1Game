@@ -3,6 +3,7 @@ import Link from "next/link";
 import { JudgingGuide } from "./judging-guide";
 import { ProblemExamples } from "./problem-examples";
 import { SubmissionStatus } from "./submission-status";
+import { hasSubmissionScore } from "../lib/submission-score";
 import { useEffect, useRef, useState } from "react";
 import type { ArenaSnapshot } from "../lib/arena";
 import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
@@ -23,7 +24,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const seenVerdicts=useRef(new Set(initial.submission?.status==="judged" && initial.submission.id ? [initial.submission.id] : []));
   useEffect(()=> {
     const verdict=match.submission;
-    if (!verdict?.id || verdict.status!=="judged" || verdict.passed===null || verdict.total===null || verdict.total<=0 || seenVerdicts.current.has(verdict.id)) return;
+    if (!verdict?.id || verdict.status!=="judged" || !hasSubmissionScore(verdict) || seenVerdicts.current.has(verdict.id)) return;
     seenVerdicts.current.add(verdict.id);
     notify(verdict.passed===verdict.total ? "passed" : "failed");
   },[match.submission,notify]);
