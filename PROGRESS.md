@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Recent duel completion dates
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent home history improvement.
+- Recent home duels now show saved completion dates and times in explicit UTC, with semantic time elements and stable locale formatting. Missing or invalid historical dates show an honest fallback. Added muted, wrapping date styling without adding focus stops.
+- Added date component tests for Date and offset-string inputs, UTC day boundaries and absent/invalid values, home integration coverage and Chromium layout checks at 320, 375 and 1280px.
+- Validation: all 653 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Home duel history navigation
 - Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent home navigation improvement.
 - Added a full-width styled personal history action to the recent-duels card, including the signed-in empty state. Explained that home previews five completed duels while the profile shows up to 20, plus the record and rating journey. Guest and unavailable dashboards do not show the personal action or guidance; destinations encode usernames.

@@ -412,3 +412,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 
 .home-history-note { color: var(--text-muted, #bcb8b3); line-height: 1.6; }
 .home-history-link { margin-top: 16px; width: 100%; min-height: 44px; }
+
+.duel-date { display: block; margin-top: 4px; color: var(--color-muted); font-size: .8rem; line-height: 1.6; overflow-wrap: anywhere; }

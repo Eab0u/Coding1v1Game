@@ -7,7 +7,7 @@ const username = 'abcdefghijklmnopqrstuvwx';
 const state = vi.hoisted(() => ({ signedIn: true, accountUnavailable: false, leaderboardUnavailable: false, leaderboardEmpty: false, profileUnavailable: false, profileEmpty: false, friendsUnavailable: false, homeUnavailable: false, homeOutcomes: false }));
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current: async () => { if (state.accountUnavailable) throw new Error('private'); return state.signedIn ? ({ id: '1', username: 'abcdefghijklmnopqrstuvwx', rating: 800 }) : null; } } }));
-vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: `def solve_${'long_name_'.repeat(20)}(values: list[int]) -> list[int]:`, difficulty: 'easy' }, recent: [...(state.homeOutcomes ? [{ id: 'loss', title: 'Lost duel', opponent: 'another_long_player_name', winner_id: '2' }, { id: 'draw', title: 'Drawn duel', opponent: 'another_long_player_name', winner_id: null }] : []), { id: '1', title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
+vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: `def solve_${'long_name_'.repeat(20)}(values: list[int]) -> list[int]:`, difficulty: 'easy' }, recent: [...(state.homeOutcomes ? [{ id: 'loss', title: 'Lost duel', opponent: 'another_long_player_name', winner_id: '2' }, { id: 'draw', title: 'Drawn duel', opponent: 'another_long_player_name', winner_id: null }] : []), { id: '1', completed_at: new Date('2026-11-06T23:05:00Z'), title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
 vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
   if (state.leaderboardUnavailable) throw new Error('unavailable');
   if (state.leaderboardEmpty) return [];
@@ -828,6 +828,21 @@ it.each([320, 375, 1280])('makes home history navigation visible to keyboard and
     expect(await link.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
     const bounds = (await link.boundingBox())!;
     expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
+
+it.each([320, 375, 1280])('keeps recent duel completion times readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const date = page.locator('.recent-duels time');
+    expect(await date.textContent()).toBe('Nov 6, 2026, 23:05 UTC');
+    expect(await date.getAttribute('datetime')).toBe('2026-11-06T23:05:00.000Z');
+    expect(await date.isVisible()).toBe(true);
+    const bounds = (await date.boundingBox())!;
     expect(bounds.x).toBeGreaterThanOrEqual(0);
     expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);

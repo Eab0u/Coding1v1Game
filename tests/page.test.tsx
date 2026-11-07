@@ -181,3 +181,13 @@ it("omits personal history navigation for guests and unavailable dashboards", as
   expect(screen.queryByRole("link", { name: "View your duel history" })).not.toBeInTheDocument();
   expect(screen.queryByText(/Your latest five completed duels/)).not.toBeInTheDocument();
 });
+
+it("shows the saved completion time beside its recent duel", async () => {
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+  mocks.load.mockResolvedValue({ daily: null, streak: 1, recent: [{ id: "m", title: "Pairs", winner_id: "one", opponent: "Bob", completed_at: new Date("2026-11-06T23:05:00Z") }] });
+  const { container } = render(await Home());
+  const row = container.querySelector(".recent-duels li")!;
+  expect(row).toHaveTextContent("Pairs");
+  expect(row).toHaveTextContent("Completed Nov 6, 2026, 23:05 UTC");
+  expect(row.querySelector("time")).toHaveAttribute("dateTime", "2026-11-06T23:05:00.000Z");
+});
