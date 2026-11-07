@@ -801,3 +801,68 @@ it.each([false, true])("reports normalized size without rewriting external draft
   expect(input.selectionEnd).toBe(6);
   expect(change).not.toHaveBeenCalled();
 });
+
+it.each([false, true])("navigates indentation with Home without changing readOnly=%s drafts", readOnly => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value={"first\n\t    return 1\n"} onChange={change} readOnly={readOnly}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(19, 19);
+  expect(fireEvent.keyDown(input, { key: "Home" })).toBe(false);
+  expect(input.selectionStart).toBe(11);
+  expect(input.selectionEnd).toBe(11);
+  expect(screen.getByRole("group", { name: "Solution cursor position" })).toHaveTextContent("Line 2, column 6");
+  fireEvent.keyDown(input, { key: "Home" });
+  expect(input.selectionStart).toBe(6);
+  fireEvent.keyDown(input, { key: "Home" });
+  expect(input.selectionStart).toBe(11);
+  expect(input).toHaveFocus();
+  expect(change).not.toHaveBeenCalled();
+});
+
+it("extends and reverses Shift+Home selections while retaining their anchor", () => {
+  render(<Harness initial={"first\n    return 1"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(8, 8);
+  fireEvent.keyDown(input, { key: "Home", shiftKey: true });
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([8, 10, "forward"]);
+  fireEvent.keyDown(input, { key: "Home", shiftKey: true });
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([6, 8, "backward"]);
+  fireEvent.keyDown(input, { key: "Home", shiftKey: true });
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([8, 10, "forward"]);
+});
+
+it.each(["", "    ", "code", "first\n", "first\r\n    code"])("navigates Home at line boundaries: %j", value => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value={value} onChange={change} readOnly={false}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  fireEvent.keyDown(input, { key: "Home" });
+  const lineStart = input.value.lastIndexOf("\n") + 1;
+  const indent = input.value.slice(lineStart).match(/^[\t ]*/)?.[0].length ?? 0;
+  expect(input.selectionStart).toBe(input.value.length === lineStart + indent ? lineStart : lineStart + indent);
+  expect(change).not.toHaveBeenCalled();
+});
+
+it.each([{ ctrlKey: true }, { metaKey: true }, { altKey: true }, { isComposing: true }, { keyCode: 229 }])("preserves native modified or composing Home: %j", flags => {
+  render(<Harness initial="    code"/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.setSelectionRange(8, 8);
+  expect(fireEvent.keyDown(input, { key: "Home", ...flags })).toBe(true);
+  expect(input.selectionStart).toBe(8);
+});
+
+it("preserves composition Home and recovers after composition ends", () => {
+  render(<Harness initial="    code"/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(8, 8);
+  fireEvent.compositionStart(input);
+  expect(fireEvent.keyDown(input, { key: "Home" })).toBe(true);
+  expect(input.selectionStart).toBe(8);
+  fireEvent.compositionEnd(input);
+  expect(fireEvent.keyDown(input, { key: "Home" })).toBe(false);
+  expect(input.selectionStart).toBe(4);
+});

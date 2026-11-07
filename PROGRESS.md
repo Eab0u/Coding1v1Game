@@ -29,7 +29,7 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 - SQL migrations are transactional and tracked in Postgres. PGlite executes schema tests without an external database.
 
 ## Blockers
-- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace now has a .env, but the configured Judge0 sandbox remains unavailable (Relay Unique Span and Relay Target Bursts validation commands returned JudgeUnavailableError on this run). Catalog validation remains blocked.
+- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace now has a .env, but the configured Judge0 sandbox remains unavailable (the Relay Target Bursts validation command returned JudgeUnavailableError on this run). Catalog validation remains blocked.
 - Docker daemon is not running in this environment, so Docker Postgres startup and the network migration runner were not exercised. The SQL itself passes embedded Postgres tests.
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Plain-editor Home navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Target Bursts. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor navigation item; catalog milestones remain unchecked.
+- Home now toggles between leading indentation and the line start. Shift+Home preserves the selection anchor through direction changes; cursor feedback updates immediately. Editable and read-only solutions share navigation and visible keyboard guidance without changing drafts or focus.
+- Added 14 regression cases covering tabs/spaces, forward/backward selection transitions, empty/whitespace/trailing lines, CRLF offsets, native Ctrl/Command/Alt combinations and IME flags and composition recovery.
+- Validation: all 1,020 tests across 64 files passed, including 213 plain-editor tests; lint, typecheck, production build and diff whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author the two remaining initial drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Relay Target Bursts draft
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Unique Span. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded catalog-authoring item; validation and publication milestones remain unchecked.
 - Added the eighteenth original draft, Relay Target Bursts (medium prefix sums/hash maps), with a signed contiguous-span counting contract, examples, constraints, expected-linear reference, quadratic baseline, 2,000 seeded cases and three 100,000-entry benchmarks. Documented correctness, empty-span exclusion, 64-bit count requirements and pending sandbox calibration.
