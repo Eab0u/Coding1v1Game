@@ -143,6 +143,10 @@ code { font-family: var(--font-mono); }
 .standings-player { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: .2em; border-radius: var(--radius-sm); }
 .standings-player:hover { color: var(--color-accent); }
 .standings-change { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.standings-change small { display: block; font-size: 0.75rem; }
+.standings-change--gain { color: var(--color-success); }
+.standings-change--loss { color: var(--color-danger); }
+.standings-change--unchanged { color: var(--color-muted); }
 .ladder-table { width: 100%; border-collapse: collapse; text-align: left; font-variant-numeric: tabular-nums; }
 .ladder-table caption { text-align: left; padding: 20px; font-weight: 800; }
 .ladder-table th, .ladder-table td { padding: 16px 20px; border-top: 1px solid var(--color-border); }

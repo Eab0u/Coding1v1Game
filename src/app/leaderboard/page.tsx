@@ -8,6 +8,15 @@ import { loadLeaderboard, type LeaderboardEntry } from "../../lib/leaderboard";
 
 export const dynamic = "force-dynamic";
 
+function WeeklyChange({ score }: { score: number }) {
+  const rounded = Math.round(score) || 0;
+  const direction = rounded > 0 ? "gain" : rounded < 0 ? "loss" : "unchanged";
+  return <td className={`standings-change standings-change--${direction}`}>
+    <span>{rounded > 0 ? "+" : ""}{rounded} MMR</span>
+    <small>{rounded > 0 ? "Rounded gain" : rounded < 0 ? "Rounded loss" : "No rounded change"}</small>
+  </td>;
+}
+
 export default async function Leaderboard({ searchParams }: { searchParams: Promise<{ period?: string; scope?: string }> }) {
   const scope = (await searchParams).scope === "friends";
   let needsLogin = false;
@@ -75,7 +84,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
             <thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Rating</th>{period === "weekly" && <th scope="col">Weekly gain</th>}</tr></thead>
             <tbody>{entries.map(entry => <tr key={entry.username} className={entry.rank <= 3 ? "ladder-podium" : undefined}>
               <td><span className="ladder-rank">#{entry.rank}</span></td><th scope="row"><Link className="standings-player" href={`/profile/${encodeURIComponent(entry.username)}`}>{entry.username}</Link></th><td><div className="standings-rating"><span>{Math.round(entry.rating)} MMR</span><Badge tone="accent">{ratingTier(entry.rating)}</Badge></div></td>
-              {period === "weekly" && <td className="standings-change">{Math.round(entry.score) > 0 ? "+" : ""}{Math.round(entry.score) || 0} MMR</td>}
+              {period === "weekly" && <WeeklyChange score={entry.score} />}
             </tr>)}</tbody>
           </table></div></> : scope ? <section className="ladder-empty" aria-labelledby="friends-empty-title">
             <p className="eyebrow">YOUR CIRCLE</p><h2 id="friends-empty-title">{period === "weekly" ? "Your circle’s next climb starts here." : "Bring your rivals to the ladder."}</h2>

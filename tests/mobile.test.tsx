@@ -264,7 +264,10 @@ it.each([320, 375, 1280])('makes weekly standings guidance and player links usab
     const region = page.getByRole('region', { name: 'Leaderboard standings' });
     expect(await region.getAttribute('aria-describedby')).toBe('standings-scroll-hint');
     expect(await page.locator('#standings-scroll-hint').isVisible()).toBe(true);
-    expect(await page.getByRole('cell', { name: '+123 MMR', exact: true }).isVisible()).toBe(true);
+    const change = page.getByRole('cell', { name: '+123 MMR Rounded gain', exact: true });
+    expect(await change.isVisible()).toBe(true);
+    expect(await change.evaluate(el => getComputedStyle(el).color)).toBe('rgb(164, 210, 117)');
+    expect(await change.locator('small').evaluate(el => getComputedStyle(el).display)).toBe('block');
     await region.focus();
     if (await region.evaluate(el => el.scrollWidth > el.clientWidth)) {
       await page.keyboard.press('ArrowRight');

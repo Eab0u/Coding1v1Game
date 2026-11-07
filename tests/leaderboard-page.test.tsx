@@ -220,3 +220,31 @@ it.each(["unavailable", "signed-out"])("omits snapshot refresh for %s standings"
   render(await Leaderboard({ searchParams: Promise.resolve({}) }));
   expect(screen.getByText("Explore leaderboard rating tiers")).toBeVisible();
  });
+
+it.each(["everyone", "friends"])("distinguishes rounded weekly changes for %s and updates corrected snapshots", async scope => {
+  const filters = { period: "weekly", ...(scope === "friends" ? { scope } : {}) };
+  const view = render(await Leaderboard({ searchParams: Promise.resolve(filters) }));
+  for (const [score, number, label, direction] of [
+    [12.4, "+12 MMR", "Rounded gain", "gain"],
+    [-12.4, "-12 MMR", "Rounded loss", "loss"],
+    [0.4, "0 MMR", "No rounded change", "unchanged"],
+    [-0.4, "0 MMR", "No rounded change", "unchanged"],
+    [0, "0 MMR", "No rounded change", "unchanged"],
+    [0.5, "+1 MMR", "Rounded gain", "gain"],
+    [-0.5, "0 MMR", "No rounded change", "unchanged"],
+    [-0.6, "-1 MMR", "Rounded loss", "loss"],
+  ] as const) {
+    mocks.load.mockResolvedValue([{ username: "Ada", rating: 912.4, score, rank: 1 }]);
+    view.rerender(await Leaderboard({ searchParams: Promise.resolve(filters) }));
+    const cell = screen.getByText(label).closest("td")!;
+    expect(cell).toHaveClass(`standings-change--${direction}`);
+    expect(cell).toHaveTextContent(number);
+    expect(document.querySelectorAll(".standings-change")).toHaveLength(1);
+    for (const other of ["gain", "loss", "unchanged"].filter(value => value !== direction)) {
+      expect(document.querySelector(`.standings-change--${other}`)).toBeNull();
+    }
+  }
+  view.rerender(await Leaderboard({ searchParams: Promise.resolve({}) }));
+  expect(document.querySelector(".standings-change")).toBeNull();
+  expect(screen.queryByText(/Rounded gain|Rounded loss|No rounded change/)).not.toBeInTheDocument();
+});
