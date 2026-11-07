@@ -19,7 +19,7 @@ it("renders weekly standings and signed gains", async () => {
   expect(screen.getByRole("table", {name:"Weekly climb standings"})).toBeVisible();
   expect(screen.getByRole("rowheader", {name:"Ada"})).toBeVisible();
   expect(screen.getByText("+12 MMR")).toBeVisible();
-  expect(screen.getByText(/Monday 00:00 UTC/)).toBeVisible();
+  expect(document.getElementById("ranking-rules")).toHaveTextContent("Monday 00:00 UTC");
 });
 
 it.each([[12.4, "+12 MMR"], [-12.4, "-12 MMR"], [0.4, "0 MMR"], [-0.4, "0 MMR"], [0, "0 MMR"]])("rounds weekly change %s before choosing its sign", async (score, label) => {
@@ -123,4 +123,21 @@ it.each(["empty", "unavailable", "signed-out"])("omits the populated summary for
   render(await Leaderboard({ searchParams: Promise.resolve({ scope: "friends" }) }));
   expect(screen.queryByRole("region", { name: "Global rating" })).not.toBeInTheDocument();
   expect(screen.queryByText(/players? shown/)).not.toBeInTheDocument();
+});
+
+it.each(["public", "friends", "empty"])("explains weekly scoring for %s standings", async state => {
+  if (state !== "empty") mocks.load.mockResolvedValue([{ username: "Ada", rating: 912, score: -7, rank: 1 }]);
+  render(await Leaderboard({ searchParams: Promise.resolve({ period: "weekly", ...(state === "friends" ? { scope: "friends" } : {}) }) }));
+  const guide = screen.getByRole("region", { name: "How the weekly climb works" });
+  expect(guide.querySelectorAll("dt")).toHaveLength(3);
+  expect(guide).toHaveTextContent("+12 and -7 give a weekly gain of +5 MMR");
+  expect(guide).toHaveTextContent("Zero or negative weekly gains stay on the ladder");
+  expect(guide).toHaveTextContent("Weekly rank uses Weekly gain");
+});
+
+it.each(["global", "unavailable", "signed-out"])("omits weekly scoring guidance for %s states", async state => {
+  if (state === "unavailable") mocks.load.mockRejectedValue(new Error("private"));
+  if (state === "signed-out") mocks.current.mockResolvedValue(null);
+  render(await Leaderboard({ searchParams: Promise.resolve({ period: state === "global" ? "global" : "weekly", scope: "friends" }) }));
+  expect(screen.queryByRole("region", { name: "How the weekly climb works" })).not.toBeInTheDocument();
 });

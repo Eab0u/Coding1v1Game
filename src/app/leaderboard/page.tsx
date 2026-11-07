@@ -36,6 +36,14 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       {scope && <p>You and your accepted friends, ranked within your circle.</p>}
       <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
       <Card className="ladder-card">
+        {period === "weekly" && !unavailable && !needsLogin && <section className="weekly-guide" aria-labelledby="weekly-guide-title">
+          <h2 id="weekly-guide-title">How the weekly climb works</h2>
+          <dl>
+            <div><dt>Weekly gain</dt><dd>Your rating changes from completed rated duels since Monday 00:00 UTC, added together. For example, +12 and -7 give a weekly gain of +5 MMR.</dd></div>
+            <div><dt>Every rated result counts</dt><dd>Wins, losses and draws all qualify. Zero or negative weekly gains stay on the ladder; higher gains rank first.</dd></div>
+            <div><dt>Current rating</dt><dd>The Rating column shows your current MMR. Weekly rank uses Weekly gain, so the highest current rating may not lead this ladder.</dd></div>
+          </dl>
+        </section>}
         {needsLogin ? <section className="ladder-empty" aria-labelledby="friends-login-title">
           <p className="eyebrow">YOUR CIRCLE</p><h2 id="friends-login-title">Climb with familiar rivals.</h2>
           <p>Sign in to compare your rating with accepted friends. Pending invitations stay out of the standings.</p>

@@ -749,3 +749,26 @@ it.each([320, 375, 1280])('keeps ordered scoring cards readable at %spx', async 
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps the weekly scoring guide readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Leaderboard({ searchParams: Promise.resolve({period:'weekly'}) }))}`);
+    const guide = page.getByRole('region', { name: 'How the weekly climb works' });
+    expect(await guide.isVisible()).toBe(true);
+    expect(await guide.locator('dt').allTextContents()).toEqual(['Weekly gain', 'Every rated result counts', 'Current rating']);
+    for (const row of await guide.locator('dl > div').all()) {
+      expect(await row.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      expect(await row.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(38, 36, 33)');
+      const bounds = (await row.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
+    const rows = await guide.locator('dl > div').all();
+    const first = (await rows[0].boundingBox())!;
+    const second = (await rows[1].boundingBox())!;
+    if (width < 400) expect(second.y).toBeGreaterThan(first.y);
+    else expect(second.y).toBe(first.y);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});

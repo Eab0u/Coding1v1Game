@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Clear weekly standings guide
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError. Following the blocker rule, added and completed one independent weekly standings improvement; catalog validation remains unchecked.
+- Added a named semantic guide explaining net rating changes with a worked example, eligibility of wins/losses/draws and zero/negative gains, and the distinction between current MMR and weekly ranking. Themed cards stack on phones and form columns on desktop. Guidance appears for populated and empty public/friends weekly standings, and stays out of global, unavailable and signed-out friends states.
+- Added component coverage for these states and Chromium checks at 320, 375 and 1280px for content, card styling, stacking and document overflow. Updated an existing ambiguous text assertion to target the ranking rules directly.
+- Validation: all 603 tests across 51 files passed; lint, production build and typecheck passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Clear ordered home scoring guide
 - Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError. Following the blocker rule, added and completed one independent scoring-guide improvement; catalog validation remains unchecked.
 - Explained that the best judged attempt counts, weaker later attempts do not replace it, CPU timing uses the middle of three runs, and the selected attempt's submission time breaks remaining ties. Converted the themed scoring cards to an accessible named ordered list with associated guidance, preserving three-column desktop and stacked phone layouts.
