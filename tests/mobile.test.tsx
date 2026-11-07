@@ -18,6 +18,7 @@ import { Arena } from '../src/components/arena';
 import { Results } from '../src/components/results';
 vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); if (state.friendsEmpty) return []; return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 999.75, status: 'pending', incoming: true }, { username: 'another_long_player_name', rating: 999.75, status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', rating: 999.75, status: 'pending', incoming: false }]; } }));
 import Friends from '../src/app/friends/page';
+import NotFound from '../src/app/not-found';
 import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
 import Leaderboard from '../src/app/leaderboard/page';
@@ -30,6 +31,27 @@ vi.mock('../src/lib/results', () => ({ loadResult: async () => { throw new Error
 let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
+
+it.each([320, 375, 1280])('keeps unavailable-page recovery usable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<NotFound />)}`);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', {name:'Skip to page recovery'}).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('main').evaluate(el => document.activeElement === el)).toBe(true);
+    for (const name of ['Back to arena', 'Explore standings']) {
+      await page.keyboard.press('Tab');
+      const link = page.getByRole('link', {name});
+      expect(await link.evaluate(el => document.activeElement === el)).toBe(true);
+      const bounds = (await link.boundingBox())!;
+      expect(bounds.height).toBeGreaterThanOrEqual(44);
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
+  } finally { await page.close(); }
+});
 
 it.each([320, 375, 1280])('jumps to friend sections with native keyboard focus at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 600 } });

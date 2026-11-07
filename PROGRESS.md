@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Unavailable-page recovery
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded recovery improvement; catalog milestones remain unchecked.
+- Replaced the default missing-page screen with a branded CodeDuel recovery card, clear address guidance and public arena and standings links. Generic wording preserves unavailable-resource privacy. Added responsive green-accented styling and native skip navigation to a focusable main destination.
+- Added component coverage for recovery semantics and destinations, plus Chromium checks at 320, 375 and 1280px for page overflow, 44px action targets, skip-link activation and subsequent keyboard focus.
+- Validation: all 1,064 tests across 67 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Direct Friends invitation navigation
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks validation. Following the blocker rule, added and completed one bounded navigation improvement; catalog milestones remain unchecked.
 - Added a green-accented Invite a player shortcut before the counted Friends section links. The native anchor focuses the existing invitation heading, and Tab reaches the username field without traversing the explanatory guide.
