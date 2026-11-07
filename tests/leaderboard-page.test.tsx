@@ -150,7 +150,7 @@ it.each([
 ])("uses full current rating %s for standings tier %s", async (rating, tier) => {
   mocks.load.mockResolvedValue([{ username: "Ada", rating, score: -30, rank: 1 }]);
   render(await Leaderboard({ searchParams: Promise.resolve({ period: "weekly", scope: "friends" }) }));
-  const badge = screen.getByText(tier, { exact: true });
+  const badge = screen.getByText(tier, { exact: true, selector: ".badge" });
   expect(badge).toHaveClass("badge--accent");
   expect(badge.closest("td")).toHaveTextContent(`${Math.round(rating)} MMR`);
   expect(document.getElementById("ranking-rules")).toHaveTextContent("Tier badges follow current MMR");
@@ -159,7 +159,7 @@ it.each([
 it("includes a current tier on the global ladder", async () => {
   mocks.load.mockResolvedValue([{ username: "Ada", rating: 800, score: 800, rank: 1 }]);
   render(await Leaderboard({ searchParams: Promise.resolve({}) }));
-  expect(screen.getByText("Bronze", { exact: true })).toBeVisible();
+  expect(screen.getByText("Bronze", { exact: true, selector: ".badge" })).toBeVisible();
 });
 
 it.each([{}, { period: "weekly" }, { scope: "friends" }, { period: "weekly", scope: "friends" }, { period: "invalid", scope: "invalid" }])("offers a native snapshot refresh preserving normalized filters %j", async filters => {
@@ -177,3 +177,24 @@ it.each(["unavailable", "signed-out"])("omits snapshot refresh for %s standings"
   expect(screen.queryByRole("link", { name: "Refresh standings" })).not.toBeInTheDocument();
   expect(screen.queryByText("Check the latest standings")).not.toBeInTheDocument();
 });
+
+ it.each(["global", "weekly"])("explains shared tier thresholds on the %s ladder even when empty", async period => {
+  render(await Leaderboard({ searchParams: Promise.resolve({ period }) }));
+  const guide = screen.getByText("Explore leaderboard rating tiers").closest("details")!;
+  expect(guide).not.toHaveAttribute("open");
+  const { RATING_TIERS } = await import("../src/lib/profile");
+  const rows = guide.querySelectorAll("li");
+  expect(rows).toHaveLength(RATING_TIERS.length);
+  RATING_TIERS.forEach((tier, index) => {
+    expect(rows[index]).toHaveTextContent(tier.name);
+    expect(rows[index]).toHaveTextContent(`${tier.minimum}+ MMR`);
+  });
+  expect(guide).toHaveTextContent("Weekly gains determine weekly rank, but do not determine your tier");
+  expect(guide).toHaveTextContent("999.75 MMR is Bronze");
+  expect(guide).toHaveTextContent("Master has no upper limit");
+ });
+ it("keeps public tier guidance available when standings fail", async () => {
+  mocks.load.mockRejectedValue(new Error("private"));
+  render(await Leaderboard({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByText("Explore leaderboard rating tiers")).toBeVisible();
+ });

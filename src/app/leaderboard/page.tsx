@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE } from "../../lib/auth";
-import { ratingTier } from "../../lib/profile";
+import { RATING_TIERS, ratingTier } from "../../lib/profile";
 import { Badge, Card } from "../../components/ui";
 import { auth, database } from "../../lib/auth-server";
 import { loadLeaderboard, type LeaderboardEntry } from "../../lib/leaderboard";
@@ -36,6 +36,12 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       <nav className="ladder-filters" aria-label="Leaderboard players"><Link href={`/leaderboard?period=${period}`} aria-current={!scope ? "page" : undefined}>Everyone</Link><Link href={`/leaderboard?period=${period}&scope=friends`} aria-current={scope ? "page" : undefined}>Friends</Link><Link href="/friends">Manage friends</Link></nav>
       {scope && <p>You and your accepted friends, ranked within your circle.</p>}
       <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Tier badges follow current MMR, using full precision even when the displayed rating rounds up. Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
+      <details className="tier-guide">
+        <summary>Explore leaderboard rating tiers</summary>
+        <p>Badges show current rating tiers on both ladders. Weekly gains determine weekly rank, but do not determine your tier.</p>
+        <ul aria-label="Leaderboard rating tier thresholds">{RATING_TIERS.map(tier => <li key={tier.name}><strong>{tier.name}</strong><span>{tier.minimum}+ MMR</span></li>)}</ul>
+        <p>Each tier starts at its listed minimum and ends where the next begins. Master has no upper limit. Boundaries use full precision: 999.75 MMR is Bronze even though it displays as 1000 MMR.</p>
+      </details>
       <Card className="ladder-card">
         {!unavailable && !needsLogin && <section className="standings-refresh" aria-labelledby="standings-refresh-title">
           <div><h2 id="standings-refresh-title">Check the latest standings</h2><p id="standings-refresh-note">Rankings, ratings and weekly gains reflect when this page loaded. Refresh to see completed duels and changes to your friends circle. Your selected filters stay in place.</p></div>

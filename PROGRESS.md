@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Public leaderboard rating tier guide
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still prevents sandbox validation. Both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded leaderboard improvement.
+- Added a native expandable tier guide to public and friends standings in both periods, including empty, signed-out and unavailable states. Reused the bordered responsive guide styling and shared six-tier thresholds. Explained full-precision boundaries with a rounding example and distinguished weekly rank from current-rating tiers.
+- Added component checks for shared thresholds, both periods, empty and unavailable states; added Chromium checks at 320, 375 and 1280px for Enter/Space disclosure, touch height, overflow and Tab recovery to Refresh standings. Updated existing badge selectors and keyboard-order assertions for the new guide.
+- Validation: all 1,136 tests across 70 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host. Browser checks use rendered fixtures; live deployment checks remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Account rating tier guide
 - Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded account improvement.
 - Added a native expandable rating-tier guide beside the signed-in account standing. It lists all six shared thresholds, highlights the current tier at full precision, explains rounding and rating changes, and reuses the bordered responsive guide styling. Guest and unavailable-session views do not show it.

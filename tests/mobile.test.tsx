@@ -1233,6 +1233,8 @@ it.each([320, 375, 1280])('keeps standings refresh visible and keyboard accessib
     expect(await page.locator('#standings-refresh-note').isVisible()).toBe(true);
     await page.getByRole('link', {name:'Manage friends', exact:true}).focus();
     await page.keyboard.press('Tab');
+    expect(await page.getByText('Explore leaderboard rating tiers', { exact: true }).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
     expect(await refresh.evaluate(el => document.activeElement === el)).toBe(true);
     const bounds = (await refresh.boundingBox())!;
     expect(bounds.height).toBeGreaterThanOrEqual(44);
@@ -1331,5 +1333,24 @@ it.each([320, 375, 1280])('opens and closes account tier guidance by keyboard at
     expect(await list.isVisible()).toBe(false);
     await page.keyboard.press('Tab');
     expect(await page.getByRole('button', {name:'Play a duel'}).evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { await page.close(); }
+});
+
+it.each([320, 375, 1280])('opens leaderboard tier guidance with native keyboard controls at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Leaderboard({ searchParams: Promise.resolve({ period: 'weekly' }) }))}`);
+    const summary = page.getByText('Explore leaderboard rating tiers', { exact: true });
+    const guide = page.locator('details').filter({ has: summary });
+    await summary.focus();
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Enter');
+    expect(await guide.getAttribute('open')).not.toBeNull();
+    expect(await guide.getByRole('listitem').count()).toBe(6);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.keyboard.press('Space');
+    expect(await guide.getAttribute('open')).toBeNull();
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', { name: 'Refresh standings' }).evaluate(el => document.activeElement === el)).toBe(true);
   } finally { await page.close(); }
 });

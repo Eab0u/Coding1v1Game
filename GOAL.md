@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Add a native expandable public leaderboard rating-tier guide with shared thresholds, weekly-rank and rounding guidance, responsive styling and component and phone keyboard regression coverage
 - [x] Add a native expandable account rating-tier guide with full-precision current-tier highlighting and component and phone keyboard regression coverage
 - [x] Add a native signed-in account refresh action with responsive snapshot guidance and component and phone keyboard regression coverage
 - [x] Show the signed-in account rating tier with full-precision MMR guidance, responsive styling and component/browser regression coverage
