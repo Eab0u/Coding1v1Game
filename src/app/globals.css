@@ -606,6 +606,9 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .page-loading-reconnected { display: block; margin-bottom: 8px; color: var(--color-accent); }
 .page-loading-delay { padding: 16px; border-left: 3px solid var(--color-accent); border-radius: var(--radius-sm); background: var(--color-surface); overflow-wrap: anywhere; }
 .page-loading-mark { width: 20px; height: 20px; flex: 0 0 20px; border: 3px solid var(--color-border); border-top-color: var(--color-accent); border-radius: 50%; animation: page-loading-spin 1s linear infinite; }
+.page-loading-status[data-loading-state="delayed"] .page-loading-mark { border-top-color: #ffd28a; }
+.page-loading-status[data-loading-state="offline"] .page-loading-mark { animation: none; border-color: #ffd28a; border-radius: 4px; position: relative; }
+.page-loading-status[data-loading-state="offline"] .page-loading-mark::after { content: ""; position: absolute; width: 2px; height: 10px; background: #ffd28a; top: 2px; left: 6px; transform: rotate(45deg); }
 @keyframes page-loading-spin { to { transform: rotate(360deg); } }
 
 .account-standing { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }

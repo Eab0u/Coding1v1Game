@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Distinguish offline and delayed page loading with a stationary amber offline mark and amber long-wait spinner, preserving stable announcements, recovery focus and reduced-motion support with component and phone/desktop browser regression coverage
 - [x] Reject malformed sandbox output encodings before answer comparison, preserving valid Unicode and full failed-test CPU penalties with regression coverage
 - [x] Reject sandbox request and polling timer overflow before network access, preserving supported boundary settings with regression coverage
 - [x] Reject overflowing sandbox CPU conversions, configured penalties and benchmark totals before scoring, with fail-closed regression coverage

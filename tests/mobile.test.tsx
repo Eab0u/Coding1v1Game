@@ -21,6 +21,28 @@ import Friends from '../src/app/friends/page';
 import NotFound from '../src/app/not-found';
 import Loading from '../src/app/loading';
 
+it.each([320, 1280])('distinguishes loading, delayed and offline marks with motion preferences at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<Loading />)}`);
+    const mark = page.locator('.page-loading-mark');
+    expect(await mark.evaluate(el => getComputedStyle(el).animationName)).toBe('page-loading-spin');
+    await page.getByRole('status').evaluate(el => el.setAttribute('data-loading-state', 'delayed'));
+    expect(await mark.evaluate(el => getComputedStyle(el).borderTopColor)).toBe('rgb(255, 210, 138)');
+    expect(await mark.evaluate(el => getComputedStyle(el).animationName)).toBe('page-loading-spin');
+    await page.getByRole('status').evaluate(el => el.setAttribute('data-loading-state', 'offline'));
+    expect(await mark.evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+    expect(await mark.evaluate(el => getComputedStyle(el).borderRadius)).toBe('4px');
+    expect(await mark.evaluate(el => getComputedStyle(el, '::after').content)).toBe('""');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    for (const state of ['loading', 'delayed', 'offline']) {
+      await page.getByRole('status').evaluate((el, state) => el.setAttribute('data-loading-state', state), state);
+      expect(await mark.evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+    }
+  } finally { await page.close(); }
+});
+
 it.each([320, 375, 1280])('keeps loading feedback and recovery keyboard accessible at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 600 }, reducedMotion: 'reduce' });
   try {

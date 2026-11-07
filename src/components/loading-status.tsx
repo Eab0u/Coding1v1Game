@@ -45,7 +45,7 @@ export function LoadingStatus() {
   }, []);
 
   return <>
-    <p role="status" aria-live="polite" aria-atomic="true" className="page-loading-status">
+    <p role="status" aria-live="polite" aria-atomic="true" className="page-loading-status" data-loading-state={offline ? "offline" : delayed ? "delayed" : "loading"}>
       <span className="page-loading-mark" aria-hidden="true" />
       <span>
       {reconnected && <span className="page-loading-reconnected">Your browser is back online. Server availability is not yet confirmed. </span>}

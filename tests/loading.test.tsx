@@ -5,6 +5,40 @@ import { LoadingStatus } from "../src/components/loading-status";
 
 afterEach(() => vi.useRealTimers());
 
+it("keeps visual loading state synchronized across delays, outages and reconnection without replacing status or focus", () => {
+  vi.useFakeTimers();
+  const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+  try {
+    const view = render(<Loading />);
+    const status = screen.getByRole("status");
+    const mark = status.querySelector(".page-loading-mark");
+    expect(mark).toHaveAttribute("aria-hidden", "true");
+    expect(status).toHaveAttribute("data-loading-state", "loading");
+    connection.mockReturnValue(false);
+    fireEvent(window, new Event("offline"));
+    expect(status).toHaveAttribute("data-loading-state", "offline");
+    const reload = screen.getByRole("button", { name: "Reload page" });
+    reload.focus();
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(status).toHaveAttribute("data-loading-state", "offline");
+    connection.mockReturnValue(true);
+    fireEvent(window, new Event("online"));
+    expect(status).toHaveAttribute("data-loading-state", "delayed");
+    expect(status).toHaveTextContent("This page is taking longer than usual.");
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status.querySelector(".page-loading-mark")).toBe(mark);
+    expect(reload).toHaveFocus();
+    view.unmount();
+    render(<Loading />);
+    expect(screen.getByRole("status")).toHaveAttribute("data-loading-state", "loading");
+    connection.mockReturnValue(false);
+    fireEvent(window, new Event("offline"));
+    connection.mockReturnValue(true);
+    fireEvent(window, new Event("online"));
+    expect(screen.getByRole("status")).toHaveAttribute("data-loading-state", "loading");
+  } finally { connection.mockRestore(); }
+});
+
 it.each(["pageshow", "visibilitychange"])("offers overdue recovery on %s even when the suspended timer has not fired", event => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-11-07T12:00:00Z"));
