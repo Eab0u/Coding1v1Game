@@ -28,3 +28,19 @@ it("provides accessible recovery destinations and honest live-match guidance", (
   expect(within(nav).getByRole("link", { name: "Back to arena" })).toHaveAttribute("href", "/");
   expect(within(nav).getByRole("link", { name: "Explore standings" })).toHaveAttribute("href", "/leaderboard");
 });
+
+it("keeps retry guidance associated, unique and stable without moving focus", () => {
+  const reset = vi.fn();
+  const first = render(<ErrorRecovery error={new Error("first")} reset={reset} />);
+  const retry = within(first.container).getByRole("button");
+  const id = retry.getAttribute("aria-describedby")!;
+  expect(retry).toHaveAccessibleDescription(/does not submit code or start a new duel.*match clock may still be running/);
+  expect(document.getElementById(id)).toHaveClass("recovery-guidance");
+  retry.focus();
+  first.rerender(<ErrorRecovery error={new Error("another failure")} reset={reset} />);
+  expect(retry).toHaveAttribute("aria-describedby", id);
+  expect(retry).toHaveFocus();
+  const second = render(<ErrorRecovery error={new Error("second")} reset={reset} />);
+  expect(within(second.container).getByRole("button").getAttribute("aria-describedby")).not.toBe(id);
+  expect(reset).not.toHaveBeenCalled();
+});

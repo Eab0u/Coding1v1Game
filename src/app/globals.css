@@ -650,3 +650,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .password-help summary:hover { color: var(--color-accent); }
 .password-help summary:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; border-radius: 8px; }
 .account-form .password-help p { margin: 0; padding: 0 12px 12px; }
+
+.page-recovery .recovery-guidance { padding: 16px; border-left: 3px solid var(--color-accent); border-radius: var(--radius-sm); background: var(--color-bg); overflow-wrap: anywhere; }

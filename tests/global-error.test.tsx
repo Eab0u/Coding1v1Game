@@ -26,6 +26,14 @@ it("hydrates the standalone document and retries only on explicit activation", a
     expect(reset).not.toHaveBeenCalled();
     const button = doc.querySelector("button")!;
     expect(button.type).toBe("button");
+    const guidanceId = button.getAttribute("aria-describedby")!;
+    const guidance = doc.getElementById(guidanceId)!;
+    expect(guidance.className).toBe("recovery-guidance");
+    expect(guidance.textContent).toContain("does not submit code or start a new duel");
+    expect(guidance.textContent).toContain("match clock may still be running");
+    await act(async () => root.render(<GlobalError error={new Error("next failure")} reset={reset} />));
+    expect(doc.querySelector("button")?.getAttribute("aria-describedby")).toBe(guidanceId);
+    expect(doc.getElementById(guidanceId)).toBe(guidance);
     await act(async () => { button.click(); button.click(); });
     expect(reset).toHaveBeenCalledTimes(2);
   } finally { await act(async () => root.unmount()); }

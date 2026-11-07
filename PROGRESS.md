@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Accessible page retry guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one recovery usability item: both route and root error boundaries now visually highlight retry and live-clock guidance and associate it with the retry button through an accessible description.
+- Used stable unique IDs without changing focus or triggering retries. Added coverage for independent boundaries, rerender stability, retained keyboard focus and standalone document hydration; existing explicit retry and private-error safeguards remain covered.
+- Validation: all 1,624 tests across 72 files passed; focused recovery tests (5), lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Delayed page loading recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one usability item: after fifteen seconds, page loading shows explicit delayed feedback and a styled recovery note explaining waiting, browser reload and Back to arena. Guidance explains that reload does not pause a duel or resend a submission.
