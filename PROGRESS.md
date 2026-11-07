@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Account read recovery
+- Reviewed both unchecked catalog items; isolated Judge0 remains unavailable (only .env.example is present). Following the blocker rule, added and completed one independent account recovery item. Catalog items remain unchecked.
+- Replaced the account service error dead end with the shared styled accessible recovery card, a full-document Retry account action and Back to arena navigation. Credential forms and stale authentication errors stay hidden while session state is unknown. Retry rechecks the current session.
+- Added coverage for generic error privacy, suppressed forms, successful player and guest recovery, and 320px phone layout with keyboard navigation and a 44px retry target.
+- Validation: all 426 tests across 42 files passed; lint, typecheck and production build passed. No player code executed.
+- Next: configure isolated Judge0 and validate problems 1-20; existing infrastructure blockers remain. Live account deployment recovery remains a smoke check.
+
 ### 2026-11-06 - Match results read recovery
 - Reviewed the two unchecked catalog items; isolated Judge0 remains unavailable (only .env.example is present). Following the blocker rule, added and completed one independent results recovery item. Catalog items remain unchecked.
 - Replaced the results error dead end with the shared styled accessible recovery card, a fresh-document Retry results action preserving the match and Back to arena navigation. Session lookup failures also show recovery without querying private results. Retries recheck authentication and use the current session identity; missing/nonparticipant results retain the generic 404.

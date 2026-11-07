@@ -86,6 +86,27 @@ it("shows a recoverable service error", async () => {
   render(await AccountPage({ searchParams: Promise.resolve({}) }));
   expect(screen.getByRole("alert")).toHaveTextContent("Account service unavailable");
   expect(screen.queryByRole("button", { name: /Play/ })).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
+  expect(screen.queryByText("secret")).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Retry account" })).toHaveAttribute("href", "/account");
+  expect(screen.getByRole("link", { name: "Back to arena" })).toHaveAttribute("href", "/");
+});
+
+it("rechecks account state on retry and recovers to the current player or guest forms", async () => {
+  current.mockRejectedValueOnce(new Error("private database details"));
+  const failed = render(await AccountPage({ searchParams: Promise.resolve({ error: "stale auth error" }) }));
+  expect(screen.getAllByRole("alert")).toHaveLength(1);
+  expect(screen.queryByText("stale auth error")).not.toBeInTheDocument();
+  failed.unmount();
+  current.mockResolvedValueOnce({ id: "2", username: "Recovered", rating: 950 });
+  const recovered = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByRole("heading", { name: "Welcome, Recovered" })).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  recovered.unmount();
+  current.mockResolvedValueOnce(null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.getAllByLabelText("Password")).toHaveLength(2);
+  expect(current).toHaveBeenCalledTimes(3);
 });
 
 it("blocks over-limit Unicode passwords locally and recovers independently in each form", async () => {

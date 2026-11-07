@@ -4,9 +4,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 
 const username = 'abcdefghijklmnopqrstuvwx';
-const state = vi.hoisted(() => ({ signedIn: true, leaderboardUnavailable: false, profileUnavailable: false, friendsUnavailable: false, homeUnavailable: false }));
+const state = vi.hoisted(() => ({ signedIn: true, accountUnavailable: false, leaderboardUnavailable: false, profileUnavailable: false, friendsUnavailable: false, homeUnavailable: false }));
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
-vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current: async () => state.signedIn ? ({ id: '1', username: 'abcdefghijklmnopqrstuvwx', rating: 800 }) : null } }));
+vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current: async () => { if (state.accountUnavailable) throw new Error('private'); return state.signedIn ? ({ id: '1', username: 'abcdefghijklmnopqrstuvwx', rating: 800 }) : null; } } }));
 vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: 'def solve_very_long_function_name(values: list[int]) -> list[int]:', difficulty: 'easy' }, recent: [{ id: '1', title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
 vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
   if (state.leaderboardUnavailable) throw new Error('unavailable');
@@ -27,6 +27,24 @@ vi.mock('../src/lib/results', () => ({ loadResult: async () => { throw new Error
 let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
+
+it('keeps account recovery visible and keyboard accessible on phones', async () => {
+  state.accountUnavailable = true;
+  const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({ searchParams: Promise.resolve({}) }))}`);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    expect(await page.getByRole('alert').isVisible()).toBe(true);
+    expect(await page.locator('form').count()).toBe(0);
+    const retry = page.getByRole('link', { name: 'Retry account' });
+    expect(await retry.getAttribute('href')).toBe('/account');
+    await retry.focus();
+    expect(await retry.evaluate(el => el === document.activeElement)).toBe(true);
+    expect((await retry.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', { name: 'Back to arena' }).evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { state.accountUnavailable = false; await page.close(); }
+});
 
 it('keeps results recovery actions visible and keyboard accessible on phones', async () => {
   const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
