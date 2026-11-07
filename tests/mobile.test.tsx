@@ -1311,3 +1311,25 @@ it.each([320, 375, 1280])('keeps account refresh visible and keyboard accessible
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('opens and closes account tier guidance by keyboard at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    state.signedIn = true;
+    state.accountUnavailable = false;
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({searchParams:Promise.resolve({})}))}`);
+    const summary = page.locator('.tier-guide summary');
+    const list = page.getByRole('list', {name:'Rating tier thresholds'});
+    expect(await list.isVisible()).toBe(false);
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    expect(await list.isVisible()).toBe(true);
+    expect(await list.locator('.tier-guide-current').textContent()).toBe('Bronze0+ MMRCurrent tier');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await page.keyboard.press('Space');
+    expect(await list.isVisible()).toBe(false);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('button', {name:'Play a duel'}).evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { await page.close(); }
+});

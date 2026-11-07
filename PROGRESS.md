@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Account rating tier guide
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded account improvement.
+- Added a native expandable rating-tier guide beside the signed-in account standing. It lists all six shared thresholds, highlights the current tier at full precision, explains rounding and rating changes, and reuses the bordered responsive guide styling. Guest and unavailable-session views do not show it.
+- Added component coverage for all tiers, fractional boundary ratings, threshold values and guest/error states. Added Chromium checks at 320, 375 and 1280px for Enter/Space disclosure controls, touch height, overflow and Tab recovery to Play. Updated an existing badge assertion to distinguish the badge from tier names in the guide.
+- Validation: all 1,130 tests across 70 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host. Browser tests use rendered fixture markup; deployed navigation and live infrastructure remain unverified.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Account snapshot refresh
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. JudgeUnavailableError still blocks sandbox validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded account improvement.
 - Added a native Refresh account action for signed-in players and a responsive bordered snapshot guide explaining that MMR, tier and session identity reflect page load. Refresh makes a document request to recheck the session after a completed duel or an account change in another tab. Guest forms and service-failure recovery retain their existing behavior.

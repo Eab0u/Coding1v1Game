@@ -228,11 +228,11 @@ it("offers a described native account refresh and reloads current rating and ses
   expect(refresh).toHaveAttribute("href", "/account");
   expect(refresh).toHaveAccessibleDescription(/reflect when this page loaded/);
   expect(refresh).toHaveAccessibleDescription(/account change in another tab/);
-  expect(screen.getByText("Bronze")).toBeInTheDocument();
+  expect(screen.getByText("Bronze", { selector: ".badge" })).toBeInTheDocument();
   first.unmount();
   current.mockResolvedValueOnce({ id: "1", username: "Duelist", rating: 1000 });
   const second = render(await AccountPage({ searchParams: Promise.resolve({}) }));
-  expect(screen.getByText("Silver")).toBeInTheDocument();
+  expect(screen.getByText("Silver", { selector: ".badge" })).toBeInTheDocument();
   second.unmount();
   current.mockResolvedValueOnce(null);
   render(await AccountPage({ searchParams: Promise.resolve({}) }));
@@ -247,4 +247,26 @@ it("preserves account retry without snapshot guidance when session lookup fails"
   expect(screen.queryByRole("link", { name: "Refresh account" })).not.toBeInTheDocument();
   expect(screen.queryByText("Your account at a glance")).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Retry account" })).toHaveAttribute("href", "/account");
+});
+
+it.each([[999.75, "Bronze"], [1000, "Silver"], [1199.75, "Silver"], [1200, "Gold"], [1600, "Platinum"], [2000, "Diamond"], [2400, "Master"]])("explains account tier thresholds at %s MMR", async (rating, tier) => {
+  current.mockResolvedValue({ id: "1", username: "Duelist", rating });
+  const { container } = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  const guide = container.querySelector(".tier-guide")!;
+  expect(guide).not.toHaveAttribute("open");
+  expect(guide.querySelector("summary")).toHaveTextContent("Explore rating tiers");
+  expect(guide).toHaveTextContent("full rating");
+  const rows = guide.querySelectorAll("li");
+  expect(rows).toHaveLength(6);
+  expect(Array.from(rows, row => row.querySelector("span")?.textContent)).toEqual(["0+ MMR", "1000+ MMR", "1200+ MMR", "1600+ MMR", "2000+ MMR", "2400+ MMR"]);
+  expect(guide.querySelectorAll(".tier-guide-current")).toHaveLength(1);
+  expect(guide.querySelector(".tier-guide-current strong")).toHaveTextContent(tier);
+});
+it("keeps account tier guidance out of guest and unavailable views", async () => {
+  current.mockResolvedValue(null);
+  const view = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.queryByText("Explore rating tiers")).not.toBeInTheDocument();
+  current.mockRejectedValue(new Error("offline"));
+  view.rerender(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.queryByText("Explore rating tiers")).not.toBeInTheDocument();
 });
