@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Show a styled accessible plain-editor draft size summary with total lines, explicit UTF-16 units and empty/trailing-newline guidance, preserving selection and read-only behavior with regression tests
 - [x] Show selected line counts in the plain editor cursor feedback, matching block-indentation boundaries and preserving forward/backward selections and read-only copying
 - [x] Add a styled Select all code action to the plain editor for manual copying, preserving editable and read-only drafts, updating cursor feedback and retaining native copy and Tab behavior
 - [x] Clarify read-only plain solutions with a styled accessible notice and copying guidance, preserving drafts, focus, selections and native keyboard behavior through mode changes

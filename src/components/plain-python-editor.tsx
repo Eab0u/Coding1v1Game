@@ -10,6 +10,8 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
   const position = useRef<HTMLDivElement>(null);
   const hint = useId();
   const positionId = useId();
+  const summaryId = useId();
+  const lineCount = value.split("\n").length;
   function updatePosition() {
     const editor = input.current;
     if (!editor || !position.current) return;
@@ -70,7 +72,8 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
       editor.setSelectionRange(0, editor.value.length, "forward");
       updatePosition();
     }}>Select all code</button></div>
-    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId}`} value={value}
+    <p id={summaryId} className="editor-position" aria-label="Solution size">{lineCount} {lineCount === 1 ? "line" : "lines"} · {value.length} UTF-16 code {value.length === 1 ? "unit" : "units"}. An empty draft has one line; a trailing newline starts another.</p>
+    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId} ${summaryId}`} value={value}
       onSelect={updatePosition} onFocus={updatePosition} onKeyUp={updatePosition} onPointerUp={updatePosition}
       onCompositionStart={() => { composing.current = true; }}
       onCompositionEnd={() => { composing.current = false; }}

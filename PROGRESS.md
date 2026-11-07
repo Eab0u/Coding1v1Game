@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Plain editor draft size summary
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Added a styled visible solution-size summary connected to the editor's accessible description. It shows total lines and explicitly labeled UTF-16 code units, explains empty drafts and trailing newlines, and updates with typing, indentation and replacement drafts.
+- Added regression coverage for Unicode surrogate pairs and combining marks, empty text, trailing newlines, multiple lines, editable/read-only transitions, preferences, focus and backward selection preservation.
+- Validation: all 848 tests across 60 files passed; lint, typecheck and production build passed after removing unsupported test query options. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Plain editor selected line scope
 - Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
 - Extended visible, accessible cursor feedback with singular/plural selected line counts, matching the indentation rule that excludes a following line when the selection ends at its start. Forward/backward selections, read-only copying and active cursor positions are preserved.

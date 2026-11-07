@@ -8,6 +8,38 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it.each([false, true])("keeps solution size accurate without disturbing selections (readOnly=%s)", readOnly => {
+  const change = vi.fn();
+  const { rerender } = render(<PlainPythonEditor value="" onChange={change} readOnly={readOnly}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  for (const [value, lines, units] of [["", 1, 0], ["x", 1, 1], ["x\n", 2, 2], ["\n\n", 3, 2], ["😀\ne\u0301", 2, 5], ["x\ny\nz", 3, 5]] as const) {
+    rerender(<PlainPythonEditor value={value} onChange={change} readOnly={readOnly}/>);
+    input.focus();
+    input.setSelectionRange(0, value.length, "backward");
+    fireEvent.select(input);
+    expect(screen.getByLabelText("Solution size")).toHaveTextContent(`${lines} ${lines === 1 ? "line" : "lines"} · ${units} UTF-16 code ${units === 1 ? "unit" : "units"}.`);
+    expect(input).toHaveAccessibleDescription(/An empty draft has one line; a trailing newline starts another/);
+    rerender(<PlainPythonEditor value={value} onChange={change} readOnly={!readOnly} wordWrap fontSize={18}/>);
+    expect(input).toHaveFocus();
+    expect(input.selectionStart).toBe(0);
+    expect(input.selectionEnd).toBe(value.length);
+    expect(input.selectionDirection).toBe("backward");
+    expect(input).toHaveValue(value);
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
+it("refreshes solution size after typing and indentation", () => {
+  render(<Harness initial="x"/>);
+  const input = screen.getByRole("textbox");
+  fireEvent.change(input, { target: { value: "x\ny" } });
+  expect(screen.getByLabelText("Solution size")).toHaveTextContent("2 lines · 3 UTF-16 code units");
+  fireEvent.click(screen.getByRole("button", { name: "Indent" }));
+  expect(screen.getByLabelText("Solution size")).toHaveTextContent("2 lines · 7 UTF-16 code units");
+  fireEvent.click(screen.getByRole("button", { name: "Outdent" }));
+  expect(screen.getByLabelText("Solution size")).toHaveTextContent("2 lines · 3 UTF-16 code units");
+});
+
 it.each([false, true])("selects the current whole solution for manual copying without edits (readOnly=%s)", readOnly => {
   const change = vi.fn();
   const initial = "def solve():\n    return '😀'";
