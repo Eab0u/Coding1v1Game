@@ -1222,3 +1222,21 @@ it.each([320, 375, 1280])('links empty friend sections to the invitation form at
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { state.friendsEmpty = false; await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps standings refresh visible and keyboard accessible at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Leaderboard({searchParams:Promise.resolve({period:'weekly',scope:'friends'})}))}`);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const refresh = page.getByRole('link', {name:'Refresh standings'});
+    expect(await refresh.getAttribute('href')).toBe('/leaderboard?period=weekly&scope=friends');
+    expect(await page.locator('#standings-refresh-note').isVisible()).toBe(true);
+    await page.getByRole('link', {name:'Manage friends', exact:true}).focus();
+    await page.keyboard.press('Tab');
+    expect(await refresh.evaluate(el => document.activeElement === el)).toBe(true);
+    const bounds = (await refresh.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});

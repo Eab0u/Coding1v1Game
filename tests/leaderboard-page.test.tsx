@@ -161,3 +161,19 @@ it("includes a current tier on the global ladder", async () => {
   render(await Leaderboard({ searchParams: Promise.resolve({}) }));
   expect(screen.getByText("Bronze", { exact: true })).toBeVisible();
 });
+
+it.each([{}, { period: "weekly" }, { scope: "friends" }, { period: "weekly", scope: "friends" }, { period: "invalid", scope: "invalid" }])("offers a native snapshot refresh preserving normalized filters %j", async filters => {
+  render(await Leaderboard({ searchParams: Promise.resolve(filters) }));
+  const refresh = screen.getByRole("link", { name: "Refresh standings" });
+  expect(refresh).toHaveAttribute("href", `/leaderboard?period=${filters.period === "weekly" ? "weekly" : "global"}${filters.scope === "friends" ? "&scope=friends" : ""}`);
+  expect(refresh).toHaveAccessibleDescription(/reflect when this page loaded.*selected filters stay in place/);
+  expect(refresh).toHaveClass("button--secondary");
+});
+
+it.each(["unavailable", "signed-out"])("omits snapshot refresh for %s standings", async mode => {
+  if (mode === "unavailable") mocks.load.mockRejectedValue(new Error("private"));
+  else mocks.current.mockResolvedValue(null);
+  render(await Leaderboard({ searchParams: Promise.resolve({ scope: "friends" }) }));
+  expect(screen.queryByRole("link", { name: "Refresh standings" })).not.toBeInTheDocument();
+  expect(screen.queryByText("Check the latest standings")).not.toBeInTheDocument();
+});

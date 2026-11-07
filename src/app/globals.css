@@ -372,6 +372,10 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .account-form input[aria-invalid="true"] { border-color: var(--color-text); }
 
 .friend-groups { display: grid; gap: 2rem; margin-top: 2rem; }
+.standings-refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-muted); }
+.standings-refresh > div { flex: 1 1 18rem; min-width: 0; }
+.standings-refresh h2 { margin-top: 0; }
+.standings-refresh p { margin-bottom: 0; color: var(--color-muted); }
 .friend-refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
 .friend-refresh > div { flex: 1 1 16rem; min-width: 0; }
 .friend-refresh h2 { margin-top: 0; }

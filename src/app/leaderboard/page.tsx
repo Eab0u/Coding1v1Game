@@ -37,6 +37,10 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       {scope && <p>You and your accepted friends, ranked within your circle.</p>}
       <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Tier badges follow current MMR, using full precision even when the displayed rating rounds up. Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
       <Card className="ladder-card">
+        {!unavailable && !needsLogin && <section className="standings-refresh" aria-labelledby="standings-refresh-title">
+          <div><h2 id="standings-refresh-title">Check the latest standings</h2><p id="standings-refresh-note">Rankings, ratings and weekly gains reflect when this page loaded. Refresh to see completed duels and changes to your friends circle. Your selected filters stay in place.</p></div>
+          <a className="button button--secondary" href={retryHref} aria-describedby="standings-refresh-note">Refresh standings</a>
+        </section>}
         {period === "weekly" && !unavailable && !needsLogin && <section className="weekly-guide" aria-labelledby="weekly-guide-title">
           <h2 id="weekly-guide-title">How the weekly climb works</h2>
           <dl>
