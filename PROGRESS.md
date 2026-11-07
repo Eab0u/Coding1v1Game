@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Bounded expanded judge JSON values
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge validation item. A request-wide budget of 1,000,000 expanded JSON values bounds traversal before cloning or network access, including repeated references across arguments, answers and suite entries. Array lengths are checked before iteration so enormous sparse arrays cannot force allocation. Documented the limit.
+- Added regression coverage for exponentially shared graphs in arguments and answers, zero network access on rejection, successful adapter reuse, the exact budget boundary, overflow across tests and enormous sparse arrays.
+- Validation: all 1,706 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 96 focused judge tests, lint, typecheck, production build and whitespace checks passed. Restarted the full suite after an overlapping run picked up the new sparse-array test with the earlier validator code.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Bounded judge JSON nesting
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge request validation item. Arguments and expected answers now permit at most 100 nested array/object containers, including the arguments array. Cyclic and excessively nested caller data receives the consistent request validation error before cloning, serialization or network access instead of exhausting the stack. Documented the bound.

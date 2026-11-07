@@ -26,15 +26,21 @@ export class JudgeUnavailableError extends Error {
   constructor() { super("Sandbox judge unavailable; submission must not be scored."); }
 }
 
-function jsonValue(value: unknown, depth = 0): boolean {
+function jsonValue(value: unknown, budget: { remaining: number }, depth = 0): boolean {
+  // Count expanded occurrences: a small shared graph can serialize exponentially.
+  if (--budget.remaining < 0) return false;
   if (value === null || typeof value === "string" || typeof value === "boolean") return true;
   if (typeof value === "number") return Number.isFinite(value);
   // Bound recursion before traversing containers, including cyclic caller data.
   // This also keeps cloning and JSON serialization safely below stack limits.
   if (depth >= 100) return false;
-  if (Array.isArray(value)) return Array.from(value).every(entry => jsonValue(entry, depth + 1));
+  if (Array.isArray(value)) {
+    if (value.length > budget.remaining) return false;
+    for (const entry of value) if (!jsonValue(entry, budget, depth + 1)) return false;
+    return true;
+  }
   return typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype &&
-    Object.values(value).every(entry => jsonValue(entry, depth + 1));
+    Object.values(value).every(entry => jsonValue(entry, budget, depth + 1));
 }
 
 /** Server-only Judge0 adapter. No local execution or fallback is permitted. */
@@ -77,13 +83,14 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
   }
 
   return async function judge(request: JudgeRequest): Promise<ScoredSubmission> {
+    const jsonBudget = { remaining: 1_000_000 };
     if (typeof request.source !== "string" || !request.source.trim() || request.source.length > 65_536 ||
         typeof request.functionName !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(request.functionName) ||
         !Number.isFinite(request.submittedAtMs) || request.submittedAtMs < 0 ||
         !Array.isArray(request.tests) || !request.tests.length || request.tests.length > 1000 ||
         !Array.from(request.tests).every(test => test && typeof test === "object" && !Array.isArray(test) &&
           (test.benchmark === undefined || typeof test.benchmark === "boolean") &&
-          Array.isArray(test.args) && jsonValue(test.args) && jsonValue(test.expected)) ||
+          Array.isArray(test.args) && jsonValue(test.args, jsonBudget) && jsonValue(test.expected, jsonBudget)) ||
         !request.tests.some(test => test.benchmark === true)) {
       throw new RangeError("Invalid judge request; include JSON tests and a largest-test benchmark.");
     }

@@ -14,6 +14,34 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each(["args", "expected"] as const)("bounds expanded shared %s before network access and permits retry", async field => {
+    let shared: unknown = 42;
+    for (let level = 0; level < 40; level++) shared = [shared, shared];
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    await expect(judge({ ...request, tests: [{ ...request.tests[0], [field]: shared }] } as JudgeRequest)).rejects.toThrow("Invalid judge request");
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
+  it("rejects enormous sparse argument arrays without expanding them", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    await expect(createJudge(config, fetcher)({ ...request, tests: [{ args: new Array(2 ** 32 - 1), expected: 42, benchmark: true }] })).rejects.toThrow("Invalid judge request");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("accepts the expanded JSON value budget boundary and rejects overflow across tests", async () => {
+    // Two argument arrays, two expected primitives and 999,996 argument values.
+    const args = Array.from({ length: 499_998 }, () => 0);
+    const tests = [{ args, expected: 42, benchmark: true }, { args, expected: 42 }];
+    const fetcher = sandbox([done(), done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    expect((await judge({ ...request, tests })).testsPassed).toBe(2);
+    fetcher.mockClear();
+    await expect(judge({ ...request, tests: [...tests, { args: [], expected: 42 }] })).rejects.toThrow("Invalid judge request");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it.each(["args", "expected"] as const)("rejects cyclic and overdeep %s before network access and permits retry", async field => {
     const fetcher = sandbox([done(), done(), done()]);
     const judge = createJudge(config, fetcher);
