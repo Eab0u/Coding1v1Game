@@ -513,3 +513,26 @@ it("splits a dictionary entry without block indentation and preserves its select
   expect(input.selectionEnd).toBe(start + 5);
   expect(input).toHaveFocus();
 });
+
+it.each([
+  ["    if values[1:", "    "],
+  ["    for value in {'key':", "    "],
+  ["    if check({'key':", "    "],
+  ["    if (ready:", "    "],
+  ["    if values[(1]:", "    "],
+  ["    if ready):", "    "],
+  ["    if values[1:]:", "        "],
+  ["    if check({'key': [1, 2]}): # proceed", "        "],
+  ['    if marker == "([{}])":', "        "],
+  ["    if ready: # ([{", "        "],
+])("only adds block indentation outside balanced delimiters: %s", (initial, indentation) => {
+  render(<Harness initial={initial + "REMOVEtail"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(initial.length, initial.length + 6, "backward");
+  expect(fireEvent.keyDown(input, { key: "Enter" })).toBe(false);
+  expect(input).toHaveValue(initial + "\n" + indentation + "tail");
+  expect(input.selectionStart).toBe(initial.length + 1 + indentation.length);
+  expect(input.selectionEnd).toBe(input.selectionStart);
+  expect(input).toHaveFocus();
+});
