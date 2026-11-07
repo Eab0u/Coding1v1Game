@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Delayed page loading recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one usability item: after fifteen seconds, page loading shows explicit delayed feedback and a styled recovery note explaining waiting, browser reload and Back to arena. Guidance explains that reload does not pause a duel or resend a submission.
+- Kept one stable polite status region, retained keyboard focus and avoided per-second updates. Timers clear on navigation and restart when loading reopens.
+- Added regression coverage for the exact delay boundary, persistent guidance, focus preservation, timer cleanup and fresh reopening. All 1,623 tests across 72 files passed; lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Expandable password privacy guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one account usability item: moved lengthy password concealment guidance into independent native disclosures for sign-in and sign-up. Password requirements remain visible; input descriptions retain both requirements and privacy guidance. Styled summaries provide clear keyboard focus, a 44px touch target and responsive wrapping.

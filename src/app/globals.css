@@ -603,6 +603,7 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .page-recovery-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .page-recovery-actions .button { flex: 1 1 12rem; min-height: 44px; white-space: normal; text-align: center; }
 .page-loading-status { display: flex; align-items: center; gap: 12px; font-weight: 700; }
+.page-loading-delay { padding: 16px; border-left: 3px solid var(--color-accent); border-radius: var(--radius-sm); background: var(--color-surface); overflow-wrap: anywhere; }
 .page-loading-mark { width: 20px; height: 20px; flex: 0 0 20px; border: 3px solid var(--color-border); border-top-color: var(--color-accent); border-radius: 50%; animation: page-loading-spin 1s linear infinite; }
 @keyframes page-loading-spin { to { transform: rotate(360deg); } }
 
