@@ -10,6 +10,9 @@ function endsWithBlockColon(line: string) {
   const brackets: string[] = [];
   for (let index = 0; index < line.length; index++) {
     const character = line[index];
+    // Ordinary strings cannot cross an unescaped physical newline. Recover
+    // after an incomplete earlier line while retaining triple/continued strings.
+    if (quote.length === 1 && character === "\n" && !escaped) quote = "";
     if (quote) {
       code += character;
       if (escaped) escaped = false;

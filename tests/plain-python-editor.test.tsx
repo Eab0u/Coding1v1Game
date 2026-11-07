@@ -9,6 +9,29 @@ function Harness({ initial }: { initial: string }) {
 }
 
 it.each([
+  ["text = 'unfinished\n    if ready:", "        "],
+  ['text = "unfinished\n    if ready:', "        "],
+  ["text = 'unfinished # [\n    if ready:", "        "],
+  ["text = 'unfinished\\\\\n    if ready:", "        "],
+  ["text = 'continued\\\n    if ready:", "    "],
+  ["text = 'continued\\\nstill unfinished\n    if ready:", "        "],
+  ["text = '''multiline\n    if ready:", "    "],
+  ['text = """multiline\n    if ready:', "    "],
+  ["items = ['unfinished\n    if ready:", "    "],
+  ["text = 'unfinished\n    if 'unfinished:", "    "],
+])("recovers earlier incomplete ordinary strings for Enter: %s", (prefix, indentation) => {
+  render(<Harness initial={prefix + "REMOVEtail"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(prefix.length, prefix.length + 6, "backward");
+  expect(fireEvent.keyDown(input, { key: "Enter" })).toBe(false);
+  expect(input).toHaveValue(prefix + "\n" + indentation + "tail");
+  expect(input.selectionStart).toBe(prefix.length + 1 + indentation.length);
+  expect(input.selectionEnd).toBe(input.selectionStart);
+  expect(input).toHaveFocus();
+});
+
+it.each([
   ["if ready and \\\n    available:", "        "],
   ["async with first, \\\n    second:", "        "],
   ["if ready and \\\n    available and \\\n    enabled:", "        "],

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Recover indentation after unfinished ordinary strings
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks isolated sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
+- Plain-editor Enter now ends ordinary single/double-quoted string context at an unescaped physical newline, so an incomplete earlier string no longer suppresses indentation on subsequent block headers. Escaped newlines, triple-quoted strings, unfinished brackets and current-line string guards retain their behavior. This is a lexical editing convenience rather than Python syntax validation.
+- Added ten regression cases covering both quote styles, quoted comment/bracket punctuation, even and odd backslashes, recovery after a continued string, triple quotes, bracket context, current-line guards, backward selection replacement, suffix preservation, focus and caret placement.
+- Validation: all 946 tests across 60 files passed, including 151 plain-editor tests; lint, production build, typecheck and diff whitespace checks passed. The initial typecheck found a missing generated Next.js route type; building regenerated it and the rerun passed. No Python solution code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Recover indentation after earlier delimiter errors
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
 - Plain-editor Enter now tracks delimiter mismatches through the current logical line and clears them at an ordinary newline once the bracket stack is empty. An earlier completed malformed line no longer disables indentation for every subsequent block header. Unfinished bracket context and explicit continuations retain the mismatch guard. This is a lexical editing convenience rather than Python syntax validation.
