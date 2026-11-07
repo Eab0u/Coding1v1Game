@@ -6,6 +6,26 @@ import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
 const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:2000}];
 beforeEach(()=>localStorage.clear());
+it.each([0,1])('associates saved score guidance with participant %s through score recovery',index=>{
+ const result:DuelResult={title:'Saved duel',outcome:'DRAW',players:players.map(p=>({...p}))};
+ const view=render(<Results result={result}/>);
+ const card=within(screen.getByRole('region',{name:index===0?'Your result':'Opponent result'}));
+ const description='Best judged submission at settlement. Later attempts cannot lower this score. CPU time and then submission time break ties; passing every test alone does not confirm a win.';
+ for(const passed of [0,3,8]) {
+  view.rerender(<Results result={{...result,players:players.map(p=>({...p,passed}))}}/>);
+  const bars=screen.getAllByRole('progressbar');
+  expect(new Set(bars.map(bar=>bar.getAttribute('aria-describedby'))).size).toBe(2);
+  for(const bar of bars) expect(bar).toHaveAccessibleDescription(description);
+ }
+ for(const invalid of [{passed:-1},{total:null},{submitted:NaN},{submitted:null}]) {
+  view.rerender(<Results result={{...result,players:players.map((p,i)=>i===index?{...p,...invalid}:p)}}/>);
+  expect(card.queryByRole('progressbar')).toBeNull();
+  expect(card.queryByText(description)).toBeNull();
+  expect(screen.getByRole('progressbar')).toHaveAccessibleDescription(description);
+ }
+ view.rerender(<Results result={result}/>);
+ expect(card.getByRole('progressbar')).toHaveAccessibleDescription(description);
+});
 it.each([0,1])('updates zero-pass verdict accents independently for participant %s',index=>{
  const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p}))};
  const view=render(<Results result={result}/>);

@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Saved progress scoring guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item: each saved-results progress bar now has visible, individually associated guidance explaining best judged submissions, later attempts and CPU/submission-time tiebreaks. Full-pass scores explicitly do not promise a win.
+- Added participant-symmetric tests for zero/partial/full scores, unique description targets, invalid counts and timestamps, missing submission history and corrected-history recovery. Unavailable scores omit the guidance with their bars.
+- Validation: all 1,335 tests across 72 files passed; targeted results suite passed all 74 tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Player-specific saved progress names
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no player code executed outside the sandbox.
 - Followed the blocker rule and added/completed one accessibility item: saved-results progress bars now combine each player heading with the visible progress label, making both scores distinguishable in assistive navigation while retaining exact hidden-test counts.
