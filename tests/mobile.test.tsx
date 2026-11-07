@@ -31,6 +31,26 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
+it.each([320, 375, 1280])('exposes home friends navigation to keyboards and touch at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const friends = page.getByRole('link', { name: 'Friends', exact: true });
+    expect(await friends.getAttribute('href')).toBe('/friends');
+    const bounds = (await friends.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    await page.getByRole('link', { name: 'Your profile', exact: true }).focus();
+    await page.keyboard.press('Tab');
+    expect(await friends.evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await friends.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', { name: `Account: ${username}` }).evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
+
 it.each([320, 375, 1280])('opens the rating tier guide with the keyboard at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {

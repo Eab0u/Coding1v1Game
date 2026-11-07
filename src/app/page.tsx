@@ -22,6 +22,7 @@ export default async function Home() {
         <span className="brand">CodeDuel<span className="accent">.</span></span>
         <a href="/leaderboard">Leaderboard</a>
         {user && <a href={`/profile/${user.username}`}>Your profile</a>}
+        {user && <Link href="/friends">Friends</Link>}
         <a href="/account">{user ? `Account: ${user.username}` : "Sign in / Create account"}</a>
       </header>
       <main id="main" tabIndex={-1}>

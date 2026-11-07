@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Discoverable home friends navigation
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent navigation item; both catalog validation items remain unchecked.
+- Added a direct Friends link to the signed-in home header using the existing theme and 44px touch target styling. The link remains available if dashboard data fails after successful authentication, and is absent for guests or failed session reads.
+- Updated component tests for these session states. Added Chromium coverage at 320, 375 and 1280px for the destination, touch target, visible keyboard focus, sequential navigation from profile through friends to account and document overflow.
+- Validation: all 582 tests across 51 files passed; the 13 home component tests passed again after correction. Lint, production build, typecheck and diff whitespace checks passed. Fixed an unsupported component-test query option caught by build type checking. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Profile rating tier guide
 - Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command again failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent profile usability item; both catalog validation items remain unchecked.
 - Added a styled, collapsed-by-default rating tier guide with all six minimum MMR thresholds, a text-labeled current tier, starting-rating guidance and an explanation that tier boundaries use unrounded ratings. Shared the threshold definitions with badge assignment to prevent drift.

@@ -11,12 +11,14 @@ it("offers guests a sign-in path and truthful empty states", async () => {
   expect(screen.getByRole("link", { name: "Sign in to play" })).toHaveAttribute("href", "/account");
   expect(screen.getByText(/validated catalog/)).toBeVisible();
   expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute("href", "#main");
+  expect(screen.queryByRole("link", { name: "Friends" })).not.toBeInTheDocument();
 });
 it("shows real account stats, daily challenge and completed results", async () => {
   mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 912.3 });
   mocks.load.mockResolvedValue({ streak: 3, daily: { title: "Signal", statement: "Find a signal", difficulty: "easy", function_signature: "def signal(a):" }, recent: [{ id: "m", title: "Pairs", winner_id: "one", opponent: "Bob" }] });
   render(await Home());
   expect(screen.getByText("3 consecutive wins")).toBeVisible();
+  expect(screen.getByRole("link", { name: "Friends" })).toHaveAttribute("href", "/friends");
   expect(screen.getByText("WIN")).toBeVisible();
   expect(screen.getByRole("link", { name: "View results for Pairs against Bob" })).toHaveAttribute("href", "/match/m/results");
   expect(screen.getByRole("link", { name: "Bob" })).toHaveAttribute("href", "/profile/Bob");
@@ -42,6 +44,7 @@ it("contains database errors without exposing secrets", async () => {
   expect(screen.getByRole("alert")).toHaveTextContent("dashboard unavailable");
   expect(screen.queryByText("secret")).not.toBeInTheDocument();
   expect(mocks.load).not.toHaveBeenCalled();
+  expect(screen.queryByRole("link", { name: "Friends" })).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Retry dashboard" })).toHaveAttribute("href", "/");
   expect(screen.queryByRole("link", { name: "Sign in to play" })).not.toBeInTheDocument();
   expect(screen.queryByRole("region", { name: "Player dashboard" })).not.toBeInTheDocument();
@@ -51,6 +54,7 @@ it("hides invented empty stats after a dashboard failure and recovers on a fresh
   mocks.load.mockRejectedValueOnce(new Error("private database details"));
   const view = render(await Home());
   expect(screen.getByRole("alert")).toHaveTextContent("Player dashboard unavailable");
+  expect(screen.getByRole("link", { name: "Friends" })).toHaveAttribute("href", "/friends");
   expect(screen.queryByText(/0 consecutive wins/)).not.toBeInTheDocument();
   expect(screen.queryByText(/Your first duel/)).not.toBeInTheDocument();
   expect(screen.queryByText(/fresh challenge is on its way/)).not.toBeInTheDocument();
