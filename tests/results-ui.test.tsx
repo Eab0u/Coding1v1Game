@@ -6,6 +6,26 @@ import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
 const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:null}];
 beforeEach(()=>localStorage.clear());
+it.each([[0,'No hidden tests passed'],[5,'Some hidden tests passed'],[8,'All hidden tests passed']] as const)('shows saved correctness accessibly for %s passes',(passed,label)=>{
+ render(<Results result={{title:'Sample',outcome:'DRAW',players:[{...players[0],passed}]}}/>);
+ const meter=screen.getByRole('progressbar',{name:`Hidden-test progress ${passed} / 8 passed`});
+ expect(meter).toHaveAttribute('value',String(passed));
+ expect(meter).toHaveAttribute('max','8');
+ expect(meter).toHaveAttribute('aria-valuetext',`${passed} of 8 hidden tests passed`);
+ expect(screen.getByText(label)).toBeVisible();
+});
+it.each([null,0])('does not invent a correctness meter for unavailable totals %s',total=>{
+ render(<Results result={{title:'Legacy',outcome:'DRAW',players:[{...players[0],passed:null,total}]}}/>);
+ expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+ expect(screen.getAllByText('Not recorded')).toHaveLength(2);
+});
+it('gives both player meters distinct label associations',()=>{
+ render(<Results result={{title:'Sample',outcome:'WIN',players}}/>);
+ const meters=screen.getAllByRole('progressbar');
+ expect(meters).toHaveLength(2);
+ expect(meters[0].id).not.toBe(meters[1].id);
+ expect(meters[1]).toHaveAccessibleName('Hidden-test progress 5 / 8 passed');
+});
 it('explains best-attempt metrics, units, tie order and display precision',()=>{
  render(<Results result={{title:'Sample',outcome:'WIN',players}}/>);
  const guide=screen.getByRole('region',{name:'Reading the comparison'});

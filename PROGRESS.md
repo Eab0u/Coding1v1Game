@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Results hidden-test pass meters
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Added styled native progress meters for both players' saved hidden-test counts, with distinct associated labels, accessible exact counts and visible all/some/none summaries. Missing historical counts and zero totals do not produce misleading meters.
+- Added six UI cases for zero, partial and full passes, missing totals and distinct player labels. Extended Chromium coverage at 320, 375 and 1280px to check meter size, accessible values and viewport containment.
+- Validation: all 684 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate the authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Results comparison metric guide
 - Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError again; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
 - Added a named, styled comparison guide explaining best judged attempt selection, median-of-three largest-test CPU milliseconds, elapsed submission seconds and tiebreak order. Clarified that displayed times are rounded while scoring uses saved precision, with explicit historical missing-metric guidance.

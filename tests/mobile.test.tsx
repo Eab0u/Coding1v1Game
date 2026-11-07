@@ -156,6 +156,15 @@ it.each([320, 375, 1280])('supports results skip navigation and player touch tar
     expect(dateBox.x).toBeGreaterThanOrEqual(0);
     expect(dateBox.x + dateBox.width).toBeLessThanOrEqual(width);
     const links = page.locator('.result-player h2 a');
+    expect(await page.getByRole('progressbar').count()).toBe(2);
+    for (const meter of await page.getByRole('progressbar').all()) {
+      expect(await meter.getAttribute('aria-valuetext')).toBe('8 of 8 hidden tests passed');
+      const box = (await meter.boundingBox())!;
+      expect(box.width).toBeGreaterThan(100);
+      expect(box.height).toBeGreaterThanOrEqual(14);
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+    }
     const guide = page.getByRole('region', { name: 'Reading the comparison' });
     expect(await guide.isVisible()).toBe(true);
     for (const metric of await guide.locator('dl > div').all()) {
