@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Home win-streak clarity
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent home-dashboard improvement.
+- Replaced the plain streak line with a styled semantic statistic and an associated explanation: completed wins extend the streak, a loss or draw resets it, and cancelled reservations do not count. Added correct singular wording and an encouraging zero-streak state. Guests retain the starting-rating invitation without invented streak data; failed dashboard reads still suppress statistics.
+- Added component tests for zero, one and multiple wins, semantic labels/descriptions and guest absence. Extended Chromium checks at 320, 375 and 1280px to verify visible, styled and contained streak guidance.
+- Validation: all 726 tests across 53 files passed; targeted component/browser tests (144), lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Daily challenge study topics
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent daily-preview improvement.
 - Added public topics to the daily database projection and displayed them as a named semantic list of styled study tags. Tags wrap on phones, including long unbroken text; absent topics omit the section and markup remains safely escaped.

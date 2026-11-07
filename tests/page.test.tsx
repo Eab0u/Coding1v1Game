@@ -239,3 +239,19 @@ it.each([undefined, [], null])("omits absent daily topic tags (%s)", async topic
   expect(screen.queryByRole("list", { name: "Daily challenge topics" })).not.toBeInTheDocument();
   expect(screen.queryByText("Practice topics")).not.toBeInTheDocument();
 });
+
+it.each([0, 1, 12])("explains the signed-in current streak of %s with semantic statistics", async streak => {
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+  mocks.load.mockResolvedValue({ daily: null, recent: [], streak });
+  const { container } = render(await Home());
+  const stat = container.querySelector(".home-streak dl")!;
+  expect(stat.querySelector("dt")).toHaveTextContent("Current win streak");
+  expect(stat.querySelector("dd")).toHaveTextContent(`${streak} consecutive ${streak === 1 ? "win" : "wins"}`);
+  expect(stat).toHaveAccessibleDescription("Consecutive wins across your completed duels. A loss or draw resets the count; cancelled reservations do not count.");
+  expect(!!screen.queryByText("Your next win starts a new streak.")).toBe(streak === 0);
+});
+it("does not invent a guest streak", async () => {
+  const { container } = render(await Home());
+  expect(container.querySelector(".home-streak")).toBeNull();
+  expect(screen.getByText(/Your starting rating. Sign in/)).toBeVisible();
+});

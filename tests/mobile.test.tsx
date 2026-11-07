@@ -917,6 +917,12 @@ it.each([320, 375, 1280])('keeps the home rating tier readable at %spx', async w
     expect(await badge.textContent()).toBe('Bronze');
     expect(await badge.isVisible()).toBe(true);
     expect(await card.textContent()).toContain('Displayed ratings are rounded.');
+    const streak = card.locator('.home-streak');
+    expect(await streak.isVisible()).toBe(true);
+    expect(await streak.textContent()).toContain('A loss or draw resets the count');
+    expect(await streak.locator('dd').textContent()).toBe('0 consecutive wins');
+    expect(await streak.evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('solid');
+    expect(await streak.locator('p').first().evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     const outer = (await card.boundingBox())!;
     const inner = (await badge.boundingBox())!;
     expect(inner.x).toBeGreaterThanOrEqual(outer.x);
