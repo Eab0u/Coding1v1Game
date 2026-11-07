@@ -85,7 +85,7 @@ it.each(['before','after'] as const)('withholds invalid saved %s ratings and rec
 });
 it.each([[0,'No hidden tests passed'],[5,'Some hidden tests passed'],[8,'All hidden tests passed']] as const)('shows saved correctness accessibly for %s passes',(passed,label)=>{
  render(<Results result={{title:'Sample',outcome:'DRAW',players:[{...players[0],passed}]}}/>);
- const meter=screen.getByRole('progressbar',{name:`Hidden-test progress ${passed} / 8 passed`});
+ const meter=screen.getByRole('progressbar',{name:`Ada Hidden-test progress ${passed} / 8 passed`});
  expect(meter).toHaveAttribute('value',String(passed));
  expect(meter).toHaveAttribute('max','8');
  expect(meter).toHaveAttribute('aria-valuetext',`${passed} of 8 hidden tests passed`);
@@ -123,7 +123,7 @@ it('gives both player meters distinct label associations',()=>{
  const meters=screen.getAllByRole('progressbar');
  expect(meters).toHaveLength(2);
  expect(meters[0].id).not.toBe(meters[1].id);
- expect(meters[1]).toHaveAccessibleName('Hidden-test progress 5 / 8 passed');
+ expect(meters[1]).toHaveAccessibleName('Bob Hidden-test progress 5 / 8 passed');
 });
 it('explains best-attempt metrics, units, tie order and display precision',()=>{
  render(<Results result={{title:'Sample',outcome:'WIN',players}}/>);
@@ -451,4 +451,24 @@ it.each([0,1])('explains invalid saved CPU for participant %s and recovers corre
   expect(card.queryByText('Benchmark CPU unavailable')).toBeNull();
   expect(card.getByText(cpu===null?'Not recorded':`${cpu.toFixed(2)} ms`)).toBeVisible();
  }
+});
+
+it.each([0,1])('names saved progress by player through score recovery for participant %s',index=>{
+ const result:DuelResult={title:'Saved duel',outcome:'DRAW',players:players.map(p=>({...p,passed:3}))};
+ const view=render(<Results result={result}/>);
+ for(const passed of [0,3,8]) {
+  view.rerender(<Results result={{...result,players:result.players.map(p=>({...p,passed}))}}/>);
+  for(const p of players) {
+   const bar=screen.getByRole('progressbar',{name:`${p.username} Hidden-test progress ${passed} / 8 passed`});
+   expect(bar).toHaveAttribute('aria-valuetext',`${passed} of 8 hidden tests passed`);
+   expect(bar).toHaveAttribute('value',String(passed));
+  }
+ }
+ for(const invalid of [{passed:-1},{total:0},{submitted:NaN},{submitted:null}]) {
+  view.rerender(<Results result={{...result,players:result.players.map((p,i)=>i===index?{...p,...invalid}:p)}}/>);
+  expect(within(screen.getByRole('region',{name:index===0?'Your result':'Opponent result'})).queryByRole('progressbar')).toBeNull();
+  expect(screen.getByRole('progressbar',{name:`${players[1-index].username} Hidden-test progress 3 / 8 passed`})).toBeVisible();
+ }
+ view.rerender(<Results result={{...result,players:result.players.map(p=>({...p,username:p.username+' Updated'}))}}/>);
+ for(const p of players) expect(screen.getByRole('progressbar',{name:`${p.username} Updated Hidden-test progress 3 / 8 passed`})).toBeVisible();
 });

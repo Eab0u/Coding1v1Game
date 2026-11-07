@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Player-specific saved progress names
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no player code executed outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item: saved-results progress bars now combine each player heading with the visible progress label, making both scores distinguishable in assistive navigation while retaining exact hidden-test counts.
+- Added participant-symmetric regression coverage for simultaneous zero/partial/full scores, invalid counts and timestamps, missing submission history, corrected history and updated player names. Updated existing accessible-name assertions.
+- Validation: all 1,333 tests across 72 files passed; lint and typecheck passed. Diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog. Catalog expansion and live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Arena empty-progress card polish
 - Selected and completed the actionable arena empty-progress polish item while catalog validation remains blocked on isolated Judge0 access.
 - Gave waiting cards a muted participant label, prominent status, distinct player/opponent next-step guidance, neutral bordered surfaces and compact phone spacing. Unavailable scores retain explicit automatic-update guidance without waiting or verdict cues; valid scores recover their existing bars and labels.
