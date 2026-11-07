@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Expire stale solution clipboard feedback
+- Retried the highest-value unchecked catalog validation item using Relay Order Conflicts; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor feedback item.
+- Clipboard success and failure messages now belong to a draft revision. Editing permanently expires them, even if the previous code returns. Pending copy completions cannot revive stale feedback after an edit-and-restore sequence; fresh copy attempts still report their own outcome and code remains preserved.
+- Added four regression cases for successful and rejected completed/pending copies, draft restoration, retry availability and preserved solution text.
+- Validation: all 811 tests across 60 files passed; the final editor implementation also passed its 41 focused tests. Lint, typecheck and production build passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Expire stale solution reset confirmations
 - Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded solution-editor recovery item.
 - Reset confirmation now applies only to the draft and starter code present when requested. Edits, external draft replacement, starter changes or removal, and read-only transitions permanently dismiss it. Returning to previous values requires a fresh request, protecting newer work from stale reset actions. Visible confirmation guidance explains edit dismissal.

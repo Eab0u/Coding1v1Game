@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Expire solution clipboard success and failure feedback permanently after draft changes, including edits restored during pending copies, with retry and preservation tests
 - [x] Expire solution reset confirmations when the draft, starter code or editability changes, preserve new work and require fresh confirmation even when earlier values return
 - [x] Conceal revealed account passwords on form submission and native validation failure, preserving independent forms, credentials and correction feedback with listener cleanup tests
 - [x] Refresh username native validation and accessible feedback on focus after silent autofill replacements, preserving independent account and friend forms with correction and empty-field tests

@@ -350,3 +350,32 @@ it.each(["starter", "readOnly", "value", "missing starter"])("requires a fresh r
   fireEvent.click(screen.getByRole("button", { name: "Replace with starter code" }));
   expect(onChange).toHaveBeenCalledExactlyOnceWith("original starter");
 });
+
+
+it.each([true, false])("expires completed clipboard feedback permanently after edits (success %s)", async ok => {
+  vi.stubGlobal("navigator", { clipboard: { writeText: ok ? vi.fn().mockResolvedValue(undefined) : vi.fn().mockRejectedValue(new Error("Denied")) } });
+  render(<Harness/>);
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Copy solution" })); });
+  expect(screen.getByRole(ok ? "status" : "alert")).toHaveTextContent(ok ? "Solution copied" : "Unable to copy");
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "def solve():\n    pass" } });
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Copy solution" })); });
+  expect(screen.getByRole(ok ? "status" : "alert")).toBeInTheDocument();
+});
+
+it.each([true, false])("discards pending clipboard feedback after editing and restoring the draft (success %s)", async ok => {
+  let resolve!: () => void;
+  let reject!: (error: Error) => void;
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn(() => new Promise<void>((yes, no) => { resolve = yes; reject = no; })) } });
+  render(<Harness/>);
+  fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "def solve():\n    pass" } });
+  await act(async () => { if (ok) resolve(); else reject(new Error("Denied")); });
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+});
