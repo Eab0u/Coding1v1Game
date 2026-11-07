@@ -22,7 +22,7 @@ export default async function Home() {
         <span className="brand">CodeDuel<span className="accent">.</span></span>
         <a href="/leaderboard">Leaderboard</a>
         {user && <a href={`/profile/${user.username}`}>Your profile</a>}
-        <a href="/account">{user ? `Account ? ${user.username}` : "Sign in / Create account"}</a>
+        <a href="/account">{user ? `Account: ${user.username}` : "Sign in / Create account"}</a>
       </header>
       <main id="main" tabIndex={-1}>
         <section className="hero" aria-labelledby="welcome">
@@ -31,7 +31,11 @@ export default async function Home() {
             <h1 id="welcome">Your next rival<br />thinks in code.</h1>
             <p className="intro">Ranked Python duels. Solve the same algorithm problem, race the clock, and climb the ladder.</p>
             {!unavailable && <Play signedIn={!!user} />}
-            <p className="availability">Arena preview ? Published problems and match activation are still in development.</p>
+            <aside className="arena-guide" aria-labelledby="arena-guide-title">
+              <h2 id="arena-guide-title">Before your first duel</h2>
+              <p>Pairing requires a published, validated problem in your rating band. If none is available, try again later.</p>
+              <p>Once paired, both players have 60 seconds to click Ready. The duel clock starts when both are ready; an expired reservation does not change ratings.</p>
+            </aside>
           </div>
           <Card>
             <div className="preview-header"><Badge tone="accent">Python arena</Badge><Badge>1 vs 1</Badge></div>
@@ -47,7 +51,7 @@ export default async function Home() {
           <a className="button button--primary" href="/">Retry dashboard</a>
           <a className="button button--secondary" href="/leaderboard">View leaderboard</a>
         </Card> : <section className="dashboard-grid" aria-label="Player dashboard">
-          <Card><p className="eyebrow">YOUR LADDER</p><h2>{user ? Math.round(user.rating) : "800"} <small>MMR</small></h2><p>{user ? `${data.streak} consecutive wins` : "Your starting rating ? Sign in to track your climb"}</p></Card>
+          <Card><p className="eyebrow">YOUR LADDER</p><h2>{user ? Math.round(user.rating) : "800"} <small>MMR</small></h2><p>{user ? `${data.streak} consecutive wins` : "Your starting rating. Sign in to track your climb."}</p></Card>
           <Card className="daily-challenge"><p className="eyebrow">DAILY CHALLENGE (UTC)</p>{data.daily ? <><h2>{data.daily.title}</h2><Badge>{data.daily.difficulty}</Badge><p className="daily-preview-note">A daily problem preview. Practice submissions are not available yet.</p><pre className="daily-signature"><code>{data.daily.function_signature}</code></pre><details className="daily-statement"><summary>Read challenge statement</summary><div>{data.daily.statement}</div></details></> : <><h2>A fresh challenge is on its way.</h2><p>Daily problems appear here once the validated catalog is published.</p></>}</Card>
           <Card><h2>Recent duels</h2>{data.recent.length ? <ul className="recent-duels">{data.recent.map(match => { const outcome = match.winner_id === user?.id ? "WIN" : match.winner_id ? "LOSS" : "DRAW"; return <li key={match.id}><strong className={`history-result history-result--${outcome.toLowerCase()}`}>{outcome}</strong><span><Link className="recent-duel-result" href={`/match/${encodeURIComponent(match.id)}/results`} aria-label={`View results for ${match.title} against ${match.opponent}`}>{match.title}</Link><small>vs <Link className="recent-duel-opponent" href={`/profile/${encodeURIComponent(match.opponent)}`}>{match.opponent}</Link></small></span></li>; })}</ul> : <p>{user ? "Your first duel starts your story. Completed matches will appear here." : "Sign in to see your match history."}</p>}</Card>
         </section>}

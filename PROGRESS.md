@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Accurate home duel readiness guidance
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent home usability item. Catalog items remain unchecked.
+- Replaced outdated claims that match activation is still in development with a named, bordered guidance panel explaining published problem eligibility, the 60-second Ready window, when the duel clock starts and rating protection for expired reservations. Corrected broken question-mark separators in account and starting-rating copy.
+- Added component coverage for signed-in and guest guidance and account naming. Chromium checks at 320, 375 and 1280px verify visible guidance, readable line spacing, panel borders and absence of text or document overflow.
+- Validation: all 520 tests across 45 files passed; lint and production build passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Accurate home duel outcome badges
 - Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent home usability item. Catalog items remain unchecked.
 - Fixed recent home losses and draws inheriting green win styling. Reused the profile history badges for green WIN, red LOSS and neutral DRAW outcomes, with explicit text, borders and consistent spacing. Preserved result and opponent links.

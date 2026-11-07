@@ -89,3 +89,15 @@ it.each([
   expect(screen.getByText(label)).toHaveClass("history-result", `history-result--${tone}`);
   expect(screen.getByRole("link", { name: "View results for Signals against Bob" })).toHaveAttribute("href", "/match/result/results");
 });
+
+it.each([false, true])("explains catalog eligibility and reservation readiness for signedIn=%s", async signedIn => {
+  mocks.current.mockResolvedValue(signedIn ? { id: "one", username: "Ada", rating: 800 } : null);
+  render(await Home());
+  const guide = screen.getByRole("complementary", { name: "Before your first duel" });
+  expect(guide).toHaveTextContent("published, validated problem in your rating band");
+  expect(guide).toHaveTextContent("60 seconds to click Ready");
+  expect(guide).toHaveTextContent("clock starts when both are ready");
+  expect(guide).toHaveTextContent("expired reservation does not change ratings");
+  expect(screen.queryByText(/match activation are still in development/)).not.toBeInTheDocument();
+  if (signedIn) expect(screen.getByRole("link", { name: "Account: Ada" })).toHaveAttribute("href", "/account");
+});

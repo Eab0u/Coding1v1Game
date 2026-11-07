@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Replace stale home activation copy with styled, accessible catalog and reservation-readiness guidance, including phone browser coverage
 - [x] Distinguish home recent duel wins, losses and draws with consistent text-labeled outcome badges and phone browser coverage
 - [x] Guide empty public profiles with accurate player-specific copy, styled duel and standings actions and phone keyboard coverage
 - [x] Make expanded profile rating history readable with dated before/after MMR entries, consistent signed changes and phone keyboard coverage

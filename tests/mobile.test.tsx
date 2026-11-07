@@ -574,3 +574,17 @@ it.each([320, 375, 1280])('distinguishes all home outcomes without overflow at %
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { state.homeOutcomes = false; await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps home readiness guidance readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const guide = page.getByRole('complementary', { name: 'Before your first duel' });
+    expect(await guide.isVisible()).toBe(true);
+    expect(await guide.textContent()).toContain('60 seconds to click Ready');
+    expect(await guide.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    expect(await guide.evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('solid');
+    expect(await guide.locator('p').first().evaluate(el => parseFloat(getComputedStyle(el).lineHeight))).toBeGreaterThanOrEqual(22);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
