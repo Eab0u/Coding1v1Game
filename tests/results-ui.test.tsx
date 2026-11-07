@@ -72,7 +72,8 @@ it('removes verdict styling for invalid or absent scores and recovers corrected 
 it.each([null,0])('does not invent a correctness meter for unavailable totals %s',total=>{
  render(<Results result={{title:'Legacy',outcome:'DRAW',players:[{...players[0],passed:null,total}]}}/>);
  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
- expect(screen.getAllByText('Not recorded')).toHaveLength(total===null?2:1);
+ expect(screen.queryAllByText('Not recorded')).toHaveLength(total===null?1:0);
+ expect(screen.getByText('1.25 s')).toBeVisible();
  expect(screen.queryByText('Test score unavailable')!==null).toBe(total!==null);
 });
 it('gives both player meters distinct label associations',()=>{
@@ -365,9 +366,26 @@ it.each([0,1])('distinguishes incomplete saved test pairs for participant %s and
  }
  view.rerender(<Results result={{...result,players:result.players.map((p,i)=>i===index?{...p,passed:null,total:null}:p)}}/>);
  expect(card().queryByText('Test score unavailable')).toBeNull();
- expect(card().getAllByText('Not recorded')).toHaveLength(2);
+ expect(card().getAllByText('Not recorded')).toHaveLength(1);
+ expect(card().getByText(index===0?'1.25 s':'2.00 s')).toBeVisible();
  view.rerender(<Results result={result}/>);
  expect(card().queryByText('Test score unavailable')).toBeNull();
  expect(card().getByRole('progressbar')).toBeVisible();
  expect(screen.getByText(/^You passed more hidden tests/)).toBeVisible();
+});
+
+it.each([0,1])('renders saved timing independently of missing test counts for participant %s',index=>{
+ const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p}))};
+ const view=render(<Results result={result}/>);
+ const timing=()=>screen.getByRole('region',{name:index===0?'Your result':'Opponent result'}).querySelector('dl dd:last-child');
+ for(const counts of [{passed:null,total:null},{passed:null,total:8},{passed:2,total:null},{passed:-1,total:8}]) {
+  for(const [submitted,label] of [[0,'0.00 s'],[1250,'1.25 s'],[-1,'Unavailable'],[NaN,'Unavailable'],[undefined,'Unavailable'],['1250','Unavailable'],[null,counts.passed===null && counts.total===null?'Not recorded':'Unavailable']] as const) {
+   view.rerender(<Results result={{...result,players:result.players.map((p,i)=>i===index?{...p,...counts,submitted}:p)} as DuelResult}/>);
+   expect(timing()).toHaveTextContent(label);
+   expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
+  }
+ }
+ view.rerender(<Results result={result}/>);
+ expect(timing()).toHaveTextContent(index===0?'1.25 s':'2.00 s');
+ expect(screen.getAllByRole('progressbar')).toHaveLength(2);
 });

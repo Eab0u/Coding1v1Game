@@ -38,6 +38,14 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Independent saved submission timing
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one saved-results fix: valid submission timestamps now display independently of missing or invalid test counts. Invalid timestamps remain unavailable even when counts are absent. A missing timestamp with incomplete or invalid counts shows Unavailable instead of claiming No submission; fully absent count/timestamp history retains Not recorded.
+- Updated existing missing-count assertions and added participant-symmetric coverage for zero and positive times, invalid numeric and nonnumeric times, absent timestamps, incomplete/invalid counts and corrected-history recovery. The recorded outcome and valid-history verdict recovery remain covered.
+- Validation: all 1,296 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; live infrastructure smoke checks remain pending.
+
+
 ### 2026-11-07 - Incomplete saved test-count history
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one saved-results fix: a missing passed count paired with a present or invalid total now shows Test score unavailable and an explicit explanation instead of silently claiming the counts were not recorded. Both-null history retains its legacy Not recorded state; the recorded match outcome remains visible.

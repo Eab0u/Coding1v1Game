@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Render saved submission timing independently of missing or invalid test counts, preserving valid timestamps and distinguishing absent history from unavailable metrics with participant-symmetric recovery tests
 - [x] Distinguish incomplete saved test-count pairs from unrecorded results, with participant-symmetric unavailable feedback and corrected-history regression coverage
 - [x] Add a native results comparison shortcut with focusable heading, phone-friendly styling and component/browser keyboard regression coverage
 - [x] Withhold saved-results verdict cues and detailed scoring explanations for invalid submission timestamps, with explicit unavailable guidance and participant-symmetric recovery regression coverage
