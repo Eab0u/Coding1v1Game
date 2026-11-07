@@ -291,6 +291,30 @@ npm run problems -- validate problems/drafts/relay-balanced-cuts.json
 npm run problems -- publish problems/drafts/relay-balanced-cuts.json
 ```
 
+### Relay Floor Repair
+
+`drafts/relay-floor-repair.json` is an original easy greedy/prefix-maximum
+problem: increase signed log levels until they are nondecreasing, minimizing
+unit increments. Equal neighbors are allowed; decreases and reordering are not.
+Every repaired entry must be at least the original prefix maximum. Choosing
+exactly that maximum attains this lower bound, proving the greedy solution.
+The reference carries that maximum in O(n) time and O(1) space. The quadratic
+baseline scans each prefix, performing 5,000,050,000 iterations per full-size
+benchmark. Constant, descending and alternating-extreme fixtures have costs
+0, 4,999,950,000 and 100,000,000,000, respectively.
+
+Data-only tests compare prefix enumeration with unit-by-unit repairs on 2,000
+seeded small cases, check translation, positive scaling and sorted-input
+invariants, and verify full-size formulas. No authored Python executes locally.
+The proposed 1-second CPU and 64-MiB limits need isolated Judge0 calibration,
+reference/baseline agreement and baseline timeouts. This draft remains private,
+unpublished and unapproved for ranked play. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-floor-repair.json
+npm run problems -- publish problems/drafts/relay-floor-repair.json
+```
+
 ### Relay Prefix Diversity
 
 `drafts/relay-prefix-diversity.json` is an original easy array/hash-set problem:
