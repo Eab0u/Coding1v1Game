@@ -190,3 +190,18 @@ it.each([1, 49, 50])('explains the bounded rating window for %s rated duels', as
   expect(screen.getByText('Before first duel in this window')).toBeVisible();
   expect(screen.getByText('122 completed duels')).toBeVisible();
 });
+
+it.each([false, true])('offers a native snapshot refresh for empty and populated profiles (%s)', async populated => {
+  if (populated) mocks.load.mockResolvedValue({username:'Canonical_Player',rating:900,record:{wins:1,losses:0,draws:0},history:[{id:'1',title:'Test',opponent:'Bob',result:'WIN',delta:100,completed_at:new Date('2026-01-01Z')}],ratings:[]});
+  render(await Profile({params}));
+  const refresh = screen.getByRole('link', {name:'Refresh profile'});
+  expect(refresh).toHaveAttribute('href', populated ? '/profile/Canonical_Player' : '/profile/Ada');
+  expect(refresh).toHaveAccessibleDescription(/reflect when this page loaded/);
+  expect(screen.getByRole('region', {name:'Check the latest player stats'})).toContainElement(refresh);
+});
+it('does not offer snapshot refresh when profile loading fails', async () => {
+  mocks.load.mockRejectedValue(new Error('private'));
+  render(await Profile({params}));
+  expect(screen.queryByRole('link', {name:'Refresh profile'})).not.toBeInTheDocument();
+  expect(screen.queryByText(/reflect when this page loaded/)).not.toBeInTheDocument();
+});

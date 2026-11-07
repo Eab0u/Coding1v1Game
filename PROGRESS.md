@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Profile snapshot refresh
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded profile improvement. Catalog milestones remain unchecked.
+- Added a visible native Refresh profile action on empty and populated player profiles, targeting the loaded player's canonical username. A responsive bordered guide explains that rating, tier, record and history reflect page load and recommends refreshing after completed duels. Failed reads retain their existing retry flow.
+- Added component tests for empty/populated profiles, canonical destinations, accessible descriptions and failure states. Chromium checks at 320, 375 and 1280px verify keyboard focus, page overflow and 44px action height.
+- Validation: all 1,094 tests across 70 files passed; lint, typecheck, production build and whitespace checks passed. Fixed an unescaped apostrophe caught by lint. No authored or player Python executed on the host. Browser checks use rendered fixture markup; live database and deployed navigation smoke checks remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Standings snapshot refresh
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded standings improvement. Catalog milestones remain unchecked.
 - Added a visible native Refresh standings link on successful populated and empty ladders. The action preserves normalized global/weekly and everyone/friends filters and makes a fresh document request. Styled snapshot guidance explains when ratings and gains were loaded and how to see completed duels or friendship changes. Failed reads retain their existing retry action; signed-out friends views retain sign-in guidance.

@@ -31,6 +31,10 @@ export default async function Profile({ params }: { params: Promise<{ username: 
         <Link className="button button--secondary" href="/">Back to arena</Link>
       </Card> : data && <>
         <p className="eyebrow">PLAYER PROFILE</p><h1>{data.username}</h1>
+        <section className="profile-refresh" aria-labelledby="profile-refresh-title">
+          <div><h2 id="profile-refresh-title">Check the latest player stats</h2><p id="profile-refresh-note">Rating, tier, record and duel history reflect when this page loaded. Refresh after a completed duel to load the latest stats for this player.</p></div>
+          <a className="button button--secondary" href={`/profile/${encodeURIComponent(data.username)}`} aria-describedby="profile-refresh-note">Refresh profile</a>
+        </section>
         <div className="profile-rating"><strong>{Math.round(data.rating)} <small>MMR</small></strong><Badge tone="accent">{ratingTier(data.rating)}</Badge></div>
         <details className="tier-guide">
           <summary>Explore rating tiers</summary>
