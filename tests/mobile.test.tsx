@@ -20,6 +20,7 @@ vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.frie
 import Friends from '../src/app/friends/page';
 import NotFound from '../src/app/not-found';
 import ErrorRecovery from '../src/app/error';
+import GlobalError from '../src/app/global-error';
 import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
 import Leaderboard from '../src/app/leaderboard/page';
@@ -32,6 +33,28 @@ vi.mock('../src/lib/results', () => ({ loadResult: async () => { throw new Error
 let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
+
+it.each([320, 375, 1280])('keeps root-layout recovery usable without app styles at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(renderToStaticMarkup(<GlobalError error={new Error('private')} reset={() => {}} />));
+    expect(await page.title()).toBe('Page recovery | CodeDuel');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(38, 36, 33)');
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', {name: 'Skip to page recovery'}).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('main').evaluate(el => document.activeElement === el)).toBe(true);
+    for (const action of [page.getByRole('button', {name: 'Try this page again'}), page.getByRole('link', {name: 'Back to arena'}), page.getByRole('link', {name: 'Explore standings'})]) {
+      await page.keyboard.press('Tab');
+      expect(await action.evaluate(el => document.activeElement === el)).toBe(true);
+      const bounds = (await action.boundingBox())!;
+      expect(bounds.height).toBeGreaterThanOrEqual(44);
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
+  } finally { await page.close(); }
+});
 
 it.each([320, 375, 1280].flatMap(width => [ {width, interrupted: false}, {width, interrupted: true} ]))('keeps page recovery usable at $width px (interrupted: $interrupted)', async ({width, interrupted}) => {
   const page = await browser.newPage({ viewport: { width, height: 600 } });

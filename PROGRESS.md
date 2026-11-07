@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Root-layout failure recovery
+- Retried problems 1-20 validation with Relay Basin Storage; JudgeUnavailableError still blocks the catalog milestones. Following the blocker rule, added and completed one bounded recovery item; catalog milestones remain unchecked.
+- Added global-error.tsx to recover from root-layout failures outside the existing route boundary. It owns its HTML document, language, title and responsive dark styling, so recovery does not depend on the failed layout or global stylesheet. Native full-page links reload public arena and standings destinations; explicit retry invokes Next.js reset. Private errors and digests remain hidden, and live-match clock guidance remains visible.
+- Added standalone-document semantics and hydration tests for private-detail exclusion and explicit/repeated retry. Chromium checks at 320, 375 and 1280px verify styling without app CSS, document overflow, native skip navigation, focus order and action touch sizes.
+- Validation: all 1,074 tests across 69 files passed; lint, typecheck and production build passed. No authored or player Python executed on the host. Browser coverage renders the standalone boundary; a deployed root-layout failure smoke check remains pending.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Unexpected-page error recovery
 - Retried problems 1-20 validation using Relay Basin Storage; JudgeUnavailableError still blocks the catalog milestones. Following the blocker rule, added and completed one bounded recovery item.
 - Added the root route error boundary with a branded responsive recovery card, explicit Next.js reset action, public arena/standings links and native skip navigation. Internal exception messages and digests are never rendered. Guidance explains that retrying the view does not submit code and an active match clock may continue running.
