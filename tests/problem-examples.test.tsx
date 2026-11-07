@@ -34,7 +34,29 @@ it("renders explanation markup as text", () => {
   expect(document.querySelector("script, b")).toBeNull();
 });
 
-it.each([[], null, undefined, [{ input: 1, output: 2 }], [{ args: [], explanation: "Missing output" }]])("preserves legacy or unavailable examples safely: %j", examples => {
+it("replaces the unavailable notice when public examples arrive and restores it when removed", () => {
+  const { rerender } = render(<ProblemExamples examples={[]}/>);
+  rerender(<ProblemExamples examples={[{ args: [0], expected: 0, explanation: "Zero stays zero." }]}/>);
+  expect(screen.queryByRole("complementary", { name: "Problem examples unavailable" })).not.toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "Example 1 input" })).toHaveTextContent("0");
+  rerender(<ProblemExamples examples={null}/>);
+  expect(screen.getByRole("complementary", { name: "Problem examples unavailable" })).toBeVisible();
+  expect(screen.queryByRole("region", { name: "Example 1" })).not.toBeInTheDocument();
+});
+
+it.each([[], null, undefined])("explains unavailable public examples without raw storage values: %j", examples => {
+  render(<ProblemExamples examples={examples}/>);
+  const notice = screen.getByRole("complementary", { name: "Problem examples unavailable" });
+  expect(notice).toHaveClass("example-format-guide");
+  expect(notice).toHaveTextContent("No public examples available");
+  expect(notice).toHaveTextContent("statement, constraints and function signature");
+  expect(notice).toHaveTextContent("Hidden tests still determine correctness");
+  expect(notice).toHaveTextContent("Return your result from the function");
+  expect(screen.queryByRole("region")).not.toBeInTheDocument();
+  expect(screen.queryByRole("complementary", { name: "Example format guide" })).not.toBeInTheDocument();
+});
+
+it.each([[{ input: 1, output: 2 }], [{ args: [], explanation: "Missing output" }]])("preserves legacy examples safely: %j", examples => {
   render(<ProblemExamples examples={examples}/>);
   const fallback = screen.getByRole("region", { name: "Problem examples" });
   expect(screen.queryByRole("complementary", { name: "Example format guide" })).not.toBeInTheDocument();

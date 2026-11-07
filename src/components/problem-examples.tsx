@@ -7,6 +7,13 @@ function isExample(value: unknown): value is Example {
 }
 
 export function ProblemExamples({ examples }: { examples: unknown }) {
+  if (examples == null || (Array.isArray(examples) && examples.length === 0)) {
+    return <aside className="example-format-guide" aria-label="Problem examples unavailable">
+      <strong>No public examples available</strong>
+      <p>Use the problem statement, constraints and function signature to guide your solution. Hidden tests still determine correctness.</p>
+      <p>Return your result from the function; you do not need to read input or print the answer.</p>
+    </aside>;
+  }
   if (!Array.isArray(examples) || !examples.length || !examples.every(isExample)) {
     return <pre tabIndex={0} role="region" aria-label="Problem examples">{JSON.stringify(examples, null, 2) ?? "No examples available."}</pre>;
   }
