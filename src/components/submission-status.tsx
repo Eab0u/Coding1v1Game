@@ -7,7 +7,7 @@ export function SubmissionStatus({ submission }: { submission: ArenaSnapshot["su
   const retrying = submission.status === "error";
   const hasScore = judged && hasSubmissionScore(submission);
   const allPassed = hasScore && submission.passed === submission.total;
-  const verdictClass = hasScore ? allPassed ? " arena-verdict--passed" : " arena-verdict--partial" : "";
+  const verdictClass = hasScore ? allPassed ? " arena-verdict--passed" : submission.passed === 0 ? " arena-verdict--zero" : " arena-verdict--partial" : "";
   const title = judged ? "Judging complete" : retrying ? "Waiting for sandbox recovery" : submission.status === "queued" ? "Queued for judging" : submission.status === "running" ? "Judging in progress" : "Checking submission status";
   const detail = judged
     ? hasScore

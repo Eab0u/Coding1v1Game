@@ -1668,3 +1668,23 @@ it.each([320,375,1280])('jumps to results comparison with native keyboard focus 
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  } finally {await page.close();}
 });
+
+
+it.each([320, 1280])('distinguishes arena zero, partial and full scores at %spx', async width => {
+  const { ArenaProgress } = await import('../src/components/arena-progress');
+  const { SubmissionStatus } = await import('../src/components/submission-status');
+  const page = await browser.newPage({ viewport: { width, height: 700 } });
+  try {
+    for (const passed of [0, 3, 8]) {
+      await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<><ArenaProgress player score={{passed,total:8}}/><ArenaProgress score={{passed,total:8}}/><SubmissionStatus submission={{status:'judged',passed,total:8}}/></>)}`);
+      const expected = passed === 0 ? 'rgb(255, 170, 163)' : passed === 3 ? 'rgb(229, 181, 103)' : 'rgb(129, 182, 76)';
+      for (const badge of await page.locator('.arena-progress-badge, .arena-verdict-badge').all()) {
+        expect(await badge.evaluate(el => getComputedStyle(el).color)).toBe(expected);
+        expect(await badge.isVisible()).toBe(true);
+      }
+      expect(await page.locator('.arena-verdict').evaluate(el => getComputedStyle(el).borderLeftColor)).toBe(expected);
+      for (const progress of await page.getByRole('progressbar').all()) expect(await progress.evaluate(el => getComputedStyle(el).accentColor)).toBe(expected);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+  } finally { await page.close(); }
+});

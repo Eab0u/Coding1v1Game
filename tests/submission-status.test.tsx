@@ -8,7 +8,7 @@ it.each([0, 3, 8])("distinguishes a judged score of %i without implying a duel v
   expect(panel).toHaveAttribute("aria-atomic", "true");
   expect(panel).toHaveTextContent(`Latest solution: ${passed} / 8 tests passed.`);
   expect(panel).toHaveTextContent(passed === 8 ? "All tests passed" : passed === 0 ? "No tests passed" : "Some tests failed");
-  expect(panel).toHaveClass(passed === 8 ? "arena-verdict--passed" : "arena-verdict--partial");
+  expect(panel).toHaveClass(passed === 8 ? "arena-verdict--passed" : passed === 0 ? "arena-verdict--zero" : "arena-verdict--partial");
   expect(panel).toHaveTextContent("Your best score and unsent edits are shown separately");
   if (passed === 8) expect(panel).toHaveTextContent("Runtime and submission time still break ties");
 });
@@ -32,7 +32,7 @@ it.each([
   expect(panel).not.toHaveTextContent("Latest solution:");
   expect(panel).toHaveTextContent("its test score is unavailable");
   expect(panel).toHaveTextContent("next automatic update");
-  expect(panel).not.toHaveClass("arena-verdict--passed", "arena-verdict--partial");
+  expect(panel).not.toHaveClass("arena-verdict--passed", "arena-verdict--partial", "arena-verdict--zero");
 });
 
 it("replaces unavailable score guidance when polling supplies a valid score and clears it if the score disappears", () => {
@@ -67,8 +67,10 @@ it("removes zero-pass correction guidance through polling and a newly queued att
   ]) {
     rerender(<SubmissionStatus submission={submission} />);
     expect(screen.queryByText("No tests passed")).toBeNull();
+    expect(screen.getByRole("status")).not.toHaveClass("arena-verdict--zero");
     expect(screen.queryByText(/Check the function signature and public examples/)).toBeNull();
     rerender(<SubmissionStatus submission={{ status: "judged", passed: 0, total: 8 }} />);
     expect(screen.getByText("No tests passed")).toBeVisible();
+    expect(screen.getByRole("status")).toHaveClass("arena-verdict--zero");
   }
 });

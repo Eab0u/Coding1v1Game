@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Distinct zero-pass arena accents
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one arena visual improvement. Latest zero-pass verdicts and both participants' zero-pass best-progress cards now use the shared failure color, distinct from amber partial passes and green full passes. Explicit text badges and correction guidance remain available.
+- Updated score-transition and unavailable-state regressions for both participants, including removal and recovery of zero-pass accents. Added Chromium checks for badge, verdict-border and progress colors and page overflow at 320px and 1280px.
+- Validation: all 1,304 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Distinct zero-pass results accents
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one visual results improvement. Zero-pass judged submissions now use the shared failure color for their explicit verdict badge and progress accent, separating them from amber partial passes and green full passes. No-submission and unavailable-history cards retain their existing guidance.

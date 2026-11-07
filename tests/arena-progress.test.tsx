@@ -19,7 +19,7 @@ it.each([false, true])("recovers best progress after invalid polling counts (pla
     expect(screen.queryByText("All tests passed")).toBeNull();
     expect(screen.queryByText("Tests remaining")).toBeNull();
     expect(screen.queryByText("No tests passed")).toBeNull();
-    expect(screen.getByRole("region")).not.toHaveClass("arena-progress--full", "arena-progress--partial");
+    expect(screen.getByRole("region")).not.toHaveClass("arena-progress--full", "arena-progress--partial", "arena-progress--zero");
     for (const passed of [0, 3, 8, 0]) {
       rerender(<ArenaProgress player={player} score={{ passed, total: 8 }}/>);
       const bar = screen.getByRole("progressbar", { name: `${player ? "Your" : "Opponent"} best tests passed: ${passed} / 8` });
@@ -27,7 +27,7 @@ it.each([false, true])("recovers best progress after invalid polling counts (pla
       expect(bar).toHaveAttribute("max", "8");
       expect(bar).toHaveAccessibleDescription(/Later attempts cannot lower it/);
       expect(screen.getByText(passed === 8 ? "All tests passed" : passed === 0 ? "No tests passed" : "Tests remaining")).toBeVisible();
-      expect(screen.getByRole("region")).toHaveClass(passed === 8 ? "arena-progress--full" : "arena-progress--partial");
+      expect(screen.getByRole("region")).toHaveClass(passed === 8 ? "arena-progress--full" : passed === 0 ? "arena-progress--zero" : "arena-progress--partial");
       if (passed === 8) expect(bar).toHaveAccessibleDescription(/Passing every test does not confirm a win/);
       else expect(screen.queryByText(/Passing every test does not confirm a win/)).toBeNull();
       expect(screen.queryByText(/next automatic update/)).toBeNull();
@@ -39,5 +39,5 @@ it.each([false, true])("recovers best progress after invalid polling counts (pla
   expect(screen.queryByText("All tests passed")).toBeNull();
   expect(screen.queryByText("Tests remaining")).toBeNull();
   expect(screen.queryByText("No tests passed")).toBeNull();
-  expect(screen.getByRole("region")).not.toHaveClass("arena-progress--full", "arena-progress--partial");
+  expect(screen.getByRole("region")).not.toHaveClass("arena-progress--full", "arena-progress--partial", "arena-progress--zero");
 });

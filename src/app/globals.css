@@ -604,3 +604,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .result-comparison-shortcut { margin-top: 1rem; min-height: 44px; }
 #player-comparison { scroll-margin-top: 1rem; }
 @media (max-width: 600px) { .result-comparison-shortcut { width: 100%; } }
+
+.arena-progress--zero progress { accent-color: var(--color-danger); }
+.arena-progress--zero .arena-progress-badge { color: var(--color-danger); }
+.arena-verdict--zero { border-left-color: var(--color-danger); }
+.arena-verdict--zero .arena-verdict-badge { color: var(--color-danger); }
