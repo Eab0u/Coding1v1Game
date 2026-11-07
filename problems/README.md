@@ -24,6 +24,32 @@ The pipeline has no published catalog yet; the original drafts below are awaitin
 These are private authoring inputs, outside the site's public assets. No draft is
 approved for ranked play until the sandbox pipeline passes and publishes it.
 
+### Signal Rise Debt
+
+`drafts/signal-rise-debt.json` is an original medium monotonic-stack problem.
+Each tick contributes its distance to the first strictly greater later signal,
+or zero if none exists. Equal levels stay unresolved. The reference stores
+unresolved indices in a nonincreasing stack: each index is pushed and popped
+at most once, giving O(n) time and O(n) space. The O(n^2) brute force scans
+forward independently for each tick and stops at its first greater level.
+
+The seeded generator supplies 2,000 small cases with signed levels and ties.
+Authored fixtures exercise first-versus-largest confusion, equal plateaus,
+unresolved suffixes, singletons and boundary levels. Three 100,000-tick
+benchmarks use descending levels, equal levels and a descending prefix with
+one final maximum. Each requires 4,999,950,000 brute-force comparisons;
+the final-rise answer also exceeds signed 32-bit range.
+
+Data-only tests independently enumerate small answers and derive the large
+answers from their structure. They do not execute either Python solution or
+establish timeout behavior. The proposed 1-second CPU and 64-MiB limits need
+measurement in the isolated sandbox. This draft remains private and unpublished:
+
+```sh
+npm run problems -- validate problems/drafts/signal-rise-debt.json
+npm run problems -- publish problems/drafts/signal-rise-debt.json
+```
+
 ### Relay Balance Window
 
 `drafts/relay-balance-window.json` is an original medium prefix-sum problem. A
