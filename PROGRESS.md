@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Conceal passwords on page departure
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account lifecycle fix.
+- Revealed sign-in and sign-up passwords now conceal on page departure, including back/forward cache navigation when visibility remains visible. Credentials, byte budgets and validation errors remain intact; stale Caps Lock feedback clears. Returning leaves passwords concealed until the user selects Show again. Inline guidance explains this behavior.
+- Added regression coverage for ordinary and cached departures, repeated events, restoration, independent reveal controls, preserved invalid credentials and feedback, and exact listener cleanup.
+- Validation: all 778 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally. Cache lifecycle coverage uses dispatched page-transition events; live browser cache behavior remains a deployment smoke check.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Silence audio on page departure
 - Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded audio lifecycle item.
 - Page departure now disposes active and scheduled duel audio even when visibility remains visible and React does not unmount, including browser back/forward cache preservation. Returning preserves sound consent and visual feedback but requires a fresh local gesture to unlock audio. Repeated departure is safe and the pagehide listener is removed on unmount.

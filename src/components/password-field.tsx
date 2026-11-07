@@ -18,14 +18,21 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
     setBytes(new TextEncoder().encode(input.value).byteLength);
   }, []));
   useEffect(() => {
+    const concealOnDeparture = () => {
+      setVisible(false);
+      setCapsLock(false);
+    };
     const conceal = () => {
       if (document.visibilityState === "hidden") {
-        setVisible(false);
-        setCapsLock(false);
+        concealOnDeparture();
       }
     };
     document.addEventListener("visibilitychange", conceal);
-    return () => document.removeEventListener("visibilitychange", conceal);
+    window.addEventListener("pagehide", concealOnDeparture);
+    return () => {
+      document.removeEventListener("visibilitychange", conceal);
+      window.removeEventListener("pagehide", concealOnDeparture);
+    };
   }, []);
   const id = `${mode}-password`;
   return <>
@@ -50,7 +57,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
         aria-label={`${visible ? "Hide" : "Show"} ${mode === "login" ? "sign-in" : "sign-up"} password`}
         onClick={() => setVisible(value => !value)}>{visible ? "Hide" : "Show"}</Button>
     </div>
-    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Revealed passwords hide when you switch tabs.</p>
+    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Revealed passwords hide when you switch tabs. They also hide when you leave this page.</p>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
       <strong>{bytes} / {PASSWORD_MAX_BYTES} bytes</strong>
       <span>Emoji and some letters use more than one byte.</span>

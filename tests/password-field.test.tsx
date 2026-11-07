@@ -5,6 +5,40 @@ import { PasswordField } from "../src/components/password-field";
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
 afterEach(() => vi.restoreAllMocks());
 
+it.each([false, true])("conceals passwords on page departure (cached: %s) and preserves field feedback", persisted => {
+  vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+  render(<><PasswordField mode="login" /><PasswordField mode="signup" /></>);
+  const inputs = screen.getAllByLabelText<HTMLInputElement>("Password");
+  inputs.forEach(input => fireEvent.change(input, { target: { value: "short" } }));
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-up password" }));
+  fireEvent.keyDown(inputs[0], { key: "A", modifierCapsLock: true });
+  fireEvent(window, new PageTransitionEvent("pagehide", { persisted }));
+  fireEvent(window, new PageTransitionEvent("pagehide", { persisted }));
+  fireEvent(window, new PageTransitionEvent("pageshow", { persisted }));
+  inputs.forEach(input => {
+    expect(input).toHaveAttribute("type", "password");
+    expect(input).toHaveValue("short");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input.validity.customError).toBe(true);
+    expect(input).toHaveAccessibleDescription(/5 \/ 256 bytes/);
+    expect(input).toHaveAccessibleDescription(/leave this page/);
+  });
+  expect(screen.queryByText(warning)).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  expect(inputs[0]).toHaveAttribute("type", "text");
+  expect(inputs[1]).toHaveAttribute("type", "password");
+});
+
+it("removes the page departure listener on unmount", () => {
+  const add = vi.spyOn(window, "addEventListener");
+  const remove = vi.spyOn(window, "removeEventListener");
+  const { unmount } = render(<PasswordField mode="login" />);
+  const listener = add.mock.calls.find(([name]) => name === "pagehide")![1];
+  unmount();
+  expect(remove).toHaveBeenCalledWith("pagehide", listener);
+});
+
 it.each(["login", "signup"] as const)("shows the UTF-8 byte budget and recovers from overflow for %s", mode => {
   render(<form><PasswordField mode={mode} /></form>);
   const input = screen.getByLabelText<HTMLInputElement>("Password");
