@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Accessible rematch action context
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks both catalog milestones. No Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one improvement: rematch action buttons, invitation retry and terminal recovery links reference the stable visible invitation summary through unique accessible descriptions. Guidance follows sending, deadline expiry and authoritative outcomes without merging descriptions between independent panels.
+- Added four regression cases covering incoming/outgoing acceptance, unique panel descriptions, terminal recovery and pending-action deadline expiry.
+- Validation: all 1,447 tests across 72 files passed; all 59 focused rematch tests passed including the final deadline case. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain; live assistive-technology checks remain pending.
+
 ### 2026-11-07 - Keyboard focus after rematch acceptance
 - Retried the highest-value unchecked catalog milestone using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one improvement: explicit acceptance from the focused Accept rematch control transfers focus to Open rematch arena after authoritative acceptance, including confirmation discovered through polling. Background acceptance and navigation elsewhere preserve the player's focus; failed actions clear the focus intent.

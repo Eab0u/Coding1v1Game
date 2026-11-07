@@ -553,3 +553,48 @@ it.each([false,true])('preserves independent focus on acceptance (explicit actio
   expect(other).toHaveFocus();
  } finally {vi.useRealTimers();}
 });
+it.each([true,false])('describes rematch controls with stable lifecycle guidance (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({status:'pending',outgoing,matchId:null})});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const control=screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'});
+  const descriptionId=control.getAttribute('aria-describedby');
+  const summary=document.getElementById(descriptionId!);
+  expect(summary).toHaveAttribute('role','status');
+  expect(control).toHaveAccessibleDescription(outgoing?/Waiting for your opponent/:/Your opponent invited you/);
+  if (!outgoing) expect(screen.getByRole('button',{name:'Decline'})).toHaveAttribute('aria-describedby',descriptionId);
+  fetcher.mockResolvedValue({ok:true,json:async()=>({status:'accepted',outgoing,matchId:'next'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  const link=screen.getByRole('link',{name:'Open rematch arena'});
+  expect(link).toHaveAttribute('aria-describedby',descriptionId);
+  expect(document.getElementById(descriptionId!)).toBe(summary);
+  expect(link).toHaveAccessibleDescription('Rematch accepted. Your next arena is ready.');
+ } finally {vi.useRealTimers();}
+});
+it('uses distinct invitation descriptions for independent panels and terminal recovery',async()=>{
+ vi.stubGlobal('fetch',vi.fn().mockImplementation(async(url:string)=>({ok:true,json:async()=>({status:url.includes('/first/')?'none':'expired'})})));
+ render(<><Rematch id="first"/><Rematch id="second"/></>);
+ const invite=await screen.findByRole('button',{name:'Rematch'});
+ const recovery=await screen.findByRole('link',{name:'Find a new opponent'});
+ expect(invite).toHaveAccessibleDescription('Invite your opponent to a fresh ranked duel. They have 60 seconds to accept.');
+ expect(recovery).toHaveAccessibleDescription('The invitation expired without acceptance. Find a new rival when you are ready.');
+ expect(invite.getAttribute('aria-describedby')).not.toBe(recovery.getAttribute('aria-describedby'));
+});
+it('keeps invitation action descriptions current through sending and deadline expiry',async()=>{
+ vi.useFakeTimers();
+ try {
+  const pending=deferred<ReturnType<typeof response>>();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValueOnce({ok:true,json:async()=>({status:'pending',outgoing:true,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:00:01Z',matchId:null})}).mockReturnValue(pending.promise));
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const cancel=screen.getByRole('button',{name:'Cancel invitation'});
+  fireEvent.click(cancel);
+  expect(cancel).toHaveAccessibleDescription('Cancelling invitation. Waiting for server confirmation.');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(cancel).toBeDisabled();
+  expect(cancel).toHaveAccessibleDescription('The invitation window has ended. Acceptance and invitation changes are closed. Waiting for server confirmation; no rematch is confirmed yet.');
+ } finally {vi.useRealTimers();}
+});
