@@ -101,3 +101,18 @@ it.each([false, true])("explains catalog eligibility and reservation readiness f
   expect(screen.queryByText(/match activation are still in development/)).not.toBeInTheDocument();
   if (signedIn) expect(screen.getByRole("link", { name: "Account: Ada" })).toHaveAttribute("href", "/account");
 });
+
+it("names the daily signature scroll region and associates keyboard guidance", async () => {
+  const signature = "def solve(values: list[int]):\n    pass";
+  mocks.load.mockResolvedValue({ daily: { title: "Signal", difficulty: "easy", statement: "Solve it", function_signature: signature }, recent: [], streak: 0 });
+  render(await Home());
+  const region = screen.getByRole("region", { name: "Daily challenge function signature" });
+  expect(region).toHaveAttribute("tabindex", "0");
+  expect(region).toHaveAccessibleDescription(/focus the code and use the arrow keys/);
+  expect(region.textContent).toBe(signature);
+});
+it("omits signature controls when no daily challenge is available", async () => {
+  render(await Home());
+  expect(screen.queryByRole("region", { name: "Daily challenge function signature" })).not.toBeInTheDocument();
+  expect(screen.queryByText(/Keyboard: focus the code/)).not.toBeInTheDocument();
+});

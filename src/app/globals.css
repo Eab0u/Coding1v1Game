@@ -344,7 +344,7 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .queue-stats dd { margin: 6px 0 0; font-size: 1.125rem; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 
 /* Daily previews keep long statements optional and Python formatting readable. */
-.daily-signature { margin: 16px 0; padding: 14px; border-radius: var(--radius-sm); background: var(--color-bg); white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; line-height: 1.6; }
+.daily-signature { margin: 16px 0; padding: 14px; border-radius: var(--radius-sm); background: var(--color-bg); white-space: pre; overflow-wrap: normal; overflow-x: auto; max-width: 100%; font-size: .9rem; line-height: 1.6; }
 .daily-statement { border-top: 1px solid var(--color-border); }
 .daily-statement summary { min-height: 44px; padding: 12px 0; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 .daily-statement[open] summary { color: var(--color-accent); }
@@ -372,3 +372,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .profile-empty { margin-top: 20px; padding: clamp(16px, 4vw, 24px); border: 1px dashed var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
 .profile-empty h3 { margin-top: 0; }
 .profile-empty p { color: var(--color-muted); max-width: 65ch; line-height: 1.6; }
+
+.daily-signature-hint { color: var(--color-muted); font-size: .875rem; line-height: 1.6; margin: 16px 0 8px; }

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Readable daily challenge signatures
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent daily-preview usability item; both catalog items remain unchecked.
+- Preserved Python signature whitespace and indentation without splitting long lines. Added a named, focusable horizontal scroll region with associated visible keyboard guidance and existing theme focus styling.
+- Added component checks for the accessible name, focusability, guidance association, exact code text and absent-challenge state. Chromium coverage at 320, 375 and 1280px checks actual arrow-key scrolling, visible focus, onward Tab navigation and document overflow. Lengthened the fixture after the initial desktop test correctly showed that the original line fit without scrolling.
+- Validation: all 564 tests across 51 files passed; lint, production build and typecheck passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Clear populated leaderboard context
 - Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent leaderboard improvement; both validated catalog items remain unchecked.
 - Added a styled, named summary above populated standings showing the selected period, everyone/friends scope and singular/plural displayed-player count. Explained that a full 100-row ladder may have more qualifying players, and that friends standings include the viewer and accepted friends.

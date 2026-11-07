@@ -7,7 +7,7 @@ const username = 'abcdefghijklmnopqrstuvwx';
 const state = vi.hoisted(() => ({ signedIn: true, accountUnavailable: false, leaderboardUnavailable: false, leaderboardEmpty: false, profileUnavailable: false, profileEmpty: false, friendsUnavailable: false, homeUnavailable: false, homeOutcomes: false }));
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current: async () => { if (state.accountUnavailable) throw new Error('private'); return state.signedIn ? ({ id: '1', username: 'abcdefghijklmnopqrstuvwx', rating: 800 }) : null; } } }));
-vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: 'def solve_very_long_function_name(values: list[int]) -> list[int]:', difficulty: 'easy' }, recent: [...(state.homeOutcomes ? [{ id: 'loss', title: 'Lost duel', opponent: 'another_long_player_name', winner_id: '2' }, { id: 'draw', title: 'Drawn duel', opponent: 'another_long_player_name', winner_id: null }] : []), { id: '1', title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
+vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: `def solve_${'long_name_'.repeat(20)}(values: list[int]) -> list[int]:`, difficulty: 'easy' }, recent: [...(state.homeOutcomes ? [{ id: 'loss', title: 'Lost duel', opponent: 'another_long_player_name', winner_id: '2' }, { id: 'draw', title: 'Drawn duel', opponent: 'another_long_player_name', winner_id: null }] : []), { id: '1', title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
 vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
   if (state.leaderboardUnavailable) throw new Error('unavailable');
   if (state.leaderboardEmpty) return [];
@@ -633,6 +633,25 @@ it.each([320, 375, 1280])('keeps the standings summary readable at %spx', async 
     expect(await summary.textContent()).toContain('1 player shown');
     expect(await summary.textContent()).toContain('YOUR CIRCLE');
     expect(await summary.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
+
+it.each([320, 375, 1280])('scrolls daily signatures with the keyboard at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const signature = page.getByRole('region', { name: 'Daily challenge function signature' });
+    expect(await page.locator('#daily-signature-hint').isVisible()).toBe(true);
+    expect(await signature.getAttribute('aria-describedby')).toBe('daily-signature-hint');
+    expect(await signature.evaluate(el => getComputedStyle(el).whiteSpace)).toBe('pre');
+    expect(await signature.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(true);
+    await signature.focus();
+    expect(await signature.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('solid');
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(() => signature.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+    await page.keyboard.press('Tab');
+    expect(await page.locator('.daily-statement summary').evaluate(el => el === document.activeElement)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
