@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { PasswordField } from "../src/components/password-field";
 
@@ -120,4 +120,35 @@ it("shows required-password feedback on validation and clears it after correctio
   expect(login).toBeValid();
   expect(login).not.toHaveAttribute("aria-invalid");
   expect(screen.queryByText("Use at least 12 characters.")).not.toBeInTheDocument();
+});
+
+it("clears only the reset form and permits a corrected submission", async () => {
+  render(<><form><PasswordField mode="login" /></form><form><PasswordField mode="signup" /></form></>);
+  const [login, signup] = screen.getAllByLabelText<HTMLInputElement>("Password");
+  fireEvent.change(login, { target: { value: "short" } });
+  fireEvent.change(signup, { target: { value: "Other valid password" } });
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  fireEvent.keyDown(login, { key: "A", modifierCapsLock: true });
+  await act(async () => login.form!.reset());
+  expect(login).toHaveValue("");
+  expect(login).toHaveAttribute("type", "password");
+  expect(login.validity.customError).toBe(false);
+  expect(login).not.toHaveAttribute("aria-invalid");
+  expect(document.getElementById("login-password-budget")).toHaveTextContent("0 / 256 bytes");
+  expect(screen.queryByText(warning)).not.toBeInTheDocument();
+  expect(signup).toHaveValue("Other valid password");
+  fireEvent.change(login, { target: { value: "Corrected password" } });
+  expect(login).toBeValid();
+});
+
+it("preserves password feedback and visibility when reset is cancelled", async () => {
+  render(<form onReset={event => event.preventDefault()}><PasswordField mode="login" /></form>);
+  const input = screen.getByLabelText<HTMLInputElement>("Password");
+  fireEvent.change(input, { target: { value: "short" } });
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  await act(async () => input.form!.reset());
+  expect(input).toHaveValue("short");
+  expect(input).toHaveAttribute("type", "text");
+  expect(input).toHaveAttribute("aria-invalid", "true");
+  expect(document.getElementById("login-password-budget")).toHaveTextContent("5 / 256 bytes");
 });

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useFieldReset } from "./use-field-reset";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "./ui";
 import { passwordValidationMessage, PASSWORD_MIN_LENGTH, PASSWORD_MAX_BYTES } from "../lib/password-validation";
 
@@ -9,6 +10,13 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
   const [error, setError] = useState("");
   const [capsLock, setCapsLock] = useState(false);
   const [bytes, setBytes] = useState(0);
+  const inputRef = useFieldReset(useCallback((input: HTMLInputElement) => {
+    input.setCustomValidity("");
+    setError("");
+    setVisible(false);
+    setCapsLock(false);
+    setBytes(new TextEncoder().encode(input.value).byteLength);
+  }, []));
   useEffect(() => {
     const conceal = () => {
       if (document.visibilityState === "hidden") {
@@ -23,7 +31,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
   return <>
     <label htmlFor={id}>Password</label>
     <div className="password-field">
-      <input id={id} name="password" type={visible ? "text" : "password"}
+      <input ref={inputRef} id={id} name="password" type={visible ? "text" : "password"}
         autoComplete={mode === "login" ? "current-password" : "new-password"}
         required minLength={PASSWORD_MIN_LENGTH} maxLength={PASSWORD_MAX_BYTES}
         aria-describedby={`${mode}-hint ${mode}-password-budget ${mode}-password-error ${mode}-caps-lock`} aria-invalid={error ? true : undefined}

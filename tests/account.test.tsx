@@ -168,3 +168,22 @@ it('presents bounded, escaped account errors with visible recovery guidance', as
   expect(alert).toHaveTextContent('Review this message, then try your account action again.');
   expect(screen.getByRole('form', { name: 'Welcome back' })).toBeVisible();
 });
+
+it("clears the chosen credential form without submitting or clearing its neighbor", async () => {
+  current.mockResolvedValue(null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  const [login, signup] = screen.getAllByLabelText<HTMLInputElement>("Username");
+  const [password] = screen.getAllByLabelText<HTMLInputElement>("Password");
+  fireEvent.change(login, { target: { value: "invalid name" } });
+  fireEvent.change(password, { target: { value: "short" } });
+  fireEvent.change(signup, { target: { value: "Other_Player" } });
+  const submit = vi.fn();
+  login.form!.addEventListener("submit", submit);
+  await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: "Clear form" })[0]); });
+  expect(login).toHaveValue("");
+  expect(password).toHaveValue("");
+  expect(login).not.toHaveAttribute("aria-invalid");
+  expect(password).not.toHaveAttribute("aria-invalid");
+  expect(signup).toHaveValue("Other_Player");
+  expect(submit).not.toHaveBeenCalled();
+});

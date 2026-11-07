@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Account credential reset recovery
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account usability item.
+- Added styled Clear form actions to sign-in and registration. Native reset now clears username/password custom validity and stale accessible errors, conceals revealed passwords, clears Caps Lock feedback and restores the byte budget. Each form remains independent. The shared field reset hook waits for native value restoration, respects cancelled resets and removes listeners on unmount; friend username fields also recover on native reset.
+- Added regression tests for both password forms, all three username modes, independent form state, cancelled resets, valid corrections and the account Clear form action without submission.
+- Validation: full suite passed (766 tests across 60 files); the subsequently added account integration test passed with all 13 account tests. Lint, typecheck, production build and diff whitespace checks passed. Existing browser layout tests passed in the full suite; new reset interactions were tested in jsdom. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Relay Order Conflicts catalog draft
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Parity Streak returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Followed the blocker rule by adding and completing one bounded catalog-authoring item.
 - Added original medium Relay Order Conflicts: count strictly decreasing pairs in a signed priority log. Includes an O(n log n) merge-count Python reference, quadratic baseline, 2,000 seeded small cases, duplicate and signed edge fixtures, and descending, ascending and constant 100,000-entry benchmarks. Documented the counting proof and pending sandbox calibration.

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { UsernameField } from "../src/components/username-field";
 import { credentials } from "../src/lib/auth";
@@ -40,5 +40,19 @@ it("explains a required empty username when validation is attempted", () => {
   expect(input).toHaveAttribute("aria-invalid", "true");
   expect(screen.getByRole("status")).toHaveTextContent(USERNAME_HINT);
   fireEvent.change(input, { target: { value: "abc" } });
+  expect(input).toBeValid();
+});
+
+it.each(["login", "signup", "friend"] as const)("clears stale %s validation on native reset", async mode => {
+  render(<form><UsernameField mode={mode} /></form>);
+  const input = screen.getByRole<HTMLInputElement>("textbox");
+  fireEvent.change(input, { target: { value: "invalid name" } });
+  expect(input.validity.customError).toBe(true);
+  await act(async () => input.form!.reset());
+  expect(input).toHaveValue("");
+  expect(input.validity.customError).toBe(false);
+  expect(input).not.toHaveAttribute("aria-invalid");
+  expect(screen.getByRole("status")).toBeEmptyDOMElement();
+  fireEvent.change(input, { target: { value: "Valid_Name" } });
   expect(input).toBeValid();
 });

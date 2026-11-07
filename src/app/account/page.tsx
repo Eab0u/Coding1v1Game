@@ -29,7 +29,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <><nav className="account-entry-nav" aria-label="Account options"><a className="button button--secondary" href="#account-login">Go to sign in</a><a className="button button--secondary" href="#account-signup">Go to create account</a></nav>
         <div className="account-grid">{(["login", "signup"] as const).map(mode => <Card key={mode}><h2 id={`account-${mode}`} tabIndex={-1}>{mode === "login" ? "Welcome back" : "Create your player"}</h2><p>{mode === "login" ? "Pick up where you left off." : "Start at 800. Earn every point."}</p>
           <form method="post" action={`/api/auth/${mode}`} className="account-form" aria-labelledby={`account-${mode}`}><UsernameField mode={mode} />
-            <PasswordField mode={mode} /><Button type="submit">{mode === "login" ? "Sign in" : "Create account"}</Button></form></Card>)}</div></>}
+            <PasswordField mode={mode} /><Button type="submit">{mode === "login" ? "Sign in" : "Create account"}</Button><Button type="reset" variant="ghost">Clear form</Button></form></Card>)}</div></>}
     </main></div>;
 }
 
