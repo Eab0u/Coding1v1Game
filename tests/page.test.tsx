@@ -153,7 +153,12 @@ it("omits signature controls when no daily challenge is available", async () => 
 
 it.each([false, true])("explains ordered best-attempt scoring for signedIn=%s", async signedIn => {
   mocks.current.mockResolvedValue(signedIn ? { id: "one", username: "Ada", rating: 800 } : null);
-  render(await Home());
+  const { container } = render(await Home());
+  const disclosure = container.querySelector(".scoring-guide")!;
+  expect(disclosure.tagName).toBe("DETAILS");
+  expect(disclosure).not.toHaveAttribute("open");
+  expect(disclosure.querySelector("summary")).toHaveTextContent("Explore the scoring rules");
+  disclosure.setAttribute("open", "");
   const rules = screen.getByRole("list", { name: "Duel scoring priority" });
   expect(rules.tagName).toBe("OL");
   expect(rules).toHaveAccessibleDescription(/best judged attempt counts.*weaker later attempt does not replace it/i);

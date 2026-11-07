@@ -85,12 +85,15 @@ export default async function Home() {
         </section>}
         <section className="principles" aria-labelledby="scoring">
           <h2 id="scoring">What wins a duel?</h2>
+          <details className="scoring-guide">
+          <summary>Explore the scoring rules</summary>
           <p id="scoring-note" className="scoring-note">Your best judged attempt counts. A weaker later attempt does not replace it. Compare these rules in order:</p>
           <ol className="principle-grid" role="list" aria-label="Duel scoring priority" aria-describedby="scoring-note">
             <li className="card"><span className="step">01 / CORRECTNESS</span><h3>Make it work.</h3><p>Pass the most hidden tests. A correct solution always comes first.</p></li>
             <li className="card"><span className="step">02 / EFFICIENCY</span><h3>Make it efficient.</h3><p>Tied on tests? Lower CPU time on the largest inputs takes the lead. We use the median of three runs: the middle CPU time, rather than the fastest run.</p></li>
             <li className="card"><span className="step">03 / SPEED</span><h3>Beat the clock.</h3><p>Still tied? The earlier submission of the selected attempt wins. An exact tie is a draw.</p></li>
           </ol>
+          </details>
         </section>
       </main>
       <footer className="site-footer">Correctness first. Efficiency wins. Speed breaks the tie.</footer>

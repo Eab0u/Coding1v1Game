@@ -1042,6 +1042,12 @@ it.each([320, 375, 1280])('keeps ordered scoring cards readable at %spx', async 
   try {
     await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
     const rules = page.getByRole('list', { name: 'Duel scoring priority' });
+    const summary = page.locator('.scoring-guide summary');
+    expect(await rules.isVisible()).toBe(false);
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    expect(await rules.isVisible()).toBe(true);
     expect(await rules.locator(':scope > li').count()).toBe(3);
     expect(await rules.textContent()).toContain('median of three runs');
     const cards = await rules.locator(':scope > li').all();
@@ -1055,6 +1061,9 @@ it.each([320, 375, 1280])('keeps ordered scoring cards readable at %spx', async 
     }
     if (width < 760) expect(bounds[1].y).toBeGreaterThanOrEqual(bounds[0].y + bounds[0].height);
     else expect(bounds[1].x).toBeGreaterThan(bounds[0].x);
+    await page.keyboard.press('Space');
+    expect(await rules.isVisible()).toBe(false);
+    expect(await summary.evaluate(el => el === document.activeElement)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
