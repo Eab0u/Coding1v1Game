@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Password-manager focus recovery
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded password-field recovery item.
+- Password fields now refresh byte budgets and native validation from the current input value on focus, recovering stale custom errors after a password manager silently replaces a value. Invalid events also refresh byte counts. Empty focus clears stale feedback while native required validation remains active. Reveal state, credentials and the adjacent form remain independent.
+- Added sign-in and sign-up regressions for silent correction, Unicode overflow, empty recovery, reveal preservation, independent fields and invalid-event byte synchronization. Tests simulate silent native value replacement; live password-manager integration remains unverified.
+- Validation: all 793 tests across 60 files passed; lint, typecheck and production build passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Recognized account action feedback
 - Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account feedback improvement.
 - Account alerts now accept only the six recognized authentication errors, with specific recovery guidance for credentials, username rules and availability, password byte limits, throttling and uncertain infrastructure outcomes. Arbitrary URL text cannot appear as an official account message. Existing styled alert presentation and credential navigation remain available.

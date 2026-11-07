@@ -223,3 +223,44 @@ it("preserves password feedback and visibility when reset is cancelled", async (
   expect(input).toHaveAttribute("aria-invalid", "true");
   expect(document.getElementById("login-password-budget")).toHaveTextContent("5 / 256 bytes");
 });
+
+it.each(["login", "signup"] as const)("refreshes silently filled %s passwords on focus without changing reveal state", mode => {
+  render(<><PasswordField mode={mode} /><PasswordField mode={mode === "login" ? "signup" : "login"} /></>);
+  const [input, other] = screen.getAllByLabelText<HTMLInputElement>("Password");
+  fireEvent.change(input, { target: { value: "short" } });
+  fireEvent.click(screen.getByRole("button", { name: mode === "login" ? "Show sign-in password" : "Show sign-up password" }));
+  // Password managers can replace the native value without a React change event.
+  input.value = "a corrected private password";
+  fireEvent.focus(input);
+  expect(input).toBeValid();
+  expect(input).not.toHaveAttribute("aria-invalid");
+  expect(input).toHaveAccessibleDescription(/28 \/ 256 bytes/);
+  expect(input).toHaveAttribute("type", "text");
+  expect(other).toHaveAccessibleDescription(/0 \/ 256 bytes/);
+  expect(other).toHaveAttribute("type", "password");
+  input.value = "\u{1f600}".repeat(65);
+  fireEvent.focus(input);
+  expect(input).toBeInvalid();
+  expect(input).toHaveAccessibleDescription(/260 \/ 256 bytes/);
+  expect(input).toHaveAccessibleDescription(/Use at most 256 bytes/);
+  input.value = "";
+  fireEvent.focus(input);
+  expect(input.validity.customError).toBe(false);
+  expect(input).not.toHaveAttribute("aria-invalid");
+  expect(input).toHaveAccessibleDescription(/0 \/ 256 bytes/);
+  fireEvent.invalid(input);
+  expect(input).toHaveAttribute("aria-invalid", "true");
+});
+
+it("refreshes the byte budget when a silently filled password fails native validation", () => {
+  render(<PasswordField mode="login" />);
+  const input = screen.getByLabelText<HTMLInputElement>("Password");
+  input.value = "tiny";
+  fireEvent.invalid(input);
+  expect(input).toHaveAccessibleDescription(/4 \/ 256 bytes/);
+  expect(input.validationMessage).toBe("Use at least 12 characters.");
+  input.value = "corrected private password";
+  fireEvent.focus(input);
+  expect(input).toBeValid();
+  expect(input).not.toHaveAttribute("aria-invalid");
+});

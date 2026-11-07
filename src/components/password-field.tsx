@@ -34,6 +34,12 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
       window.removeEventListener("pagehide", concealOnDeparture);
     };
   }, []);
+  const synchronizeValue = (input: HTMLInputElement, reportEmpty = false) => {
+    setBytes(new TextEncoder().encode(input.value).byteLength);
+    const message = passwordValidationMessage(input.value);
+    input.setCustomValidity(input.value || reportEmpty ? message : "");
+    setError(input.value || reportEmpty ? message : "");
+  };
   const id = `${mode}-password`;
   return <>
     <label htmlFor={id}>Password</label>
@@ -52,13 +58,9 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
         onKeyDown={event => setCapsLock(event.getModifierState("CapsLock"))}
         onKeyUp={event => setCapsLock(event.getModifierState("CapsLock"))}
         onBlur={() => setCapsLock(false)}
-        onInvalid={event => setError(passwordValidationMessage(event.currentTarget.value))}
-        onChange={event => {
-          setBytes(new TextEncoder().encode(event.currentTarget.value).byteLength);
-          const message = passwordValidationMessage(event.currentTarget.value);
-          event.currentTarget.setCustomValidity(message);
-          setError(event.currentTarget.value ? message : "");
-        }}
+        onFocus={event => synchronizeValue(event.currentTarget)}
+        onInvalid={event => synchronizeValue(event.currentTarget, true)}
+        onChange={event => synchronizeValue(event.currentTarget)}
         autoCapitalize="none" spellCheck={false} />
       <Button variant="secondary" aria-controls={id} aria-pressed={visible}
         aria-label={`${visible ? "Hide" : "Show"} ${mode === "login" ? "sign-in" : "sign-up"} password`}
