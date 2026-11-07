@@ -16,7 +16,7 @@ Friend requests and accepted friendships are available at /friends, with authent
 
 Mobile layout polish is implemented for the existing home, account, profile and leaderboard pages, with Chromium regression coverage for narrow phones through desktop widths. Arena and results now have responsive browser checks; Monaco interaction still needs a live deployment smoke check.
 
-The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. Five original drafts, Relay Balance Window (medium), Spaced Beacon Pairs (easy), Signal Rise Debt (medium), Channel Budget Windows (medium) and Delayed Drop Pairs (medium), are in problems/drafts with fixture tests and authoring notes. Their Python solutions and resource limits still need sandbox validation; no real catalog problems have been published.
+The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. Six original drafts, Relay Balance Window (medium), Spaced Beacon Pairs (easy), Signal Rise Debt (medium), Channel Budget Windows (medium), Delayed Drop Pairs (medium) and Relay Cooldown Score (easy), are in problems/drafts with fixture tests and authoring notes. Their Python solutions and resource limits still need sandbox validation; no real catalog problems have been published.
 
 Public player profiles now show rating graphs, tier badges, full win/loss/draw records and recent match history at /profile/<username>. Public global and weekly leaderboards are available at /leaderboard, linked from the home page. The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems and live sandbox/database deployment verification remain pending.
 
@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Relay Cooldown Score catalog draft
+- Selected problems 1-20 as the highest-value unchecked item. The real validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one catalog prerequisite; both validated catalog items remain unchecked.
+- Authored an original easy dynamic-programming problem maximizing nonneighboring signed scores, allowing empty selection. Added explained examples, an O(n)-time/O(1)-space Python reference, O(n^2) predecessor-scanning baseline, 2,000 seeded cases and boundary fixtures.
+- Added three 100,000-tick benchmarks with closed-form answers and 4,999,850,001 baseline predecessor comparisons each. Two answers exceed signed 32-bit range.
+- Added data-only exhaustive-choice versus idle/active oracle comparisons, reversal/scaling properties, bounds and benchmark checks. Documented algorithms and proposed limits. No catalog Python ran locally; sandbox correctness, CPU-timeout approval and publication remain pending.
+- Validation: all 549 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 connectivity, validate all six drafts and measure limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Delayed Drop Pairs catalog draft
 - Selected problems 1-20 as the highest-value unchecked item. The real validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one catalog prerequisite item; both validated catalog items remain unchecked.
 - Authored an original medium problem counting ordered signal pairs whose drop strictly exceeds a tolerance. Added explained examples, constraints, an O(n log n) merge-sort Python reference, O(n^2) brute force and 2,000 seeded small inputs.

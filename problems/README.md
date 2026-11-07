@@ -164,3 +164,30 @@ is private and unpublished, pending full validation:
 npm run problems -- validate problems/drafts/spaced-beacon-pairs.json
 npm run problems -- publish problems/drafts/spaced-beacon-pairs.json
 ```
+
+### Relay Cooldown Score
+
+`drafts/relay-cooldown-score.json` is an original easy dynamic-programming
+problem: maximize the sum of scores at nonneighboring ticks. Choosing nothing
+is permitted, scores may be negative, and the record is a line rather than a
+ring. Examples distinguish this rule from choosing the single largest score,
+forcing a negative selection, or treating the endpoints as neighbors.
+
+The reference tracks the best totals through the previous two prefixes in O(n)
+time and O(1) extra space. The O(n^2) baseline stores the best score ending at
+each tick and scans all compatible earlier endpoints, including on negative
+records. Its three 100,000-tick benchmarks each require 4,999,850,001 predecessor
+comparisons. All-positive and alternating-sign records earn 50,000,000,000;
+all-negative records earn zero. The proposed 1-second CPU and 64-MiB limits
+still need isolated sandbox measurement.
+
+The seeded generator supplies 2,000 small signed records. Data-only fixture
+tests compare exhaustive choices to an independent idle/active state oracle,
+check reversal and positive scaling, and verify benchmark formulas. These tests
+do not run either Python solution or establish sandbox approval. The draft
+remains private and unpublished. Once isolated Judge0 is available, run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-cooldown-score.json
+npm run problems -- publish problems/drafts/relay-cooldown-score.json
+```
