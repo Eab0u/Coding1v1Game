@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Distinguish corrupt mixed missing/invalid saved rating pairs from unrecorded history, preserving outcome and valid-history recovery with regression coverage
 - [x] Make results comparison guidance a compact native disclosure with styled touch controls and component and phone keyboard regression coverage
 - [x] Distinguish saved full, partial and zero-pass results with responsive text badges and green/amber progress accents, withholding verdict styling for unavailable scores and covering recovery and phone layouts
 - [x] Withhold invalid saved results ratings and tier changes with explicit unavailable guidance and recovery regression coverage

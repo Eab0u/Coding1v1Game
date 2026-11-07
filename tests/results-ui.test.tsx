@@ -258,3 +258,23 @@ it.each([-1, NaN, Infinity, -Infinity, undefined])('withholds invalid saved timi
  expect(panel.getByText('Not recorded')).toBeVisible();
  expect(panel.getByText('No submission')).toBeVisible();
 });
+
+it.each(['before','after'] as const)('reports corrupt %s ratings even when the other rating is missing',field=>{
+ const other=field==='before'?'after':'before';
+ const result={title:'Legacy',outcome:'DRAW' as const,players:[players[0]]};
+ const view=render(<Results result={result}/>);
+ for(const value of [-1,NaN,Infinity,-Infinity,undefined]) {
+  view.rerender(<Results result={{...result,players:[{...players[0],[field]:value,[other]:null}]} as DuelResult}/>);
+  expect(screen.getByText('Rating unavailable')).toBeVisible();
+  expect(screen.queryByText('Rating not recorded')).not.toBeInTheDocument();
+  expect(screen.queryByLabelText(/Rating change/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Tier unchanged|Tier changed from/)).not.toBeInTheDocument();
+  expect(screen.getByRole('heading',{name:'DRAW'})).toBeVisible();
+ }
+ view.rerender(<Results result={{...result,players:[{...players[0],[field]:0,[other]:null}]}}/>);
+ expect(screen.getByText('Rating not recorded')).toBeVisible();
+ expect(screen.queryByText('Rating unavailable')).not.toBeInTheDocument();
+ view.rerender(<Results result={result}/>);
+ expect(screen.getByLabelText('Rating change +8')).toBeVisible();
+ expect(screen.queryByText('Rating not recorded')).not.toBeInTheDocument();
+});

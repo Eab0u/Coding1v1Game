@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Mixed missing and corrupt saved ratings
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one results-page fix: a missing rating no longer masks an invalid counterpart as merely unrecorded history. Mixed corrupt pairs show the styled Rating unavailable notice while preserving the recorded outcome. Valid partial historical pairs still show Rating not recorded.
+- Added regression tests for both field orders, negative/nonfinite/undefined values, suppression of rating deltas and tiers, and recovery to valid partial and complete history.
+- Validation: all 1,276 tests across 72 files passed, including 54 targeted results UI tests; lint, production build, typecheck and whitespace checks passed. Reran typecheck successfully after concurrent build regeneration temporarily removed generated Next.js types.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; existing live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Compact results comparison guide
 - Retried the highest-priority unchecked catalog validation using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated sandbox returned JudgeUnavailableError. Both catalog items remain blocked and unchecked. No Python ran outside the sandbox.
 - Added and completed one improvement under the blocker rule: the results comparison guide now starts collapsed in a native details/summary disclosure, bringing saved scores closer to the outcome. All best-attempt, CPU, submission-time, rounding and unavailable-history guidance remains available.
