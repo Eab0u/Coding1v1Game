@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Match confirmation validation and recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking recovery item. Match confirmations now require a bounded route-safe ID, supported difficulty, nonblank opponent name and finite nonnegative numeric rating before match feedback, focus movement or arena navigation. Malformed confirmations close the connection and restore actionable retry feedback.
+- Added 11 regression cases covering missing and malformed match/opponent fields, unsafe and oversized IDs, invalid difficulty and invalid ratings. Each verifies connection cleanup, cleared busy state, keyboard recovery, timer cleanup and a successful retry into the arena.
+- Validation: all 1,512 tests across 72 files passed, including 51 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Search failure keyboard recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one keyboard recovery item. When a search failure removes the focused Cancel search control, Play receives focus so keyboard players can retry immediately. Independent navigation and existing explicit-cancellation and arena focus behavior are preserved.

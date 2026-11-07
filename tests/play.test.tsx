@@ -406,3 +406,37 @@ it("restores Play when an established queued search disconnects and ignores its 
   expect(cancel).toHaveFocus();
   expect(screen.getByRole("status")).toHaveTextContent("Connecting");
 });
+
+it.each([
+  { match: null },
+  { match: { id: '', difficulty: 'easy' } },
+  { match: { id: '../account?redirect=1', difficulty: 'easy' } },
+  { match: { id: 'x'.repeat(129), difficulty: 'easy' } },
+  { match: { id: 12, difficulty: 'easy' } },
+  { match: { id: 'match', difficulty: 'unknown' } },
+  { opponent: null },
+  { opponent: { username: ' ', rating: 800 } },
+  { opponent: { username: 'Ada', rating: '800' } },
+  { opponent: { username: 'Ada', rating: -1 } },
+  { opponent: { username: 'Ada', rating: null } },
+])('rejects malformed match confirmation %j and recovers through a valid retry', invalid => {
+  vi.useFakeTimers();
+  const ws = start();
+  event({ type: 'queued', waitedSeconds: 0, ratingBand: 100 });
+  screen.getByRole('button', { name: 'Cancel search' }).focus();
+  event({ type: 'matched', match: { id: 'valid', difficulty: 'easy' }, opponent: { username: 'Ada', rating: 800 }, ...invalid });
+  expect(screen.queryByRole('link', { name: 'Open arena' })).not.toBeInTheDocument();
+  const play = screen.getByRole('button', { name: 'Play a duel' });
+  expect(play).toBeEnabled();
+  expect(play).toHaveFocus();
+  expect(play).toHaveAttribute('aria-busy', 'false');
+  expect(screen.getByRole('status')).toHaveTextContent('Unexpected server response. Please try again.');
+  expect(ws.close).toHaveBeenCalled();
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole('status')).toHaveTextContent('Unexpected server response. Please try again.');
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: 'matched', match: { id: 'recovered', difficulty: 'hard' }, opponent: { username: 'Ada', rating: 1600 } });
+  expect(screen.getByRole('link', { name: 'Open arena' })).toHaveAttribute('href', '/match/recovered');
+  expect(screen.getByRole('link', { name: 'Open arena' })).toHaveFocus();
+});

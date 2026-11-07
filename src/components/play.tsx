@@ -98,6 +98,14 @@ export function Play({ signedIn }: { signedIn: boolean }) {
           awaitResponse("Your reservation was not confirmed. Connection closed; retry to recover any reserved match.");
         }
         else if (data.type === "matched") {
+          // A parsed frame is still untrusted runtime data. Validate before
+          // notifying, moving focus or constructing a navigation destination.
+          if (!data.match || typeof data.match.id !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(data.match.id)
+            || !["easy", "medium", "hard"].includes(data.match.difficulty)
+            || !data.opponent || typeof data.opponent.username !== "string" || !data.opponent.username.trim()
+            || typeof data.opponent.rating !== "number" || !Number.isFinite(data.opponent.rating) || data.opponent.rating < 0) {
+            throw new Error("Invalid match confirmation");
+          }
           const active = document.activeElement;
           focusArena.current = !!active && !!panel.current?.contains(active) && active.matches(".play-button, [data-search-cancel]");
           feedback.notify("matched"); setMatchId(data.match.id); setPhase("matched"); setMessage(`Matched with ${data.opponent.username} (${Math.round(data.opponent.rating)}) · ${data.match.difficulty}. Your match is reserved. Open the arena to prepare.`); socket.current = null; ws.close(); }
