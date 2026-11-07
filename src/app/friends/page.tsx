@@ -42,6 +42,7 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
           <a className="button button--secondary" href="/friends" aria-describedby="friend-refresh-note">Refresh friends</a>
         </Card>
         <nav className="friend-jumps" aria-label="Friend sections">
+          <a href="#friend-invite" className="friend-jump friend-jump--invite">Invite a player <span aria-hidden="true">+</span></a>
           {groups.map(group => <a key={group.id} href={`#friend-section-${group.id}`} className={group.id === "incoming" && group.entries.length ? "friend-jump friend-jump--pending" : "friend-jump"}>
             <span>{group.title}</span>{" "}<Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge>
           </a>)}

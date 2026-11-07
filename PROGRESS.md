@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Direct Friends invitation navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks validation. Following the blocker rule, added and completed one bounded navigation improvement; catalog milestones remain unchecked.
+- Added a green-accented Invite a player shortcut before the counted Friends section links. The native anchor focuses the existing invitation heading, and Tab reaches the username field without traversing the explanatory guide.
+- Updated component coverage for populated/empty navigation and added Chromium checks at 320, 375 and 1280px for touch size, width, heading focus, subsequent input focus and the revised page tab order.
+- Validation: all 1,060 tests across 66 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Contextual friends standings comparisons
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded usability item; catalog milestones remain unchecked.
 - Added a styled, wrapping comparison panel beside accepted friends with direct global and weekly friends standings links. Guidance explains current MMR ranking, weekly rating gains since Monday 00:00 UTC and weekly participation requirements. Pending-only and empty circles do not show the panel.

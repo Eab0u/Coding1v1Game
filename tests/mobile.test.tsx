@@ -43,6 +43,15 @@ it.each([320, 375, 1280])('jumps to friend sections with native keyboard focus a
       expect(await rating.evaluate(el => getComputedStyle(el).display)).toBe('flex');
     }
     const navigation = page.getByRole('navigation', {name:'Friend sections'});
+    const invite = navigation.getByRole('link', {name:'Invite a player'});
+    const inviteBounds = (await invite.boundingBox())!;
+    expect(inviteBounds.height).toBeGreaterThanOrEqual(44);
+    expect(inviteBounds.x + inviteBounds.width).toBeLessThanOrEqual(width);
+    await invite.focus();
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('heading', {name:'Invite a player'}).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('textbox', {name:'Player username'}).evaluate(el => document.activeElement === el)).toBe(true);
     const comparisons = page.locator('.friend-standings');
     expect(await comparisons.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     for (const link of await comparisons.getByRole('link').all()) {
@@ -904,6 +913,8 @@ it.each([320, 375, 1280])('keeps friend action recovery feedback readable at %sp
     expect(await refresh.getAttribute('href')).toBe('/friends');
     expect((await refresh.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     expect(await page.locator('.friend-refresh').textContent()).toContain('reflect when this page loaded');
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('navigation', {name:'Friend sections'}).getByRole('link', {name:'Invite a player'}).evaluate(el => el === document.activeElement)).toBe(true);
     for (const title of ['Incoming requests', 'Your friends', 'Sent requests']) {
       await page.keyboard.press('Tab');
       expect(await page.getByRole('navigation', {name:'Friend sections'}).getByRole('link', {name:`${title} 1`}).evaluate(el => el === document.activeElement)).toBe(true);

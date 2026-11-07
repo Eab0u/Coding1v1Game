@@ -67,6 +67,11 @@ it("links counted friend sections to focusable destinations and highlights waiti
   mocks.friends.mockResolvedValue([{username:"Ada",rating: 999.75, status:"pending",incoming:true},{username:"Eve",rating: 999.75, status:"accepted",incoming:false}]);
   const view = render(await Friends({searchParams:Promise.resolve({})}));
   const navigation = screen.getByRole("navigation", {name:"Friend sections"});
+  const invite = within(navigation).getByRole("link", {name:"Invite a player"});
+  expect(invite).toHaveAttribute("href", "#friend-invite");
+  expect(invite).toHaveClass("friend-jump--invite");
+  expect(navigation.firstElementChild).toBe(invite);
+  expect(screen.getByRole("heading", {name:"Invite a player"})).toHaveAttribute("tabindex", "-1");
   for (const [title, id, count] of [["Incoming requests", "incoming", 1], ["Your friends", "accepted", 1], ["Sent requests", "outgoing", 0]]) {
     const link = within(navigation).getByRole("link", {name:`${title} ${count}`});
     const destination = screen.getByRole("region", {name:`${title} ${count}`});
@@ -78,6 +83,7 @@ it("links counted friend sections to focusable destinations and highlights waiti
   mocks.friends.mockResolvedValue([]);
   view.rerender(await Friends({searchParams:Promise.resolve({})}));
   expect(screen.getByRole("link", {name:"Incoming requests 0"})).not.toHaveClass("friend-jump--pending");
+  expect(within(screen.getByRole("navigation", {name:"Friend sections"})).getByRole("link", {name:"Invite a player"})).toBeVisible();
   mocks.current.mockResolvedValue(null);
   view.rerender(await Friends({searchParams:Promise.resolve({})}));
   expect(screen.queryByRole("navigation", {name:"Friend sections"})).not.toBeInTheDocument();

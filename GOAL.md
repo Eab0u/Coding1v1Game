@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Add a prominent invitation shortcut to Friends section navigation, with native heading focus, username-field Tab recovery and phone keyboard regression coverage
 - [x] Add contextual global and weekly friends standings actions beside accepted friends, with ranking guidance and component and phone keyboard regression coverage
 - [x] Make empty Friends sections actionable with context-aware invitation/reply links, focusable destinations and phone keyboard regression coverage
 - [x] Add a visible native Friends refresh action with honest snapshot guidance and component and phone keyboard regression coverage
