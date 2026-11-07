@@ -14,6 +14,7 @@ it('shows a new player record and honest graph and history empty states', async 
   expect(screen.getByText(/Your rating journey starts/)).toBeVisible();
   expect(screen.queryByRole('img')).not.toBeInTheDocument();
   expect(screen.getByRole('link',{name:'Find a duel'})).toHaveAttribute('href','/');
+  expect(screen.queryByText(/Scroll the table sideways/)).not.toBeInTheDocument();
 });
 it('renders a constant rating graph, accessible data, opponent links and unrated matches', async () => {
   mocks.load.mockResolvedValue({username:'Ada',rating:1200,record:{wins:1,losses:0,draws:1},ratings:[{rating_before:1200,rating_after:1200,completed_at:new Date('2026-01-01Z')}],history:[{id:'1',title:'Test',opponent:'Bob',result:'DRAW',delta:null,completed_at:new Date('2026-01-01Z')}]});
@@ -83,4 +84,23 @@ it('scales the chart to intermediate peaks and shows the whole window change', a
   expect(screen.getByRole('img')).toHaveAccessibleName(/from 800 to 810 MMR; vertical scale 780 to 1020 MMR/);
   expect(container.querySelector('.rating-change strong')).toHaveTextContent('+10 MMR');
   expect(container.querySelector('.profile-climb')).toHaveTextContent('Last 2 rated duels');
+});
+
+
+it('distinguishes history outcomes and formats rounded MMR changes without signed zero', async () => {
+  mocks.load.mockResolvedValue({username:'Ada',rating:800,record:{wins:1,losses:1,draws:1},ratings:[],history:[
+    {id:'1',title:'First',opponent:'Bob',result:'WIN',delta:12.2,completed_at:new Date('2026-01-01Z')},
+    {id:'2',title:'Second',opponent:'Cat',result:'LOSS',delta:-8.8,completed_at:new Date('2026-01-02Z')},
+    {id:'3',title:'Third',opponent:'Dog',result:'DRAW',delta:-0.2,completed_at:new Date('2026-01-03Z')},
+    {id:'4',title:'Fourth',opponent:'Fox',result:'DRAW',delta:0.2,completed_at:new Date('2026-01-04Z')},
+  ]});
+  render(await Profile({params}));
+  for (const result of ['WIN','LOSS','DRAW']) {
+    for (const badge of screen.getAllByText(result, {exact:true})) expect(badge).toHaveClass(`history-result--${result.toLowerCase()}`);
+  }
+  expect(screen.getByText('+12 MMR')).toBeVisible();
+  expect(screen.getByText('-9 MMR')).toBeVisible();
+  expect(screen.getAllByText('0 MMR')).toHaveLength(2);
+  expect(screen.queryByText(/^[+-]0 MMR$/)).not.toBeInTheDocument();
+  expect(screen.getByRole('region',{name:'Recent duel history'})).toHaveAccessibleDescription(/Scroll the table sideways.*arrow keys/);
 });

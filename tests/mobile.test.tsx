@@ -399,3 +399,28 @@ it('keeps rating scales, timeline and history data usable at phone and desktop w
     }
   } finally { await page.close(); }
 });
+
+
+it.each([320, 375, 1280])('keeps profile duel outcomes and scroll guidance accessible at %spx', async width => {
+  const page = await browser.newPage({viewport:{width,height:900}});
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css','utf8')}</style>${renderToStaticMarkup(await Profile({params:Promise.resolve({username})}))}`);
+    const region = page.getByRole('region',{name:'Recent duel history'});
+    expect(await region.getAttribute('aria-describedby')).toBe('history-scroll-hint');
+    expect(await page.locator('#history-scroll-hint').isVisible()).toBe(true);
+    const badge = region.locator('.history-result--win');
+    expect(await badge.textContent()).toBe('WIN');
+    expect(await badge.evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('solid');
+    await region.focus();
+    expect(await region.evaluate(el => el === document.activeElement)).toBe(true);
+    if (width < 640) {
+      await page.keyboard.press('ArrowRight');
+      await page.waitForFunction(() => document.querySelector('.profile-history .ladder-scroll')!.scrollLeft > 0);
+    }
+    await page.keyboard.press('Tab');
+    const opponent = region.getByRole('link',{name:username});
+    expect(await opponent.evaluate(el => el === document.activeElement)).toBe(true);
+    expect((await opponent.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});

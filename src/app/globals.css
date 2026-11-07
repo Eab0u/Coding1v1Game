@@ -328,3 +328,12 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .daily-statement summary { min-height: 44px; padding: 12px 0; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 .daily-statement[open] summary { color: var(--color-accent); }
 .daily-statement > div { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; padding: 4px 0 12px; }
+
+/* Match history remains readable without relying on outcome color alone. */
+.history-result { display: inline-block; padding: 6px 12px; border: 1px solid currentColor; border-radius: var(--radius-pill); font-size: .875rem; letter-spacing: .04em; background: var(--color-bg); }
+.history-result--win { color: var(--color-success); }
+.history-result--loss { color: var(--color-danger); }
+.history-result--draw { color: var(--color-text); }
+.history-scroll-hint { color: var(--color-muted); font-size: .875rem; line-height: 1.6; }
+.profile-history .ladder-table a { text-decoration: underline; border-radius: 6px; }
+.profile-history .ladder-table a:hover { background: var(--color-bg); }

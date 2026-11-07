@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Readable profile duel history
+- Reviewed the two unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
+- Added bordered, text-labeled WIN / LOSS / DRAW badges with distinct colors, underlined opponent links and explicit MMR units. Rating changes now round before choosing a sign, avoiding misleading +0 or -0 values. Unrated history remains explicit.
+- Added visible horizontal-scroll and arrow-key guidance associated with the focusable history region. Component tests cover all outcomes, gains, losses, fractional zero changes and empty-history guidance suppression. Chromium checks at 320, 375 and 1280px cover badges, guidance, keyboard scrolling, opponent focus and touch height, and page overflow.
+- Validation: all 478 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Accessible results navigation
 - Reviewed the two unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent results usability item. Catalog items remain unchecked.
 - Added a visible-on-focus Skip to results link and a programmatically focusable main destination. Player profile links now have explicit underlines, rounded hover styling and 44px minimum touch targets.
