@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Distinct submission verdicts
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena usability item. Judged attempts now show explicit All tests passed / Some tests failed badges with green/amber accents and wrapping text. Fully passing attempts explain that runtime and submission time still break ties and the result waits for the duel to end.
+- Preserved the atomic live status, latest-attempt counts and separate best-score guidance. Queued, running, retrying, unknown and unavailable-score states do not receive verdict badges; a new queued attempt clears the previous verdict.
+- Added ten regression cases for full, partial and zero-pass results, worker-state counts, unavailable scores and attempt transitions/removal. Validation: all 1,225 tests across 71 files passed; focused verdict/arena coverage (80 tests), lint, typecheck, production build and whitespace checks passed. Browser visual inspection was not performed for this item.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Public example shortcuts
 - Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
 - Followed the blocker rule to add and complete one usability item. Multiple public examples now have a named native shortcut navigation with unique per-instance heading targets. Heading focus lets keyboard users continue directly to the selected example input; single, missing and legacy examples omit unnecessary navigation.

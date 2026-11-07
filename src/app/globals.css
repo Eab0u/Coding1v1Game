@@ -355,6 +355,11 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .arena-verdict > strong { margin-top: 6px; }
 .arena-verdict p { margin: 8px 0 0; }
 .arena-verdict--retry { border-left-color: #e5b567; }
+.arena-verdict--passed { border-left-color: var(--color-accent); }
+.arena-verdict--partial { border-left-color: #e5b567; }
+.arena-verdict-badge { margin-top: 10px; white-space: normal; }
+.arena-verdict--passed .arena-verdict-badge { color: var(--color-accent); }
+.arena-verdict--partial .arena-verdict-badge { color: #e5b567; }
 .arena-source-limit { margin: 16px 0; padding: 12px 16px; border: 1px solid var(--color-border); border-radius: 12px; overflow-wrap: anywhere; }
 .arena-source-limit p { margin: 4px 0; }
 .arena-source-limit--invalid { border-left: 4px solid #e5b96b; }
