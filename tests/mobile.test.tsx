@@ -287,6 +287,13 @@ it('keeps populated password guidance within the phone account layout', async ()
       element.textContent = 'Use at least 12 characters.';
     }));
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    for (const budget of await page.locator('.password-budget').all()) {
+      expect(await budget.textContent()).toContain('0 / 256 bytes');
+      expect(await budget.evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('solid');
+      const bounds = (await budget.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(320);
+    }
     for (const warning of await page.locator('.password-caps-lock').all()) {
       expect(await warning.isVisible()).toBe(true);
       const bounds = (await warning.boundingBox())!;

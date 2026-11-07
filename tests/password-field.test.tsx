@@ -5,6 +5,38 @@ import { PasswordField } from "../src/components/password-field";
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
 afterEach(() => vi.restoreAllMocks());
 
+it.each(["login", "signup"] as const)("shows the UTF-8 byte budget and recovers from overflow for %s", mode => {
+  render(<form><PasswordField mode={mode} /></form>);
+  const input = screen.getByLabelText<HTMLInputElement>("Password");
+  const budget = document.getElementById(`${mode}-password-budget`)!;
+  expect(input).toHaveAccessibleDescription(/0 \/ 256 bytes/);
+  expect(budget).not.toHaveAttribute("role", "status");
+  fireEvent.change(input, { target: { value: "a".repeat(12) } });
+  expect(budget).toHaveTextContent("12 / 256 bytes");
+  fireEvent.change(input, { target: { value: "é".repeat(128) } });
+  expect(budget).toHaveTextContent("256 / 256 bytes");
+  expect(input).toBeValid();
+  fireEvent.change(input, { target: { value: "😀".repeat(65) } });
+  expect(budget).toHaveTextContent("260 / 256 bytes");
+  expect(budget).toHaveAttribute("data-over-limit", "true");
+  expect(input).toBeInvalid();
+  expect(input).toHaveAccessibleDescription(/Use at most 256 bytes/);
+  fireEvent.click(screen.getByRole("button", { name: /Show .* password/ }));
+  expect(budget).toHaveTextContent("260 / 256 bytes");
+  fireEvent.change(input, { target: { value: "😀".repeat(64) } });
+  expect(input).toBeValid();
+  expect(budget).not.toHaveAttribute("data-over-limit");
+  fireEvent.change(input, { target: { value: "" } });
+  expect(budget).toHaveTextContent("0 / 256 bytes");
+});
+
+it("keeps byte budgets independent between sign-in and sign-up", () => {
+  render(<><PasswordField mode="login" /><PasswordField mode="signup" /></>);
+  fireEvent.change(screen.getAllByLabelText("Password")[0], { target: { value: "é".repeat(12) } });
+  expect(document.getElementById("login-password-budget")).toHaveTextContent("24 / 256 bytes");
+  expect(document.getElementById("signup-password-budget")).toHaveTextContent("0 / 256 bytes");
+});
+
 it("conceals both revealed passwords on a hidden tab without losing credentials or revealing them on return", () => {
   const visibility = vi.spyOn(document, "visibilityState", "get");
   render(<form><PasswordField mode="login" /><PasswordField mode="signup" /></form>);

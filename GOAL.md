@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Show independent accessible UTF-8 password byte budgets with styled Unicode guidance, overflow recovery tests and phone layout coverage
 - [x] Automatically conceal revealed account passwords when the tab becomes hidden, preserving credentials, clearing stale Caps Lock feedback and explaining the behavior
 - [x] Show personal MMR changes in recent home duels with historical fallback, rounding guidance and phone browser coverage
 - [x] Author the original Beacon Horizon Wait medium monotonic-stack draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending

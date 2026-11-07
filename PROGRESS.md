@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Password byte budgets
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent account improvement.
+- Sign-in and sign-up now show independent UTF-8 byte counts against the 256-byte limit, with styled guidance explaining emoji and multibyte letters. Counts are associated with their password fields without announcing every keystroke through a live region. Overflow retains existing validation feedback and clears after correction; visibility controls preserve the count.
+- Added component tests for ASCII, multibyte letters, emoji, the exact limit, overflow, correction, clearing and independent fields. Extended the Chromium phone layout check to verify contained, styled byte guidance at 320px.
+- Validation: all 743 tests across 54 files passed; targeted account/password tests (20), lint, typecheck, production build and diff whitespace checks passed. No Python solution executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the eight authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Password concealment on tab switches
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent account improvement.
 - Sign-in and sign-up now conceal revealed passwords when the document becomes hidden. Returning to the tab leaves passwords concealed, preserves entered credentials and validation, and allows either field to be revealed independently again. Clears stale Caps Lock feedback and explains concealment in the existing accessible password hint. Visibility listeners are removed on unmount.
