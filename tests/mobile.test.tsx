@@ -31,6 +31,26 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
+it.each([320, 375, 1280])('makes friend profile links visible and keyboard accessible at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Friends({ searchParams: Promise.resolve({}) }))}`);
+    const links = page.locator('.friend-list h3 a');
+    expect(await links.count()).toBe(3);
+    for (const link of await links.all()) {
+      expect(await link.getAttribute('aria-label')).toBe(`View ${await link.textContent()}'s profile`);
+      expect(await link.getAttribute('href')).toBe(`/profile/${await link.textContent()}`);
+      expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      expect(await link.evaluate(el => getComputedStyle(el).textDecorationLine)).toContain('underline');
+      await link.focus();
+      expect(await link.evaluate(el => el === document.activeElement)).toBe(true);
+      await page.keyboard.press('Tab');
+      expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('BUTTON');
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
+
 it.each([320, 375, 1280])('makes weekly standings guidance and player links usable at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {

@@ -13,8 +13,19 @@ it("shows invitation, incoming consent, outgoing cancellation and removal contro
   render(await Friends({searchParams:Promise.resolve({})}));
   expect(screen.getByLabelText("Player username")).toBeRequired();
   for (const name of ["Accept","Decline","Cancel request","Remove friend"]) expect(screen.getByRole("button",{name})).toBeVisible();
-  expect(screen.getByRole("link",{name:"Ada"})).toHaveAttribute("href","/profile/Ada");
+  expect(screen.getByRole("link",{name:"View Ada's profile"})).toHaveAttribute("href","/profile/Ada");
 });
+it("names and styles profile links across incoming, accepted and outgoing friends", async () => {
+  mocks.friends.mockResolvedValue([{ username: "Ada", status: "pending", incoming: true }, { username: "Eve", status: "accepted", incoming: false }, { username: "Bob", status: "pending", incoming: false }]);
+  render(await Friends({ searchParams: Promise.resolve({}) }));
+  for (const username of ["Ada", "Eve", "Bob"]) {
+    const link = screen.getByRole("link", { name: `View ${username}'s profile` });
+    expect(link).toHaveAttribute("href", `/profile/${username}`);
+    expect(link).toHaveClass("standings-player");
+    expect(link).toHaveTextContent(username);
+  }
+});
+
 it("keeps both leaderboard filters and derives the friend scope from the session", async () => {
   render(await Leaderboard({searchParams:Promise.resolve({scope:"friends",period:"weekly"})}));
   expect(mocks.standings).toHaveBeenCalledWith({},"weekly","actor");
@@ -73,9 +84,9 @@ it("groups relationships with counts and submits the clicked action for the corr
   const incoming = screen.getByRole("region", {name:"Incoming requests 1"});
   const accepted = screen.getByRole("region", {name:"Your friends 2"});
   const outgoing = screen.getByRole("region", {name:"Sent requests 1"});
-  expect(within(incoming).getByRole("link", {name:"Ada"})).toBeVisible();
+  expect(within(incoming).getByRole("link", {name:"View Ada's profile"})).toBeVisible();
   expect(within(accepted).getAllByRole("listitem")).toHaveLength(2);
-  expect(within(outgoing).getByRole("link", {name:"Bob"})).toBeVisible();
+  expect(within(outgoing).getByRole("link", {name:"View Bob's profile"})).toBeVisible();
   for (const [label, username, action] of [["Accept","Ada","accept"], ["Decline","Ada","remove"], ["Cancel request","Bob","remove"], ["Remove friend","Eve","remove"]]) {
     const form = screen.getByRole("form", {name:`Manage ${username}`}) as HTMLFormElement;
     const submit = vi.fn((event: Event) => event.preventDefault());

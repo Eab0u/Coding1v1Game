@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Discoverable friend profile links
+- Reviewed both unchecked catalog items and made a bounded request to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent friends usability item. Catalog items remain unchecked.
+- Applied the shared underlined player-link styling and 44px minimum touch height to incoming, accepted and outgoing friend cards. Added explicit profile-link accessible names and encoded profile destinations.
+- Added component coverage across all relationship groups and Chromium checks at 320, 375 and 1280px for destinations, accessible names, underlines, touch heights, keyboard access to subsequent action buttons and document overflow. Updated existing name assertions to preserve their relationship/action coverage.
+- Validation: all 524 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Accurate home duel readiness guidance
 - Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent home usability item. Catalog items remain unchecked.
 - Replaced outdated claims that match activation is still in development with a named, bordered guidance panel explaining published problem eligibility, the 60-second Ready window, when the duel clock starts and rating protection for expired reservations. Corrected broken question-mark separators in account and starting-rating copy.
