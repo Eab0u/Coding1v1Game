@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Make password privacy guidance expandable with a keyboard-accessible styled disclosure, keeping requirements visible and independent form state covered by regression tests
 - [x] Limit account password reveals to 30 seconds with visible guidance, independent timers, preserved credentials and keyboard focus, fresh reveal recovery and cleanup regression coverage
 - [x] Explain specific username correction reasons across account and friend forms, preserving server validation, independent state, keyboard focus and reset/replacement recovery with regression coverage
 - [x] Conceal revealed account passwords when focus leaves their owning form, preserving within-form navigation, credentials, validation and explicit reveal recovery with regression coverage

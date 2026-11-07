@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Expandable password privacy guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account usability item: moved lengthy password concealment guidance into independent native disclosures for sign-in and sign-up. Password requirements remain visible; input descriptions retain both requirements and privacy guidance. Styled summaries provide clear keyboard focus, a 44px touch target and responsive wrapping.
+- Added phone/desktop browser regression tests for keyboard Enter/Space expansion and collapse, independent panels, retained summary focus, visible requirements and page overflow. Existing password behavior and accessibility tests also pass.
+- Validation: all 1,621 tests across 72 files passed, including browser coverage; focused account/password/browser tests (279), lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Bounded password reveal windows
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one account usability item: revealed passwords automatically conceal after 30 seconds. Visible polite reveal feedback and persistent field guidance explain the limit. Each field owns its timer; editing does not extend exposure, and explicitly revealing again starts a fresh window.

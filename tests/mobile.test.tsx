@@ -1821,3 +1821,29 @@ it.each([320, 1280])('keeps username budgets readable at %spx', async width => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });
+
+
+it.each([320, 1280])('opens independent password privacy guidance by keyboard at %spx', async width => {
+  const { PasswordField } = await import('../src/components/password-field');
+  const page = await browser.newPage({ viewport: { width, height: 800 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<div className="shell"><form className="account-form"><PasswordField mode="login" /></form><form className="account-form"><PasswordField mode="signup" /></form></div>)}`);
+    const panels = page.locator('.password-help');
+    for (let index = 0; index < 2; index++) {
+      const panel = panels.nth(index);
+      const summary = panel.locator('summary');
+      expect(await panel.getAttribute('open')).toBeNull();
+      expect(await page.locator('.password-requirements').nth(index).isVisible()).toBe(true);
+      await summary.focus();
+      expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      await page.keyboard.press('Enter');
+      expect(await panel.getAttribute('open')).not.toBeNull();
+      expect(await panel.locator('p').isVisible()).toBe(true);
+      expect(await panels.nth(1 - index).getAttribute('open')).toBeNull();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.keyboard.press('Space');
+      expect(await panel.getAttribute('open')).toBeNull();
+      expect(await summary.evaluate(el => document.activeElement === el)).toBe(true);
+    }
+  } finally { await page.close(); }
+});

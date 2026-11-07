@@ -103,7 +103,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
       <input ref={inputRef} id={id} name="password" type={visible ? "text" : "password"}
         autoComplete={mode === "login" ? "current-password" : "new-password"}
         required minLength={PASSWORD_MIN_LENGTH} maxLength={PASSWORD_MAX_BYTES}
-        aria-describedby={`${mode}-hint ${mode}-password-budget ${mode}-password-error ${mode}-caps-lock`} aria-invalid={error ? true : undefined}
+        aria-describedby={`${mode}-password-requirements ${mode}-hint ${mode}-password-budget ${mode}-password-error ${mode}-caps-lock`} aria-invalid={error ? true : undefined}
         onKeyDown={event => setCapsLock(event.getModifierState("CapsLock"))}
         onKeyUp={event => setCapsLock(event.getModifierState("CapsLock"))}
         onClick={event => setCapsLock(event.getModifierState("CapsLock"))}
@@ -121,7 +121,11 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
         }}>{visible ? "Hide" : "Show"}</Button>
     </div>
     <p id={`${mode}-password-visibility`} className="password-visibility" role="status">{visible ? "Password is visible. Hide it when you finish checking. It automatically hides after 30 seconds." : ""}</p>
-    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape anywhere in this form to conceal a revealed password, or use Hide. Revealed passwords automatically hide after 30 seconds. They also hide when you switch tabs. They also hide when focus leaves this form, when the browser window loses focus, when you leave this page or submit this form, including when a field needs correction.</p>
+    <p id={`${mode}-password-requirements`} className="password-requirements">At least 12 characters; up to 256 bytes.</p>
+    <details className="password-help">
+      <summary>Password visibility and privacy</summary>
+      <p id={`${mode}-hint`}>Press Escape anywhere in this form to conceal a revealed password, or use Hide. Revealed passwords automatically hide after 30 seconds. They also hide when you switch tabs. They also hide when focus leaves this form, when the browser window loses focus, when you leave this page or submit this form, including when a field needs correction.</p>
+    </details>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
       <span>{length < PASSWORD_MIN_LENGTH
         ? `At least ${PASSWORD_MIN_LENGTH - length} more ${PASSWORD_MIN_LENGTH - length === 1 ? "character" : "characters"} needed`
