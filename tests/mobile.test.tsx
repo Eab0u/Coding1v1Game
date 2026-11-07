@@ -1593,3 +1593,25 @@ it.each([320, 375, 1280])('keeps long public examples keyboard scrollable at %sp
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('jumps between public examples with native keyboard focus at %spx', async width => {
+  const { ProblemExamples } = await import('../src/components/problem-examples');
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    const examples = [{ args: ['x'.repeat(600)], expected: 1, explanation: 'First.' }, { args: [2], expected: 2, explanation: 'Second.' }];
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style><main class="shell">${renderToStaticMarkup(<ProblemExamples examples={examples} />)}</main>`);
+    const shortcuts = page.getByRole('navigation', { name: 'Example shortcuts' });
+    const link = shortcuts.getByRole('link', { name: 'Example 2', exact: true });
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    expect(await link.evaluate(el => document.activeElement === el)).toBe(true);
+    const bounds = (await link.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    if (width <= 375) expect(bounds.width).toBeGreaterThan(width - 60);
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('heading', { name: 'Example 2', exact: true }).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('region', { name: 'Example 2 input', exact: true }).evaluate(el => document.activeElement === el)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});

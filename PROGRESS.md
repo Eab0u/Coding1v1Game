@@ -37,6 +37,12 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Public example shortcuts
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one usability item. Multiple public examples now have a named native shortcut navigation with unique per-instance heading targets. Heading focus lets keyboard users continue directly to the selected example input; single, missing and legacy examples omit unnecessary navigation.
+- Added styled 44px controls that fill the available phone width, with hover and existing keyboard focus feedback. Added component coverage for unique destinations and fallback safeguards, plus Chromium checks at 320/375/1280px for keyboard activation, heading focus, subsequent Tab navigation, touch height and overflow.
+- Validation: all 1,215 tests across 70 files passed; focused component/browser coverage (187 tests), lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
 ### 2026-11-07 - Compact arena judging guidance
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
 - Followed the blocker rule to add and complete one usability item. Arena judging guidance now starts collapsed in a native details/summary disclosure, bringing examples closer while retaining hidden-test, scoring-order, best-submission and deadline guidance in every match state.

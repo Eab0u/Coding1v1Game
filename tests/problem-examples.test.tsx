@@ -77,3 +77,21 @@ it("associates scrolling guidance with every code region using instance-specific
   expect(regions[0].getAttribute("aria-describedby")).toBe(regions[1].getAttribute("aria-describedby"));
   expect(regions[0].getAttribute("aria-describedby")).not.toBe(regions[2].getAttribute("aria-describedby"));
 });
+
+it("targets unique focusable example headings across repeated instances", () => {
+  const examples = [{ args: [1], expected: 1, explanation: "First." }, { args: [2], expected: 2, explanation: "Second." }];
+  render(<><ProblemExamples examples={examples}/><ProblemExamples examples={examples}/></>);
+  const links = screen.getAllByRole("link");
+  expect(links).toHaveLength(4);
+  expect(new Set(links.map(link => link.getAttribute("href"))).size).toBe(4);
+  for (const link of links) {
+    const heading = document.getElementById(link.getAttribute("href")!.slice(1));
+    expect(heading).toHaveTextContent(link.textContent!);
+    expect(heading).toHaveAttribute("tabindex", "-1");
+    expect(heading?.tagName).toBe("H4");
+  }
+});
+it.each([null, [], { legacy: true }, [{ args: [1], expected: 1, explanation: "Only." }]])("omits unnecessary example shortcuts: %j", examples => {
+  render(<ProblemExamples examples={examples}/>);
+  expect(screen.queryByRole("navigation", { name: "Example shortcuts" })).not.toBeInTheDocument();
+});

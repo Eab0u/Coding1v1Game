@@ -26,6 +26,9 @@ export function ProblemExamples({ examples }: { examples: unknown }) {
     </div>;
   }
   return <div className="problem-examples">
+    {examples.length > 1 && <nav className="example-navigation" aria-label="Example shortcuts">
+      {examples.map((_, index) => <a key={index} href={`#${scrollHintId}-example-${index + 1}`}>Example {index + 1}</a>)}
+    </nav>}
     <aside className="example-format-guide" aria-label="Example format guide">
       <details className="example-format-details">
         <summary>Reading these examples</summary>
@@ -35,7 +38,7 @@ export function ProblemExamples({ examples }: { examples: unknown }) {
     </aside>
     <p id={scrollHintId} className="example-scroll-hint">{scrollGuidance}</p>
     {examples.map((example, index) => <section className="problem-example" key={index} aria-label={`Example ${index + 1}`}>
-      <h4>Example {index + 1}</h4>
+      <h4 id={`${scrollHintId}-example-${index + 1}`} tabIndex={-1}>Example {index + 1}</h4>
       <p className="eyebrow">Input arguments (in signature order)</p>
       <pre tabIndex={0} role="region" aria-label={`Example ${index + 1} input`} aria-describedby={scrollHintId}>{JSON.stringify(example.args, null, 2)}</pre>
       <p className="eyebrow">Expected output</p>
