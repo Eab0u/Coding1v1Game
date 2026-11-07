@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Guide signed-out friends visitors with a styled account invitation, consent explanation, public standings action and accessible skip navigation, including phone keyboard coverage
 - [x] Make populated leaderboard standings easier to read with consistent MMR changes, visible player links and accessible phone keyboard scroll guidance
 - [x] Improve public profile duel history with outcome badges, consistent MMR deltas and accessible horizontal-scroll guidance, including phone keyboard coverage
 - [x] Improve results navigation with a visible-on-focus skip link, predictable keyboard focus and styled player profile touch targets, including phone browser coverage

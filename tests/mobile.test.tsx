@@ -446,3 +446,27 @@ it.each([320, 375, 1280])('keeps profile duel outcomes and scroll guidance acces
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('guides friends guests with keyboard navigation at %spx', async width => {
+  state.signedIn = false;
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Friends({ searchParams: Promise.resolve({}) }))}`);
+    await page.keyboard.press('Tab');
+    const skip = page.getByRole('link', { name: 'Skip to friends' });
+    expect(await skip.evaluate(el => el === document.activeElement)).toBe(true);
+    expect((await skip.boundingBox())!.y).toBeGreaterThanOrEqual(0);
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('main').evaluate(el => el === document.activeElement)).toBe(true);
+    const actions = page.locator('.ladder-empty-actions a');
+    expect(await actions.count()).toBe(2);
+    for (const action of await actions.all()) {
+      await page.keyboard.press('Tab');
+      expect(await action.evaluate(el => el === document.activeElement)).toBe(true);
+      expect((await action.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      if (width <= 480) expect(Math.round((await action.boundingBox())!.width)).toBe(Math.round((await actions.first().boundingBox())!.width));
+    }
+    expect(await page.getByRole('heading', { name: 'Keep your rivals close.' }).isVisible()).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { state.signedIn = true; await page.close(); }
+});

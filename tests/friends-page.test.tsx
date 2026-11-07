@@ -130,3 +130,19 @@ it("guides friend invitations, blocks invalid names and recovers with the exact 
   expect(new FormData(form).get("action")).toBe("request");
   expect(form).toHaveAttribute("action", "/api/friends");
 });
+
+it("guides guests to accounts and public standings without showing private controls", async () => {
+  mocks.current.mockResolvedValue(null);
+  render(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.getByRole("heading", {name:"Keep your rivals close."})).toBeVisible();
+  expect(screen.getByText(/Friendships begin when the other player accepts/)).toBeVisible();
+  expect(screen.getByRole("link", {name:"Sign in to manage friends"})).toHaveAttribute("href", "/account");
+  expect(screen.getByRole("link", {name:"Explore public standings"})).toHaveAttribute("href", "/leaderboard");
+  expect(screen.getByRole("link", {name:"Skip to friends"})).toHaveAttribute("href", "#main-content");
+  expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
+  expect(screen.getByRole("main")).toHaveAttribute("tabindex", "-1");
+  expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Player username")).not.toBeInTheDocument();
+  expect(screen.queryByText(/No friends yet/)).not.toBeInTheDocument();
+  expect(mocks.friends).not.toHaveBeenCalled();
+});

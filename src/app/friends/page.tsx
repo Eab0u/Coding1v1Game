@@ -20,14 +20,18 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
     { id: "outgoing", title: "Sent requests", empty: "No outstanding invitations.", entries: entries.filter(entry => entry.status === "pending" && !entry.incoming) },
   ];
   const { message } = await searchParams;
-  return <div className="shell"><header className="site-header"><Link className="brand" href="/">CodeDuel<span className="accent">.</span></Link><Link href="/leaderboard?scope=friends">Friends standings</Link></header>
-    <main className="account"><p className="eyebrow">BETTER WITH RIVALS</p><h1>Your circle.</h1><p className="intro">Add friends, follow their climb, and find your next rival.</p>
+  return <div className="shell"><a className="skip-link" href="#main-content">Skip to friends</a><header className="site-header"><Link className="brand" href="/">CodeDuel<span className="accent">.</span></Link><Link href="/leaderboard?scope=friends">Friends standings</Link></header>
+    <main className="account" id="main-content" tabIndex={-1}><p className="eyebrow">BETTER WITH RIVALS</p><h1>Your circle.</h1><p className="intro">Add friends, follow their climb, and find your next rival.</p>
       {message && <p role="status">{message.slice(0, 200)}</p>}
       {unavailable ? <Card className="ladder-recovery">
         <div role="alert"><h2>Friends unavailable</h2><p>We could not load your circle. Try again to refresh your friends and invitations.</p></div>
         <a className="button button--primary" href="/friends">Retry friends</a>
         <Link className="button button--secondary" href="/">Back to arena</Link>
-      </Card> : !user ? <Link href="/account">Sign in to manage friends</Link> : <>
+      </Card> : !user ? <Card className="ladder-empty">
+        <p className="eyebrow">BUILD YOUR CIRCLE</p><h2>Keep your rivals close.</h2>
+        <p>Sign in or create a player account to invite friends, respond to requests and compare your ratings in friends standings. Friendships begin when the other player accepts.</p>
+        <div className="ladder-empty-actions"><Link className="button button--primary" href="/account">Sign in to manage friends</Link><Link className="button button--secondary" href="/leaderboard">Explore public standings</Link></div>
+      </Card> : <>
         <Card><h2>Invite a player</h2><form className="account-form" method="post" action="/api/friends"><input type="hidden" name="action" value="request"/><UsernameField mode="friend" /><Button type="submit">Send friend request</Button></form></Card>
         <div className="friend-groups">{groups.map(group => <section key={group.id} aria-labelledby={`friends-${group.id}`}>
           <h2 className="friend-group-title" id={`friends-${group.id}`}>{group.title} <Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge></h2>
