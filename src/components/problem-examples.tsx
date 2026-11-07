@@ -19,9 +19,11 @@ export function ProblemExamples({ examples }: { examples: unknown }) {
   }
   return <div className="problem-examples">
     <aside className="example-format-guide" aria-label="Example format guide">
-      <strong>Reading these examples</strong>
-      <p>Inputs and outputs use JSON notation. In Python, <code>true</code> is <code>True</code>, <code>false</code> is <code>False</code>, and <code>null</code> is <code>None</code>.</p>
-      <p>The input list contains one value per function argument, in signature order. Complete the function and return its result; you do not need to read input or print the answer.</p>
+      <details className="example-format-details">
+        <summary>Reading these examples</summary>
+        <p>Inputs and outputs use JSON notation. In Python, <code>true</code> is <code>True</code>, <code>false</code> is <code>False</code>, and <code>null</code> is <code>None</code>.</p>
+        <p>The input list contains one value per function argument, in signature order. Complete the function and return its result; you do not need to read input or print the answer.</p>
+      </details>
     </aside>
     {examples.map((example, index) => <section className="problem-example" key={index} aria-label={`Example ${index + 1}`}>
       <h4>Example {index + 1}</h4>

@@ -382,7 +382,7 @@ it.each([320, 375, 1280])('opens daily challenge statements with the keyboard at
     expect(await topics.isVisible()).toBe(true);
     expect(await topics.locator('li').count()).toBe(3);
     expect(await topics.evaluate(el => getComputedStyle(el).flexWrap)).toBe('wrap');
-    const summary = page.locator('.daily-statement summary');
+    const summary = page.locator('.daily-statement > summary');
     const statement = page.locator('.daily-statement > div');
     expect(await statement.isVisible()).toBe(false);
     expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
@@ -1005,7 +1005,7 @@ it.each([320, 375, 1280])('scrolls daily signatures with the keyboard at %spx', 
     await page.keyboard.press('ArrowRight');
     await expect.poll(() => signature.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
     await page.keyboard.press('Tab');
-    expect(await page.locator('.daily-statement summary').evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await page.locator('.daily-statement > summary').evaluate(el => el === document.activeElement)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
@@ -1494,7 +1494,7 @@ it.each([320, 375, 1280])('jumps to the daily preview by keyboard at %spx', asyn
     await page.keyboard.press('Tab');
     expect(await page.getByRole('region', {name:'Daily challenge function signature'}).evaluate(el => document.activeElement === el)).toBe(true);
     await page.keyboard.press('Tab');
-    expect(await page.locator('.daily-statement summary').evaluate(el => document.activeElement === el)).toBe(true);
+    expect(await page.locator('.daily-statement > summary').evaluate(el => document.activeElement === el)).toBe(true);
     await page.keyboard.press('Enter');
     expect(await page.locator('.daily-statement').getAttribute('open')).not.toBeNull();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -1534,5 +1534,31 @@ it.each([320, 375, 1280])('spaces dashboard navigation and preserves keyboard de
     await page.keyboard.press('Enter');
     expect(await page.locator('#home-recent-duels-title').evaluate(el => document.activeElement === el)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});
+
+
+it.each([320, 375, 1280])('keeps example format guidance compact and keyboard accessible at %spx', async width => {
+  const { ProblemExamples } = await import('../src/components/problem-examples');
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<ProblemExamples examples={[{ args: [true, null], expected: false, explanation: 'No match.' }]} />)}`);
+    const details = page.locator('.example-format-details');
+    const summary = details.locator('summary');
+    expect(await details.getAttribute('open')).toBeNull();
+    expect(await page.getByRole('region', { name: 'Example 1 input' }).isVisible()).toBe(true);
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Tab');
+    expect(await summary.evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Enter');
+    expect(await details.getAttribute('open')).not.toBeNull();
+    expect(await details.innerText()).toContain('true is True');
+    expect(await details.innerText()).toContain('return its result');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.keyboard.press('Space');
+    expect(await details.getAttribute('open')).toBeNull();
+    expect(await summary.evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('region', { name: 'Example 1 input' }).evaluate(el => document.activeElement === el)).toBe(true);
   } finally { await page.close(); }
 });

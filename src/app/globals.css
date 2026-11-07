@@ -442,8 +442,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 /* Daily previews keep long statements optional and Python formatting readable. */
 .daily-signature { margin: 16px 0; padding: 14px; border-radius: var(--radius-sm); background: var(--color-bg); white-space: pre; overflow-wrap: normal; overflow-x: auto; max-width: 100%; font-size: .9rem; line-height: 1.6; }
 .daily-statement { border-top: 1px solid var(--color-border); }
-.daily-statement summary { min-height: 44px; padding: 12px 0; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
-.daily-statement[open] summary { color: var(--color-accent); }
+.daily-statement > summary { min-height: 44px; padding: 12px 0; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.daily-statement[open] > summary { color: var(--color-accent); }
 .daily-statement > div { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; padding: 4px 0 12px; }
 
 /* Match history remains readable without relying on outcome color alone. */
@@ -573,3 +573,6 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 @media (max-width: 480px) {
   .dashboard-shortcuts > * { width: 100%; }
 }
+
+.example-format-details summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 700; color: var(--color-text, #fff); border-radius: 4px; }
+.example-format-details summary:hover, .example-format-details[open] summary { color: var(--color-accent, #81b64c); }

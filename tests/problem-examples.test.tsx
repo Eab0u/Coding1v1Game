@@ -5,6 +5,8 @@ import { ProblemExamples } from "../src/components/problem-examples";
 it("explains JSON values and the Python function contract without changing example data", () => {
   render(<ProblemExamples examples={[{ args: [true, false, null], expected: null, explanation: "Nullable result." }]}/>);
   const guide = screen.getByRole("complementary", { name: "Example format guide" });
+  expect(guide.querySelector("details")).not.toHaveAttribute("open");
+  expect(guide.querySelector("summary")).toHaveTextContent("Reading these examples");
   expect(guide).toHaveTextContent("true is True, false is False, and null is None");
   expect(guide).toHaveTextContent("one value per function argument, in signature order");
   expect(guide).toHaveTextContent("return its result");
