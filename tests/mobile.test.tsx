@@ -495,6 +495,35 @@ it.each([320, 1280])('shows readable password overflow cues at %ipx', async widt
   } finally { state.signedIn = true; await page.close(); }
 });
 
+it.each([320, 1280])('distinguishes invalid account fields and preserves keyboard focus at %ipx', async width => {
+  state.signedIn = false;
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({ searchParams: Promise.resolve({}) }))}`);
+    for (const input of await page.locator('input[name="username"], input[name="password"]').all()) {
+      const original = await input.evaluate(el => getComputedStyle(el).borderTopColor);
+      // Component tests cover validation transitions; this fixture verifies their visual states.
+      await input.evaluate(el => el.setAttribute('aria-invalid', 'true'));
+      expect(await input.evaluate(el => getComputedStyle(el).borderTopColor)).toBe('rgb(255, 170, 163)');
+      await input.focus();
+      expect(await input.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('solid');
+      expect(await input.evaluate(el => getComputedStyle(el).outlineWidth)).toBe('3px');
+      await input.evaluate(el => el.removeAttribute('aria-invalid'));
+      expect(await input.evaluate(el => getComputedStyle(el).borderTopColor)).toBe(original);
+    }
+    for (const message of await page.locator('.password-validation, .field-validation').all()) {
+      expect(await message.isVisible()).toBe(false);
+      await message.evaluate(el => { el.textContent = 'Check this field and try again.'; });
+      expect(await message.isVisible()).toBe(true);
+      expect(await message.evaluate(el => getComputedStyle(el).color)).toBe('rgb(255, 170, 163)');
+      expect(await message.evaluate(el => getComputedStyle(el).borderLeftColor)).toBe('rgb(255, 170, 163)');
+      await message.evaluate(el => { el.textContent = ''; });
+      expect(await message.isVisible()).toBe(false);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { state.signedIn = true; await page.close(); }
+}, 15000);
+
 it('keeps populated password guidance within the phone account layout', async () => {
   state.signedIn = false;
   const page = await browser.newPage({ viewport: { width: 320, height: 900 } });

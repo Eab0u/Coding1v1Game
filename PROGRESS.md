@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Clear invalid credential field styling
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one form improvement: invalid username and password fields now use danger-colored borders, and their explicit validation messages use matching text and border accents. Shared username styling also applies to friend invitations. Existing validation controls when the cues appear and retire; keyboard focus outlines remain visible.
+- Added Chromium coverage for both credential forms at 320px and 1280px: initial states, invalid borders, visible focus outlines, correction recovery, explicit message styling and clearing, and document overflow. Existing component tests cover actual value and validation transitions; browser fixtures exercise CSS states without React hydration.
+- Validation: all 1,598 tests across 72 files passed; lint, production build and typecheck passed. The concurrent focused run hit the new browser test's five-second timeout; increased its allowance to 15 seconds and reran both new cases successfully. Diff whitespace check passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Password byte capacity guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one account improvement: both password fields now explain bytes remaining, the exact byte limit and singular/plural overflow. Over-limit budgets use a danger-colored border and text alongside explicit wording, improving scanability without relying on color alone.
