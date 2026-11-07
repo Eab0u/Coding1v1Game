@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Caps Lock warning before typing
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog items remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one account improvement: clicking either password field now reads Caps Lock state, so players can see the existing advisory before typing. Later clicks refresh the warning; existing keyboard and concealment behavior remains in place.
+- Added regression coverage for both forms, independent accessible warnings, stable status regions, warning clearing on click and blur, and preserved password values, concealment and validity.
+- Validation: all 1,603 tests across 72 files passed; focused password tests (34), lint, production build, typecheck and diff whitespace check passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Explicit password visibility notice
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks the highest-value catalog milestone. Catalog items remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one interface improvement: revealed passwords now show a styled notice in a stable polite status region. Reveal controls describe the notice and existing concealment guidance. Empty notices take no layout space.

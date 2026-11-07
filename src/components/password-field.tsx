@@ -74,6 +74,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
         aria-describedby={`${mode}-hint ${mode}-password-budget ${mode}-password-error ${mode}-caps-lock`} aria-invalid={error ? true : undefined}
         onKeyDown={event => setCapsLock(event.getModifierState("CapsLock"))}
         onKeyUp={event => setCapsLock(event.getModifierState("CapsLock"))}
+        onClick={event => setCapsLock(event.getModifierState("CapsLock"))}
         onBlur={() => setCapsLock(false)}
         onFocus={event => synchronizeValue(event.currentTarget)}
         onInvalid={event => synchronizeValue(event.currentTarget, true)}

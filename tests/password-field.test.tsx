@@ -5,6 +5,28 @@ import { PasswordField } from "../src/components/password-field";
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
 afterEach(() => vi.restoreAllMocks());
 
+it.each(["login", "signup"] as const)("detects Caps Lock on %s mouse entry before typing and clears it on a later click", mode => {
+  render(<><form><PasswordField mode="login" /></form><form><PasswordField mode="signup" /></form></>);
+  const input = document.getElementById(`${mode}-password`)! as HTMLInputElement;
+  const other = document.getElementById(`${mode === "login" ? "signup" : "login"}-password`)!;
+  const status = document.getElementById(`${mode}-caps-lock`)!;
+  fireEvent.change(input, { target: { value: "private password" } });
+  fireEvent.focus(input);
+  fireEvent.click(input, { modifierCapsLock: true });
+  expect(status).toHaveTextContent(warning);
+  expect(input).toHaveAccessibleDescription(/Caps Lock is on/);
+  expect(other).not.toHaveAccessibleDescription(/Caps Lock is on/);
+  expect(input).toHaveValue("private password");
+  expect(input.validity.valid).toBe(true);
+  expect(input).toHaveAttribute("type", "password");
+  fireEvent.click(input, { modifierCapsLock: false });
+  expect(status).toBeEmptyDOMElement();
+  expect(document.getElementById(`${mode}-caps-lock`)).toBe(status);
+  fireEvent.click(input, { modifierCapsLock: true });
+  fireEvent.blur(input);
+  expect(status).toBeEmptyDOMElement();
+});
+
 it.each(["login", "signup"] as const)("keeps a stable %s visibility announcement through reveal and concealment", async mode => {
   render(<form><PasswordField mode={mode} /></form>);
   const input = screen.getByLabelText<HTMLInputElement>("Password");
