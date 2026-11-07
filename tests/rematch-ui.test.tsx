@@ -2,6 +2,53 @@ import {act,render,screen,fireEvent,waitFor} from '@testing-library/react';
 import {it,expect,vi,afterEach} from 'vitest';
 import {Rematch} from '../src/components/rematch';
 afterEach(()=>vi.unstubAllGlobals());
+it.each([[true,true],[true,false],[false,true],[false,false]])('announces recovery across recurring invitation outages (outgoing=%s, manual=%s)',async(outgoing,manual)=>{
+ vi.useFakeTimers();
+ try {
+  const snapshot={ok:true,json:async()=>({status:'pending',outgoing,matchId:null})};
+  const fetcher=vi.fn().mockResolvedValue(snapshot);
+  vi.stubGlobal('fetch',fetcher);
+  const view=render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.queryByText(/Invitation updates restored/)).not.toBeInTheDocument();
+  for (let outage=0;outage<2;outage++) {
+   fetcher.mockRejectedValueOnce(new Error('offline'));
+   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+   expect(screen.getByRole('alert')).toHaveTextContent('Unable to refresh invitation');
+   expect(screen.queryByText(/Invitation updates restored/)).not.toBeInTheDocument();
+   if (manual) {
+    fireEvent.click(screen.getByRole('button',{name:'Retry invitation update'}));
+    await act(async()=>{});
+   } else {
+    await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+   }
+   const notice=screen.getByText(/Invitation updates restored/);
+   expect(notice.parentElement).toHaveAttribute('aria-live','polite');
+   expect(notice.parentElement).toHaveAttribute('aria-atomic','true');
+   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+   expect(screen.getByText(/Invitation updates restored/)).toBe(notice);
+  }
+  view.rerender(<Rematch id="another"/>);
+  await act(async()=>{});
+  expect(screen.queryByText(/Invitation updates restored/)).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
+it.each(['accepted','declined','cancelled','expired'])('prioritizes authoritative %s over outage recovery',async(status)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue({ok:true,json:async()=>({status,outgoing:false,matchId:status==='accepted'?'next':null})});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.getByRole('alert')).toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.queryByText(/Invitation updates restored/)).not.toBeInTheDocument();
+  expect(screen.getByRole('link')).toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+ } finally {vi.useRealTimers();}
+});
 it('offers consent controls and links both players to the accepted arena',async()=>{
  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({status:'pending',outgoing:false,matchId:null})});
  vi.stubGlobal('fetch',fetcher);

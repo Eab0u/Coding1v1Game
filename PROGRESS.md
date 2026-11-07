@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Rematch update recovery feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one rematch improvement: successful recovery shows a styled, polite, atomic confirmation that invitation updates have resumed with the latest server snapshot. The notice persists through healthy polling, clears during recurring outages, resets for another match and retires for authoritative terminal outcomes.
+- Added eight regression cases covering both participants, automatic and explicit retries, recurring outages, healthy-poll persistence, match changes and all four terminal outcomes.
+- Validation: all 1,434 tests across 72 files passed; after expanding automatic/manual recovery coverage, all 47 focused rematch tests passed. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain; actual assistive-technology announcement testing remains pending.
+
 ### 2026-11-07 - Retire obsolete rematch action errors
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still prevents sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one rematch improvement: action error alerts retire at local invitation expiry and authoritative acceptance, decline, cancellation or expiry. Active-window failures remain visible for retry; server-confirmation and recovery guidance remain available.

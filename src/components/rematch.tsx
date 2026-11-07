@@ -22,6 +22,8 @@ function RematchSession({id}:{id:string}) {
   const [state,setState]=useState<RematchState|null>(null);
   const [error,setError]=useState('');
   const [pollError,setPollError]=useState('');
+  const [updatesRestored,setUpdatesRestored]=useState(false);
+  const hadPollError=useRef(false);
   const [refreshing,setRefreshing]=useState(false);
   const readPending=useRef(false);
   const [busy,setBusy]=useState(false);
@@ -62,10 +64,12 @@ function RematchSession({id}:{id:string}) {
         const data=await response.json();
         if (!response.ok) throw new Error(data.error);
         if (!stopped && revision.current===version) {
+          if (hadPollError.current) setUpdatesRestored(true);
+          hadPollError.current=false;
           setState(data);setPollError('');
           if (terminalStatuses.has(data.status)) return;
         }
-      } catch {if (!stopped && revision.current===version) setPollError('Unable to refresh invitation. Automatic retries continue.');}
+      } catch {if (!stopped && revision.current===version) {hadPollError.current=true;setUpdatesRestored(false);setPollError('Unable to refresh invitation. Automatic retries continue.');}}
       finally {if (!stopped && revision.current===version) {readPending.current=false;setRefreshing(false);}}
       if (!stopped && revision.current===version) timer=setTimeout(poll,2000);
     }
@@ -92,6 +96,7 @@ function RematchSession({id}:{id:string}) {
       if (controller.signal.aborted) return;
       if (!response.ok) throw new Error(data.error);
       // Restart polling so an older in-flight read cannot replace the action result.
+      setUpdatesRestored(hadPollError.current);hadPollError.current=false;
       setRefresh(n=>n+1);setState(data);setPollError('');
     } catch(e) {if (!controller.signal.aborted) setError(e instanceof Error?e.message:'Unable to send invitation.');}
     finally {if (!controller.signal.aborted) {actionController.current=null;setBusy(false);setPendingAction('');}}
@@ -107,6 +112,7 @@ function RematchSession({id}:{id:string}) {
     {state?.matchId && <Link className="button button--primary" href={`/match/${state.matchId}`}>Open rematch arena</Link>}
     {terminal && state.status!=='accepted' && <Link className="button button--primary" href="/">Find a new opponent</Link>}
     {error && !terminal && !deadlinePassed && <p role="alert">{error}</p>}
+    <div aria-live="polite" aria-atomic="true">{updatesRestored && !terminal && <p className="rematch-restored">Invitation updates restored. Showing the latest server snapshot; automatic updates continue.</p>}</div>
     {pollError && !terminal && <div className="rematch-recovery">
       <p role="alert">{pollError}</p>
       <button className="button button--secondary" disabled={busy || refreshing} onClick={retry}>Retry invitation update</button>
