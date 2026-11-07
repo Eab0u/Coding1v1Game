@@ -115,7 +115,11 @@ code { font-family: var(--font-mono); }
 .ladder-table th[scope="row"] { overflow-wrap: anywhere; }
 .ladder-table td:last-child { font-weight: 700; }
 .ladder-podium .ladder-rank { color: var(--color-success); }
-.ladder-empty { padding: 32px; }
+.ladder-empty { padding: clamp(20px, 5vw, 32px); }
+.ladder-empty > p:not(.eyebrow) { color: var(--color-muted); max-width: 65ch; }
+.ladder-empty-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.ladder-empty-actions .button { flex: 0 1 auto; overflow-wrap: anywhere; }
+@media (max-width: 480px) { .ladder-empty-actions .button { width: 100%; } }
 .ladder-empty .button { text-decoration: none; }
 .ladder-recovery { padding: clamp(20px, 5vw, 32px); display: flex; flex-wrap: wrap; gap: 12px; }
 .ladder-recovery [role="alert"] { flex-basis: 100%; min-width: 0; }

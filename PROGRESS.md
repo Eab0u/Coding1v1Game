@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Friends standings guidance
+- Reviewed both unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent leaderboard usability item. Catalog items remain unchecked.
+- Empty friends standings now use circle-specific guidance instead of asking signed-in players to create accounts. Weekly guidance explains that completed rated wins, losses and draws qualify. Added Find a duel and Invite friends actions without assuming the player has no friends. Signed-out friends standings now have a styled sign-in panel and a public standings link preserving the selected period.
+- Added component tests for both periods, guest query suppression and period preservation. Chromium checks cover guest and signed-in empty states at 320px, action target sizes, document overflow and keyboard order. Actions wrap into full-width buttons on phones.
+- Validation: all 466 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Readable profile rating journeys
 - Reviewed both unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
 - Added visible rounded MMR scale labels and gridlines, a zero-bounded scale, a latest-duel UTC date and a history-window net change summary. Kept exact chronological rating history available through a keyboard-accessible disclosure with a 44px target. The summary distinguishes one duel from multiple duels and uses displayed endpoint ratings consistently for net change.

@@ -36,7 +36,11 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       {scope && <p>You and your accepted friends, ranked within your circle.</p>}
       <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
       <Card className="ladder-card">
-        {needsLogin ? <p><Link href="/account">Sign in to see friends standings</Link></p> : unavailable ? <div className="ladder-recovery">
+        {needsLogin ? <section className="ladder-empty" aria-labelledby="friends-login-title">
+          <p className="eyebrow">YOUR CIRCLE</p><h2 id="friends-login-title">Climb with familiar rivals.</h2>
+          <p>Sign in to compare your rating with accepted friends. Pending invitations stay out of the standings.</p>
+          <div className="ladder-empty-actions"><Link className="button button--primary" href="/account">Sign in to see friends standings</Link><Link className="button button--secondary" href={`/leaderboard?period=${period}`}>See everyone</Link></div>
+        </section> : unavailable ? <div className="ladder-recovery">
           <div role="alert"><h2>Standings unavailable</h2><p>We couldn’t load this ladder. Try again to refresh your selected standings.</p></div>
           <a className="button button--primary" href={retryHref}>Retry standings</a>
           <Link className="button button--secondary" href="/">Back to arena</Link>
@@ -48,7 +52,11 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
               <td><span className="ladder-rank">#{entry.rank}</span></td><th scope="row"><Link href={`/profile/${entry.username}`}>{entry.username}</Link></th><td>{Math.round(entry.rating)}</td>
               {period === "weekly" && <td>{entry.score > 0 ? "+" : ""}{Math.round(entry.score)}</td>}
             </tr>)}</tbody>
-          </table></div> : <div className="ladder-empty"><h2>{period === "weekly" ? "A new week. An open ladder." : "The first rivals are on their way."}</h2><p>{period === "weekly" ? "Completed rated duels will put this week’s climbers here." : "Create an account to join the standings."}</p><Link className="button button--primary" href="/">Back to arena</Link></div>}
+          </table></div> : scope ? <section className="ladder-empty" aria-labelledby="friends-empty-title">
+            <p className="eyebrow">YOUR CIRCLE</p><h2 id="friends-empty-title">{period === "weekly" ? "Your circle’s next climb starts here." : "Bring your rivals to the ladder."}</h2>
+            <p>{period === "weekly" ? "Neither you nor your accepted friends have completed a rated duel this week. Finish a rated duel to join the weekly climb; wins, losses and draws all count." : "No standings are available for your circle yet. Invite a rival or return to the arena to start a duel."}</p>
+            <div className="ladder-empty-actions"><Link className="button button--primary" href="/">Find a duel</Link><Link className="button button--secondary" href="/friends">Invite friends</Link></div>
+          </section> : <div className="ladder-empty"><h2>{period === "weekly" ? "A new week. An open ladder." : "The first rivals are on their way."}</h2><p>{period === "weekly" ? "Completed rated duels will put this week’s climbers here." : "Create an account to join the standings."}</p><Link className="button button--primary" href="/">Back to arena</Link></div>}
       </Card>
     </main>
   </div>;

@@ -48,5 +48,26 @@ it("keeps signed-out friends standings as a sign-in state without a retry", asyn
   render(await Leaderboard({ searchParams: Promise.resolve({ scope: "friends" }) }));
   expect(screen.getByRole("link", { name: "Sign in to see friends standings" })).toBeVisible();
   expect(screen.queryByRole("link", { name: "Retry standings" })).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Sign in to see friends standings" })).toHaveClass("button--primary");
+  expect(screen.getByRole("link", { name: "See everyone" })).toHaveAttribute("href", "/leaderboard?period=global");
+  expect(mocks.load).not.toHaveBeenCalled();
+});
+
+it.each(["global", "weekly"])("guides signed-in players through empty %s friends standings", async period => {
+  render(await Leaderboard({ searchParams: Promise.resolve({ period, scope: "friends" }) }));
+  expect(mocks.load).toHaveBeenCalledWith({}, period, "player");
+  expect(screen.getByRole("region", { name: period === "weekly" ? "Your circle’s next climb starts here." : "Bring your rivals to the ladder." })).toBeVisible();
+  expect(screen.getByRole("link", { name: "Find a duel" })).toHaveAttribute("href", "/");
+  expect(screen.getByRole("link", { name: "Invite friends" })).toHaveAttribute("href", "/friends");
+  expect(screen.queryByText(/Create an account/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  if (period === "weekly") expect(screen.getByText(/wins, losses and draws all count/)).toBeVisible();
+});
+
+it("preserves weekly selection when guests leave friends standings", async () => {
+  mocks.current.mockResolvedValue(null);
+  render(await Leaderboard({ searchParams: Promise.resolve({ period: "weekly", scope: "friends" }) }));
+  expect(screen.getByRole("link", { name: "See everyone" })).toHaveAttribute("href", "/leaderboard?period=weekly");
+  expect(screen.queryByRole("link", { name: "Find a duel" })).not.toBeInTheDocument();
 });
 
