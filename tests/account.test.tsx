@@ -88,3 +88,28 @@ it("shows a recoverable service error", async () => {
   expect(screen.queryByRole("button", { name: /Play/ })).not.toBeInTheDocument();
 });
 
+it("blocks over-limit Unicode passwords locally and recovers independently in each form", async () => {
+  current.mockResolvedValue(null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  const [login, signup] = screen.getAllByLabelText<HTMLInputElement>("Password");
+  fireEvent.change(login, { target: { value: "😀".repeat(65) } });
+  expect(login).toHaveAttribute("aria-invalid", "true");
+  expect(login.validity.customError).toBe(true);
+  expect(login).toHaveAccessibleDescription(/at most 256 bytes/);
+  expect(signup.validity.customError).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  expect(login.validity.customError).toBe(true);
+  expect(login).toHaveValue("😀".repeat(65));
+  fireEvent.change(login, { target: { value: "😀".repeat(64) } });
+  expect(login.validity.customError).toBe(false);
+  expect(login).not.toHaveAttribute("aria-invalid");
+  fireEvent.change(signup, { target: { value: "short" } });
+  expect(signup.validationMessage).toBe("Use at least 12 characters.");
+  expect(login.validity.customError).toBe(false);
+  fireEvent.change(signup, { target: { value: "a long enough password" } });
+  expect(signup.validity.valid).toBe(true);
+  fireEvent.change(signup, { target: { value: "" } });
+  expect(signup.validity.valueMissing).toBe(true);
+  expect(screen.queryByText("Use at least 12 characters.")).not.toBeInTheDocument();
+});
+

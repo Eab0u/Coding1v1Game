@@ -1,5 +1,7 @@
 ﻿import { createHash, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
+import { passwordValidationMessage } from "./password-validation";
+
 export interface AuthDatabase {
   query<T extends Record<string, unknown>>(sql: string, params?: unknown[]): Promise<{ rows: T[] }>;
 }
@@ -23,7 +25,7 @@ export async function verifyPassword(password: string, stored: string | null) {
 }
 export function credentials(username: unknown, password: unknown) {
   if (typeof username !== "string" || !/^[A-Za-z0-9_]{3,24}$/.test(username)) throw new AuthError("Use 3–24 letters, numbers or underscores for your username.");
-  if (typeof password !== "string" || password.length < 12 || Buffer.byteLength(password) > 256) throw new AuthError("Use a password of at least 12 characters and at most 256 bytes.");
+  if (typeof password !== "string" || passwordValidationMessage(password)) throw new AuthError("Use a password of at least 12 characters and at most 256 bytes.");
   return { username, password };
 }
 export function createAuth(db: AuthDatabase) {

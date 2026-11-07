@@ -266,6 +266,9 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .password-field { display: flex; align-items: stretch; gap: 8px; min-width: 0; }
 .password-field input { min-width: 0; flex: 1; }
 .password-field .button { flex-shrink: 0; }
+.account-form .password-validation { margin: 0; color: var(--color-text); border-left: 3px solid var(--color-accent); padding-left: 12px; }
+.password-validation:empty { display: none; }
+.account-form input[aria-invalid="true"] { border-color: var(--color-text); }
 
 .friend-groups { display: grid; gap: 2rem; margin-top: 2rem; }
 .friend-group-title { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
