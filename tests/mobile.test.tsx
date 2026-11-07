@@ -56,6 +56,32 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
+it.each([320, 375, 1280].flatMap(width => ["global", "weekly"].map(period => ({ width, period }))))('jumps past leaderboard guides with native keyboard focus at $width px ($period)', async ({ width, period }) => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    state.signedIn = true;
+    state.accountUnavailable = false;
+    state.leaderboardUnavailable = false;
+    state.leaderboardEmpty = false;
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Leaderboard({ searchParams: Promise.resolve({ period, scope: 'friends' }) }))}`);
+    const jump = page.getByRole('link', { name: 'Jump to standings' });
+    await page.getByRole('link', { name: 'Your account' }).focus();
+    await page.keyboard.press('Tab');
+    expect(await jump.evaluate(el => document.activeElement === el)).toBe(true);
+    const bounds = (await jump.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    await page.keyboard.press('Enter');
+    expect(await page.locator('#standings-summary-title').evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('region', { name: 'Leaderboard standings' }).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', { name: username, exact: true }).evaluate(el => document.activeElement === el)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});
+
 it.each([320, 375, 1280])('keeps root-layout recovery usable without app styles at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 600 } });
   try {

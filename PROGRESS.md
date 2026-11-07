@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Direct keyboard access to standings
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded leaderboard usability item.
+- Added a visible native Jump to standings action ahead of filters and ranking guides on populated global, weekly and friends ladders. Its heading destination accepts fragment focus without adding a Tab stop; the next Tab reaches the keyboard-scrollable standings region and then player links. Empty, unavailable and signed-out friends views omit the shortcut.
+- Added component coverage for all period/scope combinations and missing destinations, plus Chromium keyboard, touch-height and overflow checks at 320, 375 and 1280 pixels for both friends ladder periods. Reused the existing secondary button styling.
+- Validation: all 1,157 tests across 70 files passed; focused leaderboard/mobile tests (206 tests), lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
 ### 2026-11-07 - Consistent profile rating changes
 - Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation; JudgeUnavailableError still blocks it. Both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded profile correctness improvement.
 - Rating journey totals and individual disclosed changes now round full-precision differences, matching recent duels and results instead of subtracting rounded endpoints. Added guidance explaining independent rounding and small gains/losses displayed as zero.

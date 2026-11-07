@@ -29,6 +29,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       <p className="eyebrow">THE CLIMB STARTS AT 800</p>
       <h1>The ladder.</h1>
       <p className="intro">Every duel is a chance to climb. Meet the top 100.</p>
+      {!unavailable && !needsLogin && entries.length > 0 && <p><a className="button button--secondary" href="#standings-summary-title">Jump to standings</a></p>}
       <nav className="ladder-filters" aria-label="Leaderboard period">
         <a href={scope ? "/leaderboard?scope=friends" : "/leaderboard"} aria-current={period === "global" ? "page" : undefined}>Global rating</a>
         <a href={scope ? "/leaderboard?period=weekly&scope=friends" : "/leaderboard?period=weekly"} aria-current={period === "weekly" ? "page" : undefined}>Weekly climb</a>
@@ -65,7 +66,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
           <Link className="button button--secondary" href="/">Back to arena</Link>
         </div> : entries.length ?
           <><section className="standings-summary" aria-labelledby="standings-summary-title">
-            <div><p className="eyebrow">{scope ? "YOUR CIRCLE" : "EVERYONE"}</p><h2 id="standings-summary-title">{period === "weekly" ? "Weekly climb" : "Global rating"}</h2></div>
+            <div><p className="eyebrow">{scope ? "YOUR CIRCLE" : "EVERYONE"}</p><h2 id="standings-summary-title" tabIndex={-1}>{period === "weekly" ? "Weekly climb" : "Global rating"}</h2></div>
             <p className="standings-count">{entries.length} {entries.length === 1 ? "player shown" : "players shown"}</p>
             <p className="standings-summary-note">{entries.length === 100 ? "Showing the top 100 players. More players may qualify for this ladder." : "Showing all qualifying players in this ladder."} {scope ? "Includes you and your accepted friends." : "Includes players across CodeDuel."}</p>
           </section><p id="standings-scroll-hint" className="standings-scroll-hint">On smaller screens, scroll sideways to see all standings. Keyboard: focus the standings and use the left and right arrow keys.</p>

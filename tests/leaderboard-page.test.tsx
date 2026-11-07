@@ -6,6 +6,26 @@ vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "s
 vi.mock("../src/lib/leaderboard", () => ({ loadLeaderboard: mocks.load }));
 import Leaderboard from "../src/app/leaderboard/page";
 beforeEach(() => { mocks.load.mockResolvedValue([]); mocks.current.mockResolvedValue({ id: "player" }); });
+it.each([{}, { period: "weekly" }, { scope: "friends" }, { period: "weekly", scope: "friends" }])("offers a native standings shortcut for populated filters %j", async filters => {
+  mocks.load.mockResolvedValue([{ username: "Ada", rating: 800, score: 0, rank: 1 }]);
+  render(await Leaderboard({ searchParams: Promise.resolve(filters) }));
+  const jump = screen.getByRole("link", { name: "Jump to standings" });
+  expect(jump).toHaveAttribute("href", "#standings-summary-title");
+  expect(jump).toHaveClass("button--secondary");
+  const heading = document.getElementById("standings-summary-title")!;
+  expect(heading.tagName).toBe("H2");
+  expect(heading).toHaveAttribute("tabindex", "-1");
+  expect(heading).toHaveTextContent(filters.period === "weekly" ? "Weekly climb" : "Global rating");
+  expect(jump.compareDocumentPosition(screen.getByRole("navigation", { name: "Leaderboard period" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+
+it.each(["empty", "unavailable", "signed-out"])("omits the standings shortcut with no destination in %s state", async mode => {
+  if (mode === "unavailable") mocks.load.mockRejectedValue(new Error("private"));
+  if (mode === "signed-out") mocks.current.mockResolvedValue(null);
+  render(await Leaderboard({ searchParams: Promise.resolve({ scope: "friends" }) }));
+  expect(screen.queryByRole("link", { name: "Jump to standings" })).not.toBeInTheDocument();
+  expect(document.getElementById("standings-summary-title")).toBeNull();
+});
 it("offers accessible period links and honest empty states", async () => {
   render(await Leaderboard({ searchParams: Promise.resolve({}) }));
   expect(screen.getByRole("link", { name: "Global rating" })).toHaveAttribute("aria-current", "page");
