@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Loading-screen match recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: loading pages now explain home/Play recovery of an existing match with server-confirmed availability. Applied the shared prominent recovery-guidance styling and associated the Back to arena link with the visible live-clock and recovery instructions.
+- Updated regression coverage for the accessible description, visible styling, stable guidance and retained keyboard focus when the fifteen-second loading warning appears.
+- Validation: all 1,626 tests across 72 files passed on the full-suite rerun; focused loading tests (3), lint, production build, typecheck and whitespace checks passed. The first full run had a rematch focus-test failure; all 86 rematch tests passed independently and the full rerun passed without changes to rematch code or tests.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Unavailable-page match recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: unavailable pages now explain that live clocks continue and describe original-link or home/Play recovery for existing matches, with server-confirmed availability. Updated the heading and reused the prominent recovery-guidance styling.

@@ -12,9 +12,9 @@ export default function Loading() {
         <p className="eyebrow">CODEDUEL</p>
         <h1>Opening your page.</h1>
         <LoadingStatus />
-        <p>This page will appear automatically when it is ready. If you are returning to a live duel, its server clock continues while this page loads.</p>
+        <p id="loading-recovery-guidance" className="recovery-guidance">This page will appear automatically when it is ready. If you are returning to a live duel, its server clock continues while this page loads. Use Back to arena, then press Play to recover your existing match. The server confirms whether it is still available.</p>
         <nav aria-label="Loading navigation" className="page-recovery-actions">
-          <a className="button button--secondary" href="/">Back to arena</a>
+          <a className="button button--secondary" href="/" aria-describedby="loading-recovery-guidance">Back to arena</a>
         </nav>
       </Card>
     </main>

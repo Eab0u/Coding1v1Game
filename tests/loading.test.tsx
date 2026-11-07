@@ -9,6 +9,10 @@ it("offers recovery after fifteen seconds without replacing the live region or s
   const { unmount } = render(<Loading />);
   const status = screen.getByRole("status");
   const recovery = screen.getByRole("link", { name: "Back to arena" });
+  const guidance = document.getElementById(recovery.getAttribute("aria-describedby")!);
+  expect(recovery).toHaveAccessibleDescription(/server clock continues.*press Play to recover your existing match.*server confirms/i);
+  expect(guidance).toHaveClass("recovery-guidance");
+  expect(guidance).toBeVisible();
   recovery.focus();
   act(() => vi.advanceTimersByTime(14_999));
   expect(status).toHaveTextContent("Loading page content…");
@@ -18,6 +22,8 @@ it("offers recovery after fifteen seconds without replacing the live region or s
   expect(status).toHaveTextContent("This page is taking longer than usual.");
   expect(screen.getByText(/You can keep waiting/)).toHaveTextContent("Reloading does not pause a live duel or resend a code submission.");
   expect(recovery).toHaveFocus();
+  expect(document.getElementById(recovery.getAttribute("aria-describedby")!)).toBe(guidance);
+  expect(recovery).toHaveAccessibleDescription(/press Play to recover your existing match/);
   act(() => vi.advanceTimersByTime(60_000));
   expect(status).toHaveTextContent("This page is taking longer than usual.");
   expect(vi.getTimerCount()).toBe(0);
