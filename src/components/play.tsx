@@ -83,6 +83,11 @@ export function Play({ signedIn }: { signedIn: boolean }) {
       if (socket.current !== ws) return;
       try {
         const data: QueueEvent = JSON.parse(event.data);
+        if (!data || typeof data !== "object" || Array.isArray(data)
+          || !["queued", "matching", "matched", "left", "error"].includes(data.type)
+          || (data.type === "error" && (typeof data.message !== "string" || !data.message.trim()))) {
+          throw new Error("Invalid matchmaking response");
+        }
         if (cancelling && (data.type === "queued" || data.type === "matching")) return;
         // Reservation frames must not renew the deadline or return us to the queue.
         if (reserving && (data.type === "queued" || data.type === "matching")) return;

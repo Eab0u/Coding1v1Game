@@ -440,3 +440,27 @@ it.each([
   expect(screen.getByRole('link', { name: 'Open arena' })).toHaveAttribute('href', '/match/recovered');
   expect(screen.getByRole('link', { name: 'Open arena' })).toHaveFocus();
 });
+
+it.each([null, [], {}, { type: "unknown" }, { type: 1 },
+  { type: "error" }, { type: "error", message: {} },
+  { type: "error", message: "   " }])("recovers from malformed response %j and permits retry", frame => {
+  vi.useFakeTimers();
+  const ws = start();
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  screen.getByRole("button", { name: "Cancel search" }).focus();
+  act(() => ws.onmessage({ data: JSON.stringify(frame) }));
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toBeEnabled();
+  expect(play).toHaveFocus();
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(ws.close).toHaveBeenCalledOnce();
+  expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response. Please try again.");
+  expect(screen.queryByRole("button", { name: "Cancel search" })).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response");
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
