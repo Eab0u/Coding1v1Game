@@ -37,6 +37,12 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Comment-aware plain-editor Enter
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and checked off one bounded editor correctness item.
+- Enter now scans the current line for comments outside quoted text. Comment-only colons keep the existing indentation, while block headers followed by comments receive four additional spaces. Updated the visible keyboard guidance.
+- Added ten regression cases covering comments, quoted hash characters, escaped quotes, incomplete strings, tabs, selection replacement, suffix preservation, focus and caret placement. This is a current-line convenience, not a full Python parser; multiline string context remains outside its scope.
+- Validation: all 862 tests across 60 files passed; lint, typecheck and production build passed. No Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
 ### 2026-11-07 - Preserve IME focus during indentation clicks
 - Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. The validation command still returns JudgeUnavailableError; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
 - Prevented Indent and Outdent mousedown defaults during active composition. This keeps the textarea focused so its blur handler cannot clear the composition guard before the click and inadvertently alter a composing draft.

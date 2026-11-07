@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Make plain-editor Enter ignore Python comment colons while indenting commented block headers, with quoted-marker, selection and caret regression coverage
 - [x] Prevent Indent and Outdent mouse activation from blurring active IME composition before the click guard, with browser-default focus simulation, selection preservation and recovery tests
 - [x] Preserve active IME selections through plain-editor Select all code actions, with mode-change preservation and composition-end/blur recovery tests
 - [x] Protect plain-editor toolbar indentation during IME composition, preserving drafts, backward selections and cursor feedback with composition-end and blur recovery tests

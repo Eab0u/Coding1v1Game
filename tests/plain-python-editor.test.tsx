@@ -458,3 +458,38 @@ it("updates selected line counts after indentation and draft replacement", () =>
   rerender(<PlainPythonEditor value="x" onChange={vi.fn()} readOnly/>);
   expect(screen.getByLabelText("Solution cursor position")).not.toHaveTextContent("selected across");
 });
+
+it.each([
+  ["    # explain:", "    "],
+  ["    value = 1 # note:", "    "],
+  ["    if ready: # proceed", "        "],
+  ["    if ready: # note:", "        "],
+  ['    if marker == "#": # proceed', "        "],
+  ["    if marker == '#':", "        "],
+  ['    text = "unfinished:', "    "],
+  ['    text = "escaped\\\"#:', "    "],
+  ["\tif ready: # proceed", "\t    "],
+])("indents Enter using code rather than comment colons: %s", (initial, indentation) => {
+  render(<Harness initial={initial}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(initial.length, initial.length);
+  expect(fireEvent.keyDown(input, { key: "Enter" })).toBe(false);
+  expect(input).toHaveValue(initial + "\n" + indentation);
+  expect(input.selectionStart).toBe(initial.length + 1 + indentation.length);
+  expect(input.selectionEnd).toBe(input.selectionStart);
+  expect(input).toHaveFocus();
+});
+
+it("replaces a selection after a commented block header and preserves the suffix", () => {
+  const initial = "if ready: # proceed REMOVE\nnext_call()";
+  render(<Harness initial={initial}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  const start = initial.indexOf(" REMOVE");
+  input.focus();
+  input.setSelectionRange(start, start + 7, "backward");
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(input).toHaveValue("if ready: # proceed\n    \nnext_call()");
+  expect(input.selectionStart).toBe(start + 5);
+  expect(input.selectionEnd).toBe(start + 5);
+});

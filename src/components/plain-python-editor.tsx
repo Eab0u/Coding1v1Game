@@ -1,6 +1,26 @@
 "use client";
 import { useId, useLayoutEffect, useRef } from "react";
 
+// Scan the current line so comment punctuation cannot create a block indent.
+function endsWithBlockColon(line: string) {
+  let quote = "";
+  let escaped = false;
+  let code = "";
+  for (const character of line) {
+    if (quote) {
+      code += character;
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === quote) quote = "";
+    } else {
+      if (character === "#") break;
+      code += character;
+      if (character === "'" || character === '"') quote = character;
+    }
+  }
+  return !quote && code.trimEnd().endsWith(":");
+}
+
 export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wordWrap = false }: {
   value: string; onChange: (value: string) => void; readOnly: boolean; fontSize?: number; wordWrap?: boolean;
 }) {
@@ -98,7 +118,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
         const { selectionStart: start, selectionEnd: end } = event.currentTarget;
         const prefix = value.slice(value.slice(0, start).lastIndexOf("\n") + 1, start);
         const indent = prefix.match(/^[\t ]*/)?.[0] ?? "";
-        const insertion = "\n" + indent + (prefix.trimEnd().endsWith(":") ? "    " : "");
+        const insertion = "\n" + indent + (endsWithBlockColon(prefix) ? "    " : "");
         event.preventDefault();
         caret.current = [start + insertion.length, start + insertion.length];
         onChange(value.slice(0, start) + insertion + value.slice(end));
@@ -106,6 +126,6 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
     <p id={hint} className="editor-hint">{readOnly
       ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
-      : "Enter keeps indentation and adds four spaces after a colon. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+      : "Enter keeps indentation and adds four spaces after a code colon, ignoring trailing comments. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
   </>;
 }
