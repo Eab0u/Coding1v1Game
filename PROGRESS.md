@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Expired rematch invitation guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one rematch improvement: expired invitation windows replace acceptance/waiting/action prompts with polite, atomic server-confirmation guidance and retire busy styling. An authoritative delayed acceptance still replaces expiry guidance; local expiry does not claim a final outcome.
+- Added incoming/outgoing reopening and countdown regression coverage, including delayed action responses and navigation cleanup.
+- Validation: all 1,415 tests across 72 files passed; after expanding reopening coverage to both participants, all 27 focused rematch tests passed. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Expired submission action feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one arena improvement: submission action feedback now explains closed submissions, outstanding judging and server confirmation at clock expiry. Busy accents end at expiry, while automatic polling and code-export guidance remain available. Late acknowledgements and errors cannot restore obsolete action prompts.

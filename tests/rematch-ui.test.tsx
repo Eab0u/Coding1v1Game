@@ -309,15 +309,16 @@ it('omits countdown for unavailable server timestamps',async()=>{
  expect(await screen.findByRole('button',{name:'Cancel invitation'})).toBeEnabled();
  expect(screen.queryByRole('timer')).not.toBeInTheDocument();
 });
-it('disables elapsed outgoing invitations and cleans up the countdown on navigation',async()=>{
+it.each([true,false])('disables elapsed invitations on reopening and cleans up on navigation (outgoing=%s)',async(outgoing)=>{
  vi.useFakeTimers();
  try {
-  const pending={status:'pending',outgoing:true,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T11:59:59Z'};
+  const pending={status:'pending',outgoing,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T11:59:59Z'};
   const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>pending}).mockResolvedValue(response('none'));
   vi.stubGlobal('fetch',fetcher);
   const view=render(<Rematch id="old"/>);
   await act(async()=>{});
-  expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeDisabled();
+  expect(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'})).toBeDisabled();
+  expect(screen.getByText(/The invitation window has ended/)).toBeInTheDocument();
   view.rerender(<Rematch id="new"/>);
   await act(async()=>{});
   expect(screen.queryByRole('timer')).not.toBeInTheDocument();
@@ -325,5 +326,28 @@ it('disables elapsed outgoing invitations and cleans up the countdown on navigat
   view.unmount();
   await act(async()=>{await vi.advanceTimersByTimeAsync(10000);});
   expect(fetcher).toHaveBeenCalledTimes(2);
+ } finally {vi.useRealTimers();}
+});
+
+it.each([true,false])('retires expired invitation prompts for outgoing=%s, including delayed actions',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const pending={status:'pending',outgoing,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T12:00:01Z'};
+  const delayed=deferred<ReturnType<typeof response>>();
+  const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>pending}).mockReturnValueOnce(delayed.promise).mockResolvedValue(response('expired'));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const message=screen.getByText(outgoing?'Waiting for your opponent. Invitation expires after 60 seconds.':'Your opponent invited you to a fresh ranked duel. Accept within 60 seconds.');
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'}));
+  expect(message).toHaveClass('rematch-pending');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(message).toHaveTextContent('The invitation window has ended.');
+  expect(message).toHaveTextContent('no rematch is confirmed yet');
+  expect(message).toHaveAttribute('aria-live','polite');
+  expect(message).not.toHaveClass('rematch-pending');
+  await act(async()=>{delayed.resolve(response('accepted'));});
+  expect(screen.getByText('Rematch accepted. Your next arena is ready.')).toBeInTheDocument();
+  expect(screen.queryByText(/The invitation window has ended/)).not.toBeInTheDocument();
  } finally {vi.useRealTimers();}
 });
