@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Keyboard focus after rematch acceptance
+- Retried the highest-value unchecked catalog milestone using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one improvement: explicit acceptance from the focused Accept rematch control transfers focus to Open rematch arena after authoritative acceptance, including confirmation discovered through polling. Background acceptance and navigation elsewhere preserve the player's focus; failed actions clear the focus intent.
+- Added four regression cases covering direct and polled acceptance and independent focus during both explicit actions and background updates.
+- Validation: all 1,444 tests across 72 files passed; all 55 focused rematch tests passed after the lint fix. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Invitation-scoped rematch action errors
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks the catalog milestones. No Python ran outside the sandbox; both milestones remain unchecked.
 - Followed the blocker rule and added/completed one improvement: failed rematch actions now scope their alerts to the invitation snapshot they concerned. Authoritative invitation changes retire obsolete errors, while unchanged snapshots and server-clock refreshes preserve useful retry feedback.

@@ -523,3 +523,33 @@ it.each([true,false])('preserves retry errors across clock-only invitation refre
   expect(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'})).toBeEnabled();
  } finally {vi.useRealTimers();}
 });
+it.each([false,true])('focuses the arena after keyboard acceptance (poll confirmation=%s)',async(pollConfirmation)=>{
+ vi.useFakeTimers();
+ try {
+  const pending={ok:true,json:async()=>({status:'pending',outgoing:false,matchId:null})};
+  const accepted={ok:true,json:async()=>({status:'accepted',outgoing:false,matchId:'next'})};
+  const fetcher=vi.fn().mockResolvedValueOnce(pending).mockResolvedValueOnce(pollConfirmation?pending:accepted).mockResolvedValue(accepted);
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const button=screen.getByRole('button',{name:'Accept rematch'});
+  button.focus();fireEvent.click(button);
+  await act(async()=>{});
+  expect(screen.getByRole('link',{name:'Open rematch arena'})).toHaveFocus();
+ } finally {vi.useRealTimers();}
+});
+it.each([false,true])('preserves independent focus on acceptance (explicit action=%s)',async(explicit)=>{
+ vi.useFakeTimers();
+ try {
+  const action=deferred<{ok:boolean;json:()=>Promise<{status:string;outgoing:boolean;matchId:string}>}>();
+  const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>({status:'pending',outgoing:false,matchId:null})}).mockReturnValueOnce(action.promise);
+  vi.stubGlobal('fetch',fetcher);render(<><button>Other navigation</button><Rematch id="old"/></>);
+  await act(async()=>{});
+  if (explicit) {
+   const button=screen.getByRole('button',{name:'Accept rematch'});button.focus();fireEvent.click(button);
+  } else {await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});}
+  const other=screen.getByRole('button',{name:'Other navigation'});other.focus();
+  await act(async()=>{action.resolve({ok:true,json:async()=>({status:'accepted',outgoing:false,matchId:'next'})});});
+  expect(screen.getByRole('link',{name:'Open rematch arena'})).toBeInTheDocument();
+  expect(other).toHaveFocus();
+ } finally {vi.useRealTimers();}
+});

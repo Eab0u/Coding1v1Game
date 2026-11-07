@@ -36,7 +36,17 @@ function RematchSession({id}:{id:string}) {
   const [refresh,setRefresh]=useState(0);
   const revision=useRef(0);
   const actionController=useRef<AbortController|null>(null);
+  const acceptButton=useRef<HTMLButtonElement|null>(null);
+  const arenaLink=useRef<HTMLAnchorElement|null>(null);
+  const focusAcceptedArena=useRef(false);
   const terminal=state!==null && terminalStatuses.has(state.status);
+  useEffect(()=>{
+    if (!terminal || !focusAcceptedArena.current) return;
+    focusAcceptedArena.current=false;
+    if (state?.status==='accepted' && (document.activeElement===document.body || document.activeElement===acceptButton.current)) {
+      arenaLink.current?.focus();
+    }
+  },[terminal,state]);
   const [countdown,setCountdown]=useState<{source:RematchState;seconds:number}|null>(null);
   const expires=Date.parse(state?.expiresAt??'');
   const server=Date.parse(state?.serverNow??'');
@@ -93,6 +103,7 @@ function RematchSession({id}:{id:string}) {
     if (actionController.current || deadlinePassed) return;
     const controller=new AbortController();
     actionController.current=controller;
+    focusAcceptedArena.current=action==='accept' && document.activeElement===acceptButton.current;
     revision.current++;
     setBusy(true);setPendingAction(action);setError('');setErrorInvitation(invitationKey(state));
     try {
@@ -103,7 +114,7 @@ function RematchSession({id}:{id:string}) {
       // Restart polling so an older in-flight read cannot replace the action result.
       setUpdatesRestored(hadPollError.current);hadPollError.current=false;
       setRefresh(n=>n+1);setState(data);setPollError('');
-    } catch(e) {if (!controller.signal.aborted) setError(e instanceof Error?e.message:'Unable to send invitation.');}
+    } catch(e) {if (!controller.signal.aborted) {focusAcceptedArena.current=false;setError(e instanceof Error?e.message:'Unable to send invitation.');}}
     finally {if (!controller.signal.aborted) {actionController.current=null;setBusy(false);setPendingAction('');}}
   }
   return <section className={`card rematch-panel${terminal?' rematch-panel--settled':''}`} aria-label="Rematch invitation"><h2>Another round?</h2>
@@ -113,8 +124,8 @@ function RematchSession({id}:{id:string}) {
       <p role="timer" aria-live="off" aria-label="Invitation time remaining">{remaining}s remaining</p>
       {deadlinePassed && <p role="status">Invitation deadline reached. Waiting for server confirmation.</p>}
     </div>}
-    {state?.status==='pending' && (state.outgoing?<button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('cancel')}>Cancel invitation</button>:<div className="result-actions"><button className="button button--primary" disabled={busy || deadlinePassed} onClick={()=>void act('accept')}>Accept rematch</button><button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('decline')}>Decline</button></div>)}
-    {state?.matchId && <Link className="button button--primary" href={`/match/${state.matchId}`}>Open rematch arena</Link>}
+    {state?.status==='pending' && (state.outgoing?<button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('cancel')}>Cancel invitation</button>:<div className="result-actions"><button ref={acceptButton} className="button button--primary" disabled={busy || deadlinePassed} onClick={()=>void act('accept')}>Accept rematch</button><button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('decline')}>Decline</button></div>)}
+    {state?.matchId && <Link ref={arenaLink} className="button button--primary" href={`/match/${state.matchId}`}>Open rematch arena</Link>}
     {terminal && state.status!=='accepted' && <Link className="button button--primary" href="/">Find a new opponent</Link>}
     {error && errorInvitation===invitationKey(state) && !terminal && !deadlinePassed && <p role="alert">{error}</p>}
     <div aria-live="polite" aria-atomic="true">{updatesRestored && !terminal && <p className="rematch-restored">Invitation updates restored. Showing the latest server snapshot; automatic updates continue.</p>}</div>
