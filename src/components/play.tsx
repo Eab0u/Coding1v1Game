@@ -11,7 +11,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
   const panel = useRef<HTMLDivElement>(null);
   const arenaLink = useRef<HTMLAnchorElement>(null);
   const focusArena = useRef(false);
-  const focusAfterCancel = useRef(false);
+  const focusAfterSearch = useRef(false);
   const socket = useRef<WebSocket | null>(null);
   const leave = useRef<(() => void) | null>(null);
   const responseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -33,12 +33,16 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     }
   }, [matchId]);
   useEffect(() => {
-    if (phase === "matched" || phase === "matching") focusAfterCancel.current = false;
-    if (phase !== "idle" || !focusAfterCancel.current) return;
-    focusAfterCancel.current = false;
+    if (phase === "matched" || phase === "matching") focusAfterSearch.current = false;
+    if (phase !== "idle" || !focusAfterSearch.current) return;
+    focusAfterSearch.current = false;
     const play = panel.current?.querySelector<HTMLButtonElement>(".play-button");
     if (document.activeElement === document.body || document.activeElement === play) play?.focus();
   }, [phase]);
+  function restoreIdle() {
+    if (panel.current?.querySelector("[data-search-cancel]")?.matches(":focus")) focusAfterSearch.current = true;
+    setPhase("idle");
+  }
   function join() {
     if (socket.current) return;
     feedback.unlock();
@@ -48,7 +52,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     let ws: WebSocket;
     try { ws = new WebSocket(url); }
     catch {
-      setPhase("idle");
+      restoreIdle();
       setMessage("Could not open a matchmaking connection. Please try again.");
       return;
     }
@@ -62,7 +66,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
         socket.current = null;
         clearResponseTimer();
         ws.close();
-        setPhase("idle"); setMessage(message);
+        restoreIdle(); setMessage(message);
       }, 10000);
     }
     function send(type: "join" | "leave") {
@@ -97,19 +101,19 @@ export function Play({ signedIn }: { signedIn: boolean }) {
           const active = document.activeElement;
           focusArena.current = !!active && !!panel.current?.contains(active) && active.matches(".play-button, [data-search-cancel]");
           feedback.notify("matched"); setMatchId(data.match.id); setPhase("matched"); setMessage(`Matched with ${data.opponent.username} (${Math.round(data.opponent.rating)}) · ${data.match.difficulty}. Your match is reserved. Open the arena to prepare.`); socket.current = null; ws.close(); }
-        else if (data.type === "left" || data.type === "error") { socket.current = null; ws.close(); setPhase("idle"); setMessage(data.type === "error" ? data.message : "Search cancelled. Ready when you are."); }
-      } catch { clearResponseTimer(); socket.current = null; ws.close(); setPhase("idle"); setMessage("Unexpected server response. Please try again."); }
+        else if (data.type === "left" || data.type === "error") { socket.current = null; ws.close(); restoreIdle(); setMessage(data.type === "error" ? data.message : "Search cancelled. Ready when you are."); }
+      } catch { clearResponseTimer(); socket.current = null; ws.close(); restoreIdle(); setMessage("Unexpected server response. Please try again."); }
     };
-    ws.onclose = ws.onerror = () => { if (socket.current === ws) { clearResponseTimer(); socket.current = null; ws.close(); setPhase("idle"); setMessage("Connection lost. Sign in again or retry matchmaking."); } };
+    ws.onclose = ws.onerror = () => { if (socket.current === ws) { clearResponseTimer(); socket.current = null; ws.close(); restoreIdle(); setMessage("Connection lost. Sign in again or retry matchmaking."); } };
   }
   return <div ref={panel} className={`play-panel play-panel--${phase}`}>
     {!signedIn ? <a className="button button--primary play-button" href="/account">Sign in to play</a> : <>
       <Button className="play-button" aria-describedby={guidanceId} aria-busy={["connecting", "cancelling", "matching"].includes(phase)} onClick={join} disabled={phase !== "idle"}>{phase === "idle" ? "Play a duel" : phase === "matched" ? "Match reserved" : phase === "matching" ? "Reserving match…" : phase === "cancelling" ? "Cancelling search…" : phase === "connecting" ? "Connecting…" : "Finding opponent…"}</Button>
       {(phase === "queued" || phase === "connecting") && <Button data-search-cancel aria-describedby={guidanceId} variant="ghost" onClick={() => {
-        focusAfterCancel.current = !!panel.current?.querySelector("[data-search-cancel]")?.matches(":focus");
+        focusAfterSearch.current = !!panel.current?.querySelector("[data-search-cancel]")?.matches(":focus");
         const ws = socket.current;
         if (ws?.readyState === WebSocket.OPEN) { setPhase("cancelling"); setMessage("Cancelling your search… Waiting for server confirmation."); leave.current?.(); }
-        else { socket.current = null; clearResponseTimer(); ws?.close(); setPhase("idle"); setMessage("Search cancelled. Ready when you are."); }
+        else { socket.current = null; clearResponseTimer(); ws?.close(); restoreIdle(); setMessage("Search cancelled. Ready when you are."); }
       }}>Cancel search</Button>}
     </>}
     {signedIn && <DuelFeedback feedback={feedback} />}

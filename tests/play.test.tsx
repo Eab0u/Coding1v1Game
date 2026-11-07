@@ -357,3 +357,52 @@ it("keeps guidance associations unique across matchmaking panels", () => {
   expect(statuses[0].id).not.toBe(statuses[1].id);
   buttons.forEach((button, index) => expect(button).toHaveAttribute("aria-describedby", statuses[index].id));
 });
+
+
+it.each(["disconnect", "error", "server error", "malformed", "timeout"])("restores Play after %s removes the focused search control", outcome => {
+  vi.useFakeTimers();
+  start();
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus();
+  if (outcome === "disconnect") act(() => Socket.latest.onclose());
+  if (outcome === "error") act(() => Socket.latest.onerror());
+  if (outcome === "server error") event({ type: "error", message: "Search unavailable" });
+  if (outcome === "malformed") event({ type: "queued", waitedSeconds: -1, ratingBand: 100 });
+  if (outcome === "timeout") act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("button", { name: "Play a duel" })).toHaveFocus();
+  expect(cancel).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  event({ type: "matched", match: { id: "recovered", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
+
+it("preserves navigation away from Cancel when the search fails", () => {
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  screen.getByRole("button", { name: "Cancel search" }).focus();
+  const profile = screen.getByRole("link", { name: "View profile" });
+  profile.focus();
+  act(() => Socket.latest.onerror());
+  expect(profile).toHaveFocus();
+});
+
+
+it("restores Play when an established queued search disconnects and ignores its late frames", () => {
+  const ws = start();
+  event({ type: "queued", waitedSeconds: 12, ratingBand: 150 });
+  screen.getByRole("button", { name: "Cancel search" }).focus();
+  act(() => ws.onclose());
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toHaveFocus();
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus();
+  act(() => ws.onerror());
+  act(() => ws.onmessage({ data: JSON.stringify({ type: "error", message: "Obsolete failure" }) }));
+  expect(cancel).toHaveFocus();
+  expect(screen.getByRole("status")).toHaveTextContent("Connecting");
+});

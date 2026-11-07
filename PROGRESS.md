@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Search failure keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one keyboard recovery item. When a search failure removes the focused Cancel search control, Play receives focus so keyboard players can retry immediately. Independent navigation and existing explicit-cancellation and arena focus behavior are preserved.
+- Added seven regression cases covering disconnects, socket errors, server errors, malformed queue responses, confirmation timeouts, successful retry into the arena, independent navigation, established queues and obsolete connection events.
+- Validation: full suite passed (1,500 tests across 72 files); the final additional queued-search/stale-event regression also passed in the focused run (40 matchmaking tests). Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Matchmaking connection setup recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one matchmaking recovery item. Browser WebSocket construction failures now restore enabled Play controls, clear busy feedback and show actionable retry guidance instead of leaving the panel stuck connecting.
