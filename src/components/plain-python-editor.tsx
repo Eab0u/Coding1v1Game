@@ -35,7 +35,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
   }, [value]);
   function changeIndent(outdent: boolean) {
     const editor = input.current;
-    if (!editor || readOnly) return;
+    if (!editor || readOnly || composing.current) return;
     const { selectionStart: start, selectionEnd: end, selectionDirection } = editor;
     const first = value.slice(0, start).lastIndexOf("\n") + 1;
     // A selection ending at the next line's start does not include that line.

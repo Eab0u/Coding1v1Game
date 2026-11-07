@@ -8,6 +8,34 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it.each(["compositionend", "blur"])("protects toolbar indentation during IME and recovers after %s", ending => {
+  render(<Harness initial={"    first\n    second"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(2, 15, "backward");
+  fireEvent.select(input);
+  const feedback = screen.getByRole("group", { name: "Solution cursor position" }).textContent;
+  fireEvent.compositionStart(input);
+  for (const name of ["Indent", "Outdent", "Indent", "Outdent"]) {
+    fireEvent.click(screen.getByRole("button", { name }));
+    expect(input).toHaveValue("    first\n    second");
+    expect(input.selectionStart).toBe(2);
+    expect(input.selectionEnd).toBe(15);
+    expect(input.selectionDirection).toBe("backward");
+    expect(input).toHaveFocus();
+    expect(screen.getByRole("group", { name: "Solution cursor position" })).toHaveTextContent(feedback!);
+  }
+  if (ending === "compositionend") fireEvent.compositionEnd(input);
+  else { input.blur(); input.focus(); }
+  fireEvent.click(screen.getByRole("button", { name: "Indent" }));
+  expect(input).toHaveValue("        first\n        second");
+  expect(input.selectionDirection).toBe("backward");
+  fireEvent.click(screen.getByRole("button", { name: "Outdent" }));
+  expect(input).toHaveValue("    first\n    second");
+  expect(input.selectionStart).toBe(2);
+  expect(input.selectionEnd).toBe(15);
+});
+
 it.each([false, true])("keeps solution size accurate without disturbing selections (readOnly=%s)", readOnly => {
   const change = vi.fn();
   const { rerender } = render(<PlainPythonEditor value="" onChange={change} readOnly={readOnly}/>);
