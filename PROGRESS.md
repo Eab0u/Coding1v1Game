@@ -29,7 +29,7 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 - SQL migrations are transactional and tracked in Postgres. PGlite executes schema tests without an external database.
 
 ## Blockers
-- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace has only .env.example and no configured sandbox. Catalog validation remains blocked.
+- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace now has a .env, but the configured Judge0 endpoint refused connections on this run (ECONNREFUSED). Catalog validation remains blocked.
 - Docker daemon is not running in this environment, so Docker Postgres startup and the network migration runner were not exercised. The SQL itself passes embedded Postgres tests.
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Arena page read recovery
+- Reviewed the two unchecked catalog items. A .env now exists, but a bounded connectivity probe to the configured Judge0 endpoint returned ECONNREFUSED. Following the blocker rule, added and completed one independent arena recovery item; catalog items remain unchecked.
+- Added the shared styled accessible recovery panel for arena session and match read failures, with a full-document Retry duel link preserving the encoded match ID and Back to arena navigation. Retry rechecks the current session; missing/nonparticipant matches keep the generic 404, and expired sessions redirect to account.
+- Added page coverage for private error containment, session-failure query suppression, successful recovery with a fresh session, expired sessions, generic 404s and encoded retry destinations. Chromium checks verify 320px layout, a 44px retry target and keyboard focus order.
+- Validation: all 434 tests across 43 files passed. Lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Account read recovery
 - Reviewed both unchecked catalog items; isolated Judge0 remains unavailable (only .env.example is present). Following the blocker rule, added and completed one independent account recovery item. Catalog items remain unchecked.
 - Replaced the account service error dead end with the shared styled accessible recovery card, a full-document Retry account action and Back to arena navigation. Credential forms and stale authentication errors stay hidden while session state is unknown. Retry rechecks the current session.

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Recover unavailable arena page reads with a styled accessible fresh-read retry that preserves the requested match and rechecks authentication, with privacy, recovery and phone keyboard coverage
 - [x] Recover unavailable account reads with a styled fresh-read retry, suppress credential forms while session state is unknown, and cover recovery and phone keyboard access
 - [x] Recover unavailable match results with a styled accessible fresh-read retry that preserves the match and rechecks authentication, with privacy, recovery and phone keyboard coverage
 - [x] Recover unavailable home dashboard reads with a styled accessible fresh-read retry, suppress misleading empty stats and queue controls, and cover recovery and phone keyboard access

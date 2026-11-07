@@ -21,6 +21,8 @@ import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
 import Leaderboard from '../src/app/leaderboard/page';
 import Account from '../src/app/account/page';
+import ArenaPage from '../src/app/match/[id]/page';
+vi.mock('../src/lib/arena', () => ({ loadArena: async () => { throw new Error('private'); } }));
 import ResultsPage from '../src/app/match/[id]/results/page';
 vi.mock('../src/lib/results', () => ({ loadResult: async () => { throw new Error('private'); } }));
 
@@ -44,6 +46,23 @@ it('keeps account recovery visible and keyboard accessible on phones', async () 
     await page.keyboard.press('Tab');
     expect(await page.getByRole('link', { name: 'Back to arena' }).evaluate(el => el === document.activeElement)).toBe(true);
   } finally { state.accountUnavailable = false; await page.close(); }
+});
+
+it('keeps duel recovery actions visible and keyboard accessible on phones', async () => {
+  const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
+  try {
+    const content = await ArenaPage({ params: Promise.resolve({ id: 'match-id' }) });
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(content)}`);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    expect(await page.getByRole('alert').isVisible()).toBe(true);
+    const retry = page.getByRole('link', { name: 'Retry duel' });
+    expect(await retry.getAttribute('href')).toBe('/match/match-id');
+    await retry.focus();
+    expect(await retry.evaluate(el => el === document.activeElement)).toBe(true);
+    expect((await retry.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', { name: 'Back to arena' }).evaluate(el => el === document.activeElement)).toBe(true);
+  } finally { await page.close(); }
 });
 
 it('keeps results recovery actions visible and keyboard accessible on phones', async () => {
