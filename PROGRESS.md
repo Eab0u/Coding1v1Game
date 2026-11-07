@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Post-duel tier transitions
+- Selected problems 1-20 as the most valuable unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Added themed saved post-duel tier badges and explicit transitions for both players, including downward changes and unchanged tiers. Reused full-precision shared thresholds and explained display rounding and the historical snapshot. Missing rating history does not invent a tier.
+- Added regression tests for upward and downward transitions at every tier threshold, fractional boundary ratings, unchanged tiers and missing historical data. Extended Chromium results checks at 320, 375 and 1280px for visible tier transitions, themed panels and containment.
+- Validation: all 623 tests across 51 files passed; lint, production build and typecheck passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Rating tiers in standings
 - Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError. Following the blocker rule, added and completed one independent standings improvement; catalog validation remains unchecked.
 - Added themed current-tier badges beside MMR in global, weekly and friends standings. Used the shared profile tier thresholds at full precision and explained why rounded display values can appear at the next tier boundary. Stacked rating and badge within the existing cell to preserve the table layout on phones.

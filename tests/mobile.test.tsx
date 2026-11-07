@@ -122,7 +122,7 @@ it.each([320, 375, 1280])('makes weekly standings guidance and player links usab
 it.each([320, 375, 1280])('supports results skip navigation and player touch targets at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {
-    const player = { username, before: 800, after: 808, passed: 8, total: 8, cpu: 1, submitted: 1000 };
+    const player = { username, before: 999.9, after: 1000, passed: 8, total: 8, cpu: 1, submitted: 1000 };
     await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<Results result={{ title: 'Sample', outcome: 'WIN', players: [player, { ...player, username: 'another_long_player_name' }] }}/>)}`);
     await page.keyboard.press('Tab');
     const skip = page.getByRole('link', { name: 'Skip to results' });
@@ -132,6 +132,14 @@ it.each([320, 375, 1280])('supports results skip navigation and player touch tar
     expect(await page.getByRole('main').evaluate(el => el === document.activeElement)).toBe(true);
     await page.keyboard.press('Tab');
     const links = page.locator('.result-player h2 a');
+    expect(await page.locator('.result-tier .badge').allTextContents()).toEqual(['Silver', 'Silver']);
+    expect(await page.getByText('Tier changed from Bronze to Silver').count()).toBe(2);
+    for (const panel of await page.locator('.result-tier').all()) {
+      expect(await panel.evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('solid');
+      const box = (await panel.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+    }
     expect(await links.first().evaluate(el => el === document.activeElement)).toBe(true);
     await page.keyboard.press('Tab');
     expect(await links.last().evaluate(el => el === document.activeElement)).toBe(true);

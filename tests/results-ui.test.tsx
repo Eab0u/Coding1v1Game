@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { RATING_TIERS } from '../src/lib/profile';
 import { DuelSound } from '../src/lib/duel-sound';
 import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
@@ -55,4 +56,22 @@ it('does not invent missing historical metrics or rating changes',()=>{
  render(<Results result={{title:'Legacy',outcome:'DRAW',players:[p,{...p,username:'Bob'}]} as DuelResult}/>);
  expect(screen.getAllByText('Rating not recorded')).toHaveLength(2);
  expect(screen.getAllByText('Not recorded')).toHaveLength(6);
+ expect(screen.queryByText(/Tier unchanged|Tier changed from/)).not.toBeInTheDocument();
+});
+it.each(RATING_TIERS.slice(1))('shows both directions at the $name threshold without rounding into a tier',({name,minimum})=>{
+ const previous=RATING_TIERS[RATING_TIERS.findIndex(t=>t.name===name)-1].name;
+ render(<Results result={{title:'Boundary',outcome:'DRAW',players:[
+  {...players[0],before:minimum-.1,after:minimum},
+  {...players[1],before:minimum,after:minimum-.1},
+ ]}}/>);
+ expect(screen.getByText(`Tier changed from ${previous} to ${name}`)).toBeVisible();
+ expect(screen.getByText(`Tier changed from ${name} to ${previous}`)).toBeVisible();
+ expect(screen.getByText(name,{selector:'.badge'})).toBeVisible();
+ expect(screen.getByText(previous,{selector:'.badge'})).toBeVisible();
+});
+it('labels unchanged tiers and explains saved duel precision',()=>{
+ render(<Results result={{title:'Sample',outcome:'WIN',players}}/>);
+ expect(screen.getAllByText('Tier unchanged')).toHaveLength(2);
+ expect(screen.getAllByText('Bronze',{selector:'.badge'})).toHaveLength(2);
+ expect(screen.getAllByText('Tier after this duel, based on full-precision MMR before display rounding.')).toHaveLength(2);
 });
