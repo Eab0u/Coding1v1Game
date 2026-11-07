@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Invalid saved submission history
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one saved-results fix: invalid submission timestamps now show explicit Submission history unavailable guidance and withhold progress/verdict styling. Valid saved counts and the recorded outcome remain visible. Detailed scoring explanations reject invalid timestamps before any tiebreak.
+- Added participant-symmetric component and explanation regressions covering negative, non-finite, undefined and string timestamps, every tiebreak and corrected-history recovery. Updated existing invalid-timing expectations for the new unavailable state.
+- Validation: all 1,288 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog before publication and live infrastructure smoke checks.
+
 ### 2026-11-07 - Consistent missing-submission history
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one saved-results fix: positive test scores with missing submission timestamps now show Submission history unavailable instead of claiming no judged submission or fallback benchmark CPU. Detailed scoring explanations are withheld for either inconsistent participant while the recorded outcome and valid counts remain visible.

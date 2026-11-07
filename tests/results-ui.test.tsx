@@ -257,7 +257,8 @@ it.each([-1, NaN, Infinity, -Infinity, undefined])('withholds invalid saved timi
  const view=render(<Results result={result}/>);
  const panel=within(screen.getByRole('region',{name:'Your result'}));
  expect(panel.getAllByText('Unavailable')).toHaveLength(2);
- expect(panel.getByRole('progressbar')).toBeVisible();
+ expect(panel.queryByRole('progressbar')).toBeNull();
+ expect(panel.getByText('Submission history unavailable')).toBeVisible();
  expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
  expect(screen.getByRole('region',{name:'Reading the comparison'})).toHaveTextContent('Invalid saved times are shown as unavailable; the recorded match outcome still applies.');
  view.rerender(<Results result={{...result,players:[{...players[0],cpu:0,submitted:0}]}}/>);
@@ -314,4 +315,25 @@ it.each([0,1])('withholds false no-submission guidance for player %s and recover
  view.rerender(<Results result={{...result}}/>);
  expect(panel.getByText('No judged submission')).toBeVisible();
  expect(panel.getByText('Fallback benchmark CPU')).toBeVisible();
+});
+
+it.each([0,1])('withholds verdict cues for invalid submission history for player %s and recovers', index=>{
+ const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p}))};
+ const view=render(<Results result={result}/>);
+ for (const submitted of [-1,NaN,Infinity,-Infinity,undefined,'1000']) {
+  const corrupted={...result,players:result.players.map((p,i)=>i===index?{...p,submitted}:p)} as DuelResult;
+  view.rerender(<Results result={corrupted}/>);
+  const card=within(screen.getByRole('region',{name:index===0?'Your result':'Opponent result'}));
+  expect(card.getByText('Submission history unavailable')).toBeVisible();
+  expect(card.getByText(/saved submission time could not be verified/)).toBeVisible();
+  expect(card.queryByRole('progressbar')).toBeNull();
+  expect(card.queryByText(/^(All|Some|No) hidden tests passed$/)).toBeNull();
+  expect(card.getByText(`${players[index].passed} / 8`)).toBeVisible();
+  expect(screen.getByText(/detailed scoring explanation is unavailable/)).toBeVisible();
+  expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
+ }
+ view.rerender(<Results result={result}/>);
+ expect(screen.queryByText('Submission history unavailable')).toBeNull();
+ expect(screen.getAllByRole('progressbar')).toHaveLength(2);
+ expect(screen.getByText(/^You passed more hidden tests/)).toBeVisible();
 });

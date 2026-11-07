@@ -72,3 +72,16 @@ it.each([0, 1])("withholds inconsistent missing submission explanations for play
   duel.players.forEach(p => { p.passed = 8; p.submitted = 1000; });
   expect(explainResult(duel)).toContain("were all tied");
 });
+
+it.each([0,1])("rejects invalid submission times before every tiebreak for player %s", index=>{
+ for (const overrides of [{passed:7},{cpu:11},{submitted:1001}]) {
+  const duel=result(overrides);
+  const saved=duel.players[index].submitted;
+  for (const submitted of [-1,NaN,Infinity,-Infinity,undefined,'1000']) {
+   Object.assign(duel.players[index],{submitted});
+   expect(explainResult(duel)).toContain('unavailable');
+  }
+  duel.players[index].submitted=saved;
+  expect(explainResult(duel)).toMatch(/^You /);
+ }
+});
