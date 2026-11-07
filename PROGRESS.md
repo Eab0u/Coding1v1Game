@@ -29,7 +29,7 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 - SQL migrations are transactional and tracked in Postgres. PGlite executes schema tests without an external database.
 
 ## Blockers
-- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace now has a .env, but the configured Judge0 sandbox remains unavailable (the validation command returned JudgeUnavailableError on this run). Catalog validation remains blocked.
+- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace now has a .env, but the configured Judge0 sandbox remains unavailable (the Relay Load Capacity validation command returned JudgeUnavailableError on this run). Catalog validation remains blocked.
 - Docker daemon is not running in this environment, so Docker Postgres startup and the network migration runner were not exercised. The SQL itself passes embedded Postgres tests.
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Multiline Python block indentation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Load Capacity. The configured Judge0 service returned JudgeUnavailableError; validation and publication remain blocked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Plain-editor Enter now derives block indentation from the opening logical header line rather than the closing physical line. Parenthesized and explicit-backslash headers enter their body at the correct depth, preserving tabs and nested indentation. Updated the visible editing guidance.
+- Added seven regression cases for multiline conditionals, function signatures, tabbed context managers, nested loops, unfinished brackets and nonheaders, including backward selection replacement, suffix preservation, focus and caret position. Updated three continuation expectations to reflect the corrected behavior.
+- Validation: all 956 tests across 61 files passed; lint, production build and typecheck passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author remaining initial drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Relay Load Capacity catalog draft
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks isolated sandbox validation. Following the blocker rule, added and completed one bounded catalog-authoring item; validation milestones remain unchecked.
 - Added original medium Relay Load Capacity: minimize processing capacity across at most a given number of contiguous rounds. Includes precise constraints/examples, binary-search/greedy Python reference, capacity-enumeration baseline, 2,000 seeded small cases and three 100,000-entry benchmarks with answers beyond 32-bit range. Documented correctness, complexity and sandbox calibration requirements.

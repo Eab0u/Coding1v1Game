@@ -32,9 +32,9 @@ it.each([
 });
 
 it.each([
-  ["if ready and \\\n    available:", "        "],
-  ["async with first, \\\n    second:", "        "],
-  ["if ready and \\\n    available and \\\n    enabled:", "        "],
+  ["if ready and \\\n    available:", "    "],
+  ["async with first, \\\n    second:", "    "],
+  ["if ready and \\\n    available and \\\n    enabled:", "    "],
   ["value = \\\n    {'key':", "    "],
   ["value = \\\n    1\nif ready:", "    "],
   ["# ignored \\\nif ready:", "    "],
@@ -637,6 +637,26 @@ it.each([
   expect(fireEvent.keyDown(input, { key: "Enter" })).toBe(false);
   expect(input).toHaveValue(initial + "\n" + indentation + "tail");
   expect(input.selectionStart).toBe(initial.length + 1 + indentation.length);
+  expect(input.selectionEnd).toBe(input.selectionStart);
+  expect(input).toHaveFocus();
+});
+
+it.each([
+  ["if (\n    ready):", "    "],
+  ["    if (\n        ready\n        ):", "        "],
+  ["def solve(\n        values: list[int]\n    ):", "    "],
+  ["\twith (\n\t\tresource\n\t\t):", "\t    "],
+  ["previous = 1\n    for item in (\n            values\n        ): # loop", "        "],
+  ["if (\n    ready", "    "],
+  ["items = (\n        value):", "        "],
+])("indents from the opening header line while preserving nonheaders: %s", (prefix, indentation) => {
+  render(<Harness initial={prefix + "REMOVEtail"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(prefix.length, prefix.length + 6, "backward");
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(input).toHaveValue(prefix + "\n" + indentation + "tail");
+  expect(input.selectionStart).toBe(prefix.length + 1 + indentation.length);
   expect(input.selectionEnd).toBe(input.selectionStart);
   expect(input).toHaveFocus();
 });
