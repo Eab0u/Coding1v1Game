@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Plain-editor Windows line endings
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Load Capacity. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
+- Normalized CRLF and standalone CR to LF within the plain editor to match native textarea offsets. Enter, indent-stop Backspace and block indentation now preserve the correct text and selections for Windows/imported drafts. Size feedback counts displayed text consistently; mounting and selecting read-only or editable drafts does not invoke onChange or rewrite external storage.
+- Added nine regression cases for LF/CRLF/CR Enter selection replacement, Backspace caret placement, backward block indentation/outdent recovery and editable/read-only normalized size and select-all behavior.
+- Validation: all 997 tests across 61 files passed; the final targeted rerun passed all 199 plain-editor tests. Lint, production build and typecheck passed after correcting a test query typing error. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author remaining initial drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Preserve string content during Backspace
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Load Capacity. The configured sandbox returned JudgeUnavailableError. Following the blocker rule, added and completed one bounded editor correctness item; catalog validation milestones remain unchecked.
 - Indent-stop Backspace now shares Enter's lexical context tracking and leaves deletion native inside triple-quoted and backslash-continued strings. Ordinary indentation still removes spaces to the previous four-space stop after strings close or incomplete ordinary strings end at a newline. Updated visible editing guidance.

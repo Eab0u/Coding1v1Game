@@ -749,3 +749,55 @@ it.each([
   expect(input.selectionEnd).toBe(prefix.length - 4);
   expect(input).toHaveFocus();
 });
+
+it.each(["\r\n", "\r", "\n"])("uses textarea offsets for Enter with %j line endings", newline => {
+  render(<Harness initial={`# first${newline}    if ready:REMOVEtail`}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  const prefix = "# first\n    if ready:";
+  input.focus();
+  input.setSelectionRange(prefix.length, prefix.length + 6, "backward");
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(input).toHaveValue(prefix + "\n        tail");
+  expect(input.selectionStart).toBe(prefix.length + 9);
+  expect(input.selectionEnd).toBe(input.selectionStart);
+  expect(input).toHaveFocus();
+});
+
+it.each(["\r\n", "\r"])("uses textarea offsets for Backspace with %j line endings", newline => {
+  render(<Harness initial={`first${newline}      tail`}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(12, 12);
+  fireEvent.keyDown(input, { key: "Backspace" });
+  expect(input).toHaveValue("first\n    tail");
+  expect(input.selectionStart).toBe(10);
+  expect(input).toHaveFocus();
+});
+
+it.each(["\r\n", "\r"])("preserves backward selected lines through indentation with %j line endings", newline => {
+  render(<Harness initial={`first${newline}second${newline}tail`}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(6, 13, "backward");
+  fireEvent.click(screen.getByRole("button", { name: "Indent" }));
+  expect(input).toHaveValue("first\n    second\ntail");
+  expect(input.selectionStart).toBe(10);
+  expect(input.selectionEnd).toBe(17);
+  expect(input.selectionDirection).toBe("backward");
+  fireEvent.click(screen.getByRole("button", { name: "Outdent" }));
+  expect(input).toHaveValue("first\nsecond\ntail");
+  expect(input.selectionStart).toBe(6);
+  expect(input.selectionEnd).toBe(13);
+});
+
+it.each([false, true])("reports normalized size without rewriting external drafts (readOnly=%s)", readOnly => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value={"a\r\nb\rc\n"} onChange={change} readOnly={readOnly}/>);
+  expect(screen.getByRole("textbox")).toHaveValue("a\nb\nc\n");
+  expect(screen.getByLabelText("Solution size")).toHaveTextContent(/4 lines .* 6 UTF-16 code units/);
+  fireEvent.click(screen.getByRole("button", { name: "Select all code" }));
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  expect(input.selectionStart).toBe(0);
+  expect(input.selectionEnd).toBe(6);
+  expect(change).not.toHaveBeenCalled();
+});

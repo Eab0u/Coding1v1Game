@@ -58,9 +58,12 @@ function pythonLineContext(line: string) {
   return { headerIndent: isHeader ? (code.match(/^[\t ]*/)?.[0] ?? "") : null, inString: Boolean(quote) };
 }
 
-export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wordWrap = false }: {
+export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, fontSize = 15, wordWrap = false }: {
   value: string; onChange: (value: string) => void; readOnly: boolean; fontSize?: number; wordWrap?: boolean;
 }) {
+  // Textareas normalize CRLF and standalone CR to LF. Use those same offsets
+  // for editing, selection feedback and size reporting without rewriting on mount.
+  const value = sourceValue.replace(/\r\n?/g, "\n");
   const input = useRef<HTMLTextAreaElement>(null);
   const composing = useRef(false);
   const caret = useRef<[number, number, ("forward" | "backward" | "none")?] | null>(null);
