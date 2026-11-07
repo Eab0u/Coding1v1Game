@@ -15,6 +15,35 @@ beforeEach(() => { vi.stubGlobal("WebSocket", Socket); });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 function start() { render(<Play signedIn />); fireEvent.click(screen.getByRole("button", { name: "Play a duel" })); act(() => Socket.latest.onopen()); return Socket.latest; }
 function event(data: object) { act(() => Socket.latest.onmessage({ data: JSON.stringify(data) })); }
+it.each([
+  [0, "0s", "0 seconds"],
+  [1, "1s", "1 second"],
+  [59, "59s", "59 seconds"],
+  [60, "1m", "1 minute"],
+  [61, "1m 1s", "1 minute 1 second"],
+  [3599, "59m 59s", "59 minutes 59 seconds"],
+  [3600, "1h", "1 hour"],
+  [3661, "1h 1m 1s", "1 hour 1 minute 1 second"],
+  [7322, "2h 2m 2s", "2 hours 2 minutes 2 seconds"],
+])("formats %i authoritative search seconds readably", (seconds, compact, spoken) => {
+  start();
+  event({ type: "queued", waitedSeconds: seconds, ratingBand: 800 });
+  expect(screen.getByText(`${compact} elapsed`)).toHaveAttribute("aria-hidden", "true");
+  expect(screen.getByText(`${spoken} elapsed`)).toHaveClass("sr-only");
+  expect(screen.getByRole("status")).not.toHaveTextContent(`${spoken} elapsed`);
+  expect(screen.getAllByRole("definition")[0].closest("dl")).toHaveAttribute("aria-live", "off");
+});
+
+it("updates elapsed units from server frames and removes search details at reservation", () => {
+  start();
+  for (const seconds of [59, 60, 61, 3600]) {
+    event({ type: "queued", waitedSeconds: seconds, ratingBand: 800 });
+    expect(screen.getAllByText(/elapsed$/)).toHaveLength(2);
+  }
+  expect(screen.getByText("1h elapsed")).toBeInTheDocument();
+  event({ type: "matching" });
+  expect(screen.queryByText(/elapsed$/)).not.toBeInTheDocument();
+});
 it.each(["focused cancel", "independent navigation"])("recovers a silent queued connection with %s and permits ticket recovery", focus => {
   vi.useFakeTimers();
   render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
@@ -570,7 +599,7 @@ it.each([
   fireEvent.click(play);
   act(() => Socket.latest.onopen());
   event({ type: "queued", waitedSeconds: 140, ratingBand: 800 });
-  expect(screen.getByText("140s elapsed")).toBeInTheDocument();
+  expect(screen.getByText("2m 20s elapsed")).toBeInTheDocument();
   event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
   expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
 });

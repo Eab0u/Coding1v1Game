@@ -5,6 +5,22 @@ import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
 import type { QueueEvent } from "../lib/matchmaking";
 import Link from "next/link";
 
+function searchDuration(seconds: number) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor(seconds % 3600 / 60);
+  const remaining = seconds % 60;
+  const parts = [
+    { value: hours, short: "h", name: "hour" },
+    { value: minutes, short: "m", name: "minute" },
+    { value: remaining, short: "s", name: "second" },
+  ].filter(part => part.value > 0);
+  if (!parts.length) parts.push({ value: 0, short: "s", name: "second" });
+  return {
+    compact: parts.map(part => `${part.value}${part.short}`).join(" "),
+    spoken: parts.map(part => `${part.value} ${part.name}${part.value === 1 ? "" : "s"}`).join(" "),
+  };
+}
+
 export function Play({ signedIn }: { signedIn: boolean }) {
   const feedback = useDuelFeedback();
   const guidanceId = useId();
@@ -139,7 +155,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     {signedIn && <DuelFeedback feedback={feedback} />}
     {matchId && <Link ref={arenaLink} aria-describedby={guidanceId} className="button button--primary" href={`/match/${matchId}`}>Open arena</Link>}
     {phase === "queued" && queueStats && <dl className="queue-stats" aria-label="Current search details" aria-live="off">
-      <div><dt>Time searching</dt><dd>{queueStats.waitedSeconds}s elapsed</dd></div>
+      <div><dt>Time searching</dt><dd><span aria-hidden="true">{searchDuration(queueStats.waitedSeconds).compact} elapsed</span><span className="sr-only">{searchDuration(queueStats.waitedSeconds).spoken} elapsed</span></dd></div>
       <div><dt>Rating range</dt><dd>±{queueStats.ratingBand} points</dd></div>
     </dl>}
     <p id={guidanceId} className="availability" role="status">{message}</p>

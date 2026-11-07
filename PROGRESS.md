@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Readable matchmaking wait durations
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking display improvement. Elapsed waits now use compact minute/hour units (for example `2m 20s`) and full singular/plural unit names for screen readers. Server frames remain authoritative; time updates remain outside live announcements.
+- Added ten regression cases covering zero, singular/plural units, minute/hour boundaries, successive server updates and removal at reservation. Updated the existing long-wait retry expectation.
+- Validation: all 1,571 tests across 72 files passed, including 110 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Failed reservation keyboard recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one keyboard recovery item. Failed reservations now restore Play focus when reservation removed the focused Cancel search control. Independent navigation is preserved and reservation focus intent is cleared on failure.
