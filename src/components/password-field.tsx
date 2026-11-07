@@ -89,6 +89,10 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
     <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape in the password field or Hide button to conceal a revealed password. Revealed passwords hide when you switch tabs. They also hide when the browser window loses focus, when you leave this page or submit this form, including when a field needs correction.</p>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
       <strong>{bytes} / {PASSWORD_MAX_BYTES} bytes</strong>
+      <span className="password-budget-capacity">{bytes > PASSWORD_MAX_BYTES
+        ? `${bytes - PASSWORD_MAX_BYTES} ${bytes - PASSWORD_MAX_BYTES === 1 ? "byte" : "bytes"} over limit`
+        : bytes === PASSWORD_MAX_BYTES ? "Byte limit reached"
+        : `${PASSWORD_MAX_BYTES - bytes} ${PASSWORD_MAX_BYTES - bytes === 1 ? "byte" : "bytes"} remaining`}</span>
       <span>Emoji and some letters use more than one byte.</span>
     </p>
     <p id={`${mode}-password-error`} className="password-validation" role="status">{error}</p>

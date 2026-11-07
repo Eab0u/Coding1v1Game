@@ -410,7 +410,9 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .password-caps-lock:empty { display: none; }
 .account-form .password-budget { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
 .password-budget strong { color: var(--color-text); font-variant-numeric: tabular-nums; }
-.password-budget[data-over-limit="true"] { border-color: var(--color-accent); }
+.password-budget-capacity { font-weight: 700; font-variant-numeric: tabular-nums; }
+.password-budget[data-over-limit="true"] { border-color: var(--color-danger); }
+.password-budget[data-over-limit="true"] .password-budget-capacity { color: var(--color-danger); }
 .account-form input[aria-invalid="true"] { border-color: var(--color-text); }
 
 .friend-groups { display: grid; gap: 2rem; margin-top: 2rem; }

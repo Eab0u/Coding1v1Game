@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Password byte capacity guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account improvement: both password fields now explain bytes remaining, the exact byte limit and singular/plural overflow. Over-limit budgets use a danger-colored border and text alongside explicit wording, improving scanability without relying on color alone.
+- Added component regression coverage for both forms, emoji byte boundaries, one-byte and multi-byte overflow, corrected values, silent replacements on reveal and form reset. Added Chromium overflow-color and layout checks at 320px and 1280px.
+- Validation: the full suite passed all 1,594 tests across 72 files; after adding browser coverage, all 216 tests in the two affected test files passed. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Conceal passwords on window focus loss
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one account improvement: revealed sign-in and sign-up passwords conceal when the browser window loses focus, including switching to another application or window. Visible field guidance explains the behavior.

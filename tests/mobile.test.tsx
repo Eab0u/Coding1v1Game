@@ -471,6 +471,30 @@ it('makes recent duel results and opponents keyboard accessible on narrow phones
   } finally { await page.close(); }
 });
 
+it.each([320, 1280])('shows readable password overflow cues at %ipx', async width => {
+  state.signedIn = false;
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({ searchParams: Promise.resolve({}) }))}`);
+    for (const budget of await page.locator('.password-budget').all()) {
+      expect(await budget.locator('.password-budget-capacity').textContent()).toBe('256 bytes remaining');
+      // Fixture markup has no React handlers; component tests cover value transitions.
+      await budget.evaluate(element => {
+        element.setAttribute('data-over-limit', 'true');
+        element.querySelector('strong')!.textContent = '260 / 256 bytes';
+        element.querySelector('.password-budget-capacity')!.textContent = '4 bytes over limit';
+      });
+      expect(await budget.evaluate(el => getComputedStyle(el).borderTopColor)).toBe('rgb(255, 170, 163)');
+      const capacity = budget.locator('.password-budget-capacity');
+      expect(await capacity.evaluate(el => getComputedStyle(el).color)).toBe('rgb(255, 170, 163)');
+      const bounds = (await capacity.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { state.signedIn = true; await page.close(); }
+});
+
 it('keeps populated password guidance within the phone account layout', async () => {
   state.signedIn = false;
   const page = await browser.newPage({ viewport: { width: 320, height: 900 } });

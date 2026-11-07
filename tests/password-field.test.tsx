@@ -5,6 +5,33 @@ import { PasswordField } from "../src/components/password-field";
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
 afterEach(() => vi.restoreAllMocks());
 
+it.each(["login", "signup"] as const)("explains remaining and exceeded UTF-8 capacity for %s with recovery and reset", async mode => {
+  render(<form><PasswordField mode={mode} /></form>);
+  const input = screen.getByLabelText<HTMLInputElement>("Password");
+  expect(input).toHaveAccessibleDescription(/256 bytes remaining/);
+  for (const [value, guidance, valid] of [
+    ["a".repeat(255), "1 byte remaining", true],
+    ["\u{1f600}".repeat(64), "Byte limit reached", true],
+    ["\u{1f600}".repeat(64) + "a", "1 byte over limit", false],
+    ["\u{1f600}".repeat(65), "4 bytes over limit", false],
+    ["corrected password", "238 bytes remaining", true],
+  ] as const) {
+    fireEvent.change(input, { target: { value } });
+    expect(input).toHaveAccessibleDescription(new RegExp(guidance));
+    expect(input.validity.valid).toBe(valid);
+    const budget = document.getElementById(`${mode}-password-budget`);
+    if (valid) expect(budget).not.toHaveAttribute("data-over-limit");
+    else expect(budget).toHaveAttribute("data-over-limit", "true");
+  }
+  input.value = "a".repeat(256);
+  fireEvent.click(screen.getByRole("button", { name: /Show .* password/ }));
+  expect(input).toHaveAccessibleDescription(/Byte limit reached/);
+  expect(input).toHaveAttribute("type", "text");
+  await act(async () => input.form!.reset());
+  expect(input).toHaveAccessibleDescription(/256 bytes remaining/);
+  expect(input).toHaveAttribute("type", "password");
+});
+
 it("conceals both passwords on window blur without clearing values or validation and allows explicit reveal afterward", () => {
   render(<><PasswordField mode="login" /><PasswordField mode="signup" /></>);
   const inputs = screen.getAllByLabelText<HTMLInputElement>("Password");
