@@ -365,6 +365,35 @@ npm run problems -- validate problems/drafts/relay-prefix-diversity.json
 npm run problems -- publish problems/drafts/relay-prefix-diversity.json
 ```
 
+### Relay Load Capacity
+
+`drafts/relay-load-capacity.json` is an original medium binary-search/greedy
+problem: minimize a fixed processing capacity while splitting an ordered log
+of positive loads into at most the allowed number of contiguous rounds.
+Loads cannot be split, and unused rounds are allowed.
+
+For a fixed capacity, greedily filling each round uses the fewest rounds:
+no valid first round can end later than the greedy first round; applying the
+same argument to each remaining suffix proves the bound. Feasibility is
+monotone in capacity, so binary search between the largest load and the total
+finds the minimum in O(n log(sum(loads))) time and O(1) auxiliary space.
+The baseline scans every integer capacity from the largest load upward.
+
+Three 100,000-entry benchmarks cover constant loads with one/two rounds and
+alternating large/small loads with one round. Answers are 100 billion,
+50 billion and 50 billion, testing integer range and forcing billions of
+baseline capacity candidates. A seeded generator supplies 2,000 small cases.
+Data-only tests use independent partition DP to check fixtures, exact greedy
+feasibility boundaries, reversal/scaling, extra-round monotonicity and endpoint
+formulas. No authored Python executes locally. Proposed 2-second CPU and
+64-MiB limits require isolated sandbox calibration, reference/baseline agreement
+and three baseline timeouts per benchmark. The draft remains private,
+unpublished and unapproved. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-load-capacity.json
+```
+
 ### Relay Order Conflicts
 
 `drafts/relay-order-conflicts.json` is an original medium sorting problem:
