@@ -364,3 +364,29 @@ This draft remains private, unpublished and unapproved. Run:
 npm run problems -- validate problems/drafts/relay-prefix-diversity.json
 npm run problems -- publish problems/drafts/relay-prefix-diversity.json
 ```
+
+### Relay Order Conflicts
+
+`drafts/relay-order-conflicts.json` is an original medium sorting problem:
+count strictly decreasing pairs of priority levels in arrival order. Equal
+levels do not conflict; negative levels and nonadjacent pairs are supported.
+
+The reference recursively sorts each half and counts cross-half conflicts
+while merging. When a right value precedes the remaining left values, all
+mid-left of those values conflict with it. Taking the left value first on
+equality excludes equal pairs. Every pair belongs to exactly one recursive
+split, giving O(n log n) time and O(n) auxiliary space. The baseline examines
+all n(n-1)/2 pairs even on sorted or constant input.
+
+Three 100,000-entry benchmarks cover descending, ascending and constant logs,
+with answers 4,999,950,000, zero and zero. The generator supplies 2,000 seeded
+small cases. Data-only tests compare pair enumeration with insertion ranks,
+check increasing relabeling, append/prepend boundaries, and verify that reversal
+or negation complements the answer among unequal pairs. No authored Python
+executes locally. Proposed 1-second CPU and 64-MiB limits require isolated
+sandbox calibration, reference/baseline agreement and three baseline timeouts
+per benchmark. This draft remains private, unpublished and unapproved. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-order-conflicts.json
+```
