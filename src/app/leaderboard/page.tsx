@@ -68,6 +68,14 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
           <div><h2 id="standings-refresh-title">Check the latest standings</h2><p id="standings-refresh-note">Rankings, ratings and weekly gains reflect when this page loaded. Refresh to see completed duels and changes to your friends circle. Your selected filters stay in place.</p></div>
           <a className="button button--secondary" href={retryHref} aria-describedby="standings-refresh-note">Refresh standings</a>
         </section>}
+        {!unavailable && !needsLogin && entries.length > 0 && <details className="rank-guide">
+          <summary>How ranks and ties work</summary>
+          <dl>
+            <div><dt>Shared places</dt><dd>Equal scores share a rank. Two players tied at #1 are followed by #3 because two players are ahead.</dd></div>
+            <div><dt>Full precision</dt><dd>{period === "weekly" ? "Weekly gains" : "Current ratings"} determine rank before rounding. Matching displayed numbers can still have different ranks.</dd></div>
+            <div><dt>The 100-player limit</dt><dd>At most 100 players appear. Tied players are ordered alphabetically by username, including at the cutoff; a shared rank does not guarantee a place in the displayed standings.</dd></div>
+          </dl>
+        </details>}
         {period === "weekly" && !unavailable && !needsLogin && <details className="weekly-guide">
           <summary>How the weekly climb works</summary>
           <dl>

@@ -273,3 +273,32 @@ it.each(["global", "unavailable", "signed-out"])("withholds weekly window for %s
   render(await Leaderboard({ searchParams: Promise.resolve({ period: state === "global" ? "global" : "weekly", scope: "friends" }) }));
   expect(screen.queryByText("Current UTC week")).not.toBeInTheDocument();
 });
+
+
+it.each([{}, { period: "weekly" }, { scope: "friends" }, { period: "weekly", scope: "friends" }])("explains shared places, precision and the cutoff for %j", async filters => {
+  mocks.load.mockResolvedValue([
+    { username: "Ada", rating: 1000.4, score: 12.4, rank: 1 },
+    { username: "Zed", rating: 1000.4, score: 12.4, rank: 1 },
+    { username: "Bob", rating: 1000.3, score: 12.3, rank: 3 },
+  ]);
+  render(await Leaderboard({ searchParams: Promise.resolve(filters) }));
+  const summary = screen.getByText("How ranks and ties work");
+  const guide = summary.closest("details")!;
+  expect(summary.tagName).toBe("SUMMARY");
+  expect(guide).not.toHaveAttribute("open");
+  summary.click();
+  expect(guide).toHaveAttribute("open");
+  expect(guide).toHaveClass("rank-guide");
+  expect(guide).toHaveTextContent("Two players tied at #1 are followed by #3");
+  expect(guide).toHaveTextContent(`${filters.period === "weekly" ? "Weekly gains" : "Current ratings"} determine rank before rounding`);
+  expect(guide).toHaveTextContent("Tied players are ordered alphabetically by username, including at the cutoff");
+  expect(screen.getAllByText("#1")).toHaveLength(2);
+  expect(screen.getByText("#3")).toBeVisible();
+});
+
+it.each(["empty", "unavailable", "signed-out"])("omits rank guidance without standings in %s state", async mode => {
+  if (mode === "unavailable") mocks.load.mockRejectedValue(new Error("private"));
+  if (mode === "signed-out") mocks.current.mockResolvedValue(null);
+  render(await Leaderboard({ searchParams: Promise.resolve({ scope: "friends" }) }));
+  expect(screen.queryByText("How ranks and ties work")).not.toBeInTheDocument();
+});

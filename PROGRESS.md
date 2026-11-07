@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Leaderboard rank and tie guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one improvement: a compact native ranking disclosure explaining shared places, full-precision ordering despite rounded displays, alphabetical tie ordering and the 100-player cutoff. It appears on populated public and friends ladders for both periods and uses responsive accented disclosure cards.
+- Added component coverage for all four filters and empty, unavailable and signed-out states, plus Chromium keyboard, touch-height and overflow checks at 320, 375 and 1280px. Fixed a shared-class collision exposed by existing browser tests by giving the rank guide its own class with shared styles.
+- Validation: all 1,590 tests across 72 files passed. Lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Weekly ladder date window
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one leaderboard improvement: a responsive accented current-week callout with semantic dates, explicit Monday 00:00 UTC boundaries, an exclusive end and refresh guidance. Both public and friends weekly ladders show it, including empty standings; global, unavailable and signed-out states omit it.

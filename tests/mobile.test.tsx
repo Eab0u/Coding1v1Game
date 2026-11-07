@@ -1716,3 +1716,35 @@ it.each([320, 375, 1280])('keeps empty arena progress readable and keyboard navi
     }
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps the rank and tie guide readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Leaderboard({ searchParams: Promise.resolve({period:'weekly'}) }))}`);
+    const guide = page.locator('.rank-guide');
+    const summary = guide.locator('summary');
+    expect(await guide.getAttribute('open')).toBeNull();
+    expect(await guide.locator('dl').isVisible()).toBe(false);
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    expect(await guide.locator('dl').isVisible()).toBe(true);
+    expect(await guide.locator('dt').allTextContents()).toEqual(['Shared places', 'Full precision', 'The 100-player limit']);
+    for (const row of await guide.locator('dl > div').all()) {
+      expect(await row.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      expect(await row.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(38, 36, 33)');
+      const bounds = (await row.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
+    const rows = await guide.locator('dl > div').all();
+    const first = (await rows[0].boundingBox())!;
+    const second = (await rows[1].boundingBox())!;
+    if (width < 400) expect(second.y).toBeGreaterThan(first.y);
+    else expect(second.y).toBe(first.y);
+    await page.keyboard.press('Space');
+    expect(await guide.locator('dl').isVisible()).toBe(false);
+    expect(await summary.evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});

@@ -130,13 +130,13 @@ code { font-family: var(--font-mono); }
 .standings-scroll-hint { margin: 20px; color: var(--color-muted); font-size: .875rem; line-height: 1.6; }
 .standings-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 20px; border-bottom: 1px solid var(--color-border); }
 .standings-summary h2 { margin: 0; font-size: 1.5rem; }
-.weekly-guide { padding: 20px; border-bottom: 1px solid var(--color-border); }
-.weekly-guide summary { min-height: 44px; padding: 12px 0; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
-.weekly-guide[open] summary { color: var(--color-accent); margin-bottom: 16px; }
-.weekly-guide dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; margin: 0; }
-.weekly-guide dl > div { padding: 16px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); min-width: 0; }
-.weekly-guide dt { font-weight: 800; margin-bottom: 8px; }
-.weekly-guide dd { margin: 0; color: var(--color-muted); line-height: 1.6; }
+:is(.weekly-guide, .rank-guide) { padding: 20px; border-bottom: 1px solid var(--color-border); }
+:is(.weekly-guide, .rank-guide) summary { min-height: 44px; padding: 12px 0; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+:is(.weekly-guide, .rank-guide)[open] summary { color: var(--color-accent); margin-bottom: 16px; }
+:is(.weekly-guide, .rank-guide) dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; margin: 0; }
+:is(.weekly-guide, .rank-guide) dl > div { padding: 16px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); min-width: 0; }
+:is(.weekly-guide, .rank-guide) dt { font-weight: 800; margin-bottom: 8px; }
+:is(.weekly-guide, .rank-guide) dd { margin: 0; color: var(--color-muted); line-height: 1.6; }
 .standings-summary .eyebrow { margin: 0 0 8px; }
 .standings-count { margin: 0; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-weight: 700; font-variant-numeric: tabular-nums; }
 .standings-summary-note { flex-basis: 100%; margin: 0; color: var(--color-muted); line-height: 1.6; }
