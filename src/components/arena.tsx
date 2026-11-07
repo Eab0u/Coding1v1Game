@@ -21,8 +21,8 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const [match,setMatch]=useState(initial);
   const feedback=useDuelFeedback();
   const {notify}=feedback;
-  // Existing verdicts are history, not new events when reopening the arena.
-  const seenVerdicts=useRef(new Set(initial.submission?.status==="judged" && initial.submission.id ? [initial.submission.id] : []));
+  // Valid existing verdicts are history; unavailable scores may recover on a later poll.
+  const seenVerdicts=useRef(new Set(initial.submission?.status==="judged" && hasSubmissionScore(initial.submission) && initial.submission.id ? [initial.submission.id] : []));
   useEffect(()=> {
     const verdict=match.submission;
     if (!verdict?.id || verdict.status!=="judged" || !hasSubmissionScore(verdict) || seenVerdicts.current.has(verdict.id)) return;

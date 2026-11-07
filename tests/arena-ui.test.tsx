@@ -459,6 +459,35 @@ it.each([
   expect(play).toHaveBeenCalledTimes(1);
 });
 
+it.each([
+  {passed:null,total:8}, {passed:0,total:null}, {passed:0,total:0},
+  {passed:-1,total:8}, {passed:9,total:8}, {passed:1.5,total:8},
+  {passed:1,total:8.5}, {passed:NaN,total:8}, {passed:1,total:Infinity},
+])('recovers an unavailable initial verdict once after reopening: %j',async(score)=>{
+  vi.useFakeTimers();
+  const play=vi.spyOn(DuelSound.prototype,'play').mockImplementation(()=>{});
+  vi.spyOn(DuelSound.prototype,'unlock').mockImplementation(()=>{});
+  let submission:ArenaSnapshot['submission']={id:'reopened',status:'judged',...score};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(async()=>({ok:true,json:async()=>({...initial,submission})})));
+  render(<Arena initial={{...initial,submission}}/>);
+  expect(screen.getByRole('status',{name:'Latest submission'})).toHaveTextContent('score is unavailable');
+  expect(screen.queryByText('Test failed')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Sound off'}));
+  play.mockClear();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(play).not.toHaveBeenCalled();
+  submission={id:'reopened',status:'judged',passed:0,total:8};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledExactlyOnceWith('failed');
+  expect(screen.getByText('Test failed')).toBeVisible();
+  submission={id:'reopened',status:'judged',...score};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  submission={id:'reopened',status:'judged',passed:8,total:8};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('status',{name:'Latest submission'})).toHaveTextContent('All tests passed');
+});
+
 it('announces each newly judged submission once, including identical scores, without replaying history',async()=>{
   vi.useFakeTimers();
   const play=vi.spyOn(DuelSound.prototype,'play').mockImplementation(()=>{});
