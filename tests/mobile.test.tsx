@@ -19,6 +19,28 @@ import { Results } from '../src/components/results';
 vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); if (state.friendsEmpty) return []; return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 999.75, status: 'pending', incoming: true }, { username: 'another_long_player_name', rating: 999.75, status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', rating: 999.75, status: 'pending', incoming: false }]; } }));
 import Friends from '../src/app/friends/page';
 import NotFound from '../src/app/not-found';
+import Loading from '../src/app/loading';
+
+it.each([320, 375, 1280])('keeps loading feedback and recovery keyboard accessible at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 }, reducedMotion: 'reduce' });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<Loading />)}`);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(await page.getByRole('status').innerText()).toContain('Loading page content');
+    expect(await page.locator('.page-loading-mark').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('link', { name: 'Skip to loading status' }).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('main').evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    const action = page.getByRole('link', { name: 'Back to arena' });
+    expect(await action.evaluate(el => document.activeElement === el)).toBe(true);
+    const bounds = (await action.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
 import ErrorRecovery from '../src/app/error';
 import GlobalError from '../src/app/global-error';
 import Home from '../src/app/page';

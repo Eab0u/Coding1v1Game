@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Route loading feedback
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation; JudgeUnavailableError still prevents sandbox validation. Following the blocker rule, added and completed one bounded loading-feedback item. Both catalog milestones remain unchecked.
+- Added the root App Router loading boundary with a styled dark card, restrained green loading indicator, polite atomic status announcement and reduced-motion support. It explains automatic page arrival and continuing live-duel server clocks without inventing progress or wait estimates. Native arena links permit a fresh document request during stalled navigation; skip navigation focuses the loading content.
+- Added component coverage for status semantics, honest clock guidance and recovery destinations, plus Chromium checks at 320, 375 and 1280px for overflow, reduced motion, skip focus, keyboard recovery and touch sizes.
+- Validation: all 1,078 tests across 70 files passed; lint, typecheck and production build passed. No authored or player Python executed on the host. Browser checks render fixture markup; deployed streaming/navigation behavior still needs a live smoke check.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Root-layout failure recovery
 - Retried problems 1-20 validation with Relay Basin Storage; JudgeUnavailableError still blocks the catalog milestones. Following the blocker rule, added and completed one bounded recovery item; catalog milestones remain unchecked.
 - Added global-error.tsx to recover from root-layout failures outside the existing route boundary. It owns its HTML document, language, title and responsive dark styling, so recovery does not depend on the failed layout or global stylesheet. Native full-page links reload public arena and standings destinations; explicit retry invokes Next.js reset. Private errors and digests remain hidden, and live-match clock guidance remains visible.

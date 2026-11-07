@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Add a branded route-loading screen with polite status feedback, reduced-motion support, live-duel clock guidance, native arena recovery and component and phone keyboard regression coverage
 - [x] Add self-contained root-layout failure recovery with independent document styling, full-page recovery links, explicit retry and hydration and phone keyboard regression coverage
 - [x] Add a branded unexpected-page error boundary with explicit retry, public recovery links, live-match clock guidance and component and phone keyboard regression coverage
 - [x] Add a branded unavailable-page recovery screen with public arena and standings links, responsive styling, native skip navigation and component and phone keyboard regression coverage
