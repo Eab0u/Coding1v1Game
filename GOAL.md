@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Recover plain-editor block indentation after mismatched delimiters on earlier completed logical lines, preserving current-header guards, selections and caret placement with regression tests
 - [x] Support explicit backslash continuations in plain-editor Enter block headers, preserving string/comment context, selections and caret placement with regression tests
 - [x] Preserve earlier-line string and bracket context for plain-editor Enter, preventing indentation inside multiline strings and supporting closed multiline headers with selection and caret regression coverage
 - [x] Prevent plain-editor Enter from treating unfinished current-line Python triple-quoted strings as block headers, preserving quoted punctuation, selections and caret placement with regression coverage

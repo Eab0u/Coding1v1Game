@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Recover indentation after earlier delimiter errors
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
+- Plain-editor Enter now tracks delimiter mismatches through the current logical line and clears them at an ordinary newline once the bracket stack is empty. An earlier completed malformed line no longer disables indentation for every subsequent block header. Unfinished bracket context and explicit continuations retain the mismatch guard. This is a lexical editing convenience rather than Python syntax validation.
+- Added eight regression cases covering recovery, nested unfinished delimiters, malformed current headers, comments, quoted punctuation, explicit continuations, backward selection replacement, suffix preservation, focus and caret placement.
+- Validation: all 936 tests across 60 files passed, including 141 plain-editor tests; lint, typecheck, production build and diff whitespace checks passed. No Python solution code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Explicit Python line continuations
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
 - Plain-editor Enter now joins explicit backslash-newline continuations outside strings and comments when recognizing block headers. Repeated continuations retain the header context; ordinary newlines still reset it. Updated visible keyboard guidance. This remains a lexical convenience rather than Python syntax validation.

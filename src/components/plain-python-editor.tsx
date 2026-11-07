@@ -6,6 +6,7 @@ function endsWithBlockColon(line: string) {
   let quote = "";
   let escaped = false;
   let code = "";
+  let mismatched = false;
   const brackets: string[] = [];
   for (let index = 0; index < line.length; index++) {
     const character = line[index];
@@ -32,6 +33,7 @@ function endsWithBlockColon(line: string) {
       }
       if (character === "\n") {
         code = brackets.length ? code + " " : "";
+        if (!brackets.length) mismatched = false;
         continue;
       }
       code += character;
@@ -43,12 +45,12 @@ function endsWithBlockColon(line: string) {
       else if ("([{".includes(character)) brackets.push(character);
       else if (")]}".includes(character)) {
         const opening = { ")": "(", "]": "[", "}": "{" }[character];
-        if (brackets.pop() !== opening) return false;
+        if (brackets.pop() !== opening) mismatched = true;
       }
     }
   }
   const header = code.trim();
-  return !quote && brackets.length === 0 && header.endsWith(":") &&
+  return !mismatched && !quote && brackets.length === 0 && header.endsWith(":") &&
     /^(?:(?:async\s+)?(?:def|for|with)\b|(?:if|elif|else|while|try|except|finally|class|match|case)\b)/.test(header);
 }
 
