@@ -24,6 +24,9 @@ export function Rematch({id}:{id:string}) {
 }
 function RematchSession({id}:{id:string}) {
   const summaryId=useId();
+  const summary=useRef<HTMLParagraphElement|null>(null);
+  const retryButton=useRef<HTMLButtonElement|null>(null);
+  const focusRefreshedSummary=useRef(false);
   const [state,setState]=useState<RematchState|null>(null);
   const [error,setError]=useState('');
   const [errorInvitation,setErrorInvitation]=useState('');
@@ -94,7 +97,7 @@ function RematchSession({id}:{id:string}) {
           setState(data);setPollError('');
           if (terminalStatuses.has(data.status)) return;
         }
-      } catch {if (!stopped && revision.current===version) {hadPollError.current=true;setUpdatesRestored(false);setPollError('Unable to refresh invitation. Automatic retries continue.');}}
+      } catch {if (!stopped && revision.current===version) {focusRefreshedSummary.current=false;hadPollError.current=true;setUpdatesRestored(false);setPollError('Unable to refresh invitation. Automatic retries continue.');}}
       finally {if (!stopped && revision.current===version) {readPending.current=false;setRefreshing(false);}}
       if (!stopped && revision.current===version) timer=setTimeout(poll,2000);
     }
@@ -105,8 +108,14 @@ function RematchSession({id}:{id:string}) {
     void poll();
     return ()=>{stopped=true;controller.abort();clearTimeout(timer);readPending.current=false;document.removeEventListener('visibilitychange',resume);};
   },[id,refresh,busy,terminal]);
+  useEffect(()=>{
+    if (pollError || !state || !focusRefreshedSummary.current) return;
+    focusRefreshedSummary.current=false;
+    if (document.activeElement===document.body || document.activeElement===retryButton.current) summary.current?.focus();
+  },[pollError,state]);
   function retry() {
     if (readPending.current || actionController.current || terminal) return;
+    focusRefreshedSummary.current=document.activeElement===retryButton.current;
     readPending.current=true;setRefreshing(true);setRefresh(n=>n+1);
   }
   async function act(action:string) {
@@ -132,7 +141,7 @@ function RematchSession({id}:{id:string}) {
   return <section className={`card rematch-panel${terminal?' rematch-panel--settled':''}`} aria-label="Rematch invitation"><div className="rematch-heading"><h2>Another round?</h2>
     {state?.status==='pending' && !busy && !deadlinePassed && <span className={`rematch-cue${state.outgoing?'':' rematch-cue--incoming'}`}>{state.outgoing?'Invitation sent':'Your move'}</span>}
     </div>
-    <p id={summaryId} role="status" aria-live="polite" aria-atomic="true" className={terminal?'rematch-summary':busy && !deadlinePassed?'rematch-pending':undefined}>{terminal?terminalMessages[state.status]:deadlinePassed?'The invitation window has ended. Acceptance and invitation changes are closed. Waiting for server confirmation; no rematch is confirmed yet.':busy?pendingMessages[pendingAction]:!state && pollError?'Invitation status is unavailable. Automatic retries continue; no rematch is confirmed yet.':!state?'Checking invitation…':state.status==='none'?'Invite your opponent to a fresh ranked duel. They have 60 seconds to accept.':state.status==='pending'?(state.outgoing?'Waiting for your opponent. Invitation expires after 60 seconds.':'Your opponent invited you to a fresh ranked duel. Accept within 60 seconds.'):`Invitation ${state.status}.`}</p>
+    <p ref={summary} tabIndex={-1} id={summaryId} role="status" aria-live="polite" aria-atomic="true" className={terminal?'rematch-summary':busy && !deadlinePassed?'rematch-pending':undefined}>{terminal?terminalMessages[state.status]:deadlinePassed?'The invitation window has ended. Acceptance and invitation changes are closed. Waiting for server confirmation; no rematch is confirmed yet.':busy?pendingMessages[pendingAction]:!state && pollError?'Invitation status is unavailable. Automatic retries continue; no rematch is confirmed yet.':!state?'Checking invitation…':state.status==='none'?'Invite your opponent to a fresh ranked duel. They have 60 seconds to accept.':state.status==='pending'?(state.outgoing?'Waiting for your opponent. Invitation expires after 60 seconds.':'Your opponent invited you to a fresh ranked duel. Accept within 60 seconds.'):`Invitation ${state.status}.`}</p>
     {state?.status==='none' && <button aria-describedby={summaryId} className="button button--secondary" disabled={busy} aria-busy={actionBusy('invite')} onClick={()=>void act('invite')}>{actionBusy('invite')?'Sending invitation?':'Rematch'}</button>}
     {state?.status==='pending' && remaining!==null && <div className={`rematch-deadline${deadlinePassed?' rematch-deadline--elapsed':deadlineSoon?' rematch-deadline--soon':''}`}>
       <p role="timer" aria-live="off" aria-label="Invitation time remaining">{remaining}s remaining</p>
@@ -146,7 +155,7 @@ function RematchSession({id}:{id:string}) {
     <div aria-live="polite" aria-atomic="true">{updatesRestored && !terminal && <p className="rematch-restored">Invitation updates restored. Showing the latest server snapshot; automatic updates continue.</p>}</div>
     {pollError && !terminal && <div className="rematch-recovery">
       <p role="alert">{pollError}</p>
-      <button aria-describedby={summaryId} className="button button--secondary" disabled={busy || refreshing} aria-busy={refreshing && !busy} onClick={retry}>{refreshing && !busy?'Refreshing invitation...':'Retry invitation update'}</button>
+      <button ref={retryButton} aria-describedby={summaryId} className="button button--secondary" disabled={busy || refreshing} aria-busy={refreshing && !busy} onClick={retry}>{refreshing && !busy?'Refreshing invitation...':'Retry invitation update'}</button>
       {refreshing && !busy && <p role="status">Refreshing invitation...</p>}
     </div>}
   </section>;

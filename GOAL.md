@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Restore keyboard focus to updated invitation guidance after successful manual rematch recovery, preserving independent navigation and background refresh focus with failure and lifecycle regression coverage
 - [x] Restore keyboard focus to the new-opponent link after explicit rematch decline or cancellation, preserving independent focus and background outcomes with direct and polled confirmation regression coverage
 - [x] Show explicit refreshing labels and accessible busy states on rematch recovery buttons during manual and automatic retries, with failure-reset and recovery regression coverage
 - [x] Show action-specific rematch button labels and accessible busy states while awaiting confirmation, retiring feedback at invitation expiry and outcomes with retry and participant-symmetric regression coverage

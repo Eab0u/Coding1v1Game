@@ -766,3 +766,45 @@ it.each(['decline','cancel'] as const)('preserves independent focus on %s and ba
   }
  } finally {vi.useRealTimers();}
 });
+it.each(['none','pending','accepted','expired'] as const)('restores keyboard focus to refreshed %s invitation guidance',async(status)=>{
+ const pending=deferred<ReturnType<typeof response>>();
+ const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline')).mockReturnValueOnce(pending.promise);
+ vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+ const retry=await screen.findByRole('button',{name:'Retry invitation update'});
+ retry.focus();fireEvent.click(retry);
+ await act(async()=>{pending.resolve(response(status));});
+ expect(screen.queryByRole('button',{name:'Retry invitation update'})).not.toBeInTheDocument();
+ expect(document.activeElement).toHaveAttribute('role','status');
+ expect(document.activeElement).toHaveAttribute('tabindex','-1');
+ expect(document.activeElement).toHaveTextContent(status==='none'?'Invite your opponent':status==='pending'?'opponent':status==='accepted'?'Rematch accepted':'invitation expired');
+});
+it('preserves independent keyboard focus during manual invitation recovery',async()=>{
+ const pending=deferred<ReturnType<typeof response>>();
+ vi.stubGlobal('fetch',vi.fn().mockRejectedValueOnce(new Error('offline')).mockReturnValueOnce(pending.promise));
+ render(<><button>Other navigation</button><Rematch id="old"/></>);
+ const retry=await screen.findByRole('button',{name:'Retry invitation update'});
+ retry.focus();fireEvent.click(retry);
+ const other=screen.getByRole('button',{name:'Other navigation'});other.focus();
+ await act(async()=>{pending.resolve(response('none'));});
+ expect(other).toHaveFocus();
+});
+it.each([true,false])('does not move focus after background recovery or a failed manual retry (manual=%s)',async(manual)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline'));
+  vi.stubGlobal('fetch',fetcher);render(<><button>Other navigation</button><Rematch id="old"/></>);
+  await act(async()=>{});
+  const other=screen.getByRole('button',{name:'Other navigation'});other.focus();
+  if (manual) {
+   fetcher.mockRejectedValueOnce(new Error('offline'));
+   const retry=screen.getByRole('button',{name:'Retry invitation update'});retry.focus();fireEvent.click(retry);
+   await act(async()=>{});
+   expect(retry).toHaveFocus();expect(retry).toBeEnabled();
+   retry.blur();
+  }
+  fetcher.mockResolvedValue(response('none'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('status')).not.toHaveFocus();
+  if (!manual) expect(other).toHaveFocus();
+ } finally {vi.useRealTimers();}
+});
