@@ -60,6 +60,13 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(false)}>Indent</button>
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(true)}>Outdent</button>
     </div>
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary" onClick={() => {
+      const editor = input.current;
+      if (!editor) return;
+      editor.focus();
+      editor.setSelectionRange(0, editor.value.length, "forward");
+      updatePosition();
+    }}>Select all code</button></div>
     <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId}`} value={value}
       onSelect={updatePosition} onFocus={updatePosition} onKeyUp={updatePosition} onPointerUp={updatePosition}
       onCompositionStart={() => { composing.current = true; }}
@@ -85,7 +92,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
       }} />
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
     <p id={hint} className="editor-hint">{readOnly
-      ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Tab moves to the next control."
-      : "Enter keeps indentation and adds four spaces after a colon. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab)."}</p>
+      ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
+      : "Enter keeps indentation and adds four spaces after a colon. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
   </>;
 }

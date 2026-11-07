@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Plain solution selection for manual copying
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Added a styled Select all code button and visible copying guidance to the plain editor. The action focuses the editor, selects the current entire solution and refreshes cursor feedback, including read-only and empty solutions, without modifying the draft.
+- Added regression tests for editable/read-only views, replacement drafts, Unicode, empty text, repeated selection, focus, cursor feedback, button submission protection and native Ctrl/Cmd+C and Tab handling.
+- Validation: all 842 tests across 60 files passed, including 94 focused editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Read-only plain solution guidance
 - Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
 - Added a styled accessible read-only notice and replaced editing instructions with selection, copying and Tab guidance while editing is disabled. The persistent note remains separate from copy and editor-recovery status feedback.

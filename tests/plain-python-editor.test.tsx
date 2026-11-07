@@ -8,6 +8,31 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it.each([false, true])("selects the current whole solution for manual copying without edits (readOnly=%s)", readOnly => {
+  const change = vi.fn();
+  const initial = "def solve():\n    return '😀'";
+  const { rerender } = render(<PlainPythonEditor value={initial} onChange={change} readOnly={readOnly}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  const select = screen.getByRole("button", { name: "Select all code" });
+  expect(select).toHaveAttribute("type", "button");
+  expect(input).toHaveAccessibleDescription(/Select all code.*whole solution/);
+  for (const value of [initial, "x\ny", "", initial]) {
+    rerender(<PlainPythonEditor value={value} onChange={change} readOnly={readOnly}/>);
+    input.setSelectionRange(0, Math.min(2, value.length), "backward");
+    select.focus();
+    fireEvent.click(select);
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue(value);
+    expect(input.selectionStart).toBe(0);
+    expect(input.selectionEnd).toBe(value.length);
+    expect(input).toHaveAccessibleDescription(new RegExp(`Line ${value.split("\n").length}, column ${value.length - value.lastIndexOf("\n")}`));
+    for (const event of [{ key: "c", ctrlKey: true }, { key: "c", metaKey: true }, { key: "Tab" }]) {
+      expect(fireEvent.keyDown(input, event)).toBe(true);
+    }
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
 it("updates read-only guidance without replacing the draft, selection or focus", () => {
   const change = vi.fn();
   const value = "def solve():\n    return 1";
