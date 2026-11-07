@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Dismiss stale solution download failures permanently after draft changes, preserving code, editor preferences and retry recovery in editable and read-only views
 - [x] Add a direct advanced-editor retry after rendering failures, preserving fallback edits, preferences, read-only state and keyboard focus through repeated failures and recovery
 - [x] Expire solution clipboard success and failure feedback permanently after draft changes, including edits restored during pending copies, with retry and preservation tests
 - [x] Expire solution reset confirmations when the draft, starter code or editability changes, preserve new work and require fresh confirmation even when earlier values return

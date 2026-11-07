@@ -405,3 +405,50 @@ it.each([false, true])("retries advanced editor failures while preserving fallba
   expect(localStorage.getItem("codeduel:editor-preferences:v1")).toBe(preferences);
   expect(screen.getByRole("group", { name: "Solution editor" })).toHaveFocus();
 });
+
+
+it.each([false, true])("expires download errors after editing and restoring code in plain mode %s", plain => {
+  vi.stubGlobal("URL", Object.assign(class extends URL {}, {
+    createObjectURL: vi.fn(() => { throw new Error("Unavailable"); }),
+  }));
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const button = screen.getByRole("button", { name: "Download solution (.py)" });
+  fireEvent.click(button);
+  expect(screen.getByRole("alert")).toHaveTextContent("Unable to download");
+  fireEvent.click(screen.getByRole("button", { name: "Increase solution text size" }));
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  expect(screen.getByRole("alert")).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new solution" } });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "def solve():\n    pass" } });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "true");
+  fireEvent.click(button);
+  expect(screen.getByRole("alert")).toHaveTextContent("Unable to download");
+});
+
+it.each([false, true])("expires download errors after external draft replacement with readOnly %s", readOnly => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  const create = vi.fn().mockImplementationOnce(() => { throw new Error("Unavailable"); }).mockReturnValue("blob:recovered");
+  const revoke = vi.fn();
+  vi.stubGlobal("URL", Object.assign(class extends URL {}, { createObjectURL: create, revokeObjectURL: revoke }));
+  const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  const onChange = vi.fn();
+  const view = render(<SolutionEditor value="original" onChange={onChange} readOnly={readOnly}/>);
+  fireEvent.click(screen.getByRole("button", { name: "Download solution (.py)" }));
+  expect(screen.getByRole("alert")).toBeInTheDocument();
+  view.rerender(<SolutionEditor value="replacement" onChange={onChange} readOnly={readOnly}/>);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  view.rerender(<SolutionEditor value="original" onChange={onChange} readOnly={readOnly}/>);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Download solution (.py)" }));
+  expect(click).toHaveBeenCalledOnce();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("original");
+  expect(onChange).not.toHaveBeenCalled();
+  vi.advanceTimersByTime(1000);
+  expect(revoke).toHaveBeenCalledWith("blob:recovered");
+});

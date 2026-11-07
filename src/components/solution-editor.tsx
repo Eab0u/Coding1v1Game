@@ -22,12 +22,12 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const setPlain = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, plain: update(current.plain) }));
   const setWordWrap = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, wordWrap: update(current.wordWrap) }));
   const setFontSize = (update: number | ((value: number) => number)) => setPreferences(current => ({ ...current, fontSize: typeof update === "number" ? update : update(current.fontSize) }));
-  const [downloadError, setDownloadError] = useState(false);
+  const [downloadFailureRevision, setDownloadFailureRevision] = useState<number | null>(null);
   const [editorAttempt, setEditorAttempt] = useState(0);
   const copying = useRef(false);
-  const [copyDraft, setCopyDraft] = useState({ value, revision: 0 });
-  if (copyDraft.value !== value) {
-    setCopyDraft({ value, revision: copyDraft.revision + 1 });
+  const [draftVersion, setDraftVersion] = useState({ value, revision: 0 });
+  if (draftVersion.value !== value) {
+    setDraftVersion({ value, revision: draftVersion.revision + 1 });
   }
   const [copyPending, setCopyPending] = useState(false);
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean } | null>(null);
@@ -44,7 +44,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   if (resetRequest !== null && !confirmReset) setResetRequest(null);
   async function copySolution() {
     if (copying.current) return;
-    const revision = copyDraft.revision;
+    const revision = draftVersion.revision;
     copying.current = true;
     setCopyPending(true);
     setCopyResult(null);
@@ -59,7 +59,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     }
   }
   function downloadSolution() {
-    setDownloadError(false);
+    setDownloadFailureRevision(null);
     let url: string | undefined;
     const link = document.createElement("a");
     try {
@@ -69,7 +69,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       document.body.appendChild(link);
       link.click();
     } catch {
-      setDownloadError(true);
+      setDownloadFailureRevision(draftVersion.revision);
     } finally {
       link.remove();
       // Give the browser time to begin reading the download before releasing it.
@@ -110,8 +110,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
         <button type="button" className="button button--primary" onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
       </div>
     </div>}
-    {downloadError && <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>}
-    {copyResult?.revision === copyDraft.revision && (copyResult.ok
+    {downloadFailureRevision === draftVersion.revision && <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>}
+    {copyResult?.revision === draftVersion.revision && (copyResult.ok
       ? <p role="status">Solution copied to clipboard.</p>
       : <p role="alert">Unable to copy your solution. Try again, download it or select and copy the code manually.</p>)}
   </div>;
