@@ -35,8 +35,11 @@ export default async function Home() {
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a className="button button--secondary" href="/" aria-describedby="dashboard-refresh-note">Refresh dashboard</a>
         </aside>}
-        {!unavailable && user && data.recent.length > 0 && <a className="button button--secondary home-history-shortcut" href="#home-recent-duels-title">Jump to recent duels</a>}
-        {!unavailable && data.daily && <a className="button button--secondary home-daily-shortcut" href="#home-daily-challenge-title">Jump to daily challenge</a>}
+        {!unavailable && ((user && data.recent.length > 0) || data.daily) && <nav className="dashboard-shortcuts" aria-label="Dashboard sections">
+          <span className="dashboard-shortcuts-label">On this page</span>
+          {user && data.recent.length > 0 && <a className="button button--secondary home-history-shortcut" href="#home-recent-duels-title">Jump to recent duels</a>}
+          {data.daily && <a className="button button--secondary home-daily-shortcut" href="#home-daily-challenge-title">Jump to daily challenge</a>}
+        </nav>}
         <section className="hero" aria-labelledby="welcome">
           <div>
             <p className="eyebrow">ONE PROBLEM. TWO PLAYERS.</p>

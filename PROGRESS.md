@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Grouped dashboard section navigation
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation; the configured isolated Judge0 service returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python executed on the host and nothing was published.
+- Followed the blocker rule to add and complete one dashboard usability item. Daily-challenge and recent-duel shortcuts now share a named native Dashboard sections navigation landmark with an On this page label, consistent gaps and full-width controls on phones. Empty and unavailable dashboards omit the landmark; guests see only the published daily destination when available.
+- Added component checks for destination eligibility, link order, focusable headings and empty/error safeguards. Chromium coverage at 320/375/1280px verifies separation between controls, phone widths, 44px touch heights, Tab order, native fragment focus at both headings and no document overflow.
+- Validation: all 1,199 tests across 70 files passed; focused dashboard/mobile coverage (244 tests), lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Compact dashboard scoring guide
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; the configured isolated Judge0 service returned JudgeUnavailableError. Both catalog milestones remain unchecked and blocked. No Python executed on the host and nothing was published.
 - Followed the blocker rule to add and complete one bounded dashboard polish item. Scoring guidance now starts collapsed in a native details/summary disclosure, reducing phone-page length while keeping the section heading visible and retaining best-attempt selection, correctness, median CPU timing, submission-time tiebreaks and draw rules.

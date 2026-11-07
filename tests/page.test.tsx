@@ -345,3 +345,28 @@ it.each([false, true])("omits daily shortcut when unavailable=%s and no preview 
   render(await Home());
   expect(screen.queryByRole("link", {name: "Jump to daily challenge"})).not.toBeInTheDocument();
 });
+
+it.each([
+  { signedIn: false, daily: true, recent: true, names: ['Jump to daily challenge'] },
+  { signedIn: true, daily: false, recent: true, names: ['Jump to recent duels'] },
+  { signedIn: true, daily: true, recent: true, names: ['Jump to recent duels', 'Jump to daily challenge'] },
+])('groups only available dashboard destinations: $names', async ({ signedIn, daily, recent, names }) => {
+  mocks.current.mockResolvedValue(signedIn ? { id: 'one', username: 'Ada', rating: 800 } : null);
+  mocks.load.mockResolvedValue({ streak: 0, daily: daily ? { title: 'Signal', statement: 'Solve', difficulty: 'easy', function_signature: 'def solve():' } : null, recent: recent ? [{ id: 'm', title: 'Pairs', opponent: 'Bob', winner_id: 'one' }] : [] });
+  render(await Home());
+  const navigation = screen.getByRole('navigation', { name: 'Dashboard sections' });
+  expect(within(navigation).getByText('On this page')).toBeVisible();
+  expect(within(navigation).getAllByRole('link').map(link => link.textContent)).toEqual(names);
+  for (const link of within(navigation).getAllByRole('link')) {
+    const heading = document.querySelector(link.getAttribute('href')!)!;
+    expect(heading.tagName).toBe('H2');
+    expect(heading).toHaveAttribute('tabindex', '-1');
+  }
+});
+it.each(['guest empty', 'signed-in empty', 'unavailable'])('omits empty dashboard navigation: %s', async mode => {
+  if (mode !== 'guest empty') mocks.current.mockResolvedValue({ id: 'one', username: 'Ada', rating: 800 });
+  if (mode === 'unavailable') mocks.load.mockRejectedValue(new Error('private'));
+  render(await Home());
+  expect(screen.queryByRole('navigation', { name: 'Dashboard sections' })).not.toBeInTheDocument();
+  expect(screen.queryByText('On this page')).not.toBeInTheDocument();
+});

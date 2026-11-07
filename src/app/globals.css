@@ -566,4 +566,9 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .account-refresh h2 { margin-top: 0; }
 .account-refresh p { margin-bottom: 0; color: var(--color-muted); }
 
-.home-history-shortcut, .home-daily-shortcut { margin-bottom: 1.5rem; min-height: 44px; }
+.dashboard-shortcuts { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-bottom: 1.5rem; }
+.dashboard-shortcuts-label { color: var(--color-muted); font-weight: 700; }
+.home-history-shortcut, .home-daily-shortcut { min-height: 44px; }
+@media (max-width: 480px) {
+  .dashboard-shortcuts > * { width: 100%; }
+}

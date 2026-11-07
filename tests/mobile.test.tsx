@@ -1491,3 +1491,39 @@ it.each([320, 375, 1280])('jumps to the daily preview by keyboard at %spx', asyn
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('spaces dashboard navigation and preserves keyboard destinations at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    state.signedIn = true;
+    state.homeUnavailable = false;
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const nav = page.getByRole('navigation', { name: 'Dashboard sections' });
+    const links = nav.getByRole('link');
+    expect(await links.count()).toBe(2);
+    const first = (await links.nth(0).boundingBox())!;
+    const second = (await links.nth(1).boundingBox())!;
+    for (const box of [first, second]) {
+      expect(box.height).toBeGreaterThanOrEqual(44);
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+    }
+    if (width <= 480) {
+      expect(second.y - (first.y + first.height)).toBeGreaterThanOrEqual(12);
+      expect(first.width).toBe(second.width);
+      expect(first.width).toBe((await nav.boundingBox())!.width);
+    } else {
+      expect(second.y).toBe(first.y);
+      expect(second.x - (first.x + first.width)).toBeGreaterThanOrEqual(12);
+    }
+    await links.nth(0).focus();
+    await page.keyboard.press('Tab');
+    expect(await links.nth(1).evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Enter');
+    expect(await page.locator('#home-daily-challenge-title').evaluate(el => document.activeElement === el)).toBe(true);
+    await links.nth(0).focus();
+    await page.keyboard.press('Enter');
+    expect(await page.locator('#home-recent-duels-title').evaluate(el => document.activeElement === el)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});
