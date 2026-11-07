@@ -38,6 +38,14 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Incomplete saved rating history
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one results-page fix. A saved rating pair with only one value now shows Rating unavailable with explicit guidance instead of Rating not recorded. Fully absent pairs retain the historical empty state; the recorded outcome and independent score metrics remain visible.
+- Added participant-symmetric regression coverage for either missing rating paired with zero or fractional valid values, unaffected opponent ratings, absent history and corrected-history recovery. Updated existing mixed corrupt/missing history tests for the new incomplete state.
+- Validation: all 1,300 tests across 72 files passed; lint, typecheck and production build passed. Diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live infrastructure checks remain pending.
+
+
 ### 2026-11-07 - Explicit unavailable benchmark CPU guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one results-page improvement. Invalid saved CPU metrics now include a visible explanation that execution speed cannot be compared using that value, while preserving the recorded outcome and independently valid test progress.

@@ -6,6 +6,32 @@ import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
 const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:2000}];
 beforeEach(()=>localStorage.clear());
+it.each([0,1])('distinguishes incomplete rating history for participant %s and recovers complete history',index=>{
+ const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p}))};
+ const view=render(<Results result={result}/>);
+ const card=within(screen.getByRole('region',{name:index===0?'Your result':'Opponent result'}));
+ const other=within(screen.getByRole('region',{name:index===0?'Opponent result':'Your result'}));
+ for(const field of ['before','after'] as const) {
+  for(const retained of [0,800.49,1000.1]) {
+   const updated=players.map((p,i)=>i===index?{...p,before:retained,after:retained,[field]:null}:{...p});
+   view.rerender(<Results result={{...result,players:updated}}/>);
+   expect(card.getByText('Rating unavailable')).toBeVisible();
+   expect(card.getByText(/saved rating change could not be verified/)).toHaveTextContent('recorded match outcome still applies');
+   expect(card.queryByText('Rating not recorded')).toBeNull();
+   expect(card.queryByLabelText(/Rating change/)).toBeNull();
+   expect(card.queryByText(/Tier unchanged|Tier changed from|Previously/)).toBeNull();
+   expect(other.getByLabelText(index===0?'Rating change -8':'Rating change +8')).toBeVisible();
+   expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
+  }
+ }
+ view.rerender(<Results result={{...result,players:players.map((p,i)=>i===index?{...p,before:null,after:null}:p)}}/>);
+ expect(card.getByText('Rating not recorded')).toBeVisible();
+ expect(card.queryByText('Rating unavailable')).toBeNull();
+ view.rerender(<Results result={result}/>);
+ expect(card.getByLabelText(index===0?'Rating change +8':'Rating change -8')).toBeVisible();
+ expect(card.getByText('Tier unchanged')).toBeVisible();
+ expect(card.queryByText('Rating unavailable')).toBeNull();
+});
 it('keeps the explanation consistent with unsafe score cards and recovers corrected history',()=>{
  const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p,total:Number.MAX_SAFE_INTEGER+1,submitted:1000}))};
  const view=render(<Results result={result}/>);
@@ -288,8 +314,8 @@ it.each(['before','after'] as const)('reports corrupt %s ratings even when the o
   expect(screen.getByRole('heading',{name:'DRAW'})).toBeVisible();
  }
  view.rerender(<Results result={{...result,players:[{...players[0],[field]:0,[other]:null}]}}/>);
- expect(screen.getByText('Rating not recorded')).toBeVisible();
- expect(screen.queryByText('Rating unavailable')).not.toBeInTheDocument();
+ expect(screen.getByText('Rating unavailable')).toBeVisible();
+ expect(screen.queryByText('Rating not recorded')).not.toBeInTheDocument();
  view.rerender(<Results result={result}/>);
  expect(screen.getByLabelText('Rating change +8')).toBeVisible();
  expect(screen.queryByText('Rating not recorded')).not.toBeInTheDocument();
