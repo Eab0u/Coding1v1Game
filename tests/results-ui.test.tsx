@@ -71,6 +71,11 @@ it('gives both player meters distinct label associations',()=>{
 it('explains best-attempt metrics, units, tie order and display precision',()=>{
  render(<Results result={{title:'Sample',outcome:'WIN',players}}/>);
  const guide=screen.getByRole('region',{name:'Reading the comparison'});
+ const disclosure=guide.querySelector('details')!;
+ expect(disclosure).not.toHaveAttribute('open');
+ expect(guide.querySelector('summary')).toHaveTextContent('Reading the comparison');
+ expect(guide.querySelector('summary')).toHaveAttribute('id','metrics-guide-title');
+ expect(guide).toHaveAttribute('aria-labelledby','metrics-guide-title');
  expect(guide).toHaveTextContent('best judged submission counts, even if a later attempt was weaker');
  expect(guide).toHaveTextContent('Milliseconds of CPU time on the largest tests, using the median of three runs');
  expect(guide).toHaveTextContent('Lower is better when hidden test counts tie');

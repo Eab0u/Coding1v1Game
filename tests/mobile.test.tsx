@@ -347,6 +347,15 @@ it.each([320, 375, 1280])('supports results skip navigation and player touch tar
     }
     const guide = page.getByRole('region', { name: 'Reading the comparison' });
     expect(await guide.isVisible()).toBe(true);
+    const disclosure = guide.locator('details');
+    const toggle = guide.locator('summary');
+    expect(await toggle.evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await disclosure.getAttribute('open')).toBeNull();
+    expect(await guide.locator('dl').isVisible()).toBe(false);
+    expect((await toggle.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Enter');
+    expect(await disclosure.getAttribute('open')).not.toBeNull();
+    expect(await guide.locator('dl').isVisible()).toBe(true);
     for (const metric of await guide.locator('dl > div').all()) {
       const box = (await metric.boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
@@ -361,6 +370,9 @@ it.each([320, 375, 1280])('supports results skip navigation and player touch tar
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(width);
     }
+    await page.keyboard.press('Space');
+    expect(await disclosure.getAttribute('open')).toBeNull();
+    await page.keyboard.press('Tab');
     expect(await links.first().evaluate(el => el === document.activeElement)).toBe(true);
     await page.keyboard.press('Tab');
     expect(await links.last().evaluate(el => el === document.activeElement)).toBe(true);

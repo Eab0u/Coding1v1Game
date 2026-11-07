@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Compact results comparison guide
+- Retried the highest-priority unchecked catalog validation using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated sandbox returned JudgeUnavailableError. Both catalog items remain blocked and unchecked. No Python ran outside the sandbox.
+- Added and completed one improvement under the blocker rule: the results comparison guide now starts collapsed in a native details/summary disclosure, bringing saved scores closer to the outcome. All best-attempt, CPU, submission-time, rounding and unavailable-history guidance remains available.
+- Styled the disclosure with a 44px touch target, rounded focus treatment and green hover/open accents. Added component coverage for its default state and accessible naming, plus Chromium checks at 320/375/1280px for Enter/Space toggling, hidden/revealed guidance, touch size, layout and subsequent player-link focus.
+- Validation: all 1,274 tests across 72 files passed, including 226 targeted component/browser tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live deployment smoke checks remain pending.
+
 ### 2026-11-07 - Final-score verdict polish
 - Retried the highest-priority unchecked catalog validation with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured isolated judge still returned JudgeUnavailableError. Both catalog backlog items remain blocked and unchecked. No Python ran outside the sandbox.
 - Added and completed one results-page improvement under the blocker rule: full, partial and zero-pass judged scores now have explicit text badges, with green full-pass and amber incomplete progress accents. Badges wrap on narrow screens. Unavailable scores and missing submissions retain their existing guidance without verdict styling.
