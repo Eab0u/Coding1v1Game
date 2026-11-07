@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Clear profile record summaries
+- Selected problems 1-20 as the highest-value unchecked item and made a bounded request to the configured Judge0 endpoint; it returned ECONNREFUSED. Following the blocker rule, added and completed one independent profile improvement. Both catalog items remain unchecked.
+- Added an all-time completed-duel total and win rate calculated across the full stored record, including draws. Empty records explain when the rate will appear; singular totals and zero-win records display correctly. Explained the denominator and excluded match states alongside the statistics.
+- Grouped the record in a named section with a semantic definition list for wins, losses and draws. Added a wrapping summary panel and readable, tabular numeric values using existing theme colors.
+- Added component coverage for empty, single-win, mixed and draws-only records. Chromium checks at 320, 375 and 1280px verify large totals, labeled statistics, readable cards and absence of document overflow.
+- Validation: all 537 tests across 47 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity, validate the authored drafts and continue problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - First original catalog draft
 - Selected problems 1-20 as the highest-value unchecked item. A bounded endpoint probe returned ECONNREFUSED, and the real draft validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one prerequisite item: authoring an original draft. Both validated catalog backlog items remain unchecked.
 - Added Relay Balance Window, a medium signed-array problem, with a full statement, constraints, explained examples, O(n) prefix-sum reference and O(n^2) brute force, seeded small-case generation and authored edge cases. Three 100,000-element benchmarks cover absent windows, repeated prefixes and sums exceeding 32-bit range.

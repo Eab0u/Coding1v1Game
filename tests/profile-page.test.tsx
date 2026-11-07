@@ -132,3 +132,18 @@ it('guides public profile visitors without treating the viewed player as the vie
   expect(screen.queryByRole('table')).not.toBeInTheDocument();
   expect(screen.queryByText(/Your rating journey|Your next rival/)).not.toBeInTheDocument();
 });
+it.each([
+  [{ wins: 0, losses: 0, draws: 0 }, '0 completed duels', 'Win rate appears after the first completed duel.'],
+  [{ wins: 1, losses: 0, draws: 0 }, '1 completed duel', '100.0% win rate'],
+  [{ wins: 1, losses: 1, draws: 1 }, '3 completed duels', '33.3% win rate'],
+  [{ wins: 0, losses: 0, draws: 2 }, '2 completed duels', '0.0% win rate'],
+])('explains the full record and win rate for %j', async (record, total, rate) => {
+  mocks.load.mockResolvedValue({ username: 'Ada', rating: 800, record, ratings: [], history: [] });
+  render(await Profile({ params }));
+  expect(screen.getByRole('region', { name: 'All-time match record' })).toHaveAccessibleDescription(/including draws.*cancelled matches are excluded/);
+  expect(screen.getByText(total)).toBeVisible();
+  expect(screen.getByText(rate)).toBeVisible();
+  const terms = screen.getAllByRole('term');
+  expect(terms.map(term => term.textContent)).toEqual(['Wins', 'Losses', 'Draws']);
+  expect(screen.getAllByRole('definition').map(value => value.textContent)).toEqual([record.wins, record.losses, record.draws].map(String));
+});

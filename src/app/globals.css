@@ -144,6 +144,11 @@ code { font-family: var(--font-mono); }
 .profile-record { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
 .profile-record .card { display: grid; gap: .5rem; }
 .profile-record strong { font-size: 2rem; }
+.profile-record-section { margin: 24px 0; }
+.profile-record-summary { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; padding: 16px; border-left: 4px solid var(--color-accent); border-radius: var(--radius-sm); background: var(--color-surface); }
+.profile-record-summary span { color: var(--color-muted); }
+.profile-record dt { color: var(--color-muted); }
+.profile-record dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .rating-chart { width: 100%; max-height: 260px; color: var(--color-accent, #81b64c); background: rgba(129,182,76,.04); border-radius: 12px; }
 .rating-change { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
 .rating-change strong { font-size: 1.5rem; }

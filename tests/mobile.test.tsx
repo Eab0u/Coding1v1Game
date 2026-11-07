@@ -608,3 +608,18 @@ it.each([320, 375, 1280])('keeps home readiness guidance readable at %spx', asyn
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps profile record totals and win rate readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Profile({ params: Promise.resolve({ username }) }))}`);
+    const record = page.getByRole('region', { name: 'All-time match record' });
+    expect(await record.getByText('299997 completed duels', { exact: true }).isVisible()).toBe(true);
+    expect(await record.getByText('33.3% win rate', { exact: true }).isVisible()).toBe(true);
+    expect(await record.getByRole('term').allTextContents()).toEqual(['Wins', 'Losses', 'Draws']);
+    for (const card of await record.locator('.card').all()) {
+      expect(await card.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});

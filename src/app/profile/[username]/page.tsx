@@ -13,6 +13,8 @@ export default async function Profile({ params }: { params: Promise<{ username: 
   if (!/^[A-Za-z0-9_]{3,24}$/.test(username)) notFound();
   try { data = await loadProfile(database(), username); } catch { unavailable = true; }
   if (!unavailable && !data) notFound();
+  const completed = data ? data.record.wins + data.record.losses + data.record.draws : 0;
+  const winRate = completed && data ? `${(100 * data.record.wins / completed).toFixed(1)}%` : null;
   const values = data?.ratings.length ? [data.ratings[0].rating_before, ...data.ratings.map(row => row.rating_after)] : [];
   const change = values.length ? Math.round(values.at(-1)!) - Math.round(values[0]) : 0;
   const low = Math.max(0, Math.floor((Math.min(...values) - 20) / 20) * 20);
@@ -29,7 +31,12 @@ export default async function Profile({ params }: { params: Promise<{ username: 
       </Card> : data && <>
         <p className="eyebrow">PLAYER PROFILE</p><h1>{data.username}</h1>
         <div className="profile-rating"><strong>{Math.round(data.rating)} <small>MMR</small></strong><Badge tone="accent">{ratingTier(data.rating)}</Badge></div>
-        <div className="profile-record" aria-label="All-time match record">{([['Wins', data.record.wins], ['Losses', data.record.losses], ['Draws', data.record.draws]] as const).map(([label, count]) => <Card key={label}><strong>{count}</strong><span>{label}</span></Card>)}</div>
+        <section className="profile-record-section" aria-labelledby="record-title" aria-describedby="record-rules">
+          <h2 id="record-title">All-time match record</h2>
+          <p className="profile-record-summary"><strong>{completed} completed {completed === 1 ? "duel" : "duels"}</strong><span>{winRate ? `${winRate} win rate` : "Win rate appears after the first completed duel."}</span></p>
+          <dl className="profile-record">{([['Wins', data.record.wins], ['Losses', data.record.losses], ['Draws', data.record.draws]] as const).map(([label, count]) => <div className="card" key={label}><dt>{label}</dt><dd><strong>{count}</strong></dd></div>)}</dl>
+          <p id="record-rules" className="availability">Win rate is wins divided by all completed duels, including draws. Waiting, active and cancelled matches are excluded.</p>
+        </section>
         <Card className="profile-climb"><h2>Rating journey</h2>{values.length ? <>
           <p>Last {data.ratings.length} rated {data.ratings.length === 1 ? "duel" : "duels"} · {Math.round(values[0])} → {Math.round(values.at(-1)!)} MMR</p>
           <p className="rating-change"><strong>{change > 0 ? "+" : ""}{change} MMR</strong><span>over this history window</span></p>
