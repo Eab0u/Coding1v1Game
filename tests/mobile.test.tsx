@@ -7,7 +7,7 @@ const username = 'abcdefghijklmnopqrstuvwx';
 const state = vi.hoisted(() => ({ signedIn: true, accountUnavailable: false, leaderboardUnavailable: false, leaderboardEmpty: false, profileUnavailable: false, profileEmpty: false, friendsUnavailable: false, homeUnavailable: false, homeOutcomes: false }));
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current: async () => { if (state.accountUnavailable) throw new Error('private'); return state.signedIn ? ({ id: '1', username: 'abcdefghijklmnopqrstuvwx', rating: 800 }) : null; } } }));
-vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), examples: [{ args: ['X'.repeat(300)], expected: 1, explanation: 'Read the signal.' }], statement: 'B'.repeat(200), constraints: '1 <= n <= 100000\n' + 'C'.repeat(200), function_signature: `def solve_${'long_name_'.repeat(20)}(values: list[int]) -> list[int]:`, difficulty: 'easy' }, recent: [...(state.homeOutcomes ? [{ id: 'loss', title: 'Lost duel', opponent: 'another_long_player_name', winner_id: '2' }, { id: 'draw', title: 'Drawn duel', opponent: 'another_long_player_name', winner_id: null }] : []), { id: '1', completed_at: new Date('2026-11-06T23:05:00Z'), title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
+vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), topics: ['arrays', 'dynamic programming', 'T'.repeat(200)], examples: [{ args: ['X'.repeat(300)], expected: 1, explanation: 'Read the signal.' }], statement: 'B'.repeat(200), constraints: '1 <= n <= 100000\n' + 'C'.repeat(200), function_signature: `def solve_${'long_name_'.repeat(20)}(values: list[int]) -> list[int]:`, difficulty: 'easy' }, recent: [...(state.homeOutcomes ? [{ id: 'loss', title: 'Lost duel', opponent: 'another_long_player_name', winner_id: '2' }, { id: 'draw', title: 'Drawn duel', opponent: 'another_long_player_name', winner_id: null }] : []), { id: '1', completed_at: new Date('2026-11-06T23:05:00Z'), title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
 vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
   if (state.leaderboardUnavailable) throw new Error('unavailable');
   if (state.leaderboardEmpty) return [];
@@ -218,6 +218,10 @@ it.each([320, 375, 1280])('opens daily challenge statements with the keyboard at
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {
     await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const topics = page.getByRole('list', { name: 'Daily challenge topics' });
+    expect(await topics.isVisible()).toBe(true);
+    expect(await topics.locator('li').count()).toBe(3);
+    expect(await topics.evaluate(el => getComputedStyle(el).flexWrap)).toBe('wrap');
     const summary = page.locator('.daily-statement summary');
     const statement = page.locator('.daily-statement > div');
     expect(await statement.isVisible()).toBe(false);

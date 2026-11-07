@@ -223,3 +223,19 @@ it.each([undefined, [], null])("omits unavailable daily examples (%s)", async ex
   render(await Home());
   expect(screen.queryByRole("region", { name: "Public examples", hidden: true })).not.toBeInTheDocument();
 });
+
+it("renders daily topics as safe, labeled study tags", async () => {
+  mocks.load.mockResolvedValue({ daily: { title: "Signal", difficulty: "easy", statement: "Solve it", function_signature: "def solve():", topics: ["arrays", "<script>bad()</script>"] }, recent: [], streak: 0 });
+  const { container } = render(await Home());
+  const topics = screen.getByRole("list", { name: "Daily challenge topics" });
+  expect(topics.children).toHaveLength(2);
+  expect(topics.textContent).toBe("arrays<script>bad()</script>");
+  expect(container.querySelector("script")).toBeNull();
+  expect(screen.getByText("Practice topics")).toBeVisible();
+});
+it.each([undefined, [], null])("omits absent daily topic tags (%s)", async topics => {
+  mocks.load.mockResolvedValue({ daily: { title: "Signal", difficulty: "easy", statement: "Solve it", function_signature: "def solve():", topics }, recent: [], streak: 0 });
+  render(await Home());
+  expect(screen.queryByRole("list", { name: "Daily challenge topics" })).not.toBeInTheDocument();
+  expect(screen.queryByText("Practice topics")).not.toBeInTheDocument();
+});

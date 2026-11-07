@@ -18,14 +18,15 @@ it("counts the current streak, excludes unfinished matches and keeps private pro
         VALUES ($1,$2,$3,'completed',$4,now() + ($5::integer * interval '1 second'))`, [problems.rows[0].id, one, two, i < 2 ? null : one, i]);
     }
     const examples = [{ args: [[1, 2]], expected: 3, explanation: "Add both readings." }];
-    await db.query("UPDATE problems SET examples=$1::jsonb WHERE id=$2", [JSON.stringify(examples), problems.rows[0].id]);
+    await db.query("UPDATE problems SET topics=ARRAY['arrays','greedy'], examples=$1::jsonb WHERE id=$2", [JSON.stringify(examples), problems.rows[0].id]);
     const data = await loadHome(db as unknown as Pool, one);
     expect(data.streak).toBe(6);
     expect(data.recent).toHaveLength(5);
     expect(data.daily?.title).toBe("Public");
     expect(data.daily?.examples).toEqual(examples);
+    expect(data.daily?.topics).toEqual(["arrays", "greedy"]);
     expect(data.daily?.constraints).toBe("n<10");
-    expect(Object.keys(data.daily!).sort()).toEqual(["constraints", "difficulty", "examples", "function_signature", "statement", "title"]);
+    expect(Object.keys(data.daily!).sort()).toEqual(["constraints", "difficulty", "examples", "function_signature", "statement", "title", "topics"]);
     expect(JSON.stringify(data)).not.toContain("SECRET");
     const guest = await loadHome(db as unknown as Pool);
     expect(guest.recent).toEqual([]);

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Show daily challenge study topics as styled semantic tags with safe rendering, missing-data handling and phone layout coverage
 - [x] Show public daily challenge examples with styled input/output cards, Python notation guidance, safe rendering and phone keyboard scrolling coverage
 - [x] Show daily challenge input constraints in a styled accessible preview panel with preserved multiline formatting, safe text rendering and phone keyboard coverage
 - [x] Clarify the arena function contract with styled signature formatting, visible keyboard-scroll guidance and match-state and phone browser coverage

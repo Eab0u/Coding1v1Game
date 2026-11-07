@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Daily challenge study topics
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent daily-preview improvement.
+- Added public topics to the daily database projection and displayed them as a named semantic list of styled study tags. Tags wrap on phones, including long unbroken text; absent topics omit the section and markup remains safely escaped.
+- Updated embedded database projection/privacy assertions, component coverage for topic text, safe rendering and missing data, and Chromium layout checks at 320, 375 and 1280px.
+- Validation: all 722 tests across 53 files passed; targeted tests (141), lint, typecheck, production build and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Public daily challenge examples
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent daily-preview improvement.
 - Added only public examples to the daily database projection and displayed them within the statement disclosure using the shared styled input/output cards. Included Python/JSON notation and function-return guidance, explained separate hidden scoring tests, preserved safe text rendering and omitted the section when examples are absent.

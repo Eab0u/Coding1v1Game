@@ -1,7 +1,7 @@
 import type { Pool } from "pg";
 
 export async function loadHome(db: Pick<Pool, "query">, userId?: string) {
-  const daily = await db.query(`SELECT title, difficulty, statement, function_signature, constraints, examples FROM problems
+  const daily = await db.query(`SELECT title, difficulty, statement, function_signature, constraints, examples, topics FROM problems
     WHERE published_at <= now() ORDER BY md5(slug || (now() AT TIME ZONE 'UTC')::date::text), id LIMIT 1`);
   if (!userId) return { daily: daily.rows[0] ?? null, recent: [], streak: 0 };
   const recent = await db.query(`SELECT m.id, p.title, m.winner_id, m.completed_at, u.username AS opponent
