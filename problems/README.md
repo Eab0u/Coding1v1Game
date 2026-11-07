@@ -216,3 +216,27 @@ remains private and unpublished. Once isolated Judge0 is available, run:
 npm run problems -- validate problems/drafts/relay-cooldown-score.json
 npm run problems -- publish problems/drafts/relay-cooldown-score.json
 ```
+
+### Beacon Horizon Wait
+
+`drafts/beacon-horizon-wait.json` adds an original medium monotonic-stack
+problem: sum distances to each beacon's first strictly taller beacon on its
+right. Equal heights do not qualify and missing successors contribute zero.
+
+The reference resolves pending indices with a decreasing stack in O(n) time
+and O(n) space. The quadratic baseline scans forward until a taller beacon is
+found. Three 100,000-element benchmarks (flat, descending, and a flat prefix
+with one taller final beacon) each require 4,999,950,000 baseline comparisons.
+The final case's answer exceeds signed 32-bit range.
+
+The seeded generator supplies 2,000 small inputs. Data-only fixture tests
+compare enumeration to an independent reverse successor-jump oracle, check
+strictly increasing height transformations, and verify full-size formulas.
+These checks do not execute either Python solution. The proposed 1-second CPU
+and 64-MiB limits need isolated Judge0 measurement. The draft is private,
+unpublished and unapproved. Once sandbox connectivity is restored, run:
+
+```sh
+npm run problems -- validate problems/drafts/beacon-horizon-wait.json
+npm run problems -- publish problems/drafts/beacon-horizon-wait.json
+```
