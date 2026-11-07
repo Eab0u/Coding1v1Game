@@ -85,3 +85,14 @@ it("preserves weekly selection when guests leave friends standings", async () =>
   expect(screen.queryByRole("link", { name: "Find a duel" })).not.toBeInTheDocument();
 });
 
+it.each(["global", "weekly"])("guides visitors through empty public %s standings without private account reads", async period => {
+  render(await Leaderboard({ searchParams: Promise.resolve({ period }) }));
+  const panel = screen.getByRole("region", { name: period === "weekly" ? "A new week. An open ladder." : "The first rivals are on their way." });
+  expect(panel).toBeVisible();
+  expect(screen.getByRole("link", { name: "Find a duel" })).toHaveAttribute("href", "/");
+  expect(screen.getByRole("link", { name: "Sign in or create an account" })).toHaveAttribute("href", "/account");
+  expect(screen.getByRole("link", { name: "Find a duel" })).toHaveClass("button--primary");
+  expect(mocks.current).not.toHaveBeenCalled();
+  expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  expect(screen.getByText(period === "weekly" ? /Wins, losses and draws all count/ : /New accounts start at 800 MMR/)).toBeVisible();
+});

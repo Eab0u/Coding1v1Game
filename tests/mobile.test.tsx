@@ -503,3 +503,25 @@ it.each([320, 375, 1280])('supports direct account entry and error recovery at %
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { state.signedIn = true; await page.close(); }
 });
+it.each([320, 375, 1280])('keeps empty public ladder actions readable and keyboard accessible at %spx', async width => {
+  state.leaderboardEmpty = true;
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    for (const period of ['global', 'weekly']) {
+      await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Leaderboard({ searchParams: Promise.resolve({ period }) }))}`);
+      const actions = page.locator('.ladder-empty-actions a');
+      expect(await actions.count()).toBe(2);
+      await actions.first().focus();
+      expect(await actions.first().evaluate(el => el === document.activeElement)).toBe(true);
+      await page.keyboard.press('Tab');
+      expect(await actions.last().evaluate(el => el === document.activeElement)).toBe(true);
+      for (const action of await actions.all()) {
+        const bounds = (await action.boundingBox())!;
+        expect(bounds.height).toBeGreaterThanOrEqual(44);
+        expect(bounds.x).toBeGreaterThanOrEqual(0);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
+  } finally { state.leaderboardEmpty = false; await page.close(); }
+});

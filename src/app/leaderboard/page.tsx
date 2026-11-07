@@ -57,7 +57,13 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
             <p className="eyebrow">YOUR CIRCLE</p><h2 id="friends-empty-title">{period === "weekly" ? "Your circle’s next climb starts here." : "Bring your rivals to the ladder."}</h2>
             <p>{period === "weekly" ? "Neither you nor your accepted friends have completed a rated duel this week. Finish a rated duel to join the weekly climb; wins, losses and draws all count." : "No standings are available for your circle yet. Invite a rival or return to the arena to start a duel."}</p>
             <div className="ladder-empty-actions"><Link className="button button--primary" href="/">Find a duel</Link><Link className="button button--secondary" href="/friends">Invite friends</Link></div>
-          </section> : <div className="ladder-empty"><h2>{period === "weekly" ? "A new week. An open ladder." : "The first rivals are on their way."}</h2><p>{period === "weekly" ? "Completed rated duels will put this week’s climbers here." : "Create an account to join the standings."}</p><Link className="button button--primary" href="/">Back to arena</Link></div>}
+          </section> : <section className="ladder-empty" aria-labelledby="public-empty-title">
+            <p className="eyebrow">YOUR NEXT CLIMB</p>
+            <h2 id="public-empty-title">{period === "weekly" ? "A new week. An open ladder." : "The first rivals are on their way."}</h2>
+            <p>{period === "weekly" ? "Complete a rated duel this week to enter the weekly climb. Wins, losses and draws all count; standings compare net rating gained since Monday 00:00 UTC." : "New accounts start at 800 MMR and appear in the global standings. Complete rated duels to build your rating and climb the ladder."}</p>
+            <p>Already have an account? Head to the arena to find your next duel.</p>
+            <div className="ladder-empty-actions"><Link className="button button--primary" href="/">Find a duel</Link><Link className="button button--secondary" href="/account">Sign in or create an account</Link></div>
+          </section>}
       </Card>
     </main>
   </div>;
