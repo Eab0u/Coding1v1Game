@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Preserve indentation selection direction
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks catalog validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correction.
+- Plain-editor block indentation now preserves selection direction, keeping the active cursor at the correct end of backward selections and the cursor-position display accurate through repeated edits. Existing focus recovery and selected-line boundaries are preserved.
+- Added three regression cases for forward/backward repeated indentation and outdent recovery, exact solution restoration, cursor feedback, focus and unchanged-text outdent behavior.
+- Validation: all 820 tests across 60 files passed, including 27 focused plain-editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Dismiss stale download failures
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor feedback item.
 - Download errors now belong to the current draft revision and disappear permanently when code changes, including when earlier code is restored. Preference changes preserve relevant errors, and download retries remain available without changing solution text.

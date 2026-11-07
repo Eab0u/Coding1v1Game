@@ -118,3 +118,37 @@ it("tracks read-only selection and external replacements, including empty code",
   expect(screen.getByLabelText('Solution cursor position')).toHaveTextContent('Line 1, column 1');
   expect(props.onChange).not.toHaveBeenCalled();
 });
+
+it.each(['forward', 'backward'] as const)('preserves %s active selection through repeated indent and outdent', direction => {
+  render(<Harness initial={'one\ntwo\nthree'}/>);
+  const input = screen.getByRole('textbox') as HTMLTextAreaElement;
+  input.setSelectionRange(1, 8, direction);
+  for (const [action, start, end, column] of [
+    ['Indent', 5, 16, 6], ['Indent', 9, 24, 10],
+    ['Outdent', 5, 16, 6], ['Outdent', 1, 8, 2],
+  ] as const) {
+    fireEvent.click(screen.getByRole('button', { name: action }));
+    expect(input).toHaveFocus();
+    expect(input.selectionStart).toBe(start);
+    expect(input.selectionEnd).toBe(end);
+    expect(input.selectionDirection).toBe(direction);
+    expect(screen.getByLabelText('Solution cursor position')).toHaveTextContent(
+      direction === 'backward' ? `Line 1, column ${column}` : 'Line 3, column 1',
+    );
+  }
+  expect(input).toHaveValue('one\ntwo\nthree');
+});
+
+it('preserves backward selection when outdent changes no text', () => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value={'one\ntwo'} onChange={change} readOnly={false}/>);
+  const input = screen.getByRole('textbox') as HTMLTextAreaElement;
+  input.setSelectionRange(1, 6, 'backward');
+  fireEvent.click(screen.getByRole('button', { name: 'Outdent' }));
+  expect(input).toHaveFocus();
+  expect(input.selectionDirection).toBe('backward');
+  expect(input.selectionStart).toBe(1);
+  expect(input.selectionEnd).toBe(6);
+  expect(change).not.toHaveBeenCalled();
+  expect(screen.getByLabelText('Solution cursor position')).toHaveTextContent('Line 1, column 2');
+});

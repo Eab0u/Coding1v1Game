@@ -5,7 +5,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
   value: string; onChange: (value: string) => void; readOnly: boolean; fontSize?: number; wordWrap?: boolean;
 }) {
   const input = useRef<HTMLTextAreaElement>(null);
-  const caret = useRef<[number, number] | null>(null);
+  const caret = useRef<[number, number, ("forward" | "backward" | "none")?] | null>(null);
   const position = useRef<HTMLDivElement>(null);
   const hint = useId();
   const positionId = useId();
@@ -30,7 +30,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
   function changeIndent(outdent: boolean) {
     const editor = input.current;
     if (!editor || readOnly) return;
-    const { selectionStart: start, selectionEnd: end } = editor;
+    const { selectionStart: start, selectionEnd: end, selectionDirection } = editor;
     const first = value.slice(0, start).lastIndexOf("\n") + 1;
     // A selection ending at the next line's start does not include that line.
     const last = end > start && value[end - 1] === "\n" ? end - 1 : end;
@@ -50,7 +50,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     }).join("\n");
     editor.focus();
     if (block === value.slice(first, stop)) return;
-    caret.current = [nextStart, nextEnd];
+    caret.current = [nextStart, nextEnd, selectionDirection];
     onChange(value.slice(0, first) + block + value.slice(stop));
   }
   return <>
