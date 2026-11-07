@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Plain-editor End navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor navigation item; catalog milestones remain unchecked.
+- End toggles between the position after the last non-space/tab character and the physical line end. Shift+End retains the selection anchor through direction changes. Editable and read-only drafts share navigation and updated keyboard guidance without changing code or focus.
+- Added 16 regression cases covering trailing spaces/tabs, backward-to-forward selection reversal, blank and trailing lines, CRLF/CR offsets, native modified keys, IME flags and composition-end/blur recovery. Corrected the test's synthetic blur dispatch to use React's focus event helper.
+- Validation: all 1,045 tests across 66 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the twenty initial drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Expandable plain-editor keyboard guide
 - Retried problems 1-20 validation with Relay Basin Storage; JudgeUnavailableError still blocks the highest-value milestone. Following the blocker rule, added and completed one bounded editor usability item; catalog milestones remain unchecked.
 - Moved long plain-editor keyboard guidance into a styled native disclosure, collapsed initially, with a 44px minimum summary and expanded accent. Retained the textarea description and editable/read-only instructions. Native disclosure state survives mode changes without replacing code, focus or selection.

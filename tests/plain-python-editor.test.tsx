@@ -890,3 +890,66 @@ it("preserves the open keyboard guide and draft selection through read-only chan
   expect(input).toHaveAccessibleDescription(/Enter keeps indentation/);
   expect(change).not.toHaveBeenCalled();
 });
+
+it.each([false, true])("toggles End around trailing spaces without changing readOnly=%s code", readOnly => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value={"first\n    code \t\nlast"} onChange={change} readOnly={readOnly}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(10, 10);
+  expect(fireEvent.keyDown(input, { key: "End" })).toBe(false);
+  expect(input.selectionStart).toBe(14);
+  fireEvent.keyDown(input, { key: "End" });
+  expect(input.selectionStart).toBe(16);
+  fireEvent.keyDown(input, { key: "End" });
+  expect(input.selectionStart).toBe(14);
+  expect(input).toHaveFocus();
+  expect(change).not.toHaveBeenCalled();
+  expect(screen.getByLabelText("Solution cursor position")).toHaveTextContent("Line 2, column 9");
+});
+
+it("retains Shift+End anchors while reversing backward selections", () => {
+  render(<Harness initial={"code   "}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.setSelectionRange(1, 6, "backward");
+  fireEvent.keyDown(input, { key: "End", shiftKey: true });
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([4, 6, "backward"]);
+  fireEvent.keyDown(input, { key: "End", shiftKey: true });
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([6, 7, "forward"]);
+  fireEvent.keyDown(input, { key: "End", shiftKey: true });
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([4, 6, "backward"]);
+});
+
+it.each(["", "   \t", "code", "first\n", "first\r\ncode  ", "first\rcode\t"])("handles End boundaries and normalized offsets: %j", value => {
+  render(<Harness initial={value}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  const normalized = input.value;
+  const start = normalized.lastIndexOf("\n") + 1;
+  input.setSelectionRange(start, start);
+  fireEvent.keyDown(input, { key: "End" });
+  const contentEnd = normalized.trimEnd().length < start ? start : normalized.trimEnd().length;
+  expect(input.selectionStart).toBe(contentEnd === start ? normalized.length : contentEnd);
+  expect(input.selectionEnd).toBe(input.selectionStart);
+  expect(input).toHaveValue(normalized);
+});
+
+it.each([{ ctrlKey: true }, { metaKey: true }, { altKey: true }, { isComposing: true }, { keyCode: 229 }])("preserves native modified or composing End: %j", flags => {
+  render(<Harness initial="code  "/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.setSelectionRange(1, 3, "backward");
+  expect(fireEvent.keyDown(input, { key: "End", ...flags })).toBe(true);
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([1, 3, "backward"]);
+});
+
+it.each(["compositionend", "blur"])("recovers End navigation after IME %s", ending => {
+  render(<Harness initial="code  "/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.setSelectionRange(1, 1);
+  fireEvent.compositionStart(input);
+  expect(fireEvent.keyDown(input, { key: "End" })).toBe(true);
+  expect(input.selectionStart).toBe(1);
+  if (ending === "blur") fireEvent.blur(input);
+  else fireEvent.compositionEnd(input);
+  expect(fireEvent.keyDown(input, { key: "End" })).toBe(false);
+  expect(input.selectionStart).toBe(4);
+});

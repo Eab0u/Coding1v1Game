@@ -149,13 +149,18 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
       autoCapitalize="off" autoCorrect="off" wrap={wordWrap ? "soft" : "off"}
       onKeyDown={event => {
         if (composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
-        if (event.key === "Home" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        if ((event.key === "Home" || event.key === "End") && !event.ctrlKey && !event.metaKey && !event.altKey) {
           const editor = event.currentTarget;
           const { selectionStart: start, selectionEnd: end, selectionDirection } = editor;
           const active = selectionDirection === "backward" ? start : end;
           const lineStart = value.slice(0, active).lastIndexOf("\n") + 1;
           const indentation = value.slice(lineStart).match(/^[\t ]*/)?.[0].length ?? 0;
-          const target = active === lineStart + indentation ? lineStart : lineStart + indentation;
+          const nextNewline = value.indexOf("\n", active);
+          const lineEnd = nextNewline < 0 ? value.length : nextNewline;
+          const contentEnd = lineEnd - (value.slice(lineStart, lineEnd).match(/[\t ]*$/)?.[0].length ?? 0);
+          const target = event.key === "Home"
+            ? (active === lineStart + indentation ? lineStart : lineStart + indentation)
+            : (active === contentEnd ? lineEnd : contentEnd);
           const anchor = event.shiftKey ? (selectionDirection === "backward" ? end : start) : target;
           event.preventDefault();
           editor.setSelectionRange(Math.min(anchor, target), Math.max(anchor, target), target < anchor ? "backward" : "forward");
@@ -193,8 +198,8 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
     <details className="editor-keyboard-guide">
       <summary>Python editor keyboard guide</summary>
       <p id={hint} className="editor-hint">{readOnly
-      ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Home moves to the first code character, then the line start; Shift+Home selects. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
-      : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Backspace in space-only leading indentation outside strings removes spaces to the previous four-space stop. Shift+Enter inserts a plain newline. Home moves to the first code character, then the line start; Shift+Home selects. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+      ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Home moves to the first code character, then the line start; Shift+Home selects. End moves after the last non-space character, then the line end; Shift+End selects. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
+      : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Backspace in space-only leading indentation outside strings removes spaces to the previous four-space stop. Shift+Enter inserts a plain newline. Home moves to the first code character, then the line start; Shift+Home selects. End moves after the last non-space character, then the line end; Shift+End selects. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
     </details>
   </>;
 }
