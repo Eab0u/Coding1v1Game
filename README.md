@@ -117,6 +117,9 @@ positional JSON arguments and must return a JSON value; output must contain only
 value. Comparisons are exact, including array order, with object key order ignored.
 Tree/linked-list problems will need JSON adapters in the future problem pipeline.
 Expected answers remain on the Node server; only source and arguments go to Judge0.
+Submission and polling requests reject HTTP redirects to keep authentication tokens
+and source on the configured endpoint. Configure the final sandbox URL directly;
+redirect failures are treated as sandbox outages and never scored as player losses.
 
 Every test runs in a separate sandbox. Benchmark tests run three independent times;
 all three must pass to count that test. CPU seconds are converted to milliseconds

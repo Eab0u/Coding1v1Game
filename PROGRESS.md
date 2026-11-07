@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Sandbox redirect protection
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated sandbox remains unavailable. Both catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one judge security item: submission and polling requests now reject redirects, preventing authentication tokens and submission source from being forwarded. Redirect failures remain generic sandbox outages and cannot become scored losses. Documented configuring the final endpoint directly.
+- Added real local HTTP regression tests for submission and polling redirects, verifying no request reaches the redirect target, plus coverage that every successful API request disables redirect following. The HTTP fixture returns canned responses and executes no Python.
+- Validation: all 1,654 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 47 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Credential-safe sandbox URL configuration errors
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the sandbox remains unavailable and both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one configuration safety item: malformed Judge0 URLs now produce the same generic configuration error as other rejected settings. Native URL parser errors retain raw input, potentially including credentials; the replacement error retains neither that input nor a parser cause. Existing URL restrictions remain enforced before network access.

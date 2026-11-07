@@ -56,6 +56,8 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
     try {
       const response = await fetcher(`${base}${path}`, {
         method: body ? "POST" : "GET",
+        // Keep credentials and submission source on the configured endpoint.
+        redirect: "error",
         headers: { "Content-Type": "application/json", ...(config.authToken ? { "X-Auth-Token": config.authToken } : {}) },
         signal: AbortSignal.timeout(timeout),
         ...(body ? { body: JSON.stringify(body) } : {}),

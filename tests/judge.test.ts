@@ -1,5 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
+import { createServer } from "node:http";
+import { once } from "node:events";
 import { createJudge, JudgeUnavailableError, type JudgeConfig, type JudgeRequest } from "../src/lib/judge";
 import { scoreMatch } from "../src/lib/scoring";
 
@@ -12,6 +14,34 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each(["POST", "GET"])("never follows %s redirects or forwards sandbox credentials", async redirectedMethod => {
+    const received: string[] = [];
+    const server = createServer((req, res) => {
+      received.push(`${req.method} ${req.url}`);
+      if (req.url === "/redirect-target") {
+        res.end(JSON.stringify(done()));
+      } else if (req.method === redirectedMethod) {
+        res.writeHead(307, { Location: "/redirect-target?secret=private-token" });
+        res.end("private response details");
+      } else {
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ token: "sandbox-token" }));
+      }
+    });
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+    try {
+      const address = server.address() as { port: number };
+      await expect(createJudge({ ...config, url: `http://127.0.0.1:${address.port}` })(request))
+        .rejects.toThrow("Sandbox judge unavailable; submission must not be scored.");
+      expect(received).toEqual(redirectedMethod === "POST"
+        ? ["POST /submissions?base64_encoded=true&wait=false"]
+        : ["POST /submissions?base64_encoded=true&wait=false", "GET /submissions/sandbox-token?base64_encoded=true&fields=status,time,stdout"]);
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    }
+  });
   it.each([
     "private-token@invalid-host",
     "https://private-user:private-password@[invalid",
@@ -47,6 +77,7 @@ describe("sandbox judge", () => {
     expect(body).toMatchObject({ language_id: 71, enable_network: false, cpu_time_limit: 2, memory_limit: 128000, number_of_runs: 1, max_processes_and_or_threads: 1, max_file_size: 64 });
     expect(init.headers).toMatchObject({ "X-Auth-Token": "test-only" });
     expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(fetcher.mock.calls.every(([, options]) => options?.redirect === "error")).toBe(true);
     expect(Buffer.from(body.stdin, "base64").toString()).toBe("[42]");
     expect(body).not.toHaveProperty("expected_output");
     expect(Buffer.from(body.source_code, "base64").toString()).toContain("_namespace[\"solve\"](*_payload)");
