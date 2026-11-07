@@ -49,7 +49,13 @@ it.each(["compositionend", "blur"])("protects toolbar indentation during IME and
   const feedback = screen.getByRole("group", { name: "Solution cursor position" }).textContent;
   fireEvent.compositionStart(input);
   for (const name of ["Indent", "Outdent", "Indent", "Outdent"]) {
-    fireEvent.click(screen.getByRole("button", { name }));
+    const button = screen.getByRole("button", { name });
+    // Simulate the browser's default focus transfer only when mousedown allows it.
+    const transferFocus = fireEvent.mouseDown(button);
+    if (transferFocus) button.focus();
+    expect(transferFocus).toBe(false);
+    fireEvent.mouseUp(button);
+    fireEvent.click(button);
     expect(input).toHaveValue("    first\n    second");
     expect(input.selectionStart).toBe(2);
     expect(input.selectionEnd).toBe(15);
@@ -59,6 +65,7 @@ it.each(["compositionend", "blur"])("protects toolbar indentation during IME and
   }
   if (ending === "compositionend") fireEvent.compositionEnd(input);
   else { input.blur(); input.focus(); }
+  expect(fireEvent.mouseDown(screen.getByRole("button", { name: "Indent" }))).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Indent" }));
   expect(input).toHaveValue("        first\n        second");
   expect(input.selectionDirection).toBe("backward");

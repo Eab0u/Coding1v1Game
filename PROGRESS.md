@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Preserve IME focus during indentation clicks
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. The validation command still returns JudgeUnavailableError; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Prevented Indent and Outdent mousedown defaults during active composition. This keeps the textarea focused so its blur handler cannot clear the composition guard before the click and inadvertently alter a composing draft.
+- Updated regression tests to simulate browser focus transfer when mousedown is allowed, cover repeated actions and backward selection/cursor preservation, and verify normal mouse defaults and indentation recovery after composition-end or blur.
+- Validation: all 852 tests across 60 files passed; lint, typecheck and production build passed. No Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - IME-safe whole-solution selection
 - Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
 - Protected Select all code during active IME composition and prevented mouse activation from blurring the textarea before the selection guard. Drafts, backward selections and cursor feedback remain intact, including through read-only mode changes.
