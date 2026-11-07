@@ -11,7 +11,7 @@ it('shows a new player record and honest graph and history empty states', async 
   render(await Profile({params}));
   expect(screen.getByRole('heading',{name:'Ada'})).toBeVisible();
   expect(screen.getByText('Bronze')).toBeVisible();
-  expect(screen.getByText(/Your rating journey starts/)).toBeVisible();
+  expect(screen.getByText(/Players start at 800 MMR/)).toBeVisible();
   expect(screen.queryByRole('img')).not.toBeInTheDocument();
   expect(screen.getByRole('link',{name:'Find a duel'})).toHaveAttribute('href','/');
   expect(screen.queryByText(/Scroll the table sideways/)).not.toBeInTheDocument();
@@ -29,7 +29,7 @@ it('contains infrastructure errors without showing false empty records', async (
   mocks.load.mockRejectedValue(new Error('SECRET'));
   render(await Profile({params}));
   expect(screen.getByRole('alert')).toHaveTextContent('Profile unavailable');
-  expect(screen.queryByText(/SECRET|No completed duels|Your rating journey/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/SECRET|No completed duels|Players start at 800 MMR/)).not.toBeInTheDocument();
   expect(screen.queryByRole('img')).not.toBeInTheDocument();
   expect(screen.getByRole('link', {name:'Retry profile'})).toHaveAttribute('href','/profile/Ada');
   expect(screen.getByRole('link', {name:'Back to arena'})).toHaveAttribute('href','/');
@@ -119,4 +119,16 @@ it('shows chronological rating changes with machine-readable dates and consisten
   expect(Array.from(list.querySelectorAll('time')).map(el => el.dateTime)).toEqual(['2026-01-01T00:00:00.000Z','2026-01-02T00:00:00.000Z','2026-01-03T00:00:00.000Z']);
   expect(container.querySelector('.rating-history')).not.toHaveAttribute('open');
   expect(screen.getByText(/Oldest to newest/)).toHaveTextContent('Dates are UTC');
+});
+
+
+it('guides public profile visitors without treating the viewed player as the viewer', async () => {
+  render(await Profile({params}));
+  const guidance = screen.getByRole('region', {name:'No completed duels yet'});
+  expect(guidance).toHaveTextContent('Waiting, active and cancelled matches do not count');
+  expect(screen.getByText(/This player has no completed rated duels/)).toBeVisible();
+  expect(screen.getByRole('link',{name:'Explore standings'})).toHaveAttribute('href','/leaderboard');
+  expect(screen.getAllByRole('link',{name:'Find a duel'})).toHaveLength(1);
+  expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  expect(screen.queryByText(/Your rating journey|Your next rival/)).not.toBeInTheDocument();
 });

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Empty public profile guidance
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
+- Corrected empty public profiles to describe the viewed player rather than implying the visitor owns the profile. Added a bordered guidance panel explaining completed-history eligibility, with styled duel and public standings actions. Reused the responsive action layout and avoided duplicate duel links.
+- Added component coverage for public copy, destinations, empty-table suppression and a single duel action. Chromium checks at 320, 375 and 1280px verify keyboard order, 44px action heights and document overflow.
+- Validation: all 509 tests across 45 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Readable expanded rating history
 - Reviewed both unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
 - Replaced compact rating-history text with bordered, wrapping entries showing machine-readable UTC dates, before/after MMR and signed changes. Explained chronological order and display rounding. Changes use rounded endpoints consistently with the journey summary and avoid signed zero. Preserved native keyboard disclosure and added an open-state accent.

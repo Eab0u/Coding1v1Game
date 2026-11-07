@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 
 const username = 'abcdefghijklmnopqrstuvwx';
-const state = vi.hoisted(() => ({ signedIn: true, accountUnavailable: false, leaderboardUnavailable: false, leaderboardEmpty: false, profileUnavailable: false, friendsUnavailable: false, homeUnavailable: false }));
+const state = vi.hoisted(() => ({ signedIn: true, accountUnavailable: false, leaderboardUnavailable: false, leaderboardEmpty: false, profileUnavailable: false, profileEmpty: false, friendsUnavailable: false, homeUnavailable: false }));
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current: async () => { if (state.accountUnavailable) throw new Error('private'); return state.signedIn ? ({ id: '1', username: 'abcdefghijklmnopqrstuvwx', rating: 800 }) : null; } } }));
 vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: 'def solve_very_long_function_name(values: list[int]) -> list[int]:', difficulty: 'easy' }, recent: [{ id: '1', title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
@@ -13,7 +13,7 @@ vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
   if (state.leaderboardEmpty) return [];
   return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 1234, score: 123, rank: 1 }];
 } }));
-vi.mock('../src/lib/profile', () => ({ ratingTier: () => 'Bronze', loadProfile: async () => { if (state.profileUnavailable) throw new Error('private'); return ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [{ rating_before: 800, rating_after: 1234, completed_at: new Date('2026-11-01Z') }], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }); } }));
+vi.mock('../src/lib/profile', () => ({ ratingTier: () => 'Bronze', loadProfile: async () => { if (state.profileUnavailable) throw new Error('private'); if (state.profileEmpty) return {username, rating:800, record:{wins:0,losses:0,draws:0},ratings:[],history:[]}; return ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [{ rating_before: 800, rating_after: 1234, completed_at: new Date('2026-11-01Z') }], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }); } }));
 import { Arena } from '../src/components/arena';
 import { Results } from '../src/components/results';
 vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); return [{ username: 'abcdefghijklmnopqrstuvwx', status: 'pending', incoming: true }, { username: 'another_long_player_name', status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', status: 'pending', incoming: false }]; } }));
@@ -530,4 +530,21 @@ it.each([320, 375, 1280])('keeps empty public ladder actions readable and keyboa
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     }
   } finally { state.leaderboardEmpty = false; await page.close(); }
+});
+
+it.each([320, 375, 1280])('makes empty public profile guidance usable at %spx', async width => {
+  state.profileEmpty = true;
+  const page = await browser.newPage({viewport:{width,height:900}});
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css','utf8')}</style>${renderToStaticMarkup(await Profile({params:Promise.resolve({username})}))}`);
+    const region = page.getByRole('region',{name:'No completed duels yet'});
+    const play = region.getByRole('link',{name:'Find a duel'});
+    const standings = region.getByRole('link',{name:'Explore standings'});
+    await play.focus();
+    await page.keyboard.press('Tab');
+    expect(await standings.evaluate(el => el === document.activeElement)).toBe(true);
+    for (const action of [play, standings]) expect((await action.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    expect(await page.getByRole('table').count()).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally {state.profileEmpty = false; await page.close();}
 });
