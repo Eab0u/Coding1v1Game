@@ -419,3 +419,26 @@ per benchmark. This draft remains private, unpublished and unapproved. Run:
 ```sh
 npm run problems -- validate problems/drafts/relay-order-conflicts.json
 ```
+
+### Relay Missing Slot
+
+`drafts/relay-missing-slot.json` is an original easy hash-set problem: find
+the smallest missing positive slot label, ignoring duplicate and diagnostic
+(nonpositive) labels. Empty logs return 1. Among n entries at least one of
+1 through n+1 is absent. The reference builds a set and checks successive
+labels in O(n) expected time and O(n) space. The baseline repeats linear
+list membership scans, requiring O(n squared) time on occupied prefixes.
+
+Three 100,000-entry benchmarks use ascending and descending complete prefixes
+and a 50,000-label prefix padded with zeroes. Answers are 100001, 100001
+and 50001; baseline scans require over a billion comparisons in every case.
+The seeded generator supplies 2,000 small cases including empty arrays,
+duplicates and diagnostic labels. Data-only tests compare sorted-gap and
+linear-scan oracles and verify order/duplicate invariance and gap filling.
+No authored Python executes locally. Proposed 1-second CPU and 64-MiB limits
+require isolated sandbox calibration, solution agreement and three baseline
+timeouts per benchmark. This draft is private, unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/relay-missing-slot.json
+```
