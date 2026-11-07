@@ -15,12 +15,17 @@ const terminalMessages: Record<string,string> = {
   cancelled: 'The invitation was cancelled. Find a new rival when you are ready.',
   expired: 'The invitation expired without acceptance. Find a new rival when you are ready.',
 };
+// Server clock refreshes do not change which invitation an action concerned.
+function invitationKey(state: RematchState | null) {
+  return JSON.stringify([state?.status,state?.outgoing,state?.expiresAt,state?.matchId]);
+}
 export function Rematch({id}:{id:string}) {
   return <RematchSession key={id} id={id}/>;
 }
 function RematchSession({id}:{id:string}) {
   const [state,setState]=useState<RematchState|null>(null);
   const [error,setError]=useState('');
+  const [errorInvitation,setErrorInvitation]=useState('');
   const [pollError,setPollError]=useState('');
   const [updatesRestored,setUpdatesRestored]=useState(false);
   const hadPollError=useRef(false);
@@ -89,7 +94,7 @@ function RematchSession({id}:{id:string}) {
     const controller=new AbortController();
     actionController.current=controller;
     revision.current++;
-    setBusy(true);setPendingAction(action);setError('');
+    setBusy(true);setPendingAction(action);setError('');setErrorInvitation(invitationKey(state));
     try {
       const response=await fetch(`/api/matches/${id}/rematch?action=${action}`,{method:'POST',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(10000)])});
       const data=await response.json();
@@ -111,7 +116,7 @@ function RematchSession({id}:{id:string}) {
     {state?.status==='pending' && (state.outgoing?<button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('cancel')}>Cancel invitation</button>:<div className="result-actions"><button className="button button--primary" disabled={busy || deadlinePassed} onClick={()=>void act('accept')}>Accept rematch</button><button className="button button--secondary" disabled={busy || deadlinePassed} onClick={()=>void act('decline')}>Decline</button></div>)}
     {state?.matchId && <Link className="button button--primary" href={`/match/${state.matchId}`}>Open rematch arena</Link>}
     {terminal && state.status!=='accepted' && <Link className="button button--primary" href="/">Find a new opponent</Link>}
-    {error && !terminal && !deadlinePassed && <p role="alert">{error}</p>}
+    {error && errorInvitation===invitationKey(state) && !terminal && !deadlinePassed && <p role="alert">{error}</p>}
     <div aria-live="polite" aria-atomic="true">{updatesRestored && !terminal && <p className="rematch-restored">Invitation updates restored. Showing the latest server snapshot; automatic updates continue.</p>}</div>
     {pollError && !terminal && <div className="rematch-recovery">
       <p role="alert">{pollError}</p>

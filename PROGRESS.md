@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Invitation-scoped rematch action errors
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks the catalog milestones. No Python ran outside the sandbox; both milestones remain unchecked.
+- Followed the blocker rule and added/completed one improvement: failed rematch actions now scope their alerts to the invitation snapshot they concerned. Authoritative invitation changes retire obsolete errors, while unchanged snapshots and server-clock refreshes preserve useful retry feedback.
+- Added four regression cases covering incoming/outgoing invitations discovered after failed sends and both participants' retry errors across clock-only refreshes.
+- Validation: all 1,440 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Rematch update recovery feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one rematch improvement: successful recovery shows a styled, polite, atomic confirmation that invitation updates have resumed with the latest server snapshot. The notice persists through healthy polling, clears during recurring outages, resets for another match and retires for authoritative terminal outcomes.

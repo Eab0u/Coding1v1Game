@@ -485,3 +485,41 @@ it.each([true,false])('withholds a delayed action failure after expiry (outgoing
   expect(screen.getByRole('status')).toHaveTextContent('invitation expired');
  } finally {vi.useRealTimers();}
 });
+
+it.each([true,false])('retires failed invite feedback when polling discovers an invitation (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const empty={status:'none',outgoing:false,expiresAt:null,matchId:null};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>empty});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  fetcher.mockResolvedValueOnce({ok:false,json:async()=>({error:'Unable to send invitation.'})});
+  fireEvent.click(screen.getByRole('button',{name:'Rematch'}));
+  await act(async()=>{});
+  expect(screen.getByRole('alert')).toHaveTextContent('Unable to send invitation.');
+  // A healthy read of the same invitation retains useful retry feedback.
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('alert')).toBeInTheDocument();
+  fetcher.mockResolvedValue({ok:true,json:async()=>({status:'pending',outgoing,expiresAt:null,matchId:null})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'})).toBeEnabled();
+ } finally {vi.useRealTimers();}
+});
+
+it.each([true,false])('preserves retry errors across clock-only invitation refreshes (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const pending={status:'pending',outgoing,expiresAt:'2026-11-07T12:01:00Z',serverNow:'2026-11-07T12:00:00Z',matchId:null};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>pending});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  fetcher.mockResolvedValueOnce({ok:false,json:async()=>({error:'Please retry.'})});
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'}));
+  await act(async()=>{});
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...pending,serverNow:'2026-11-07T12:00:02Z'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('alert')).toHaveTextContent('Please retry.');
+  expect(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'})).toBeEnabled();
+ } finally {vi.useRealTimers();}
+});
