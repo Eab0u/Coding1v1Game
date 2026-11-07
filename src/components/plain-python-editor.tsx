@@ -67,7 +67,13 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
       onChange={event => { updatePosition(); onChange(event.target.value); }} readOnly={readOnly} spellCheck={false}
       autoCapitalize="off" autoCorrect="off" wrap={wordWrap ? "soft" : "off"}
       onKeyDown={event => {
-        if (readOnly || event.key !== "Enter" || composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+        if (readOnly || composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+        if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && (event.key === "[" || event.key === "]")) {
+          event.preventDefault();
+          changeIndent(event.key === "[");
+          return;
+        }
+        if (event.key !== "Enter" || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
         const { selectionStart: start, selectionEnd: end } = event.currentTarget;
         const prefix = value.slice(value.slice(0, start).lastIndexOf("\n") + 1, start);
         const indent = prefix.match(/^[\t ]*/)?.[0] ?? "";
@@ -77,6 +83,6 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
         onChange(value.slice(0, start) + insertion + value.slice(end));
       }} />
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
-    <p id={hint} className="editor-hint">Enter keeps indentation and adds four spaces after a colon. Shift+Enter inserts a plain newline. Tab moves to the next control. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab).</p>
+    <p id={hint} className="editor-hint">Enter keeps indentation and adds four spaces after a colon. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab).</p>
   </>;
 }

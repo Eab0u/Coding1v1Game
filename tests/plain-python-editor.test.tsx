@@ -219,3 +219,46 @@ it("resumes automatic indentation on the next ordinary Enter after IME confirmat
   expect(input.selectionEnd).toBe(17);
   expect(input).toHaveFocus();
 });
+it.each(["ctrlKey", "metaKey"])("supports %s indentation shortcuts with backward block selections", modifier => {
+  render(<Harness initial={"one\ntwo\nthree"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(0, 8, "backward");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    expect(fireEvent.keyDown(input, { key: "]", [modifier]: true })).toBe(false);
+    expect(input).toHaveValue("    one\n    two\nthree");
+    expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([4, 16, "backward"]);
+    expect(input).toHaveFocus();
+    expect(fireEvent.keyDown(input, { key: "[", [modifier]: true })).toBe(false);
+    expect(input).toHaveValue("one\ntwo\nthree");
+    expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([0, 8, "backward"]);
+  }
+  expect(input).toHaveAccessibleDescription(/Ctrl\+\] or Cmd\+\] indents/);
+});
+
+it.each([
+  { key: "]" }, { key: "[" }, { key: "]", ctrlKey: true, altKey: true },
+  { key: "[", metaKey: true, shiftKey: true }, { key: "]", ctrlKey: true, isComposing: true },
+  { key: "[", metaKey: true, keyCode: 229 },
+])("leaves unrelated or composing bracket keys native: %j", event => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value="    code" onChange={change} readOnly={false}/>);
+  expect(fireEvent.keyDown(screen.getByRole("textbox"), event)).toBe(true);
+  expect(change).not.toHaveBeenCalled();
+});
+
+it.each([false, true])("protects composing and read-only drafts from shortcuts (readOnly=%s)", readOnly => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value="    code" onChange={change} readOnly={readOnly}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.setSelectionRange(1, 7, "backward");
+  fireEvent.compositionStart(input);
+  for (const key of ["[", "]"]) {
+    expect(fireEvent.keyDown(input, { key, ctrlKey: true })).toBe(true);
+    expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([1, 7, "backward"]);
+  }
+  expect(change).not.toHaveBeenCalled();
+  fireEvent.compositionEnd(input);
+  expect(fireEvent.keyDown(input, { key: "]", metaKey: true })).toBe(readOnly);
+  expect(change).toHaveBeenCalledTimes(readOnly ? 0 : 1);
+});

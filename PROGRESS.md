@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Plain editor keyboard indentation
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Added Ctrl+] / Cmd+] to indent and Ctrl+[ / Cmd+[ to outdent the current line or selected lines, using the existing indentation behavior. Visible accessible guidance explains the shortcuts; Tab continues native focus navigation.
+- Added regression tests for both platforms, repeated backward-selection round trips, focus, next-line exclusion, native bracket and modified keys, composition flags and lifecycle recovery, and read-only protection.
+- Validation: all 839 tests across 60 files passed, including 44 focused plain-editor tests. Lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Refresh autofilled passwords through visibility controls
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account-form correction.
 - Show/Hide now synchronizes the password byte budget and native/accessibility validation from the current input value. Silent password-manager replacements no longer leave stale feedback when players use the visibility control without focusing the input.
