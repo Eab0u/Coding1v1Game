@@ -14,6 +14,38 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each(["before execution", "during execution"])("retains validated configuration when callers mutate settings %s", async timing => {
+    const originalStatus = vi.fn();
+    const replacementStatus = vi.fn();
+    const settings = { ...config, onExecutionStatus: originalStatus };
+    const mutate = () => Object.assign(settings, {
+      url: "https://changed.example", authToken: "changed-token", pythonLanguageId: -1,
+      cpuLimitSeconds: Infinity, memoryLimitKb: -1, maxPolls: 0,
+      requestTimeoutMs: 0, pollIntervalMs: -1, onExecutionStatus: replacementStatus,
+    });
+    const responses = sandbox(Array.from({ length: 6 }, () => ({ status: { id: 5 } })));
+    const fetcher = vi.fn<typeof fetch>(async (url, init) => {
+      if (timing === "during execution") mutate();
+      return responses(url, init);
+    });
+    const judge = createJudge(settings, fetcher);
+    if (timing === "before execution") mutate();
+    for (let run = 0; run < 2; run++) {
+      expect(await judge(request)).toEqual({
+        testsPassed: 0, testsTotal: 1, largestTestsCpuMs: [2000, 2000, 2000], submittedAtMs: 150,
+      });
+    }
+    expect(originalStatus).toHaveBeenCalledTimes(6);
+    expect(replacementStatus).not.toHaveBeenCalled();
+    for (const [url, init] of fetcher.mock.calls) {
+      expect(String(url)).toMatch(/^https:\/\/sandbox\.example\/submissions/);
+      expect(init?.headers).toMatchObject({ "X-Auth-Token": "test-only" });
+      if (init?.method === "POST") expect(JSON.parse(init.body as string)).toMatchObject({
+        language_id: 71, cpu_time_limit: 2, wall_time_limit: 10, memory_limit: 128000, stack_limit: 128000,
+      });
+    }
+  });
+
   it.each(["requestTimeoutMs", "pollIntervalMs"] as const)("rejects overflowing %s before network access", field => {
     const fetcher = vi.fn<typeof fetch>();
     for (const delay of [2_147_483_648, Number.MAX_SAFE_INTEGER]) {

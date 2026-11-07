@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Stable sandbox configuration
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one judge reliability item. The adapter now snapshots trusted settings before validation and uses that snapshot for every request and scoring penalty. Caller mutations can no longer replace credentials, language/resource limits or diagnostic callbacks after validation, including while asynchronous executions are running. Configuration changes require a new adapter.
+- Added regression coverage for mutations before execution and during HTTP requests, repeated adapter use, unchanged request credentials/resource limits, diagnostic callback ownership and finite full-limit penalties for failed benchmarks. Documented the configuration lifecycle.
+- Validation: all 1,676 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 66 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Loading indicator state polish
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python ran on the host.
 - Followed the blocker rule and added/completed one loading-screen polish item. Offline feedback now has a stationary amber square/slash mark instead of a spinning progress cue; long waits use an amber spinner. Reconnection restores the indicator appropriate to elapsed loading time. Existing status text supplies the accessible meaning; decorative marks stay hidden from assistive technology.

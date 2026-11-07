@@ -34,7 +34,9 @@ function jsonValue(value: unknown): boolean {
 }
 
 /** Server-only Judge0 adapter. No local execution or fallback is permitted. */
-export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) {
+export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch) {
+  // Validate and use one snapshot, including throughout asynchronous executions.
+  const config = { ...settings };
   let url: URL;
   try { url = new URL(config.url); }
   catch {

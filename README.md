@@ -107,6 +107,9 @@ There is no local execution fallback and no public judge endpoint in this applic
 Configure a trusted server URL, Python language ID from that deployment's `/languages`,
 CPU seconds and memory kilobytes, plus an optional auth token. Pass these explicitly
 as `JudgeConfig`; the adapter does not automatically read environment variables.
+The adapter snapshots configuration at creation; later caller mutations cannot change
+credentials, execution limits, diagnostics or scoring penalties. Create a new adapter
+to apply configuration changes.
 The environment example includes names for the future match server to map into config.
 Do not use player-supplied URLs, language IDs, limits or test suites.
 
