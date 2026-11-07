@@ -149,7 +149,8 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
       autoCapitalize="off" autoCorrect="off" wrap={wordWrap ? "soft" : "off"}
       onKeyDown={event => {
         if (composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
-        if ((event.key === "Home" || event.key === "End") && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        // Wrapped visual-line boundaries belong to the native textarea layout engine.
+        if (!wordWrap && (event.key === "Home" || event.key === "End") && !event.ctrlKey && !event.metaKey && !event.altKey) {
           const editor = event.currentTarget;
           const { selectionStart: start, selectionEnd: end, selectionDirection } = editor;
           const active = selectionDirection === "backward" ? start : end;
@@ -197,9 +198,9 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
     <details className="editor-keyboard-guide">
       <summary>Python editor keyboard guide</summary>
-      <p id={hint} className="editor-hint">{readOnly
-      ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Home moves to the first code character, then the line start; Shift+Home selects. End moves after the last non-space character, then the line end; Shift+End selects. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
-      : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Backspace in space-only leading indentation outside strings removes spaces to the previous four-space stop. Shift+Enter inserts a plain newline. Home moves to the first code character, then the line start; Shift+Home selects. End moves after the last non-space character, then the line end; Shift+End selects. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+      <p id={hint} className="editor-hint">{wordWrap && "Line wrapping is on. Home and End use native visual-line navigation; hold Shift to select. Turn line wrapping off for indentation-aware Home and trailing-space-aware End. "}{readOnly
+      ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. With line wrapping off, Home moves to the first code character, then the line start; Shift+Home selects. End moves after the last non-space character, then the line end; Shift+End selects. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
+      : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Backspace in space-only leading indentation outside strings removes spaces to the previous four-space stop. Shift+Enter inserts a plain newline. With line wrapping off, Home moves to the first code character, then the line start; Shift+Home selects. End moves after the last non-space character, then the line end; Shift+End selects. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
     </details>
   </>;
 }

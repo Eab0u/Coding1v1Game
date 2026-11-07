@@ -953,3 +953,33 @@ it.each(["compositionend", "blur"])("recovers End navigation after IME %s", endi
   expect(fireEvent.keyDown(input, { key: "End" })).toBe(false);
   expect(input.selectionStart).toBe(4);
 });
+
+it.each([false, true])("preserves native wrapped Home/End and restores logical navigation readOnly=%s", readOnly => {
+  const value = "    " + "long_python_identifier ".repeat(20) + "  ";
+  const change = vi.fn();
+  const { rerender } = render(<PlainPythonEditor value={value} onChange={change} readOnly={readOnly} wordWrap/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(10, 30, "backward");
+  for (const key of ["Home", "End"]) {
+    for (const shiftKey of [false, true]) {
+      expect(fireEvent.keyDown(input, { key, shiftKey })).toBe(true);
+      expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([10, 30, "backward"]);
+      expect(input).toHaveFocus();
+    }
+  }
+  expect(screen.getByText(/Line wrapping is on\. Home and End use native visual-line navigation/)).toBeInTheDocument();
+  expect(change).not.toHaveBeenCalled();
+  rerender(<PlainPythonEditor value={value} onChange={change} readOnly={readOnly} wordWrap={false}/>);
+  expect(input).toHaveFocus();
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([10, 30, "backward"]);
+  expect(screen.queryByText(/Line wrapping is on\./)).not.toBeInTheDocument();
+  expect(fireEvent.keyDown(input, { key: "Home" })).toBe(false);
+  expect(input.selectionStart).toBe(4);
+  expect(fireEvent.keyDown(input, { key: "End" })).toBe(false);
+  expect(input.selectionStart).toBe(value.length - 3);
+  rerender(<PlainPythonEditor value={value} onChange={change} readOnly={readOnly} wordWrap/>);
+  expect(fireEvent.keyDown(input, { key: "End", shiftKey: true })).toBe(true);
+  expect(input).toHaveValue(value);
+  expect(change).not.toHaveBeenCalled();
+});

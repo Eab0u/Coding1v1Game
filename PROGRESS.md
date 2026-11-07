@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Wrapped plain-editor navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability fix.
+- Line wrapping now preserves native textarea Home/End and Shift selection behavior instead of jumping across whole logical Python lines. Turning wrapping off restores indentation-aware Home and trailing-space-aware End. The keyboard guide explains both modes for editable and read-only solutions.
+- Added regression coverage for native event handling, backward selections, focus, draft preservation and repeated wrap-mode changes in editable and read-only editors. Tests verify event delegation; platform-specific visual caret placement remains the browser's responsibility.
+- Validation: all 1,047 tests across 66 files passed; lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Plain-editor End navigation
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor navigation item; catalog milestones remain unchecked.
 - End toggles between the position after the last non-space/tab character and the physical line end. Shift+End retains the selection anchor through direction changes. Editable and read-only drafts share navigation and updated keyboard guidance without changing code or focus.
