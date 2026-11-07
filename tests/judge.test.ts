@@ -140,6 +140,32 @@ describe("sandbox judge", () => {
     expect((await createJudge(config, sandbox([output, output, output]))(request)).testsPassed).toBe(0);
   });
 
+  it.each(["NDI=garbage", "N!DI=", "NDI=\n", "NDI", "NDJ="])("fails malformed base64 output with the full CPU penalty (%s)", async stdout => {
+    const output = { ...done(), stdout };
+    const result = await createJudge(config, sandbox([output, done(), done()]))(request);
+    expect(result.testsPassed).toBe(0);
+    expect(result.largestTestsCpuMs).toEqual([2000, 12, 12]);
+  });
+
+  it.each([{ bytes: [0x22, 0xff, 0x22] }, { bytes: [0x22, 0xc0, 0xaf, 0x22] }, { bytes: [0x22, 0xe2, 0x82, 0x22] }])("fails invalid UTF-8 instead of comparing replacement characters ($bytes)", async ({ bytes }) => {
+    const buffer = Buffer.from(bytes);
+    const output = { ...done(), stdout: buffer.toString("base64") };
+    const result = await createJudge(config, sandbox([output, output, output]))({
+      ...request, tests: [{ args: [], expected: JSON.parse(buffer.toString("utf8")), benchmark: true }],
+    });
+    expect(result.testsPassed).toBe(0);
+    expect(result.largestTestsCpuMs).toEqual([2000, 2000, 2000]);
+  });
+
+  it.each(["signal \uFFFD \u{1F6A6}", { label: "café", values: [true, null, 42] }])("preserves valid Unicode and structured output (%j)", async expected => {
+    const output = done(expected);
+    const result = await createJudge(config, sandbox([output, output, output]))({
+      ...request, tests: [{ args: [], expected, benchmark: true }],
+    });
+    expect(result.testsPassed).toBe(1);
+    expect(result.largestTestsCpuMs).toEqual([12, 12, 12]);
+  });
+
   it("compares objects without depending on key order", async () => {
     const output = done({ b: [2], a: 1 });
     expect((await createJudge(config, sandbox([output, output, output]))({ ...request, tests: [{ args: [], expected: { a: 1, b: [2] }, benchmark: true }] })).testsPassed).toBe(1);

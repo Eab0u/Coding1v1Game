@@ -108,7 +108,15 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
         if (typeof result.time !== "string" || !/^(\d+)(\.\d+)?$/.test(result.time) || !Number.isFinite(Number(result.time) * 1000)) throw new JudgeUnavailableError();
         let passed = false;
         try {
-          if (typeof result.stdout === "string") passed = isDeepStrictEqual(JSON.parse(Buffer.from(result.stdout, "base64").toString("utf8")), test.expected);
+          if (typeof result.stdout === "string") {
+            const bytes = Buffer.from(result.stdout, "base64");
+            // Buffer decoding silently ignores invalid base64 and replaces bad UTF-8.
+            // Only compare the exact, canonically encoded sandbox output.
+            if (bytes.toString("base64") === result.stdout) {
+              const output = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
+              passed = isDeepStrictEqual(JSON.parse(output), test.expected);
+            }
+          }
         } catch { /* Malformed or non-JSON output fails this test. */ }
         return { passed, cpuMs: passed ? Number(result.time) * 1000 : config.cpuLimitSeconds * 1000 };
       }

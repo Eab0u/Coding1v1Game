@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Strict sandbox output decoding
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated sandbox remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added one judge correctness item: require canonical base64 and valid UTF-8 before parsing sandbox stdout as JSON. Permissive decoding previously ignored invalid base64 characters or replaced invalid UTF-8, potentially turning malformed output into a matching answer. Malformed output now fails with the full CPU penalty.
+- Added ten regression cases for trailing garbage, invalid characters, whitespace, missing padding, noncanonical padding bits, invalid UTF-8 sequences, valid Unicode including explicit replacement characters, and structured JSON. Tests verify that one failed benchmark run prevents a pass while retaining the other runs' CPU measurements. Documented the output encoding contract.
+- Validation: all 1,671 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 64 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Sandbox timer overflow protection
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the sandbox remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge reliability item: request timeouts and polling intervals above 2,147,483,647ms now fail configuration validation before network access. Node reduces larger timer delays to 1ms, which could cause premature request failures or rapid polling. Documented the supported limits.

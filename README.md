@@ -115,6 +115,10 @@ submission time and JSON tests `{ args: [...], expected: ..., benchmark: true }`
 At least one test must mark the largest-input benchmark. The Python function receives
 positional JSON arguments and must return a JSON value; output must contain only that
 value. Comparisons are exact, including array order, with object key order ignored.
+Sandbox stdout must use canonical base64 containing valid UTF-8 JSON. Malformed
+encoding fails the test with the full CPU penalty; decoding never repairs output
+before comparing it with the expected answer. Valid Unicode replacement characters
+remain supported when explicitly encoded in valid UTF-8.
 Tree/linked-list problems will need JSON adapters in the future problem pipeline.
 Expected answers remain on the Node server; only source and arguments go to Judge0.
 Submission and polling requests reject HTTP redirects to keep authentication tokens
