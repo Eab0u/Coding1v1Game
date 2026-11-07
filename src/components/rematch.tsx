@@ -137,7 +137,7 @@ function RematchSession({id}:{id:string}) {
     <div aria-live="polite" aria-atomic="true">{updatesRestored && !terminal && <p className="rematch-restored">Invitation updates restored. Showing the latest server snapshot; automatic updates continue.</p>}</div>
     {pollError && !terminal && <div className="rematch-recovery">
       <p role="alert">{pollError}</p>
-      <button aria-describedby={summaryId} className="button button--secondary" disabled={busy || refreshing} onClick={retry}>Retry invitation update</button>
+      <button aria-describedby={summaryId} className="button button--secondary" disabled={busy || refreshing} aria-busy={refreshing && !busy} onClick={retry}>{refreshing && !busy?'Refreshing invitation...':'Retry invitation update'}</button>
       {refreshing && !busy && <p role="status">Refreshing invitation...</p>}
     </div>}
   </section>;

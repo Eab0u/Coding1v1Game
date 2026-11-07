@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Show explicit refreshing labels and accessible busy states on rematch recovery buttons during manual and automatic retries, with failure-reset and recovery regression coverage
 - [x] Show action-specific rematch button labels and accessible busy states while awaiting confirmation, retiring feedback at invitation expiry and outcomes with retry and participant-symmetric regression coverage
 - [x] Highlight the final ten rematch invitation seconds with an amber countdown accent and explicit text cue, retiring urgency during actions, extended windows, expiry and terminal outcomes with participant-symmetric regression coverage
 - [x] Make incoming and outgoing rematch invitations visually distinct with responsive direction cues that retire during actions, deadline expiry and terminal outcomes, with participant-symmetric lifecycle regression coverage

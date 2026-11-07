@@ -331,7 +331,9 @@ it('retries failed invitation reads immediately without overlapping requests and
   const retry=screen.getByRole('button',{name:'Retry invitation update'});
   fireEvent.click(retry);
   expect(retry).toBeDisabled();
-  expect(screen.getByText('Refreshing invitation...')).toHaveAttribute('role','status');
+  expect(retry).toHaveAccessibleName('Refreshing invitation...');
+  expect(retry).toHaveAttribute('aria-busy','true');
+  expect(screen.getByText('Refreshing invitation...',{selector:'p'})).toHaveAttribute('role','status');
   fireEvent.click(retry);
   await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
   expect(fetcher).toHaveBeenCalledTimes(2);
@@ -351,6 +353,7 @@ it('keeps recovery available after another failed read and aborts a retry on nav
  const view=render(<Rematch id="old"/>);
  fireEvent.click(await screen.findByRole('button',{name:'Retry invitation update'}));
  await waitFor(()=>expect(screen.getByRole('button',{name:'Retry invitation update'})).toBeEnabled());
+ expect(screen.getByRole('button',{name:'Retry invitation update'})).toHaveAttribute('aria-busy','false');
  fireEvent.click(screen.getByRole('button',{name:'Retry invitation update'}));
  const signal=fetcher.mock.calls[2][1].signal as AbortSignal;
  view.rerender(<Rematch id="new"/>);
@@ -716,6 +719,10 @@ it.each([true,false])('explains unavailable initial invitations and recovers (ma
   if (manual) fireEvent.click(screen.getByRole('button',{name:'Retry invitation update'}));
   else await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
   expect(summary).toHaveTextContent('Invitation status is unavailable');
+  const refreshingButton=screen.getByRole('button',{name:'Refreshing invitation...'});
+  expect(refreshingButton).toBeDisabled();
+  expect(refreshingButton).toHaveAttribute('aria-busy','true');
+  expect(refreshingButton).toHaveAccessibleDescription(summary.textContent!);
   await act(async()=>{retry.resolve(response('none'));});
   expect(screen.getByRole('status')).toBe(summary);
   expect(summary).toHaveTextContent('Invite your opponent to a fresh ranked duel.');

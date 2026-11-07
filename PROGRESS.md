@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Rematch recovery button feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery usability item. The rematch recovery button now displays "Refreshing invitation..." and aria-busy during manual and automatic retries, preserving disabled controls and associated snapshot guidance. Failed reads restore the retry label and idle state; successful reads remove recovery controls.
+- Updated regression tests for manual/automatic busy feedback, accessible descriptions, repeated failure reset, successful recovery and request overlap protection.
+- Validation: all 1,457 tests across 72 files passed, including 68 rematch UI tests; lint and typecheck passed.
+- Next: restore the isolated Judge0 service and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Rematch action button feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks catalog validation. Both catalog milestones remain unchecked. No Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one usability improvement: rematch action buttons display action-specific sending, accepting, declining or cancelling labels with aria-busy while awaiting confirmation. Other controls retain their labels. Expiry retires busy feedback while preserving disabled controls and server-confirmation guidance; failures, reopened windows and authoritative outcomes restore the appropriate controls.
