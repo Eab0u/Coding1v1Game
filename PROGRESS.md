@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Home dashboard rating tier
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent home dashboard improvement.
+- Added a themed current-tier badge to the signed-in ladder card using shared full-precision thresholds. Explained display rounding; guests receive no personal tier, and unavailable dashboards continue to suppress account statistics.
+- Added regression coverage at every tier boundary and immediately below each threshold, guest/error states, and Chromium badge visibility, containment and page overflow at 320, 375 and 1280px.
+- Validation: all 637 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Post-duel tier transitions
 - Selected problems 1-20 as the most valuable unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
 - Added themed saved post-duel tier badges and explicit transitions for both players, including downward changes and unchanged tiers. Reused full-precision shared thresholds and explained display rounding and the historical snapshot. Missing rating history does not invent a tier.

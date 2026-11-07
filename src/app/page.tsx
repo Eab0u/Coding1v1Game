@@ -4,6 +4,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { auth, database } from "../lib/auth-server";
 import { SESSION_COOKIE } from "../lib/auth";
+import { ratingTier } from "../lib/profile";
 import { loadHome } from "../lib/home";
 import { Play } from "../components/play";
 
@@ -59,7 +60,7 @@ export default async function Home() {
           <a className="button button--primary" href="/">Retry dashboard</a>
           <a className="button button--secondary" href="/leaderboard">View leaderboard</a>
         </Card> : <section className="dashboard-grid" aria-label="Player dashboard">
-          <Card><p className="eyebrow">YOUR LADDER</p><h2>{user ? Math.round(user.rating) : "800"} <small>MMR</small></h2><p>{user ? `${data.streak} consecutive wins` : "Your starting rating. Sign in to track your climb."}</p></Card>
+          <Card className="home-ladder"><p className="eyebrow">YOUR LADDER</p><h2>{user ? Math.round(user.rating) : "800"} <small>MMR</small></h2>{user && <><Badge tone="accent">{ratingTier(user.rating)}</Badge><p className="home-tier-note">Your tier follows your current MMR at full precision. Displayed ratings are rounded.</p></>}<p>{user ? `${data.streak} consecutive wins` : "Your starting rating. Sign in to track your climb."}</p></Card>
           <Card className="daily-challenge"><p className="eyebrow">DAILY CHALLENGE (UTC)</p>{data.daily ? <><h2>{data.daily.title}</h2><Badge>{data.daily.difficulty}</Badge><p className="daily-preview-note">A daily problem preview. Practice submissions are not available yet.</p><p id="daily-signature-hint" className="daily-signature-hint">Function signature. Scroll sideways to read long lines. Keyboard: focus the code and use the arrow keys.</p><pre className="daily-signature" role="region" aria-label="Daily challenge function signature" aria-describedby="daily-signature-hint" tabIndex={0}><code>{data.daily.function_signature}</code></pre><details className="daily-statement"><summary>Read challenge statement</summary><div>{data.daily.statement}</div></details></> : <><h2>A fresh challenge is on its way.</h2><p>Daily problems appear here once the validated catalog is published.</p></>}</Card>
           <Card><h2>Recent duels</h2>{data.recent.length ? <ul className="recent-duels">{data.recent.map(match => { const outcome = match.winner_id === user?.id ? "WIN" : match.winner_id ? "LOSS" : "DRAW"; return <li key={match.id}><strong className={`history-result history-result--${outcome.toLowerCase()}`}>{outcome}</strong><span><Link className="recent-duel-result" href={`/match/${encodeURIComponent(match.id)}/results`} aria-label={`View results for ${match.title} against ${match.opponent}`}>{match.title}</Link><small>vs <Link className="recent-duel-opponent" href={`/profile/${encodeURIComponent(match.opponent)}`}>{match.opponent}</Link></small></span></li>; })}</ul> : <p>{user ? "Your first duel starts your story. Completed matches will appear here." : "Sign in to see your match history."}</p>}</Card>
         </section>}

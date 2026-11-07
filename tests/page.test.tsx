@@ -142,3 +142,25 @@ it.each([false, true])("explains ordered best-attempt scoring for signedIn=%s", 
   expect(steps[2]).toHaveTextContent("earlier submission of the selected attempt");
   expect(steps[2]).toHaveTextContent("An exact tie is a draw");
 });
+
+
+it.each([
+  [999.9, "Bronze"], [1000, "Silver"], [1199.9, "Silver"], [1200, "Gold"],
+  [1599.9, "Gold"], [1600, "Platinum"], [1999.9, "Platinum"], [2000, "Diamond"],
+  [2399.9, "Diamond"], [2400, "Master"],
+])("shows the current home tier at full precision for %s MMR", async (rating, tier) => {
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating });
+  const { container } = render(await Home());
+  const card = container.querySelector(".home-ladder")!;
+  expect(card.querySelector(".badge")).toHaveTextContent(tier);
+  expect(card.querySelector("h2")).toHaveTextContent(`${Math.round(rating)} MMR`);
+  expect(card).toHaveTextContent("Displayed ratings are rounded.");
+});
+
+it("does not assign a personal tier to guests or unavailable dashboards", async () => {
+  const view = render(await Home());
+  expect(view.container.querySelector(".home-ladder .badge")).toBeNull();
+  mocks.load.mockRejectedValueOnce(new Error("private"));
+  view.rerender(await Home());
+  expect(view.container.querySelector(".home-ladder")).toBeNull();
+});

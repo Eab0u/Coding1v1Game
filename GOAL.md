@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Show signed-in home rating-tier badges with shared full-precision thresholds, rounding guidance, guest/error-state and phone browser coverage
 - [x] Show saved post-duel rating tiers and explicit tier transitions on results with full-precision thresholds, historical fallback and phone browser coverage
 - [x] Show current rating-tier badges in global and weekly standings using full-precision thresholds, with phone browser and boundary coverage
 - [x] Explain weekly standings with a styled semantic guide for net gains, negative scores and current rating versus weekly rank, including phone browser coverage

@@ -406,3 +406,6 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .friend-feedback p { color: var(--color-muted); margin-bottom: 0; overflow-wrap: anywhere; }
 
 .standings-rating { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding-block: 4px; font-variant-numeric: tabular-nums; }
+
+.home-ladder .badge { margin-bottom: var(--space-2, 0.5rem); }
+.home-tier-note { color: var(--text-muted, #bcb8b3); font-size: 0.875rem; line-height: 1.6; }

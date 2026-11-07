@@ -798,3 +798,21 @@ it.each([320, 375, 1280])('keeps standings tier badges readable at %spx', async 
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+
+
+it.each([320, 375, 1280])('keeps the home rating tier readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const card = page.locator('.home-ladder');
+    const badge = card.locator('.badge');
+    expect(await badge.textContent()).toBe('Bronze');
+    expect(await badge.isVisible()).toBe(true);
+    expect(await card.textContent()).toContain('Displayed ratings are rounded.');
+    const outer = (await card.boundingBox())!;
+    const inner = (await badge.boundingBox())!;
+    expect(inner.x).toBeGreaterThanOrEqual(outer.x);
+    expect(inner.x + inner.width).toBeLessThanOrEqual(outer.x + outer.width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
