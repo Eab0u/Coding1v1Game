@@ -5,6 +5,53 @@ import { LoadingStatus } from "../src/components/loading-status";
 
 afterEach(() => vi.useRealTimers());
 
+it("refreshes missed connectivity events on page restoration while preserving recovery and focus", () => {
+  const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+  const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+  const removeWindow = vi.spyOn(window, "removeEventListener");
+  const removeDocument = vi.spyOn(document, "removeEventListener");
+  try {
+    const view = render(<LoadingStatus />);
+    const status = screen.getByRole("status");
+    fireEvent(window, new Event("pageshow"));
+    expect(status).not.toHaveTextContent("back online");
+    connection.mockReturnValue(false);
+    visibility.mockReturnValue("hidden");
+    fireEvent(document, new Event("visibilitychange"));
+    expect(status).not.toHaveTextContent("offline");
+    visibility.mockReturnValue("visible");
+    fireEvent(document, new Event("visibilitychange"));
+    expect(status).toHaveTextContent("Your browser reports that you are offline.");
+    const reload = screen.getByRole("button", { name: "Reload page" });
+    const description = reload.getAttribute("aria-describedby");
+    reload.focus();
+    connection.mockReturnValue(true);
+    fireEvent(window, new Event("pageshow"));
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status).toHaveTextContent("Your browser is back online. Server availability is not yet confirmed.");
+    expect(reload).toHaveFocus();
+    expect(reload).toHaveAttribute("aria-describedby", description);
+    connection.mockReturnValue(false);
+    fireEvent(window, new Event("pageshow"));
+    expect(status).not.toHaveTextContent("back online");
+    connection.mockReturnValue(true);
+    fireEvent(document, new Event("visibilitychange"));
+    expect(status).toHaveTextContent("back online");
+    expect(reload).toHaveFocus();
+    view.unmount();
+    expect(removeWindow).toHaveBeenCalledWith("pageshow", expect.any(Function));
+    expect(removeDocument).toHaveBeenCalledWith("visibilitychange", expect.any(Function));
+    render(<LoadingStatus />);
+    expect(screen.getByRole("status")).not.toHaveTextContent("back online");
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  } finally {
+    connection.mockRestore();
+    visibility.mockRestore();
+    removeWindow.mockRestore();
+    removeDocument.mockRestore();
+  }
+});
+
 it("only announces reconnection after an outage and resets it on reopening", () => {
   const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
   try {

@@ -18,14 +18,21 @@ export function LoadingStatus() {
       setOffline(disconnected);
       if (disconnected) setRecoveryOffered(true);
     };
+    const resume = () => {
+      if (document.visibilityState === "visible") updateConnection();
+    };
     updateConnection();
     window.addEventListener("online", updateConnection);
     window.addEventListener("offline", updateConnection);
+    window.addEventListener("pageshow", updateConnection);
+    document.addEventListener("visibilitychange", resume);
     const timeout = window.setTimeout(() => setDelayed(true), 15_000);
     return () => {
       window.clearTimeout(timeout);
       window.removeEventListener("online", updateConnection);
       window.removeEventListener("offline", updateConnection);
+      window.removeEventListener("pageshow", updateConnection);
+      document.removeEventListener("visibilitychange", resume);
     };
   }, []);
 

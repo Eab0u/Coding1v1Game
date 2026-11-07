@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Loading-page resume recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: loading screens now recheck browser connectivity on visible-tab restoration and page restoration. Missed events no longer leave stale offline or reconnection guidance. Existing styled notices, server-availability uncertainty, explicit recovery controls and keyboard focus remain intact.
+- Added regression coverage for missed offline/online events, hidden-tab deferral, repeated outages, stable announcements and descriptions, preserved focus, listener cleanup and fresh reopening.
+- Validation: all 1,639 tests across 73 files passed with `npm test -- --maxWorkers=2`; all eight focused loading tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Resumed-page connection recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: error and unavailable-page connection notices now recheck browser connectivity on visible-tab restoration and page restoration. Missed connection events no longer leave stale offline guidance after resuming. Existing styled notices, server-availability uncertainty and manual recovery remain intact.
