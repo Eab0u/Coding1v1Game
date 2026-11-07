@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ load: vi.fn(), current: vi.fn() }));
 vi.mock("../src/lib/auth-server", () => ({ database: () => ({}), auth: { current: mocks.current } }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "session" }) }) }));
@@ -247,4 +247,29 @@ it.each(["everyone", "friends"])("distinguishes rounded weekly changes for %s an
   view.rerender(await Leaderboard({ searchParams: Promise.resolve({}) }));
   expect(document.querySelector(".standings-change")).toBeNull();
   expect(screen.queryByText(/Rounded gain|Rounded loss|No rounded change/)).not.toBeInTheDocument();
+});
+
+
+afterEach(() => { vi.useRealTimers(); });
+it.each([
+  ["2026-11-08T23:59:59Z", "2026-11-02", "2026-11-09"],
+  ["2026-11-09T00:00:00Z", "2026-11-09", "2026-11-16"],
+  ["2027-01-01T03:00:00+05:00", "2026-12-28", "2027-01-04"],
+  ["2028-02-29T12:00:00Z", "2028-02-28", "2028-03-06"],
+])("shows UTC weekly boundaries at %s in both scopes", async (now, start, end) => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(now));
+  for (const scope of [undefined, "friends"]) {
+    const view = render(await Leaderboard({ searchParams: Promise.resolve({ period: "weekly", scope }) }));
+    const window = screen.getByText("Current UTC week").parentElement!;
+    expect(Array.from(window.querySelectorAll("time"), time => time.dateTime)).toEqual([`${start}T00:00:00.000Z`, `${end}T00:00:00.000Z`]);
+    expect(window).toHaveTextContent("00:00 UTC (exclusive). Refresh after the boundary");
+    view.unmount();
+  }
+});
+it.each(["global", "unavailable", "signed-out"])("withholds weekly window for %s standings", async state => {
+  if (state === "unavailable") mocks.load.mockRejectedValue(new Error("offline"));
+  if (state === "signed-out") mocks.current.mockResolvedValue(null);
+  render(await Leaderboard({ searchParams: Promise.resolve({ period: state === "global" ? "global" : "weekly", scope: "friends" }) }));
+  expect(screen.queryByText("Current UTC week")).not.toBeInTheDocument();
 });

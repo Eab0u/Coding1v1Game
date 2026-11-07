@@ -8,6 +8,16 @@ import { loadLeaderboard, type LeaderboardEntry } from "../../lib/leaderboard";
 
 export const dynamic = "force-dynamic";
 
+function WeeklyWindow() {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setUTCDate(start.getUTCDate() - (start.getUTCDay() + 6) % 7);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 7);
+  const label = (date: Date) => date.toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" });
+  return <p className="weekly-window"><strong>Current UTC week</strong><span>From <time dateTime={start.toISOString()}>{label(start)}</time> at 00:00 UTC until <time dateTime={end.toISOString()}>{label(end)}</time> at 00:00 UTC (exclusive). Refresh after the boundary to see the new week.</span></p>;
+}
+
 function WeeklyChange({ score }: { score: number }) {
   const rounded = Math.round(score) || 0;
   const direction = rounded > 0 ? "gain" : rounded < 0 ? "loss" : "unchanged";
@@ -46,6 +56,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       <nav className="ladder-filters" aria-label="Leaderboard players"><Link href={`/leaderboard?period=${period}`} aria-current={!scope ? "page" : undefined}>Everyone</Link><Link href={`/leaderboard?period=${period}&scope=friends`} aria-current={scope ? "page" : undefined}>Friends</Link><Link href="/friends">Manage friends</Link></nav>
       {scope && <p>You and your accepted friends, ranked within your circle.</p>}
       <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Tier badges follow current MMR, using full precision even when the displayed rating rounds up. Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
+      {period === "weekly" && !unavailable && !needsLogin && <WeeklyWindow />}
       <details className="tier-guide">
         <summary>Explore leaderboard rating tiers</summary>
         <p>Badges show current rating tiers on both ladders. Weekly gains determine weekly rank, but do not determine your tier.</p>

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Weekly ladder date window
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one leaderboard improvement: a responsive accented current-week callout with semantic dates, explicit Monday 00:00 UTC boundaries, an exclusive end and refresh guidance. Both public and friends weekly ladders show it, including empty standings; global, unavailable and signed-out states omit it.
+- Added regression coverage for Sunday-to-Monday rollover, year boundaries with a timezone offset, leap days and both scopes. Dates use the application server clock; standings continue using the database clock, so deployment clocks should remain synchronized.
+- Validation: all 1,580 tests across 72 files passed, including existing Chromium layout checks. Lint, typecheck and production build passed. Diff whitespace check passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Weekly leaderboard change cues
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one leaderboard polish item. Weekly changes now pair signed MMR values with green Rounded gain, red Rounded loss or neutral No rounded change labels. Direction follows the displayed rounded value, including negative zero, so small fractional changes do not imply a visible gain or loss. Public and friends ladders share the presentation; global standings retain current ratings only.

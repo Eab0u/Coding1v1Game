@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Show the weekly leaderboard UTC date window with clear reset guidance and responsive styling, covering Monday rollover, year boundaries, leap days and both scopes
 - [x] Distinguish weekly leaderboard rounded gains, losses and unchanged values with visible text and color accents, preserving rounding and public/friends snapshot transitions with regression coverage
 - [x] Format matchmaking elapsed waits with compact minute/hour units and full screen-reader text, preserving server authority and silent updates with boundary and lifecycle regression coverage
 - [x] Restore Play keyboard focus after failed matchmaking reservations, preserving independent navigation and successful retry with timeout, server-error, disconnect and malformed-confirmation regression coverage
