@@ -18,8 +18,22 @@ it("renders weekly standings and signed gains", async () => {
   expect(mocks.load).toHaveBeenCalledWith({}, "weekly");
   expect(screen.getByRole("table", {name:"Weekly climb standings"})).toBeVisible();
   expect(screen.getByRole("rowheader", {name:"Ada"})).toBeVisible();
-  expect(screen.getByText("+12")).toBeVisible();
+  expect(screen.getByText("+12 MMR")).toBeVisible();
   expect(screen.getByText(/Monday 00:00 UTC/)).toBeVisible();
+});
+
+it.each([[12.4, "+12 MMR"], [-12.4, "-12 MMR"], [0.4, "0 MMR"], [-0.4, "0 MMR"], [0, "0 MMR"]])("rounds weekly change %s before choosing its sign", async (score, label) => {
+  mocks.load.mockResolvedValue([{ username: "Ada", rating: 912.4, score, rank: 1 }]);
+  render(await Leaderboard({ searchParams: Promise.resolve({ period: "weekly" }) }));
+  expect(screen.getByText(label)).toBeVisible();
+  expect(screen.getByText("912 MMR")).toBeVisible();
+  expect(screen.getByRole("region", { name: "Leaderboard standings" })).toHaveAccessibleDescription(/scroll sideways.*arrow keys/);
+  expect(screen.getByRole("link", { name: "Ada" })).toHaveClass("standings-player");
+});
+
+it("omits table scroll guidance when no standings are available", async () => {
+  render(await Leaderboard({ searchParams: Promise.resolve({}) }));
+  expect(screen.queryByText(/Keyboard: focus the standings/)).not.toBeInTheDocument();
 });
 it("falls back to global for unknown periods and contains database errors", async () => {
   mocks.load.mockRejectedValue(new Error("SECRET"));

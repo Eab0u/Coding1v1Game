@@ -31,6 +31,28 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
+it.each([320, 375, 1280])('makes weekly standings guidance and player links usable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Leaderboard({ searchParams: Promise.resolve({ period: 'weekly' }) }))}`);
+    const region = page.getByRole('region', { name: 'Leaderboard standings' });
+    expect(await region.getAttribute('aria-describedby')).toBe('standings-scroll-hint');
+    expect(await page.locator('#standings-scroll-hint').isVisible()).toBe(true);
+    expect(await page.getByRole('cell', { name: '+123 MMR', exact: true }).isVisible()).toBe(true);
+    await region.focus();
+    if (await region.evaluate(el => el.scrollWidth > el.clientWidth)) {
+      await page.keyboard.press('ArrowRight');
+      await expect.poll(() => region.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+    }
+    await page.keyboard.press('Tab');
+    const player = page.locator('.standings-player');
+    expect(await player.evaluate(el => el === document.activeElement)).toBe(true);
+    expect((await player.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    expect(await player.evaluate(el => getComputedStyle(el).textDecorationLine)).toContain('underline');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
+
 it.each([320, 375, 1280])('supports results skip navigation and player touch targets at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {

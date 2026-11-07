@@ -108,6 +108,10 @@ code { font-family: var(--font-mono); }
 .ladder-filters a[aria-current="page"] { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); }
 .ladder-card { margin-top: 24px; padding: 0; overflow: hidden; }
 .ladder-scroll { overflow-x: auto; }
+.standings-scroll-hint { margin: 20px; color: var(--color-muted); font-size: .875rem; line-height: 1.6; }
+.standings-player { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: .2em; border-radius: var(--radius-sm); }
+.standings-player:hover { color: var(--color-accent); }
+.standings-change { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ladder-table { width: 100%; border-collapse: collapse; text-align: left; font-variant-numeric: tabular-nums; }
 .ladder-table caption { text-align: left; padding: 20px; font-weight: 800; }
 .ladder-table th, .ladder-table td { padding: 16px 20px; border-top: 1px solid var(--color-border); }

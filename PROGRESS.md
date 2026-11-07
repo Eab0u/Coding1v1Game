@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Readable populated leaderboard standings
+- Reviewed the two unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent leaderboard usability item. Catalog items remain unchecked.
+- Added explicit MMR units to ratings and weekly changes, rounding before selecting the change sign so fractional zero values do not display +0 or -0. Player profile links now have visible underlines and 44px minimum touch heights. Added visible sideways-scroll and arrow-key guidance associated with the focusable standings region, shown only for populated tables.
+- Added component coverage for positive, negative and fractional-zero changes and guidance suppression in empty standings. Chromium checks at 320, 375 and 1280px verify guidance, weekly values, keyboard scrolling, player-link focus and touch height, underline styling and document overflow.
+- Validation: all 487 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Readable profile duel history
 - Reviewed the two unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
 - Added bordered, text-labeled WIN / LOSS / DRAW badges with distinct colors, underlined opponent links and explicit MMR units. Rating changes now round before choosing a sign, avoiding misleading +0 or -0 values. Unrated history remains explicit.
