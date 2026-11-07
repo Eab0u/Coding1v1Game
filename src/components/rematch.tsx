@@ -27,6 +27,8 @@ function RematchSession({id}:{id:string}) {
   const summary=useRef<HTMLParagraphElement|null>(null);
   const retryButton=useRef<HTMLButtonElement|null>(null);
   const focusRefreshedSummary=useRef(false);
+  const inviteButton=useRef<HTMLButtonElement|null>(null);
+  const focusSentSummary=useRef(false);
   const [state,setState]=useState<RematchState|null>(null);
   const [error,setError]=useState('');
   const [errorInvitation,setErrorInvitation]=useState('');
@@ -113,6 +115,11 @@ function RematchSession({id}:{id:string}) {
     focusRefreshedSummary.current=false;
     if (document.activeElement===document.body || document.activeElement===retryButton.current) summary.current?.focus();
   },[pollError,state]);
+  useEffect(()=>{
+    if (!state || state.status==='none' || !focusSentSummary.current) return;
+    focusSentSummary.current=false;
+    if (document.activeElement===document.body || document.activeElement===inviteButton.current) summary.current?.focus();
+  },[state]);
   function retry() {
     if (readPending.current || actionController.current || terminal) return;
     focusRefreshedSummary.current=document.activeElement===retryButton.current;
@@ -122,6 +129,7 @@ function RematchSession({id}:{id:string}) {
     if (actionController.current || deadlinePassed) return;
     const controller=new AbortController();
     actionController.current=controller;
+    focusSentSummary.current=action==='invite' && document.activeElement===inviteButton.current;
     focusAcceptedArena.current=action==='accept' && document.activeElement===acceptButton.current;
     focusRecovery.current=(action==='decline' || action==='cancel') && document.activeElement===recoveryActionButton.current;
     revision.current++;
@@ -134,7 +142,7 @@ function RematchSession({id}:{id:string}) {
       // Restart polling so an older in-flight read cannot replace the action result.
       setUpdatesRestored(hadPollError.current);hadPollError.current=false;
       setRefresh(n=>n+1);setState(data);setPollError('');
-    } catch(e) {if (!controller.signal.aborted) {focusAcceptedArena.current=false;focusRecovery.current=false;setError(e instanceof Error?e.message:'Unable to send invitation.');}}
+    } catch(e) {if (!controller.signal.aborted) {focusSentSummary.current=false;focusAcceptedArena.current=false;focusRecovery.current=false;setError(e instanceof Error?e.message:'Unable to send invitation.');}}
     finally {if (!controller.signal.aborted) {actionController.current=null;setBusy(false);setPendingAction('');}}
   }
   const actionBusy=(action:string)=>busy && !deadlinePassed && pendingAction===action;
@@ -142,7 +150,7 @@ function RematchSession({id}:{id:string}) {
     {state?.status==='pending' && !busy && !deadlinePassed && <span className={`rematch-cue${state.outgoing?'':' rematch-cue--incoming'}`}>{state.outgoing?'Invitation sent':'Your move'}</span>}
     </div>
     <p ref={summary} tabIndex={-1} id={summaryId} role="status" aria-live="polite" aria-atomic="true" className={terminal?'rematch-summary':busy && !deadlinePassed?'rematch-pending':undefined}>{terminal?terminalMessages[state.status]:deadlinePassed?'The invitation window has ended. Acceptance and invitation changes are closed. Waiting for server confirmation; no rematch is confirmed yet.':busy?pendingMessages[pendingAction]:!state && pollError?'Invitation status is unavailable. Automatic retries continue; no rematch is confirmed yet.':!state?'Checking invitation…':state.status==='none'?'Invite your opponent to a fresh ranked duel. They have 60 seconds to accept.':state.status==='pending'?(state.outgoing?'Waiting for your opponent. Invitation expires after 60 seconds.':'Your opponent invited you to a fresh ranked duel. Accept within 60 seconds.'):`Invitation ${state.status}.`}</p>
-    {state?.status==='none' && <button aria-describedby={summaryId} className="button button--secondary" disabled={busy} aria-busy={actionBusy('invite')} onClick={()=>void act('invite')}>{actionBusy('invite')?'Sending invitation?':'Rematch'}</button>}
+    {state?.status==='none' && <button ref={inviteButton} aria-describedby={summaryId} className="button button--secondary" disabled={busy} aria-busy={actionBusy('invite')} onClick={()=>void act('invite')}>{actionBusy('invite')?'Sending invitation?':'Rematch'}</button>}
     {state?.status==='pending' && remaining!==null && <div className={`rematch-deadline${deadlinePassed?' rematch-deadline--elapsed':deadlineSoon?' rematch-deadline--soon':''}`}>
       <p role="timer" aria-live="off" aria-label="Invitation time remaining">{remaining}s remaining</p>
       {deadlineSoon && <p className="rematch-deadline-warning">Invitation closing soon</p>}

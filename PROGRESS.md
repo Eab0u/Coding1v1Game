@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Rematch invitation sending keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item. Sending an invitation from the focused Rematch button now focuses the stable visible invitation guidance after direct or polled confirmation removes that button. Independent navigation and background updates preserve focus; failed sends clear focus intent.
+- Added five regression cases covering direct and polled confirmation, independent navigation, background changes and failure followed by authoritative polling recovery.
+- Validation: all 1,473 tests across 72 files passed; lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Rematch manual refresh keyboard recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one accessibility item. Successful keyboard-triggered manual invitation recovery now focuses the updated visible invitation guidance when its retry button disappears, using the existing focus outline. Independent navigation and background refreshes preserve focus; a failed manual retry clears the focus intent.

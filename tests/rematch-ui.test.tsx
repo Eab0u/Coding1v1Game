@@ -808,3 +808,34 @@ it.each([true,false])('does not move focus after background recovery or a failed
   if (!manual) expect(other).toHaveFocus();
  } finally {vi.useRealTimers();}
 });
+it.each([false,true])('focuses invitation guidance after keyboard sending (polled=%s)',async(polled)=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(response('none')).mockResolvedValueOnce(response(polled?'none':'pending')).mockResolvedValue(response('pending'));
+ vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+ const button=await screen.findByRole('button',{name:'Rematch'});
+ button.focus();fireEvent.click(button);
+ await waitFor(()=>expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeInTheDocument());
+ expect(screen.getByRole('status')).toHaveFocus();
+ expect(screen.getByRole('status')).toHaveAttribute('tabindex','-1');
+});
+it.each(['navigation','background','failure'] as const)('preserves focus during invitation sending: %s',async(mode)=>{
+ vi.useFakeTimers();
+ try {
+  const pending=deferred<ReturnType<typeof response>>();
+  const fetcher=vi.fn().mockResolvedValueOnce(response('none')).mockReturnValueOnce(pending.promise).mockResolvedValue(response('pending'));
+  vi.stubGlobal('fetch',fetcher);render(<><button>Other navigation</button><Rematch id="old"/></>);
+  await act(async()=>{});
+  const button=screen.getByRole('button',{name:'Rematch'});
+  if (mode!=='background') {button.focus();fireEvent.click(button);}
+  else await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  const other=screen.getByRole('button',{name:'Other navigation'});
+  if (mode!=='failure') other.focus();
+  await act(async()=>{
+   if (mode==='failure') pending.resolve({ok:false,json:async()=>({error:'offline'})} as unknown as ReturnType<typeof response>);
+   else pending.resolve(response('pending'));
+  });
+  if (mode==='failure') {
+   expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeInTheDocument();
+   expect(screen.getByRole('status')).not.toHaveFocus();
+  } else expect(other).toHaveFocus();
+ } finally {vi.useRealTimers();}
+});
