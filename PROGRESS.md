@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Silence audio on tab hide
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded sound lifecycle fix.
+- Hiding a tab now immediately disposes active duel audio, including already scheduled notes. Sound consent and visual feedback are preserved. Returning to the tab does not autoplay; a visible local user gesture must unlock a fresh audio context. Hidden-tab unlock attempts are ignored, repeated hiding is safe and the visibility listener is removed on unmount.
+- Added regression coverage for immediate disposal, preserved preference and visual cues, hidden unlock prevention, silent return, fresh visible unlock, repeated hide events and listener cleanup.
+- Validation: all 773 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Sound preferences across tabs
 - Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded sound usability item.
 - Sound controls now follow localStorage preference changes from other tabs. Remote mute, removal, invalid values and storage clear dispose active audio immediately while visual duel feedback remains available. Remote enablement updates the pressed state without autoplay or writing the preference back; audio still requires a local user gesture. Unrelated keys and sessionStorage events are ignored, and listeners are removed on unmount.

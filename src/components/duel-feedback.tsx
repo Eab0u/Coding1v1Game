@@ -25,14 +25,19 @@ export function useDuelFeedback() {
       // Remote consent updates the control, but audio still needs a local gesture.
       if (!enabledRef.current) { sound.current?.dispose(); sound.current = null; }
     }
+    function silenceHiddenTab() {
+      if (document.visibilityState === "hidden") { sound.current?.dispose(); sound.current = null; }
+    }
+    document.addEventListener("visibilitychange", silenceHiddenTab);
     window.addEventListener("storage", syncPreference);
     return () => {
       window.removeEventListener("storage", syncPreference);
+      document.removeEventListener("visibilitychange", silenceHiddenTab);
       sound.current?.dispose(); sound.current = null;
     };
   }, []);
   function unlock() {
-    if (enabledRef.current) { sound.current ??= new DuelSound(); sound.current.unlock(); }
+    if (enabledRef.current && document.visibilityState !== "hidden") { sound.current ??= new DuelSound(); sound.current.unlock(); }
   }
   const notify = useCallback((cue: DuelCue) => {
     if (enabledRef.current && document.visibilityState !== "hidden") sound.current?.play(cue);

@@ -109,3 +109,36 @@ it("ignores unrelated and tab storage, handles storage clear and removes its lis
   view.unmount();
   expect(remove).toHaveBeenCalledWith("storage", expect.any(Function));
 });
+
+it("stops scheduled audio on hide and requires a visible local gesture to resume", () => {
+  const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+  const remove = vi.spyOn(document, "removeEventListener");
+  const view = render(<Harness />);
+  fireEvent.click(screen.getByRole("button", { name: "Sound off" }));
+  const audio = Audio.latest;
+  const count = nodes.length;
+  visibility.mockReturnValue("hidden");
+  fireEvent(document, new Event("visibilitychange"));
+  expect(audio.close).toHaveBeenCalledOnce();
+  fireEvent.click(screen.getByText("Unlock audio"));
+  fireEvent.click(screen.getByText("win"));
+  expect(nodes).toHaveLength(count);
+  expect(screen.getByText("Victory")).toBeVisible();
+  expect(localStorage.getItem("codeduel-sound")).toBe("on");
+  expect(screen.getByRole("button", { name: "Sound on" })).toHaveAttribute("aria-pressed", "true");
+  visibility.mockReturnValue("visible");
+  fireEvent(document, new Event("visibilitychange"));
+  fireEvent.click(screen.getByText("win"));
+  expect(nodes).toHaveLength(count);
+  fireEvent.click(screen.getByText("Unlock audio"));
+  fireEvent.click(screen.getByText("win"));
+  expect(nodes).toHaveLength(count + cueNotes.win.length);
+  const resumed = Audio.latest;
+  expect(resumed).not.toBe(audio);
+  visibility.mockReturnValue("hidden");
+  fireEvent(document, new Event("visibilitychange"));
+  fireEvent(document, new Event("visibilitychange"));
+  expect(resumed.close).toHaveBeenCalledOnce();
+  view.unmount();
+  expect(remove).toHaveBeenCalledWith("visibilitychange", expect.any(Function));
+});
