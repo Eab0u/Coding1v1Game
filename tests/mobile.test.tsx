@@ -648,6 +648,17 @@ it.each([320, 375, 1280])('keeps home readiness guidance readable at %spx', asyn
     const guide = page.getByRole('complementary', { name: 'Before your first duel' });
     expect(await guide.isVisible()).toBe(true);
     expect(await guide.textContent()).toContain('60 seconds to click Ready');
+    const lengths = guide.locator('dl');
+    expect(await lengths.getAttribute('aria-label')).toBe('Duel lengths by difficulty');
+    expect(await lengths.locator('dt').allTextContents()).toEqual(['Easy', 'Medium', 'Hard']);
+    expect(await lengths.locator('strong').allTextContents()).toEqual(['5 minutes', '15 minutes', '30 minutes']);
+    for (const row of await lengths.locator(':scope > div').all()) {
+      expect(await row.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      expect(await row.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(38, 36, 33)');
+      const bounds = (await row.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
     expect(await guide.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     expect(await guide.evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('solid');
     expect(await guide.locator('p').first().evaluate(el => parseFloat(getComputedStyle(el).lineHeight))).toBeGreaterThanOrEqual(22);

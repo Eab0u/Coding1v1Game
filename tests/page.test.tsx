@@ -102,6 +102,14 @@ it.each([false, true])("explains catalog eligibility and reservation readiness f
   expect(guide).toHaveTextContent("60 seconds to click Ready");
   expect(guide).toHaveTextContent("clock starts when both are ready");
   expect(guide).toHaveTextContent("expired reservation does not change ratings");
+  expect(guide).toHaveTextContent("Difficulty follows the two players' average rating");
+  const lengths = guide.querySelector("dl")!;
+  expect(lengths).toHaveAccessibleName("Duel lengths by difficulty");
+  expect(lengths).toHaveAccessibleDescription(/Allow time for the full duel/);
+  expect(Array.from(lengths.querySelectorAll("dt"), el => el.textContent)).toEqual(["Easy", "Medium", "Hard"]);
+  expect(Array.from(lengths.querySelectorAll("dd"), el => el.textContent)).toEqual([
+    "5 minutesBelow 1200 MMR", "15 minutes1200 to below 1600 MMR", "30 minutes1600+ MMR",
+  ]);
   expect(screen.queryByText(/match activation are still in development/)).not.toBeInTheDocument();
   if (signedIn) expect(screen.getByRole("link", { name: "Account: Ada" })).toHaveAttribute("href", "/account");
 });

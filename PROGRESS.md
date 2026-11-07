@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Pre-queue duel length guide
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent home guidance item; catalog validation remains unchecked.
+- Added a styled semantic definition list explaining Easy, Medium and Hard duel lengths (5, 15 and 30 minutes) and their average-player-rating bands. Explained that these clocks begin after both players are ready. The guide is available to guests and signed-in players before queueing.
+- Updated component tests for the accessible name, associated explanation, difficulty labels, time limits and exact rating boundaries in both session states. Extended Chromium coverage at 320, 375 and 1280px to verify all three time limits, themed row styling and containment without overflow.
+- Validation: all 589 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed. Fixed JSX apostrophe escaping caught by lint. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Clear friend action feedback
 - Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent friend-action feedback item; catalog validation remains unchecked.
 - Replaced the raw URL-message paragraph with themed feedback cards for the three supported action outcomes. Added contextual guidance to review relationships before retrying an unconfirmed action or correcting a request. Arbitrary URL text is ignored, and results are hidden for guests and unavailable reads. URL feedback is informational; current relationship data remains authoritative.

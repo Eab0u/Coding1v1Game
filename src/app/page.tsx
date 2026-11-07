@@ -36,6 +36,13 @@ export default async function Home() {
               <h2 id="arena-guide-title">Before your first duel</h2>
               <p>Pairing requires a published, validated problem in your rating band. If none is available, try again later.</p>
               <p>Once paired, both players have 60 seconds to click Ready. The duel clock starts when both are ready; an expired reservation does not change ratings.</p>
+              <h3>Plan your duel</h3>
+              <p id="duel-length-note">Difficulty follows the two players&apos; average rating. Allow time for the full duel after both players are ready.</p>
+              <dl className="duel-lengths" aria-label="Duel lengths by difficulty" aria-describedby="duel-length-note">
+                <div><dt>Easy</dt><dd><strong>5 minutes</strong><span>Below 1200 MMR</span></dd></div>
+                <div><dt>Medium</dt><dd><strong>15 minutes</strong><span>1200 to below 1600 MMR</span></dd></div>
+                <div><dt>Hard</dt><dd><strong>30 minutes</strong><span>1600+ MMR</span></dd></div>
+              </dl>
             </aside>
           </div>
           <Card>

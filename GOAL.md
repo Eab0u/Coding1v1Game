@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Explain duel lengths and average-rating difficulty bands before queueing with a styled semantic home guide and phone browser coverage
 - [x] Clarify friend action results with styled contextual feedback, recovery guidance and rejection of arbitrary URL messages, including phone coverage
 - [x] Make friends discoverable from the signed-in home header with keyboard navigation, phone touch targets and session-state coverage
 - [x] Explain profile rating tiers with a styled keyboard-accessible threshold guide, current-tier marker and fractional-boundary and phone browser coverage
