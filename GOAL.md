@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Add indent-stop Backspace to the plain Python editor, preserving selections, tabs, native modified keys, read-only drafts and IME composition with regression tests
 - [x] Indent plain-editor multiline Python blocks from their opening header line, preserving continuations, nonheaders, selections and caret placement with regression tests
 - [x] Author the original Relay Load Capacity medium binary-search draft with Python solutions, seeded cases, full-size benchmarks and fixture tests; leave sandbox approval and publication pending
 - [x] Recover plain-editor block indentation after earlier unfinished ordinary strings, preserving escaped continuations, triple-quoted strings, bracket guards, selections and caret placement with regression tests

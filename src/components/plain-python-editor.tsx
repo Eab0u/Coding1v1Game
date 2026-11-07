@@ -146,6 +146,17 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
       autoCapitalize="off" autoCorrect="off" wrap={wordWrap ? "soft" : "off"}
       onKeyDown={event => {
         if (readOnly || composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+        if (event.key === "Backspace" && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+          const { selectionStart: start, selectionEnd: end } = event.currentTarget;
+          const prefix = value.slice(value.slice(0, start).lastIndexOf("\n") + 1, start);
+          if (start === end && /^ +$/.test(prefix)) {
+            const removed = ((prefix.length - 1) % 4) + 1;
+            event.preventDefault();
+            caret.current = [start - removed, start - removed];
+            onChange(value.slice(0, start - removed) + value.slice(end));
+          }
+          return;
+        }
         if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && (event.key === "[" || event.key === "]")) {
           event.preventDefault();
           changeIndent(event.key === "[");
@@ -164,6 +175,6 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
     <p id={hint} className="editor-hint">{readOnly
       ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
-      : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+      : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Backspace in space-only leading indentation removes spaces to the previous four-space stop. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
   </>;
 }

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Plain-editor indent-stop Backspace
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Load Capacity. The configured service returned JudgeUnavailableError; validation and publication remain blocked. Following the blocker rule, added and checked off one bounded editor usability item.
+- Backspace in space-only leading indentation now removes spaces to the previous four-space stop, preserving the rest of the line, focus and caret. Added discoverable editing guidance. Selections, tabs, text deletion, modified Backspace, read-only solutions and active IME composition retain native handling.
+- Added 21 regression cases covering aligned and partial indent stops, nested lines, suffix preservation, selections, tabs, modifier keys, read-only mode, both IME keyboard guards and composition-end recovery with repeated outdents.
+- Validation: all 977 tests across 61 files passed; lint, production build, typecheck and diff whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author remaining initial drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Multiline Python block indentation
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Load Capacity. The configured Judge0 service returned JudgeUnavailableError; validation and publication remain blocked. Following the blocker rule, added and completed one bounded editor correctness item.
 - Plain-editor Enter now derives block indentation from the opening logical header line rather than the closing physical line. Parenthesized and explicit-backslash headers enter their body at the correct depth, preserving tabs and nested indentation. Updated the visible editing guidance.

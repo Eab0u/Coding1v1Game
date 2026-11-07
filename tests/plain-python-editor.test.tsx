@@ -660,3 +660,52 @@ it.each([
   expect(input.selectionEnd).toBe(input.selectionStart);
   expect(input).toHaveFocus();
 });
+
+it.each([1, 2, 3, 4, 5, 7, 8, 12])("Backspace removes leading spaces to an indent stop from column %i", spaces => {
+  const prefix = "def solve():\n";
+  const initial = prefix + " ".repeat(spaces) + "return 1";
+  render(<Harness initial={initial}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(prefix.length + spaces, prefix.length + spaces);
+  expect(fireEvent.keyDown(input, { key: "Backspace" })).toBe(false);
+  const remaining = Math.floor((spaces - 1) / 4) * 4;
+  expect(input).toHaveValue(prefix + " ".repeat(remaining) + "return 1");
+  expect(input.selectionStart).toBe(prefix.length + remaining);
+  expect(input.selectionEnd).toBe(input.selectionStart);
+  expect(input).toHaveFocus();
+});
+
+it.each([
+  { value: "    code", start: 0, end: 0 },
+  { value: "    code", start: 4, end: 5 },
+  { value: "    code", start: 5, end: 5 },
+  { value: "\t    code", start: 5, end: 5 },
+  { value: "    code", start: 4, end: 4, readOnly: true },
+  { value: "    code", start: 4, end: 4, composing: true },
+  ...[{ ctrlKey: true }, { metaKey: true }, { altKey: true }, { shiftKey: true }, { isComposing: true }, { keyCode: 229 }].map(event => ({ value: "    code", start: 4, end: 4, event })),
+])("preserves native Backspace for %j", options => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value={options.value} onChange={change} readOnly={"readOnly" in options && !!options.readOnly}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(options.start, options.end, "backward");
+  if ("composing" in options) fireEvent.compositionStart(input);
+  expect(fireEvent.keyDown(input, { key: "Backspace", ...("event" in options ? options.event : {}) })).toBe(true);
+  expect(change).not.toHaveBeenCalled();
+  expect(input.selectionStart).toBe(options.start);
+  expect(input.selectionEnd).toBe(options.end);
+});
+
+it("resumes indentation Backspace after composition ends", () => {
+  render(<Harness initial="        code"/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.setSelectionRange(8, 8);
+  fireEvent.compositionStart(input);
+  expect(fireEvent.keyDown(input, { key: "Backspace" })).toBe(true);
+  fireEvent.compositionEnd(input);
+  expect(fireEvent.keyDown(input, { key: "Backspace" })).toBe(false);
+  expect(input).toHaveValue("    code");
+  expect(fireEvent.keyDown(input, { key: "Backspace" })).toBe(false);
+  expect(input).toHaveValue("code");
+});
