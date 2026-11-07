@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Validate saved results ratings
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured sandbox returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one results-page fix. Negative, nonfinite or missing invalid rating values now show a styled Rating unavailable notice instead of numeric totals, change badges or misleading tiers. The notice preserves the recorded outcome; historical null ratings retain Rating not recorded.
+- Added regression coverage for invalid before/after values, opponent isolation, outcome preservation and recovery to valid zero/fractional ratings and missing historical ratings.
+- Validation: all 1,271 tests across 72 files passed, including 51 results UI tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Validate saved results timing values
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured sandbox returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
 - Followed the blocker rule to add and complete one results-page fix. Invalid saved CPU and submission times now show Unavailable instead of negative or nonfinite values, and missing CPU values cannot crash formatting. The comparison guide explains that the recorded outcome still applies. Valid zero/fractional times and historical missing-value labels remain intact.

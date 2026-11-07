@@ -6,6 +6,28 @@ import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
 const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:null}];
 beforeEach(()=>localStorage.clear());
+it.each(['before','after'] as const)('withholds invalid saved %s ratings and recovers valid history',field=>{
+ const result={title:'Sample',outcome:'WIN' as const,players};
+ const view=render(<Results result={result}/>);
+ for (const value of [-1,NaN,Infinity,-Infinity,undefined]) {
+  view.rerender(<Results result={{...result,players:[{...players[0],[field]:value},players[1]]} as DuelResult}/>);
+  const yours=within(screen.getByRole('region',{name:'Your result'}));
+  expect(yours.getByText('Rating unavailable')).toBeVisible();
+  expect(yours.getByText(/saved rating change could not be verified/)).toHaveTextContent('recorded match outcome still applies');
+  expect(yours.queryByLabelText(/Rating change/)).not.toBeInTheDocument();
+  expect(yours.queryByText(/Tier unchanged|Tier changed from|Previously|MMR/)).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Rating change -8')).toBeVisible();
+  expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
+ }
+ view.rerender(<Results result={{...result,players:[{...players[0],before:0,after:1000.1},players[1]]}}/>);
+ const yours=within(screen.getByRole('region',{name:'Your result'}));
+ expect(yours.queryByText('Rating unavailable')).not.toBeInTheDocument();
+ expect(yours.getByLabelText('Rating change +1000')).toBeVisible();
+ expect(yours.getByText('Tier changed from Bronze to Silver')).toBeVisible();
+ view.rerender(<Results result={{...result,players:[{...players[0],before:null,after:null},players[1]]}}/>);
+ expect(yours.getByText('Rating not recorded')).toBeVisible();
+ expect(yours.queryByLabelText(/Rating change/)).not.toBeInTheDocument();
+});
 it.each([[0,'No hidden tests passed'],[5,'Some hidden tests passed'],[8,'All hidden tests passed']] as const)('shows saved correctness accessibly for %s passes',(passed,label)=>{
  render(<Results result={{title:'Sample',outcome:'DRAW',players:[{...players[0],passed}]}}/>);
  const meter=screen.getByRole('progressbar',{name:`Hidden-test progress ${passed} / 8 passed`});

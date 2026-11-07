@@ -14,6 +14,10 @@ function validTime(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
+function validRating(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
 function delta(before:number,after:number) {
   const change=Math.round(after)-Math.round(before);
   return `${change>=0?"+":""}${change}`;
@@ -41,8 +45,8 @@ export function Results({result,matchId}:{result:DuelResult;matchId?:string}) {
     <section className="card result-explanation" aria-labelledby="scoring-explanation"><h2 id="scoring-explanation">How this duel was decided</h2><p>{explainResult(result)}</p></section>
     <section className="card result-metrics-guide" aria-labelledby="metrics-guide-title"><h2 id="metrics-guide-title">Reading the comparison</h2><p>Each player’s best judged submission counts, even if a later attempt was weaker.</p><dl><div><dt>Benchmark CPU</dt><dd>Milliseconds of CPU time on the largest tests, using the median of three runs. Lower is better when hidden test counts tie.</dd></div><div><dt>Submission time</dt><dd>Seconds from the start of the duel to that best submission. Earlier wins only when correctness and CPU time tie.</dd></div></dl><p>Displayed times are rounded; scoring uses saved precision. Missing historical metrics are shown as not recorded. Invalid saved times are shown as unavailable; the recorded match outcome still applies.</p></section>
     <div className="result-players">{result.players.map((p,i)=><section className="card result-player" key={p.username} aria-label={i===0?"Your result":"Opponent result"}><p className="eyebrow">{i===0?"YOU":"OPPONENT"}</p><h2><Link href={`/profile/${encodeURIComponent(p.username)}`}>{p.username}</Link></h2>
-      {p.before!==null && p.after!==null ? <div className="result-rating"><strong>{Math.round(p.after)} MMR</strong><RatingChange before={p.before} after={p.after}/><p>Previously {Math.round(p.before)}</p><small>Change compares rounded MMR totals.</small></div>:<p>Rating not recorded</p>}
-      {p.before!==null && p.after!==null && <div className="result-tier"><Badge tone="accent">{ratingTier(p.after)}</Badge><p>{ratingTier(p.before)===ratingTier(p.after)?"Tier unchanged":`Tier changed from ${ratingTier(p.before)} to ${ratingTier(p.after)}`}</p><small>Tier after this duel, based on full-precision MMR before display rounding.</small></div>}
+      {validRating(p.before) && validRating(p.after) ? <div className="result-rating"><strong>{Math.round(p.after)} MMR</strong><RatingChange before={p.before} after={p.after}/><p>Previously {Math.round(p.before)}</p><small>Change compares rounded MMR totals.</small></div>:p.before===null || p.after===null?<p>Rating not recorded</p>:<div className="result-rating"><strong>Rating unavailable</strong><p>The saved rating change could not be verified. The recorded match outcome still applies.</p></div>}
+      {validRating(p.before) && validRating(p.after) && <div className="result-tier"><Badge tone="accent">{ratingTier(p.after)}</Badge><p>{ratingTier(p.before)===ratingTier(p.after)?"Tier unchanged":`Tier changed from ${ratingTier(p.before)} to ${ratingTier(p.after)}`}</p><small>Tier after this duel, based on full-precision MMR before display rounding.</small></div>}
       {hasSubmissionScore(p) && p.submitted===null && <div className="result-no-submission"><strong>No judged submission</strong><p>No judged attempt was available at settlement. The saved score uses zero passed tests and the full CPU limit for each benchmark test, rather than measured execution time.</p></div>}
       {hasSubmissionScore(p) && p.submitted!==null && <div className="result-correctness"><label htmlFor={`result-tests-${i}`}>Hidden-test progress <span>{p.passed} / {p.total} passed</span></label><progress id={`result-tests-${i}`} value={p.passed} max={p.total} aria-valuetext={`${p.passed} of ${p.total} hidden tests passed`}/><p>{p.passed===p.total?"All hidden tests passed":p.passed===0?"No hidden tests passed":"Some hidden tests passed"}</p></div>}
       {p.passed!==null && !hasSubmissionScore(p) && <div className="result-correctness"><strong>Test score unavailable</strong><p>The saved test counts could not be verified. The recorded match outcome above still applies.</p></div>}
