@@ -16,7 +16,14 @@ export function UsernameField({ mode }: { mode: "login" | "signup" | "friend" })
     setLength(input.value.length);
     const message = usernameValidationMessage(input.value);
     input.setCustomValidity(input.value || reportEmpty ? message : "");
-    setError((input.value || reportEmpty) && message ? hint : "");
+    const corrections: string[] = [];
+    if (!input.value) corrections.push("Enter a username.");
+    else {
+      if (input.value.length < 3) corrections.push("Username is too short.");
+      if (input.value.length > 24) corrections.push("Username is too long.");
+      if (/[^A-Za-z0-9_]/.test(input.value)) corrections.push("Remove spaces and characters other than English letters, numbers or underscores.");
+    }
+    setError((input.value || reportEmpty) && message ? `${corrections.join(" ")} ${hint}` : "");
   };
   const id = `${mode}-username`;
   const hint = mode === "friend" ? USERNAME_HINT.replace("your username", "a player username") : USERNAME_HINT;

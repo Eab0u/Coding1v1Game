@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Explain specific username correction reasons across account and friend forms, preserving server validation, independent state, keyboard focus and reset/replacement recovery with regression coverage
 - [x] Conceal revealed account passwords when focus leaves their owning form, preserving within-form navigation, credentials, validation and explicit reveal recovery with regression coverage
 - [x] Conceal revealed account passwords with Escape from anywhere in their owning form, preserving independent forms, keyboard focus, values and validation with regression coverage
 - [x] Show remaining password minimum-length requirements alongside the responsive byte budget, preserving independent forms, replacement values, reveal and reset with regression coverage

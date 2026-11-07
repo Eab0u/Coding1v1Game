@@ -131,3 +131,38 @@ it.each(["login", "signup", "friend"] as const)("tracks the %s character budget 
   expect(input).not.toHaveAttribute("aria-invalid");
   expect(document.getElementById(`${mode}-username-budget`)).toBe(budget);
 });
+
+it.each(["login", "signup", "friend"] as const)("gives specific %s corrections without changing values or server validation", async mode => {
+  render(<><form><UsernameField mode={mode} /></form><form><UsernameField mode={mode === "login" ? "signup" : "login"} /></form></>);
+  const [input, other] = screen.getAllByRole<HTMLInputElement>("textbox");
+  const status = document.getElementById(`${mode}-username-error`)!;
+  act(() => input.focus());
+  expect(status).toBeEmptyDOMElement();
+  fireEvent.invalid(input);
+  expect(status).toHaveTextContent("Enter a username.");
+  for (const [value, reasons] of [
+    ["ab", ["Username is too short."]],
+    ["a".repeat(25), ["Username is too long."]],
+    ["bad name", ["Remove spaces and characters other than English letters, numbers or underscores."]],
+    ["!", ["Username is too short.", "Remove spaces"]],
+    ["!".repeat(25), ["Username is too long.", "Remove spaces"]],
+    ["éclair", ["Remove spaces"]],
+  ] as const) {
+    fireEvent.change(input, { target: { value } });
+    for (const reason of reasons) expect(status).toHaveTextContent(reason);
+    expect(input).toHaveValue(value);
+    expect(input).toHaveFocus();
+    expect(input.validationMessage).toBe(USERNAME_HINT);
+    expect(input).toHaveAccessibleDescription(new RegExp(reasons[0]));
+    expect(other).not.toHaveAttribute("aria-invalid");
+    expect(document.getElementById(`${mode}-username-error`)).toBe(status);
+  }
+  input.value = "Recovered_Name";
+  fireEvent.focus(input);
+  expect(status).toBeEmptyDOMElement();
+  expect(input).toBeValid();
+  fireEvent.change(input, { target: { value: "!" } });
+  await act(async () => input.form!.reset());
+  expect(status).toBeEmptyDOMElement();
+  expect(input).not.toHaveAttribute("aria-invalid");
+});
