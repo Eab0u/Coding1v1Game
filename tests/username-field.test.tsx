@@ -56,3 +56,42 @@ it.each(["login", "signup", "friend"] as const)("clears stale %s validation on n
   fireEvent.change(input, { target: { value: "Valid_Name" } });
   expect(input).toBeValid();
 });
+
+
+it.each(["login", "signup", "friend"] as const)("refreshes silent %s replacements on focus and invalid events", mode => {
+  render(<><form><UsernameField mode={mode} /></form><form><UsernameField mode={mode === "login" ? "signup" : "login"} /></form></>);
+  const [input, other] = screen.getAllByRole<HTMLInputElement>("textbox");
+  fireEvent.change(input, { target: { value: "invalid name" } });
+  fireEvent.change(other, { target: { value: "also invalid" } });
+  input.value = "Recovered_Name";
+  fireEvent.focus(input);
+  expect(input.validity.customError).toBe(false);
+  expect(input).toBeValid();
+  expect(input).not.toHaveAttribute("aria-invalid");
+  expect(screen.getAllByRole("status")[0]).toBeEmptyDOMElement();
+  expect(new FormData(input.form!).get("username")).toBe("Recovered_Name");
+  expect(other.validity.customError).toBe(true);
+  expect(other).toHaveValue("also invalid");
+
+  input.value = "bad replacement";
+  fireEvent.focus(input);
+  expect(input.validity.customError).toBe(true);
+  expect(input).toHaveAttribute("aria-invalid", "true");
+  expect(screen.getAllByRole("status")[0]).not.toBeEmptyDOMElement();
+  input.value = "Valid_Again";
+  fireEvent.invalid(input);
+  expect(input.validity.customError).toBe(false);
+  expect(input).not.toHaveAttribute("aria-invalid");
+
+  input.value = "";
+  fireEvent.focus(input);
+  expect(input.validity.customError).toBe(false);
+  expect(input.validity.valueMissing).toBe(true);
+  expect(input).not.toHaveAttribute("aria-invalid");
+  fireEvent.invalid(input);
+  expect(input).toHaveAttribute("aria-invalid", "true");
+  expect(input.validity.customError).toBe(true);
+  input.value = "Final_Name";
+  fireEvent.focus(input);
+  expect(input).toBeValid();
+});
