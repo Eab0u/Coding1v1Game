@@ -727,3 +727,25 @@ it.each([320, 375, 1280])('keeps friend action recovery feedback readable at %sp
     expect(await page.getByLabel('Player username').evaluate(el => el === document.activeElement)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps ordered scoring cards readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const rules = page.getByRole('list', { name: 'Duel scoring priority' });
+    expect(await rules.locator(':scope > li').count()).toBe(3);
+    expect(await rules.textContent()).toContain('median of three runs');
+    const cards = await rules.locator(':scope > li').all();
+    const bounds = [];
+    for (const card of cards) {
+      const box = (await card.boundingBox())!;
+      bounds.push(box);
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+      expect(await card.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(49, 46, 43)');
+    }
+    if (width < 760) expect(bounds[1].y).toBeGreaterThanOrEqual(bounds[0].y + bounds[0].height);
+    else expect(bounds[1].x).toBeGreaterThan(bounds[0].x);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});

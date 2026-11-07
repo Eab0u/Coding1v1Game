@@ -128,3 +128,17 @@ it("omits signature controls when no daily challenge is available", async () => 
   expect(screen.queryByRole("region", { name: "Daily challenge function signature" })).not.toBeInTheDocument();
   expect(screen.queryByText(/Keyboard: focus the code/)).not.toBeInTheDocument();
 });
+
+it.each([false, true])("explains ordered best-attempt scoring for signedIn=%s", async signedIn => {
+  mocks.current.mockResolvedValue(signedIn ? { id: "one", username: "Ada", rating: 800 } : null);
+  render(await Home());
+  const rules = screen.getByRole("list", { name: "Duel scoring priority" });
+  expect(rules.tagName).toBe("OL");
+  expect(rules).toHaveAccessibleDescription(/best judged attempt counts.*weaker later attempt does not replace it/i);
+  const steps = rules.querySelectorAll(":scope > li");
+  expect(steps).toHaveLength(3);
+  expect(steps[0]).toHaveTextContent("Pass the most hidden tests");
+  expect(steps[1]).toHaveTextContent("median of three runs: the middle CPU time");
+  expect(steps[2]).toHaveTextContent("earlier submission of the selected attempt");
+  expect(steps[2]).toHaveTextContent("An exact tie is a draw");
+});
