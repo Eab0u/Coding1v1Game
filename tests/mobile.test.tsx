@@ -1036,3 +1036,27 @@ it.each([320, 375, 1280])('keeps home rating changes styled and contained at %sp
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+import { PlainPythonEditor } from '../src/components/plain-python-editor';
+
+it.each([false, true])('keeps the plain editor keyboard guide usable on phones (readOnly=%s)', async readOnly => {
+  const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style><main>${renderToStaticMarkup(<PlainPythonEditor value={'    return 1'} onChange={() => {}} readOnly={readOnly} />)}</main>`);
+    const summary = page.locator('.editor-keyboard-guide summary');
+    const guide = page.locator('.editor-keyboard-guide .editor-hint');
+    const editor = page.getByRole('textbox', { name: 'Python solution' });
+    expect(await guide.isVisible()).toBe(false);
+    expect(await editor.getAttribute('aria-describedby')).toContain(await guide.getAttribute('id'));
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    expect(await guide.isVisible()).toBe(true);
+    expect(await summary.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
+    expect(await guide.textContent()).toContain(readOnly ? 'This solution is read-only.' : 'Enter keeps indentation');
+    expect(await guide.textContent()).toContain('Tab moves to the next control.');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    await page.keyboard.press('Space');
+    expect(await guide.isVisible()).toBe(false);
+    expect(await editor.inputValue()).toBe('    return 1');
+  } finally { await page.close(); }
+});

@@ -495,3 +495,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .home-streak .home-streak-empty { color: var(--color-accent); font-weight: 700; }
 
 .home-rating-change { display: block; margin-block: 0.35rem; color: var(--color-text); font-size: 0.875rem; font-weight: 700; overflow-wrap: anywhere; }
+
+.editor-keyboard-guide { margin-top: 12px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); overflow-wrap: anywhere; }
+.editor-keyboard-guide summary { min-height: 44px; padding: 12px 0; font-weight: 700; line-height: 1.5; }
+.editor-keyboard-guide[open] summary { color: var(--color-accent); }
+.editor-keyboard-guide .editor-hint { margin: 0 0 12px; }

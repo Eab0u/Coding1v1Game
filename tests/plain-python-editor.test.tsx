@@ -866,3 +866,27 @@ it("preserves composition Home and recovers after composition ends", () => {
   expect(fireEvent.keyDown(input, { key: "Home" })).toBe(false);
   expect(input.selectionStart).toBe(4);
 });
+
+it("preserves the open keyboard guide and draft selection through read-only changes", () => {
+  const change = vi.fn();
+  const value = "    return 1";
+  const { rerender } = render(<PlainPythonEditor value={value} onChange={change} readOnly={false} />);
+  const summary = screen.getByText("Python editor keyboard guide");
+  const details = summary.closest("details")!;
+  expect(details).not.toHaveAttribute("open");
+  // Native disclosure state belongs to the browser and survives React updates.
+  details.open = true;
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(4, 10, "backward");
+  rerender(<PlainPythonEditor value={value} onChange={change} readOnly />);
+  expect(details).toHaveAttribute("open");
+  expect(input).toHaveValue(value);
+  expect(input).toHaveFocus();
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([4, 10, "backward"]);
+  expect(input).toHaveAccessibleDescription(/This solution is read-only/);
+  rerender(<PlainPythonEditor value={value} onChange={change} readOnly={false} />);
+  expect(details).toHaveAttribute("open");
+  expect(input).toHaveAccessibleDescription(/Enter keeps indentation/);
+  expect(change).not.toHaveBeenCalled();
+});

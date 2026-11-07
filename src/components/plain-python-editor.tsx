@@ -190,8 +190,11 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
         onChange(value.slice(0, start) + insertion + value.slice(end));
       }} />
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
-    <p id={hint} className="editor-hint">{readOnly
+    <details className="editor-keyboard-guide">
+      <summary>Python editor keyboard guide</summary>
+      <p id={hint} className="editor-hint">{readOnly
       ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Home moves to the first code character, then the line start; Shift+Home selects. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
       : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Backspace in space-only leading indentation outside strings removes spaces to the previous four-space stop. Shift+Enter inserts a plain newline. Home moves to the first code character, then the line start; Shift+Home selects. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+    </details>
   </>;
 }

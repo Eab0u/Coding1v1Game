@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Expandable plain-editor keyboard guide
+- Retried problems 1-20 validation with Relay Basin Storage; JudgeUnavailableError still blocks the highest-value milestone. Following the blocker rule, added and completed one bounded editor usability item; catalog milestones remain unchecked.
+- Moved long plain-editor keyboard guidance into a styled native disclosure, collapsed initially, with a 44px minimum summary and expanded accent. Retained the textarea description and editable/read-only instructions. Native disclosure state survives mode changes without replacing code, focus or selection.
+- Added Chromium phone coverage for Enter/Space activation, visible focus, guide visibility, touch sizing, draft preservation and page overflow in both modes. Added component coverage for open-state and backward-selection preservation through mode changes.
+- Validation: full suite passed 1,028 tests across 66 files; the subsequently added mode-change regression passed with all 214 plain-editor tests (1,029 total covered). Lint, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the twenty initial drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Relay Basin Storage draft
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Channel Chain. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded catalog-authoring item; validation and publication milestones remain unchecked.
 - Added the twentieth original draft, Relay Basin Storage (medium two pointers), with a coolant-depth contract, Python constant-space linear reference and quadratic baseline, examples, edge cases, 2,000 seeded inputs and three 100,000-column benchmarks. Documented correctness, 64-bit answers and pending resource calibration.
