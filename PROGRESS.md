@@ -16,7 +16,7 @@ Friend requests and accepted friendships are available at /friends, with authent
 
 Mobile layout polish is implemented for the existing home, account, profile and leaderboard pages, with Chromium regression coverage for narrow phones through desktop widths. Arena and results now have responsive browser checks; Monaco interaction still needs a live deployment smoke check.
 
-The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. The original problem catalog is still pending; no real catalog problems have been published.
+The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. The first original draft, Relay Balance Window, is in problems/drafts with fixture tests and authoring notes. Its Python solutions and resource limits still need sandbox validation; no real catalog problems have been published.
 
 Public player profiles now show rating graphs, tier badges, full win/loss/draw records and recent match history at /profile/<username>. Public global and weekly leaderboards are available at /leaderboard, linked from the home page. The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems and live sandbox/database deployment verification remain pending.
 
@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - First original catalog draft
+- Selected problems 1-20 as the highest-value unchecked item. A bounded endpoint probe returned ECONNREFUSED, and the real draft validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one prerequisite item: authoring an original draft. Both validated catalog backlog items remain unchecked.
+- Added Relay Balance Window, a medium signed-array problem, with a full statement, constraints, explained examples, O(n) prefix-sum reference and O(n^2) brute force, seeded small-case generation and authored edge cases. Three 100,000-element benchmarks cover absent windows, repeated prefixes and sums exceeding 32-bit range.
+- Added private-draft documentation explaining algorithm choices, proposed resource limits and the validate/publish commands. Added data-only tests that parse the real draft, independently enumerate small-fixture answers, check generator coverage and derive benchmark answers. No catalog Python executed locally; fixture tests do not claim sandbox correctness or timeout approval.
+- Validation: all 527 tests across 46 files passed; lint, typecheck and production build passed. Actual sandbox validation remains blocked by connectivity; no problem was published.
+- Next: restore isolated Judge0 connectivity, validate this draft and measure its resource limits, then continue authoring and validating problems 1-20. Existing live infrastructure blockers remain.
+
 ### 2026-11-06 - Discoverable friend profile links
 - Reviewed both unchecked catalog items and made a bounded request to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent friends usability item. Catalog items remain unchecked.
 - Applied the shared underlined player-link styling and 44px minimum touch height to incoming, accepted and outgoing friend cards. Added explicit profile-link accessible names and encoded profile destinations.

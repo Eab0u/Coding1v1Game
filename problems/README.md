@@ -17,4 +17,38 @@ The seeded generator produces 2,000 small inputs. Reference and brute force run 
 
 After successful validation, publication inserts all public metadata, private solutions, generated-test specification, a SHA-256 draft digest, validation version/count and the example/hidden suite in one statement. Slugs are immutable: an existing slug causes an error, preserving suites already used by matches. Publish revisions under new slugs. There is no cached validation approval to reuse after changing a draft. A failed validation or unavailable sandbox produces no database write.
 
-The pipeline intentionally has no published seed catalog yet. Problems 1–20 and real sandbox validation remain separate backlog work. Unit tests mock sandbox results and exercise SQL with embedded Postgres; they do not execute Python. Before enabling ranked play, smoke-test CPU limits, network isolation and memory enforcement on the actual sandbox deployment.
+The pipeline has no published catalog yet; the first original draft below is awaiting sandbox validation. Problems 1–20 and real sandbox validation remain separate backlog work. Unit tests mock sandbox results and exercise SQL with embedded Postgres; they do not execute Python. Before enabling ranked play, smoke-test CPU limits, network isolation and memory enforcement on the actual sandbox deployment.
+
+## Original problem drafts
+
+These are private authoring inputs, outside the site's public assets. No draft is
+approved for ranked play until the sandbox pipeline passes and publishes it.
+
+### Relay Balance Window
+
+`drafts/relay-balance-window.json` is an original medium prefix-sum problem. A
+quadratic solution enumerates every consecutive window. The reference keeps the
+earliest index of each prefix sum, giving O(n) time and O(n) space. Keeping the
+earliest occurrence matters: later occurrences can hide a longer valid window.
+Negative adjustments prevent a positive-only sliding window approach.
+
+The seeded generator supplies 2,000 small comparisons in the existing pipeline.
+Authored cases include absent windows, singletons, zero targets, repeated prefix
+sums, negative targets and boundary values. Three 100,000-element benchmarks
+exercise no-solution input, repeated prefixes and prefix sums beyond 32-bit range.
+Each requires about five billion window visits from the supplied brute force.
+
+Fixture tests check data shape, expected values and case coverage without executing
+either Python solution. They do **not** establish Python correctness, CPU timeout
+behavior or sandbox isolation. The proposed 1-second CPU and 64-MiB limits still
+require measurement on the isolated deployment.
+
+Once Judge0 connectivity is restored, run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-balance-window.json
+npm run problems -- publish problems/drafts/relay-balance-window.json
+```
+
+Both commands perform full sandbox validation; publication also requires Postgres.
+Never publish through direct SQL or treat mocked runner results as approval.
