@@ -10,6 +10,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
   const panel = useRef<HTMLDivElement>(null);
   const arenaLink = useRef<HTMLAnchorElement>(null);
   const focusArena = useRef(false);
+  const focusAfterCancel = useRef(false);
   const socket = useRef<WebSocket | null>(null);
   const leave = useRef<(() => void) | null>(null);
   const responseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -30,6 +31,13 @@ export function Play({ signedIn }: { signedIn: boolean }) {
       arenaLink.current?.focus();
     }
   }, [matchId]);
+  useEffect(() => {
+    if (phase === "matched" || phase === "matching") focusAfterCancel.current = false;
+    if (phase !== "idle" || !focusAfterCancel.current) return;
+    focusAfterCancel.current = false;
+    const play = panel.current?.querySelector<HTMLButtonElement>(".play-button");
+    if (document.activeElement === document.body || document.activeElement === play) play?.focus();
+  }, [phase]);
   function join() {
     if (socket.current) return;
     feedback.unlock();
@@ -91,6 +99,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     {!signedIn ? <a className="button button--primary play-button" href="/account">Sign in to play</a> : <>
       <Button className="play-button" onClick={join} disabled={phase !== "idle"}>{phase === "idle" ? "Play a duel" : phase === "matched" ? "Match reserved" : phase === "matching" ? "Reserving match…" : phase === "cancelling" ? "Cancelling search…" : phase === "connecting" ? "Connecting…" : "Finding opponent…"}</Button>
       {(phase === "queued" || phase === "connecting") && <Button data-search-cancel variant="ghost" onClick={() => {
+        focusAfterCancel.current = !!panel.current?.querySelector("[data-search-cancel]")?.matches(":focus");
         const ws = socket.current;
         if (ws?.readyState === WebSocket.OPEN) { setPhase("cancelling"); setMessage("Cancelling your search… Waiting for server confirmation."); leave.current?.(); }
         else { socket.current = null; clearResponseTimer(); ws?.close(); setPhase("idle"); setMessage("Search cancelled. Ready when you are."); }

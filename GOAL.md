@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Restore Play keyboard focus after explicit search cancellation confirmation or failure, preserving independent navigation and match-reservation races with regression coverage
 - [x] Move keyboard focus from a focused matchmaking search control to the confirmed Open arena link, preserving independent navigation and stale-connection safety with regression coverage
 - [x] Repair matchmaking rating-range notation and verify readable copy across connection, search, cancellation and reservation states with lifecycle regression coverage
 - [x] Announce final-ten-second rematch urgency through stable polite invitation guidance without per-second chatter, preserving action and lifecycle transitions with participant-symmetric regression coverage

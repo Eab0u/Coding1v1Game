@@ -15,6 +15,51 @@ beforeEach(() => { vi.stubGlobal("WebSocket", Socket); });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 function start() { render(<Play signedIn />); fireEvent.click(screen.getByRole("button", { name: "Play a duel" })); act(() => Socket.latest.onopen()); return Socket.latest; }
 function event(data: object) { act(() => Socket.latest.onmessage({ data: JSON.stringify(data) })); }
+it.each(["confirmed", "timeout", "disconnect", "error", "connecting"])("restores Play focus after focused cancellation ends through %s", outcome => {
+  vi.useFakeTimers();
+  start();
+  if (outcome === "connecting") Socket.latest.readyState = 0;
+  else event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus();
+  fireEvent.click(cancel);
+  if (outcome === "confirmed") event({ type: "left" });
+  if (outcome === "timeout") act(() => vi.advanceTimersByTime(10000));
+  if (outcome === "disconnect") act(() => Socket.latest.onclose());
+  if (outcome === "error") event({ type: "error", message: "Please retry" });
+  expect(screen.getByRole("button", { name: "Play a duel" })).toHaveFocus();
+});
+
+it("preserves independent navigation during cancellation and clears focus intent before retry", () => {
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus(); fireEvent.click(cancel);
+  const profile = screen.getByRole("link", { name: "View profile" });
+  profile.focus();
+  event({ type: "left" });
+  expect(profile).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onerror());
+  expect(profile).toHaveFocus();
+});
+
+it("does not move focus for an unfocused cancellation", () => {
+  start();
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  event({ type: "left" });
+  expect(screen.getByRole("button", { name: "Play a duel" })).not.toHaveFocus();
+});
+
+it("hands cancellation races to the arena without restoring Play focus", () => {
+  start();
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus(); fireEvent.click(cancel);
+  event({ type: "matched", match: { id: "race", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Match reserved" })).not.toHaveFocus();
+});
 it("joins once and shows server wait and cancellation acknowledgement", () => {
   const ws = start();
   expect(ws.url.pathname).toBe("/matchmaking");

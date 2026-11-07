@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Matchmaking cancellation keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one keyboard-flow improvement. Cancelling from the focused Cancel search button now restores focus to Play after confirmation, timeout, connection loss or server errors. Cancellation before connection also restores focus immediately.
+- Independent navigation retains focus, unfocused cancellations do not move focus, and a confirmed reservation retires cancellation focus intent. Added eight regression cases covering these transitions and retry cleanup.
+- Validation: all 1,488 tests across 72 files passed, including all 27 matchmaking component tests. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Matchmaking keyboard handoff
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one keyboard-flow improvement. A confirmed match focuses Open arena when focus was on the Play/search button or Cancel search control. Players navigating elsewhere retain their focus; no automatic navigation occurs.
