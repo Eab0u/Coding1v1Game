@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Lifecycle-aware verified best-score guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: both verified best-score descriptions now explain outstanding judging after expiry, direct completed duels to recorded results and explain cancellation without promising future attempts or result confirmation. Exact counts, verdict badges, stable score announcements and the warning about unsent edits remain available.
+- Added participant-symmetric zero/partial/full-score transition and reopening tests, plus arena countdown-to-terminal polling coverage for completion and cancellation.
+- Validation: all 1,398 tests across 72 files passed, including 150 focused progress/arena tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Lifecycle-aware latest attempt feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one arena improvement: latest-attempt feedback now uses the same lifecycle phase as best progress. Zero-pass correction prompts disappear at clock expiry; terminal unavailable attempts no longer promise sandbox retries or automatic updates. Completed attempts direct players to recorded results, and cancelled attempts explain closure and unchanged ratings.

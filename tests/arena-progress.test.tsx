@@ -2,6 +2,43 @@ import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { ArenaProgress } from "../src/components/arena-progress";
 
+it.each([true, false])("keeps verified scores while guidance follows closure and reopening (player=%s)", player => {
+  const view = render(<ArenaProgress player={player} />);
+  const status = screen.getByRole("status");
+  for (const passed of [0, 3, 8]) {
+    for (const phase of ["active", "settling", "completed", "cancelled", "active"] as const) {
+      view.rerender(<ArenaProgress player={player} phase={phase} score={{ passed, total: 8 }} />);
+      const bar = screen.getByRole("progressbar");
+      expect(bar).toHaveAttribute("value", String(passed));
+      expect(bar).toHaveAttribute("aria-valuetext", `${passed} of 8 hidden tests passed`);
+      expect(screen.getByRole("status")).toBe(status);
+      expect(status).toHaveTextContent(`${passed} of 8 hidden tests passed`);
+      expect(bar).toHaveAccessibleDescription(/Best judged test count/);
+      if (phase === "completed" || phase === "cancelled") {
+        expect(bar).toHaveAccessibleDescription(phase === "completed" ? /View results for the recorded outcome/ : /cancelled.*no ratings changed/);
+        expect(bar).not.toHaveAccessibleDescription(/Later attempts|break ties|confirms the result after|no result is confirmed yet/);
+      } else if (phase === "settling") {
+        expect(bar).toHaveAccessibleDescription(/Submissions are closed.*Already submitted attempts may still be judged/);
+        expect(bar).not.toHaveAccessibleDescription(/Later attempts/);
+      } else {
+        expect(bar).toHaveAccessibleDescription(/Later attempts cannot lower it/);
+        if (passed === 8) expect(bar).toHaveAccessibleDescription(/Passing every test does not confirm a win/);
+      }
+      if (player) expect(bar).toHaveAccessibleDescription(/current edits were submitted/);
+      else expect(bar).not.toHaveAccessibleDescription(/current edits were submitted/);
+    }
+  }
+});
+
+it.each([true, false])("uses terminal guidance on reopening with a verified score (player=%s)", player => {
+  const view = render(<ArenaProgress player={player} phase="completed" score={{ passed: 8, total: 8 }} />);
+  expect(screen.getByRole("progressbar")).toHaveAccessibleDescription(/View results for the recorded outcome/);
+  expect(screen.getByText("All tests passed")).toBeVisible();
+  view.rerender(<ArenaProgress player={player} phase="cancelled" score={{ passed: 0, total: 8 }} />);
+  expect(screen.getByRole("progressbar")).toHaveAccessibleDescription(/no ratings changed/);
+  expect(screen.getByText("No tests passed")).toBeVisible();
+});
+
 it.each([true, false])("keeps a stable polite score announcement through polling (player=%s)", player => {
   const view = render(<ArenaProgress player={player} />);
   const status = screen.getByRole("status");

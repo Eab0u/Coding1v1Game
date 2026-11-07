@@ -8,6 +8,11 @@ export function ArenaProgress({ score, player = false, phase = "active" }: {
   const id = player ? "player-progress" : "opponent-progress";
   const valid = !!score && hasSubmissionScore(score);
   const full = valid && score.passed === score.total;
+  const terminal = phase === "completed" || phase === "cancelled";
+  const scoreHelp = phase === "completed" ? "View results for the recorded outcome, score comparison and rating changes."
+    : phase === "cancelled" ? "This duel was cancelled. Submissions are closed and no ratings changed."
+    : phase === "settling" ? "Submissions are closed. Already submitted attempts may still be judged; no result is confirmed yet. Runtime and submission time break ties."
+    : "Later attempts cannot lower it; runtime and submission time break ties.";
   const summary = valid ? `${score.passed} / ${score.total}` : score ? "Score unavailable" : "No judged submission yet";
   const emptyHelp = phase === "pending" ? "The duel has not started. Best judged scores appear after activation and submission."
     : phase === "settling" ? "Submissions are closed. Waiting for the server to finish judging; no result is confirmed yet."
@@ -25,6 +30,6 @@ export function ArenaProgress({ score, player = false, phase = "active" }: {
     {valid && <progress id={id} aria-describedby={`${id}-help`} aria-valuetext={`${score.passed} of ${score.total} hidden tests passed`} value={score.passed} max={score.total} />}
     {valid && <span className="badge arena-progress-badge">{full ? "All tests passed" : score.passed === 0 ? "No tests passed" : "Tests remaining"}</span>}
     {score && !valid && <p className="muted">{unavailableHelp}</p>}
-    {valid && <p className="muted" id={`${id}-help`}>Best judged test count{player ? " across your attempts" : ""}. Later attempts cannot lower it; runtime and submission time break ties.{full ? " Passing every test does not confirm a win. The server confirms the result after the duel ends." : ""}{player ? " This score does not confirm that your current edits were submitted." : ""}</p>}
+    {valid && <p className="muted" id={`${id}-help`}>Best judged test count{player ? " across your attempts" : ""}. {scoreHelp}{full && !terminal ? " Passing every test does not confirm a win. The server confirms the result after the duel ends." : ""}{player ? " This score does not confirm that your current edits were submitted." : ""}</p>}
   </section>;
 }

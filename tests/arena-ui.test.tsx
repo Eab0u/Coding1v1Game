@@ -11,6 +11,25 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it.each(['completed','cancelled'] as const)('updates both verified best-score descriptions after expiry and %s polling',async status=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z',bestProgress:{passed:8,total:8},progress:{passed:3,total:8}};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={snapshot}/>);
+  const bars=screen.getAllByRole('progressbar');
+  for(const bar of bars) expect(bar).toHaveAccessibleDescription(/Later attempts cannot lower it/);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  for(const bar of bars) expect(bar).toHaveAccessibleDescription(/Submissions are closed.*Already submitted attempts/);
+  snapshot={...snapshot,status};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getAllByRole('progressbar')).toHaveLength(2);
+  for(const bar of bars) {
+    expect(bar).toHaveAccessibleDescription(status==='completed' ? /View results for the recorded outcome/ : /no ratings changed/);
+    expect(bar).not.toHaveAccessibleDescription(/Later attempts|confirms the result after/);
+  }
+  expect(bars[0]).toHaveAttribute('value','3');
+  expect(bars[1]).toHaveAttribute('value','8');
+});
 it('announces server activation in a stable region without repeating the countdown and clears it at expiry',async()=>{
   vi.useFakeTimers();
   let snapshot:ArenaSnapshot=initial;
