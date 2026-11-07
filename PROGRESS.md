@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Clear populated leaderboard context
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent leaderboard improvement; both validated catalog items remain unchecked.
+- Added a styled, named summary above populated standings showing the selected period, everyone/friends scope and singular/plural displayed-player count. Explained that a full 100-row ladder may have more qualifying players, and that friends standings include the viewer and accepted friends.
+- Kept summaries out of empty, unavailable and signed-out states. Added component tests for both periods, scope, counts, the limit and unavailable states, plus Chromium checks at 320, 375 and 1280px for readability and page overflow.
+- Validation: all 559 tests across 51 files passed; lint, production build and typecheck passed. No player code executed locally and no catalog problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Relay Cooldown Score catalog draft
 - Selected problems 1-20 as the highest-value unchecked item. The real validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one catalog prerequisite; both validated catalog items remain unchecked.
 - Authored an original easy dynamic-programming problem maximizing nonneighboring signed scores, allowing empty selection. Added explained examples, an O(n)-time/O(1)-space Python reference, O(n^2) predecessor-scanning baseline, 2,000 seeded cases and boundary fixtures.

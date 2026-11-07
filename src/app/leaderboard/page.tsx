@@ -45,7 +45,11 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
           <a className="button button--primary" href={retryHref}>Retry standings</a>
           <Link className="button button--secondary" href="/">Back to arena</Link>
         </div> : entries.length ?
-          <><p id="standings-scroll-hint" className="standings-scroll-hint">On smaller screens, scroll sideways to see all standings. Keyboard: focus the standings and use the left and right arrow keys.</p>
+          <><section className="standings-summary" aria-labelledby="standings-summary-title">
+            <div><p className="eyebrow">{scope ? "YOUR CIRCLE" : "EVERYONE"}</p><h2 id="standings-summary-title">{period === "weekly" ? "Weekly climb" : "Global rating"}</h2></div>
+            <p className="standings-count">{entries.length} {entries.length === 1 ? "player shown" : "players shown"}</p>
+            <p className="standings-summary-note">{entries.length === 100 ? "Showing the top 100 players. More players may qualify for this ladder." : "Showing all qualifying players in this ladder."} {scope ? "Includes you and your accepted friends." : "Includes players across CodeDuel."}</p>
+          </section><p id="standings-scroll-hint" className="standings-scroll-hint">On smaller screens, scroll sideways to see all standings. Keyboard: focus the standings and use the left and right arrow keys.</p>
           <div className="ladder-scroll" role="region" aria-label="Leaderboard standings" aria-describedby="standings-scroll-hint" tabIndex={0}><table className="ladder-table" aria-describedby="ranking-rules">
             <caption>{period === "weekly" ? "Weekly climb" : "Global rating"} standings</caption>
             <thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Rating</th>{period === "weekly" && <th scope="col">Weekly gain</th>}</tr></thead>

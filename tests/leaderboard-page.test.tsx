@@ -96,3 +96,31 @@ it.each(["global", "weekly"])("guides visitors through empty public %s standings
   expect(screen.queryByRole("table")).not.toBeInTheDocument();
   expect(screen.getByText(period === "weekly" ? /Wins, losses and draws all count/ : /New accounts start at 800 MMR/)).toBeVisible();
 });
+
+it.each(["global", "weekly"])("summarizes the selected %s friends ladder and singular count", async period => {
+  mocks.load.mockResolvedValue([{ username: "Ada", rating: 912, score: 12, rank: 1 }]);
+  render(await Leaderboard({ searchParams: Promise.resolve({ period, scope: "friends" }) }));
+  const summary = screen.getByRole("region", { name: period === "weekly" ? "Weekly climb" : "Global rating" });
+  expect(summary).toHaveTextContent("YOUR CIRCLE");
+  expect(summary).toHaveTextContent("1 player shown");
+  expect(summary).toHaveTextContent("Showing all qualifying players in this ladder.");
+  expect(summary).toHaveTextContent("Includes you and your accepted friends.");
+});
+
+it.each([2, 100])("explains the public ladder count and limit for %s rows", async count => {
+  mocks.load.mockResolvedValue(Array.from({ length: count }, (_, i) => ({ username: `Player${i}`, rating: 900, score: 900, rank: 1 })));
+  render(await Leaderboard({ searchParams: Promise.resolve({}) }));
+  const summary = screen.getByRole("region", { name: "Global rating" });
+  expect(summary).toHaveTextContent(`${count} players shown`);
+  expect(summary).toHaveTextContent("EVERYONE");
+  expect(summary).toHaveTextContent("Includes players across CodeDuel.");
+  expect(summary).toHaveTextContent(count === 100 ? "Showing the top 100 players. More players may qualify" : "Showing all qualifying players");
+});
+
+it.each(["empty", "unavailable", "signed-out"])("omits the populated summary for %s standings", async state => {
+  if (state === "unavailable") mocks.load.mockRejectedValue(new Error("private"));
+  if (state === "signed-out") mocks.current.mockResolvedValue(null);
+  render(await Leaderboard({ searchParams: Promise.resolve({ scope: "friends" }) }));
+  expect(screen.queryByRole("region", { name: "Global rating" })).not.toBeInTheDocument();
+  expect(screen.queryByText(/players? shown/)).not.toBeInTheDocument();
+});

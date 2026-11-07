@@ -623,3 +623,16 @@ it.each([320, 375, 1280])('keeps profile record totals and win rate readable at 
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps the standings summary readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Leaderboard({ searchParams: Promise.resolve({ period: 'weekly', scope: 'friends' }) }))}`);
+    const summary = page.getByRole('region', { name: 'Weekly climb', exact: true });
+    expect(await summary.isVisible()).toBe(true);
+    expect(await summary.textContent()).toContain('1 player shown');
+    expect(await summary.textContent()).toContain('YOUR CIRCLE');
+    expect(await summary.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
