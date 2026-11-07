@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Add a native dashboard shortcut past introductory content to recent duels, with focusable heading, empty/error safeguards and component and phone keyboard regression coverage
 - [x] Add a native profile shortcut past rating details to recent duels, with focusable heading, empty/error safeguards and component and phone keyboard regression coverage
 - [x] Add a native leaderboard shortcut past ranking guides to a focusable standings heading, with unavailable/empty-state safeguards and component and phone keyboard regression coverage
 - [x] Make profile rating journey and disclosure changes round full-precision deltas consistently with duel results, with fractional-boundary regression coverage and rounding guidance

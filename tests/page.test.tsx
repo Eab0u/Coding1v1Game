@@ -282,3 +282,18 @@ it.each([[12.6, "+13 MMR change"], [-8.7, "-9 MMR change"], [0, "0 MMR change"],
   expect(screen.getByText(label)).toHaveClass("home-rating-change");
   expect(screen.getByText(/a displayed zero can include a small gain or loss/)).toBeVisible();
 });
+
+it("jumps directly to populated signed-in dashboard history", async () => {
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+  mocks.load.mockResolvedValue({ daily: null, streak: 0, recent: [{ id: "m", title: "Pairs", opponent: "Bob", winner_id: "one" }] });
+  render(await Home());
+  expect(screen.getByRole("link", { name: "Jump to recent duels" })).toHaveAttribute("href", "#home-recent-duels-title");
+  expect(screen.getByRole("heading", { name: "Recent duels" })).toHaveAttribute("id", "home-recent-duels-title");
+  expect(screen.getByRole("heading", { name: "Recent duels" })).toHaveAttribute("tabindex", "-1");
+});
+it.each(["guest", "empty", "unavailable"])("omits dashboard history shortcut for %s", async mode => {
+  if (mode !== "guest") mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+  if (mode === "unavailable") mocks.load.mockRejectedValue(new Error("offline"));
+  render(await Home());
+  expect(screen.queryByRole("link", { name: "Jump to recent duels" })).not.toBeInTheDocument();
+});

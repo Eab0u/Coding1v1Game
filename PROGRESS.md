@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Direct keyboard access to dashboard duels
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Left both catalog milestones unchecked and followed the blocker rule to add and complete one bounded dashboard usability item.
+- Added a visible native Jump to recent duels action after dashboard refresh and before the introduction when a signed-in player has completed history. Its heading accepts fragment focus without adding a Tab stop; the next Tab reaches the first results link. Guest, empty and unavailable dashboards omit the shortcut.
+- Reused secondary button styling with a 44px minimum height and added component safeguards plus Chromium keyboard, touch-height and overflow checks at 320, 375 and 1280 pixels.
+- Validation: all 1,168 tests across 70 files passed; focused dashboard/mobile tests (213 tests), lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
 ### 2026-11-07 - Direct keyboard access to recent profile duels
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks validation. Left both catalog milestones unchecked and followed the blocker rule to add and complete one bounded profile usability item.
 - Added a visible native Jump to recent duels action before profile refresh and rating details when completed history exists. Its heading accepts fragment focus without adding a Tab stop; subsequent Tabs reach the scrollable history region and opponent links. Empty and unavailable profiles omit the action.

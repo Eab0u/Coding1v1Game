@@ -561,3 +561,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .account-refresh > div { flex: 1 1 18rem; min-width: 0; }
 .account-refresh h2 { margin-top: 0; }
 .account-refresh p { margin-bottom: 0; color: var(--color-muted); }
+
+.home-history-shortcut { margin-bottom: 1.5rem; min-height: 44px; }

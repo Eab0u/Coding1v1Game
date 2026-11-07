@@ -1403,3 +1403,23 @@ it.each([320, 375, 1280])('jumps past profile details to duel history at %spx', 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('jumps past the dashboard introduction to recent duels at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    await page.getByRole('link', {name:'Refresh dashboard'}).focus();
+    await page.keyboard.press('Tab');
+    const jump = page.getByRole('link', {name:'Jump to recent duels'});
+    expect(await jump.evaluate(el => document.activeElement === el)).toBe(true);
+    const bounds = (await jump.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    await page.keyboard.press('Enter');
+    expect(await page.locator('#home-recent-duels-title').evaluate(el => document.activeElement === el)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.locator('.recent-duel-result').first().evaluate(el => document.activeElement === el)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});
