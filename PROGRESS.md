@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Arena section navigation
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Following the blocker rule, added and completed one independent arena improvement.
+- Added visible Read problem and Your solution navigation, a return action after examples and a visible-on-focus Skip to duel link. Native anchors focus their main/heading destinations without changing editor contents; links have 44px minimum touch heights.
+- Added component coverage for completed-match navigation and focusable destinations. Extended Chromium tests across pending, active, completed and cancelled matches at 320, 375, 768 and 1280px to exercise keyboard activation, destination focus and touch targets.
+- Validation: all 695 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Python example format guidance
 - Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent arena improvement.
 - Added a styled, named example guide mapping JSON true/false/null to Python True/False/None, explaining argument order and the return-value contract. Preserved example data and omitted the guide for legacy/unavailable example formats.

@@ -697,3 +697,15 @@ it.each(['ready','submit'] as const)('shows pending %s acknowledgement, preserve
   expect(button).toHaveAttribute('aria-busy','false');
   expect(status).not.toHaveClass('arena-action-pending');
 });
+
+it('provides named arena navigation and focusable jump destinations after match end',()=>{
+  render(<Arena initial={{...initial,status:'completed'}}/>);
+  expect(screen.getByRole('link',{name:'Skip to duel'})).toHaveAttribute('href','#main-content');
+  expect(screen.getByRole('main')).toHaveAttribute('tabindex','-1');
+  const navigation=screen.getByRole('navigation',{name:'Arena sections'});
+  expect(navigation).toHaveTextContent('Read problem');
+  expect(screen.getByRole('link',{name:'Read problem'})).toHaveAttribute('href','#arena-problem-title');
+  expect(screen.getByRole('link',{name:'Back to your solution'})).toHaveAttribute('href','#arena-solution-title');
+  expect(screen.getByRole('heading',{name:'Sample'})).toHaveAttribute('tabindex','-1');
+  expect(screen.getByRole('heading',{name:'Your solution'})).toHaveAttribute('tabindex','-1');
+});

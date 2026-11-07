@@ -468,6 +468,17 @@ it('keeps the arena readable with keyboard-scrollable code on narrow screens', a
         await page.setViewportSize({ width, height: 900 });
         await page.setContent(`<style>${css}</style>${content}`);
         expect(await page.evaluate(() => document.documentElement.scrollWidth), `${status} overflow at ${width}px`).toBeLessThanOrEqual(width);
+        const skip = page.getByRole('link', { name: 'Skip to duel' });
+        await skip.focus();
+        await page.keyboard.press('Enter');
+        expect(await page.locator('#main-content').evaluate(el => el === document.activeElement)).toBe(true);
+        for (const [label, target] of [['Read problem', '#arena-problem-title'], ['Back to your solution', '#arena-solution-title'], ['Your solution', '#arena-solution-title']]) {
+          const link = page.getByRole('link', { name: label, exact: true });
+          expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+          await link.focus();
+          await page.keyboard.press('Enter');
+          expect(await page.locator(target).evaluate(el => el === document.activeElement)).toBe(true);
+        }
         const guide = page.getByRole('complementary', { name: 'Example format guide' });
         expect(await guide.isVisible()).toBe(true);
         expect(await guide.textContent()).toContain('return its result');

@@ -447,3 +447,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 
 .result-no-submission { margin-block: 1rem; padding: 1rem; border-left: 3px solid var(--color-muted); border-radius: var(--radius-sm); background: var(--color-bg); overflow-wrap: anywhere; }
 .result-no-submission p { margin: .5rem 0 0; color: var(--color-muted); line-height: 1.6; }
+
+.arena-navigation { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.arena-navigation .button, .arena-return { min-height: 44px; }
+.arena-return { margin-top: 20px; }
+#arena-problem-title, #arena-solution-title { scroll-margin-top: 20px; }
