@@ -97,6 +97,8 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const reservationSeconds=remainingSeconds(match.reservationExpiresAt ?? null,match.serverTime,elapsed);
   const reservationExpired=match.status==="pending" && reservationSeconds===0;
   const seconds=remainingSeconds(match.deadline,match.serverTime,elapsed);
+  const progressPhase=match.status==="active" ? seconds===0 ? "settling" : "active"
+    : match.status==="completed" ? "completed" : match.status==="cancelled" ? "cancelled" : "pending";
   const finalMinute=match.status==="active" && seconds!==null && seconds>0 && seconds<=60;
   return <div className="shell arena"><a className="skip-link" href="#main-content">Skip to duel</a><header className="site-header"><Link className="brand" href="/">Code<span className="accent">Duel</span></Link><span>Python arena</span><DuelFeedback feedback={feedback}/></header>
     <main id="main-content" tabIndex={-1}><nav className="arena-navigation" aria-label="Arena sections"><a className="button button--secondary" href="#arena-problem-title">Read problem</a><a className="button button--secondary" href="#arena-solution-title">Your solution</a></nav><div className="arena-scoreboard">
@@ -131,7 +133,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <span role="status">{refreshPending ? "Refreshing match state…" : "Automatic retries continue every two seconds."}</span>
     </section>}
     <p role="status" aria-label="Live update recovery" aria-live="polite" aria-atomic="true" className={connectionRecovered ? "arena-connection-recovered" : "sr-only"}>{connectionRecovered ? "Live updates restored. Match status and progress refreshed from the server." : ""}</p>
-    <ArenaProgress score={match.progress}/>
+    <ArenaProgress score={match.progress} phase={progressPhase}/>
     <div className="arena-columns"><section className="card arena-editor"><div className="arena-panel-heading"><h1 id="arena-solution-title" tabIndex={-1}>Your solution</h1><span className="badge">Python 3</span></div>
       <div onKeyDownCapture={event=>{
         if (event.key!=="Enter" || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.repeat || event.nativeEvent.isComposing) return;
@@ -144,7 +146,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         <SolutionEditor value={source} onChange={setSource} readOnly={closed} starter={`${initial.problem.signature}\n    pass\n`}/>
       </div>
       <p className="muted" id="submit-shortcut">From the editor, press Ctrl+Enter or Command+Enter to submit your solution.</p>
-      <ArenaProgress score={match.bestProgress} player/>
+      <ArenaProgress score={match.bestProgress} player phase={progressPhase}/>
       {!closed && <p role="status">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code."}</p>}
       <SubmissionStatus submission={match.submission}/>
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>

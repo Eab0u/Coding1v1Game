@@ -1024,3 +1024,30 @@ it.each([
   expect(feedback).not.toHaveClass('arena-action-pending');
   expect(feedback).toHaveTextContent(status==='completed' ? 'Results are ready' : status==='cancelled' ? 'No ratings changed' : 'Your best judged solution counts');
 });
+
+it.each(['pending','active','settling','completed','cancelled'] as const)('uses lifecycle-aware empty score guidance on reopening %s',phase=>{
+  const status=phase==='settling' ? 'active' : phase;
+  render(<Arena initial={{...initial,status,deadline:phase==='settling' ? initial.serverTime : '2026-11-06T12:05:00Z'}}/>);
+  const expected={pending:'The duel has not started',active:'judged score will appear here',settling:'Submissions are closed. Waiting for the server',completed:'View results for the recorded outcome',cancelled:'This duel was cancelled'}[phase];
+  for (const name of ['Your best progress','Opponent progress']) {
+    const card=screen.getByRole('region',{name});
+    expect(card).toHaveTextContent(expected);
+    if (phase!=='active') expect(card).not.toHaveTextContent(/Submit your solution when ready|after they submit|Keep working/);
+  }
+});
+it('updates empty score guidance through activation, expiry and completion polling',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot=initial;
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={initial}/>);
+  const card=screen.getByRole('region',{name:'Your best progress'});
+  snapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(card).toHaveTextContent('Submit your solution when ready');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(card).toHaveTextContent('Submissions are closed. Waiting for the server');
+  snapshot={...snapshot,status:'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(card).toHaveTextContent('View results for the recorded outcome');
+  expect(card).not.toHaveTextContent('Submit your solution when ready');
+});

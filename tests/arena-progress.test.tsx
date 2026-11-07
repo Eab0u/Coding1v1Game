@@ -141,3 +141,16 @@ it.each([true, false])("withholds score claims until verified progress recovers 
   expect(view.container.querySelector(`#${helpId}`)).toBeNull();
   expect(screen.queryByRole("progressbar")).toBeNull();
 });
+
+it.each([true,false])("replaces automatic-update promises for terminal unavailable scores (player=%s)",player=>{
+  const view=render(<ArenaProgress player={player} score={{passed:9,total:8}}/>);
+  expect(screen.getByRole('region')).toHaveTextContent('next automatic update');
+  for (const phase of ['completed','cancelled'] as const) {
+    view.rerender(<ArenaProgress player={player} phase={phase} score={{passed:9,total:8}}/>);
+    expect(screen.getByRole('region')).not.toHaveTextContent('next automatic update');
+    expect(screen.getByRole('region')).toHaveTextContent(phase==='completed' ? 'View results for the recorded outcome' : 'no ratings changed');
+    expect(screen.queryByRole('progressbar')).toBeNull();
+  }
+  view.rerender(<ArenaProgress player={player} score={{passed:0,total:8}}/>);
+  expect(screen.getByRole('progressbar')).toHaveAttribute('value','0');
+});

@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Lifecycle-aware empty arena progress
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: both empty progress cards now explain readiness, open submissions, pending settlement, completed results or cancellation according to the current phase. Closed matches no longer prompt players to submit; terminal unavailable scores direct players to results or explain cancellation instead of promising automatic updates after polling stops.
+- Added participant-symmetric unavailable-score recovery tests, reopening checks for all five display phases and a polling/countdown transition regression. Existing verified score rendering and stable live announcements are preserved.
+- Validation: all 1,383 tests across 72 files passed, including 143 progress/arena tests. Lint, typecheck, production build and diff whitespace checks passed after correcting a phase-type mismatch.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Stable readiness expiry feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one arena improvement: a persistent polite atomic region announces readiness expiry, automatic checking and pending server confirmation without claiming cancellation or rating changes. The visible readiness panel keeps normal readiness announcements before expiry and stops duplicate live feedback at expiry.
