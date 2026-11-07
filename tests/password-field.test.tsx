@@ -5,6 +5,42 @@ import { PasswordField } from "../src/components/password-field";
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
 afterEach(() => vi.restoreAllMocks());
 
+it.each(["login", "signup"] as const)("conceals %s only when focus leaves its form and permits explicit recovery", mode => {
+  render(<><form><input aria-label="Username" /><PasswordField mode={mode} /><button type="button">Continue</button></form><form><PasswordField mode={mode === "login" ? "signup" : "login"} /></form><button>Outside</button></>);
+  const input = document.getElementById(`${mode}-password`)! as HTMLInputElement;
+  const otherMode = mode === "login" ? "signup" : "login";
+  const other = document.getElementById(`${otherMode}-password`)!;
+  const reveal = screen.getByRole("button", { name: mode === "login" ? "Show sign-in password" : "Show sign-up password" });
+  const otherReveal = screen.getByRole("button", { name: mode === "login" ? "Show sign-up password" : "Show sign-in password" });
+  const username = screen.getByLabelText("Username");
+  const sibling = screen.getByRole("button", { name: "Continue" });
+  const notice = document.getElementById(`${mode}-password-visibility`)!;
+  fireEvent.change(input, { target: { value: "short" } });
+  fireEvent.click(otherReveal);
+  for (const destination of [other, screen.getByRole("button", { name: "Outside" }), null]) {
+    fireEvent.click(reveal);
+    for (const [source, target] of [[input, reveal], [reveal, username], [username, sibling]]) {
+      act(() => source.focus());
+      act(() => target.focus());
+      expect(input).toHaveAttribute("type", "text");
+    }
+    if (destination) act(() => destination.focus());
+    else act(() => sibling.blur());
+    expect(input).toHaveAttribute("type", "password");
+    expect(reveal).toHaveAttribute("aria-pressed", "false");
+    expect(input).toHaveValue("short");
+    expect(input.validationMessage).toBe("Use at least 12 characters.");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(notice).toBeEmptyDOMElement();
+    expect(document.getElementById(`${mode}-password-visibility`)).toBe(notice);
+    if (destination) expect(destination).toHaveFocus();
+    if (destination === other) expect(other).toHaveAttribute("type", "text");
+  }
+  fireEvent.click(reveal);
+  expect(input).toHaveAttribute("type", "text");
+  expect(input).toHaveAccessibleDescription(/when focus leaves this form/);
+});
+
 it.each(["login", "signup"] as const)("detects Caps Lock on %s mouse entry before typing and clears it on a later click", mode => {
   render(<><form><PasswordField mode="login" /></form><form><PasswordField mode="signup" /></form></>);
   const input = document.getElementById(`${mode}-password`)! as HTMLInputElement;
