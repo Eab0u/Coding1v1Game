@@ -20,9 +20,30 @@ it.each(["queued", "running", "error", "unknown"])("withholds verdict badges for
   expect(panel).not.toHaveTextContent("Latest solution:");
 });
 
-it.each([{ passed: null, total: null }, { passed: 0, total: 0 }])("does not label unavailable scores as passing: %j", score => {
+it.each([
+  { passed: null, total: null }, { passed: null, total: 8 }, { passed: 0, total: null },
+  { passed: 0, total: 0 }, { passed: -1, total: 8 }, { passed: 9, total: 8 },
+  { passed: 1.5, total: 8 }, { passed: 1, total: 8.5 },
+  { passed: NaN, total: 8 }, { passed: 1, total: Infinity },
+])("explains unavailable judged scores without presenting counts or a verdict: %j", score => {
   render(<SubmissionStatus submission={{ status: "judged", ...score }} />);
-  expect(screen.getByRole("status").querySelector(".arena-verdict-badge")).toBeNull();
+  const panel = screen.getByRole("status");
+  expect(panel.querySelector(".arena-verdict-badge")).toBeNull();
+  expect(panel).not.toHaveTextContent("Latest solution:");
+  expect(panel).toHaveTextContent("its test score is unavailable");
+  expect(panel).toHaveTextContent("next automatic update");
+  expect(panel).not.toHaveClass("arena-verdict--passed", "arena-verdict--partial");
+});
+
+it("replaces unavailable score guidance when polling supplies a valid score and clears it if the score disappears", () => {
+  const { rerender } = render(<SubmissionStatus submission={{ status: "judged", passed: null, total: 8 }} />);
+  rerender(<SubmissionStatus submission={{ status: "judged", passed: 8, total: 8 }} />);
+  expect(screen.getByRole("status")).toHaveTextContent("All tests passed");
+  expect(screen.getByRole("status")).not.toHaveTextContent("score is unavailable");
+  rerender(<SubmissionStatus submission={{ status: "judged", passed: 8, total: null }} />);
+  expect(screen.getByRole("status")).toHaveTextContent("score is unavailable");
+  expect(screen.queryByText("All tests passed")).toBeNull();
+  expect(screen.getByRole("status")).not.toHaveTextContent("Runtime and submission time still break ties");
 });
 
 it("clears the previous verdict when a new attempt queues", () => {

@@ -4,12 +4,16 @@ export function SubmissionStatus({ submission }: { submission: ArenaSnapshot["su
   if (!submission) return null;
   const judged = submission.status === "judged";
   const retrying = submission.status === "error";
-  const hasScore = judged && submission.passed !== null && submission.total !== null && submission.total > 0;
+  const hasScore = judged && Number.isSafeInteger(submission.passed) && Number.isSafeInteger(submission.total)
+    && submission.passed !== null && submission.total !== null
+    && submission.total > 0 && submission.passed >= 0 && submission.passed <= submission.total;
   const allPassed = hasScore && submission.passed === submission.total;
   const verdictClass = hasScore ? allPassed ? " arena-verdict--passed" : " arena-verdict--partial" : "";
   const title = judged ? "Judging complete" : retrying ? "Waiting for sandbox recovery" : submission.status === "queued" ? "Queued for judging" : submission.status === "running" ? "Judging in progress" : "Checking submission status";
   const detail = judged
-    ? `Latest solution: ${submission.passed} / ${submission.total} tests passed.`
+    ? hasScore
+      ? `Latest solution: ${submission.passed} / ${submission.total} tests passed.`
+      : "The server marked this attempt as judged, but its test score is unavailable. Wait for the next automatic update to confirm the score."
     : retrying
       ? "Sandbox temporarily unavailable. Your submission will retry; results are waiting."
       : submission.status === "queued"
