@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Consistent saved-score explanations
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one results fix: scoring explanations now use the same safe-integer test-count validation as comparison cards. Unsafe saved counts no longer produce a numeric winner explanation beside an unavailable score; the recorded outcome remains visible.
+- Added unit coverage for either participant, unsafe totals and passes, the safe-integer boundary and corrected-history recovery, plus component coverage for consistent unavailable feedback and recovery. Fixed the explanation test factory to clone both players so mutation does not leak between tests.
+- Validation: all 1,280 tests across 72 files passed, including 74 targeted explanation/component tests; lint, typecheck and production build passed.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; existing live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Mixed missing and corrupt saved ratings
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one results-page fix: a missing rating no longer masks an invalid counterpart as merely unrecorded history. Mixed corrupt pairs show the styled Rating unavailable notice while preserving the recorded outcome. Valid partial historical pairs still show Rating not recorded.

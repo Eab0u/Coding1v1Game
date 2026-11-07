@@ -6,6 +6,19 @@ import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
 const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:null}];
 beforeEach(()=>localStorage.clear());
+it('keeps the explanation consistent with unsafe score cards and recovers corrected history',()=>{
+ const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p,total:Number.MAX_SAFE_INTEGER+1,submitted:1000}))};
+ const view=render(<Results result={result}/>);
+ const explanation=within(screen.getByRole('region',{name:'How this duel was decided'}));
+ expect(explanation.getByText(/detailed scoring explanation is unavailable/)).toBeVisible();
+ expect(screen.getAllByText('Test score unavailable')).toHaveLength(2);
+ expect(screen.queryByRole('progressbar')).toBeNull();
+ expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
+ view.rerender(<Results result={{...result,players:players.map(p=>({...p,submitted:1000}))}}/>);
+ expect(explanation.getByText(/^You passed more hidden tests/)).toBeVisible();
+ expect(screen.queryByText('Test score unavailable')).toBeNull();
+ expect(screen.getAllByRole('progressbar')).toHaveLength(2);
+});
 it.each(['before','after'] as const)('withholds invalid saved %s ratings and recovers valid history',field=>{
  const result={title:'Sample',outcome:'WIN' as const,players};
  const view=render(<Results result={result}/>);
