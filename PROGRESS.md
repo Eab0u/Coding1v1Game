@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Readable profile rating journeys
+- Reviewed both unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
+- Added visible rounded MMR scale labels and gridlines, a zero-bounded scale, a latest-duel UTC date and a history-window net change summary. Kept exact chronological rating history available through a keyboard-accessible disclosure with a 44px target. The summary distinguishes one duel from multiple duels and uses displayed endpoint ratings consistently for net change.
+- Added component coverage for gains, losses, flat zero ratings, fractional endpoints and intermediate peaks. Chromium coverage checks populated graphs, labels and summaries at 320, 375 and 1280px and opens the history data using the keyboard.
+- Validation: all 461 tests across 45 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Recent duel navigation
 - Reviewed the two unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent dashboard usability item. Catalog items remain unchecked.
 - Recent duel titles now open their saved results, and opponent names open public profiles. Added explicit results link names, encoded route segments, visible underlines and 44px touch targets with wrapping for long titles and names.

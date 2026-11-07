@@ -12,7 +12,7 @@ vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
   if (state.leaderboardUnavailable) throw new Error('unavailable');
   return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 1234, score: 123, rank: 1 }];
 } }));
-vi.mock('../src/lib/profile', () => ({ ratingTier: () => 'Bronze', loadProfile: async () => { if (state.profileUnavailable) throw new Error('private'); return ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }); } }));
+vi.mock('../src/lib/profile', () => ({ ratingTier: () => 'Bronze', loadProfile: async () => { if (state.profileUnavailable) throw new Error('private'); return ({ username: 'abcdefghijklmnopqrstuvwx', rating: 800, record: { wins: 99999, losses: 99999, draws: 99999 }, ratings: [{ rating_before: 800, rating_after: 1234, completed_at: new Date('2026-11-01Z') }], history: [{ id: '1', opponent: 'abcdefghijklmnopqrstuvwx', title: 'D'.repeat(120), result: 'WIN', delta: 12, completed_at: new Date('2026-11-01Z') }] }); } }));
 import { Arena } from '../src/components/arena';
 import { Results } from '../src/components/results';
 vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); return [{ username: 'abcdefghijklmnopqrstuvwx', status: 'pending', incoming: true }, { username: 'another_long_player_name', status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', status: 'pending', incoming: false }]; } }));
@@ -306,4 +306,30 @@ it('keeps friend invitation feedback and keyboard submission usable at 320px', a
     expect(await submit.evaluate(element => element === document.activeElement)).toBe(true);
     expect((await submit.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   } finally { state.signedIn = wasSignedIn; await page.close(); }
+});
+
+
+it('keeps rating scales, timeline and history data usable at phone and desktop widths', async () => {
+  const page = await browser.newPage();
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Profile({params:Promise.resolve({username})}))}`);
+    for (const width of [320, 375, 1280]) {
+      await page.setViewportSize({width, height:900});
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      for (const selector of ['.rating-axis', '.rating-chart', '.rating-timeline', '.rating-change']) {
+        const element = page.locator(selector);
+        expect(await element.isVisible()).toBe(true);
+        const bounds = (await element.boundingBox())!;
+        expect(bounds.x).toBeGreaterThanOrEqual(0);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+      }
+      const summary = page.getByText('Rating history data', {exact:true});
+      expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      await summary.focus();
+      await page.keyboard.press('Enter');
+      expect(await page.locator('.profile-climb details').getAttribute('open')).not.toBeNull();
+      expect(await page.locator('.profile-climb details ol').isVisible()).toBe(true);
+      await page.keyboard.press('Enter');
+    }
+  } finally { await page.close(); }
 });

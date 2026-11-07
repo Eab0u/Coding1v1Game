@@ -53,3 +53,34 @@ it('preserves the requested player on retry and recovers with fresh profile data
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   expect(screen.queryByRole('link',{name:'Retry profile'})).not.toBeInTheDocument();
 });
+
+
+it.each([
+  { before: 800, after: 840, change: '+40 MMR', low: 780, high: 860 },
+  { before: 840, after: 800, change: '-40 MMR', low: 780, high: 860 },
+  { before: 0, after: 0, change: '0 MMR', low: 0, high: 20 },
+  { before: 800.4, after: 800.6, change: '+1 MMR', low: 780, high: 840 },
+])('labels rating history honestly for $before to $after MMR', async ({before, after, change, low, high}) => {
+  mocks.load.mockResolvedValue({username:'Ada',rating:after,record:{wins:0,losses:0,draws:0},history:[],ratings:[{rating_before:before,rating_after:after,completed_at:new Date('2026-01-02T01:00:00Z')}]});
+  const {container} = render(await Profile({params}));
+  expect(container.querySelector('.rating-change strong')).toHaveTextContent(change);
+  expect(container.querySelector('.rating-axis')).toHaveTextContent(`${high} MMR${low} MMR`);
+  expect(screen.getByRole('img')).toHaveAccessibleName(new RegExp(`vertical scale ${low} to ${high} MMR`));
+  expect(screen.getByRole('img').innerHTML).not.toMatch(/NaN|Infinity/);
+  expect(screen.getByText('Before first duel')).toBeVisible();
+  expect(container.querySelector('.rating-timeline time')).toHaveAttribute('datetime', '2026-01-02T01:00:00.000Z');
+  expect(container.querySelector('.profile-climb')).toHaveTextContent('Last 1 rated duel');
+  expect(container.querySelector('.profile-climb')).not.toHaveTextContent('Last 1 rated duels');
+  expect(container.querySelector('.profile-climb')).not.toHaveTextContent(/\?|\u00c2|\u00e2/);
+});
+
+it('scales the chart to intermediate peaks and shows the whole window change', async () => {
+  mocks.load.mockResolvedValue({username:'Ada',rating:810,record:{wins:1,losses:1,draws:0},history:[],ratings:[
+    {rating_before:800,rating_after:1000,completed_at:new Date('2026-01-01Z')},
+    {rating_before:1000,rating_after:810,completed_at:new Date('2026-01-02Z')},
+  ]});
+  const {container} = render(await Profile({params}));
+  expect(screen.getByRole('img')).toHaveAccessibleName(/from 800 to 810 MMR; vertical scale 780 to 1020 MMR/);
+  expect(container.querySelector('.rating-change strong')).toHaveTextContent('+10 MMR');
+  expect(container.querySelector('.profile-climb')).toHaveTextContent('Last 2 rated duels');
+});
