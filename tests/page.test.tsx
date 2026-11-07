@@ -117,6 +117,9 @@ it.each([false, true])("explains catalog eligibility and reservation readiness f
   mocks.current.mockResolvedValue(signedIn ? { id: "one", username: "Ada", rating: 800 } : null);
   render(await Home());
   const guide = screen.getByRole("complementary", { name: "Before your first duel" });
+  const disclosure = guide.querySelector("details")!;
+  expect(disclosure).not.toHaveAttribute("open");
+  expect(disclosure.querySelector("summary")).toHaveTextContent("Before your first duel");
   expect(guide).toHaveTextContent("published, validated problem in your rating band");
   expect(guide).toHaveTextContent("60 seconds to click Ready");
   expect(guide).toHaveTextContent("clock starts when both are ready");

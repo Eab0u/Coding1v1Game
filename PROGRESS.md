@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Compact first-duel guidance
+- Retried the highest-value catalog validation item with Relay Basin Storage; the configured isolated Judge0 service still returned JudgeUnavailableError. Problems 1-20 and 21-60 remain unchecked and blocked; no Python ran on the host and nothing was published.
+- Added and completed one independent usability item: the dashboard first-duel guide now starts collapsed in a native details/summary disclosure. Returning players see a shorter introduction; readiness, catalog eligibility and all three difficulty timers remain available on demand.
+- Styled the summary with a 44px minimum touch target, hover accent and existing keyboard focus styling. Added component coverage for the initially closed disclosure for guests and signed-in players; updated Chromium tests at 320/375/1280px for Enter/Space toggling, retained focus, expanded guidance and overflow.
+- Validation: all 1,190 tests across 70 files passed; lint, typecheck and production build passed.
+- Next: restore isolated Judge0 availability and validate the original catalog, then run the documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Direct keyboard access to the daily challenge
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Left catalog milestones unchecked and followed the blocker rule to add and complete one bounded dashboard usability item.
 - Added a styled native Jump to daily challenge action for guests and signed-in players with a published preview. Its heading accepts fragment focus without an extra Tab stop; subsequent Tab navigation reaches the function signature and statement disclosure. Empty and unavailable dashboards omit the action.

@@ -44,7 +44,8 @@ export default async function Home() {
             <p className="intro">Ranked Python duels. Solve the same algorithm problem, race the clock, and climb the ladder.</p>
             {!unavailable && <Play signedIn={!!user} />}
             <aside className="arena-guide" aria-labelledby="arena-guide-title">
-              <h2 id="arena-guide-title">Before your first duel</h2>
+              <details className="first-duel-guide">
+              <summary id="arena-guide-title">Before your first duel</summary>
               <p>Pairing requires a published, validated problem in your rating band. If none is available, try again later.</p>
               <p>Once paired, both players have 60 seconds to click Ready. The duel clock starts when both are ready; an expired reservation does not change ratings.</p>
               <h3>Plan your duel</h3>
@@ -54,6 +55,7 @@ export default async function Home() {
                 <div><dt>Medium</dt><dd><strong>15 minutes</strong><span>1200 to below 1600 MMR</span></dd></div>
                 <div><dt>Hard</dt><dd><strong>30 minutes</strong><span>1600+ MMR</span></dd></div>
               </dl>
+              </details>
             </aside>
           </div>
           <Card>

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Make the dashboard first-duel guide a compact native disclosure with styled keyboard and touch controls, retaining readiness and timer guidance with component and phone browser regression coverage
 - [x] Add a native daily-challenge dashboard shortcut with published-preview safeguards, focusable heading, responsive styling and component and browser keyboard coverage
 - [x] Add a styled native dashboard rating-tier guide with shared thresholds, full-precision current-tier highlighting and component and phone keyboard regression coverage
 - [x] Add a native dashboard shortcut past introductory content to recent duels, with focusable heading, empty/error safeguards and component and phone keyboard regression coverage
