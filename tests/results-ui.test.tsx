@@ -5,6 +5,14 @@ import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
 const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:null}];
 beforeEach(()=>localStorage.clear());
+it('provides a focusable results destination and encoded player profile links',()=>{
+ render(<Results result={{title:'Sample',outcome:'WIN',players:[players[0],{...players[1],username:'Rival name/#'}]}}/>);
+ expect(screen.getByRole('link',{name:'Skip to results'})).toHaveAttribute('href','#main-content');
+ expect(screen.getByRole('main')).toHaveAttribute('id','main-content');
+ expect(screen.getByRole('main')).toHaveAttribute('tabindex','-1');
+ expect(screen.getByRole('link',{name:'Ada'})).toHaveAttribute('href','/profile/Ada');
+ expect(screen.getByRole('link',{name:'Rival name/#'})).toHaveAttribute('href','/profile/Rival%20name%2F%23');
+});
 afterEach(()=>vi.restoreAllMocks());
 it.each([
  ['WIN','win','Victory'],['LOSS','loss','Defeat'],['DRAW','draw','Honors shared'],

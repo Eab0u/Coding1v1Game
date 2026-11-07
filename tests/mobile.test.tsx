@@ -31,6 +31,30 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
+it.each([320, 375, 1280])('supports results skip navigation and player touch targets at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    const player = { username, before: 800, after: 808, passed: 8, total: 8, cpu: 1, submitted: 1000 };
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<Results result={{ title: 'Sample', outcome: 'WIN', players: [player, { ...player, username: 'another_long_player_name' }] }}/>)}`);
+    await page.keyboard.press('Tab');
+    const skip = page.getByRole('link', { name: 'Skip to results' });
+    expect(await skip.evaluate(el => el === document.activeElement)).toBe(true);
+    expect((await skip.boundingBox())!.y).toBeGreaterThanOrEqual(0);
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('main').evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
+    const links = page.locator('.result-player h2 a');
+    expect(await links.first().evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await links.last().evaluate(el => el === document.activeElement)).toBe(true);
+    for (const link of await links.all()) {
+      expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      expect(await link.evaluate(el => getComputedStyle(el).textDecorationLine)).toContain('underline');
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
+
 it.each([true, false])('keeps empty friends standings actions usable on phones (signed in: %s)', async signedIn => {
   state.signedIn = signedIn;
   state.leaderboardEmpty = true;

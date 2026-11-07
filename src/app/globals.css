@@ -225,6 +225,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .result-players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .result-player { min-width: 0; overflow-wrap: anywhere; }
 .result-player h2 { margin-top: .5rem; }
+.result-player h2 a { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; padding-block: 6px; border-radius: var(--radius-sm); text-decoration: underline; text-underline-offset: 4px; }
+.result-player h2 a:hover { color: var(--color-accent-hover); background: var(--color-hover); }
 .result-rating strong { font-size: 1.6rem; }
 .rating-change { display: inline-block; margin-left: 1rem; color: #81b64c; font-size: 1.6rem; font-weight: 800; animation: rating-arrive 650ms ease-out both; }
 .result-player dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; }
