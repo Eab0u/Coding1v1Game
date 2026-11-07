@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Snapshot validated judge request suites and submission timestamps before network access so asynchronous caller mutations cannot change answers, benchmark selection, test totals or tiebreakers, with nested-mutation regression coverage
 - [x] Snapshot validated sandbox configuration so caller mutations cannot change credentials, resource limits, diagnostics or scoring penalties during execution, with before/during-execution and adapter-reuse regression coverage
 - [x] Distinguish offline and delayed page loading with a stationary amber offline mark and amber long-wait spinner, preserving stable announcements, recovery focus and reduced-motion support with component and phone/desktop browser regression coverage
 - [x] Reject malformed sandbox output encodings before answer comparison, preserving valid Unicode and full failed-test CPU penalties with regression coverage

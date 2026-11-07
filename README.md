@@ -110,6 +110,9 @@ as `JudgeConfig`; the adapter does not automatically read environment variables.
 The adapter snapshots configuration at creation; later caller mutations cannot change
 credentials, execution limits, diagnostics or scoring penalties. Create a new adapter
 to apply configuration changes.
+Each execution also snapshots its validated test suite and submission timestamp before
+network access, preserving nested arguments, expected answers and benchmark selection
+if the caller mutates or reuses the request while judging is in progress.
 The environment example includes names for the future match server to map into config.
 Do not use player-supplied URLs, language IDs, limits or test suites.
 

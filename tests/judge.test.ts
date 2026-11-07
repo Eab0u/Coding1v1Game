@@ -14,6 +14,44 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each([true, false])("snapshots nested tests and scoring metadata during execution (correct=%s)", async correct => {
+    const expected = { values: [42] };
+    const tests = [
+      { args: [{ values: [1] }], expected, benchmark: true },
+      { args: [{ values: [2] }], expected, benchmark: false },
+    ];
+    const input = { ...request, tests };
+    const responses = sandbox(Array.from({ length: 4 }, () => done({ values: [correct ? 42 : 99] })));
+    const fetcher = vi.fn<typeof fetch>(async (url, init) => {
+      tests[0].args[0].values[0] = 999;
+      tests[1].args[0].values[0] = 999;
+      expected.values[0] = 99;
+      tests[0].benchmark = false;
+      tests[1].benchmark = true;
+      tests.push(tests[0]);
+      input.tests = [];
+      input.submittedAtMs = NaN;
+      input.source = "changed source";
+      input.functionName = "changed_function";
+      return responses(url, init);
+    });
+    expect(await createJudge(config, fetcher)(input)).toEqual({
+      testsPassed: correct ? 2 : 0, testsTotal: 2,
+      largestTestsCpuMs: correct ? [12, 12, 12] : [2000, 2000, 2000], submittedAtMs: 150,
+    });
+    const bodies = fetcher.mock.calls.filter(([, init]) => init?.method === "POST")
+      .map(([, init]) => JSON.parse(init!.body as string));
+    expect(bodies.map(body => JSON.parse(Buffer.from(body.stdin, "base64").toString()))).toEqual([
+      [{ values: [1] }], [{ values: [1] }], [{ values: [1] }], [{ values: [2] }],
+    ]);
+    for (const body of bodies) {
+      const source = Buffer.from(body.source_code, "base64").toString();
+      expect(source).toContain('def solve(x):');
+      expect(source).toContain('_namespace["solve"]');
+    }
+    expect(fetcher).toHaveBeenCalledTimes(8);
+  });
+
   it.each(["before execution", "during execution"])("retains validated configuration when callers mutate settings %s", async timing => {
     const originalStatus = vi.fn();
     const replacementStatus = vi.fn();

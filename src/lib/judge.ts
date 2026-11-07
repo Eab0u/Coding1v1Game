@@ -81,6 +81,9 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
         !Array.from(request.tests).every(test => test && Array.isArray(test.args) && jsonValue(test.args) && jsonValue(test.expected))) {
       throw new RangeError("Invalid judge request; include JSON tests and a largest-test benchmark.");
     }
+    // Own the validated suite before the first await; callers may reuse or mutate it.
+    const tests = structuredClone(request.tests);
+    const submittedAtMs = request.submittedAtMs;
     // Expected answers stay on the server. Only arguments are sent to the sandbox.
     const source = `import json, sys\n_payload = json.loads(sys.stdin.read())\n_namespace = {}\nexec(compile(${JSON.stringify(request.source)}, '<submission>', 'exec'), _namespace)\n_result = _namespace[${JSON.stringify(request.functionName)}](*_payload)\nprint(json.dumps(_result, allow_nan=False))\n`;
     async function run(test: JudgeTest) {
@@ -127,7 +130,7 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
     // Three independent runs, rather than Judge0's averaging option.
     const samples: [number, number, number] = [0, 0, 0];
     let testsPassed = 0;
-    for (const test of request.tests) {
+    for (const test of tests) {
       const first = await run(test);
       if (!test.benchmark) { testsPassed += Number(first.passed); continue; }
       const second = await run(test);
@@ -138,6 +141,6 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
         if (!Number.isFinite(samples[index])) throw new JudgeUnavailableError();
       });
     }
-    return { testsPassed, testsTotal: request.tests.length, largestTestsCpuMs: samples, submittedAtMs: request.submittedAtMs };
+    return { testsPassed, testsTotal: tests.length, largestTestsCpuMs: samples, submittedAtMs };
   };
 }
