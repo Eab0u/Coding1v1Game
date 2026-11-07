@@ -670,7 +670,7 @@ it.each([320, 375, 1280])('supports direct account entry and error recovery at %
   state.signedIn = false;
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {
-    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({ searchParams: Promise.resolve({ error: 'Invalid credentials. ' + 'x'.repeat(200) }) }))}`);
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({ searchParams: Promise.resolve({ error: 'Incorrect username or password.' }) }))}`);
     await page.keyboard.press('Tab');
     const skip = page.getByRole('link', { name: 'Skip to account' });
     expect(await skip.evaluate(el => el === document.activeElement)).toBe(true);
@@ -695,6 +695,7 @@ it.each([320, 375, 1280])('supports direct account entry and error recovery at %
     await page.keyboard.press('Tab');
     expect(await page.getByRole('form', { name: 'Welcome back' }).getByRole('textbox', { name: 'Username', exact: true }).evaluate(el => el === document.activeElement)).toBe(true);
     expect(await page.getByRole('alert').isVisible()).toBe(true);
+    expect(await page.getByRole('alert').textContent()).toContain('Check both credentials');
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { state.signedIn = true; await page.close(); }
 });

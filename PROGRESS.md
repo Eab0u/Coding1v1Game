@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Recognized account action feedback
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account feedback improvement.
+- Account alerts now accept only the six recognized authentication errors, with specific recovery guidance for credentials, username rules and availability, password byte limits, throttling and uncertain infrastructure outcomes. Arbitrary URL text cannot appear as an official account message. Existing styled alert presentation and credential navigation remain available.
+- Updated account regressions for all six errors, misleading text, markup, near matches, oversized messages and inherited object names. Updated Chromium keyboard and overflow coverage at 320, 375 and 1280px to verify recognized credential recovery. The first full run exposed three browser fixtures using an obsolete arbitrary message; corrected those fixtures to exercise the intended behavior.
+- Validation: all 790 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Keyboard password concealment
 - Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account usability improvement.
 - Escape in a revealed password input or its Hide button now conceals that password without moving focus, submitting the form, changing credentials or clearing validation and byte-budget feedback. The adjacent form remains independent. Inline guidance explains the shortcut; Escape remains available to enclosing controls when the password is already concealed.

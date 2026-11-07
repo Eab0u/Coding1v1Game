@@ -5,6 +5,7 @@ const current = vi.hoisted(() => vi.fn());
 vi.mock("../src/lib/auth-server", () => ({ auth: { current } }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 import AccountPage from "../src/app/account/page";
+import { USERNAME_HINT } from "../src/lib/username-validation";
 beforeEach(() => { current.mockReset(); });
 afterEach(() => { vi.unstubAllGlobals(); });
 it("starts matchmaking from the account and exposes the reserved arena", async () => {
@@ -155,18 +156,27 @@ it('names credential forms and provides focusable direct entry destinations', as
   }
 });
 
-it('presents bounded, escaped account errors with visible recovery guidance', async () => {
+it.each([
+  [USERNAME_HINT, "Check the username"],
+  ["Incorrect username or password.", "Check both credentials"],
+  ["That username is unavailable.", "Choose another username"],
+  ["Too many attempts. Try again in 15 minutes.", "Wait 15 minutes"],
+  ["Use a password of at least 12 characters and at most 256 bytes.", "Check your password length and byte budget"],
+  ["Account service unavailable. Please try again later.", "Your action could not be confirmed"],
+])("shows recognized account error %s with specific recovery", async (error, guidance) => {
   current.mockResolvedValue(null);
-  const error = '<script>private()</script>' + 'x'.repeat(250);
   render(await AccountPage({ searchParams: Promise.resolve({ error }) }));
-  const alert = screen.getByRole('alert');
-  expect(alert).toHaveClass('account-error');
-  expect(alert).toHaveTextContent('Account action needs attention');
-  expect(alert).toHaveTextContent(error.slice(0, 200));
-  expect(alert).not.toHaveTextContent(error);
-  expect(alert.querySelector('script')).toBeNull();
-  expect(alert).toHaveTextContent('Review this message, then try your account action again.');
-  expect(screen.getByRole('form', { name: 'Welcome back' })).toBeVisible();
+  expect(screen.getByRole("alert")).toHaveClass("account-error");
+  expect(screen.getByRole("alert")).toHaveTextContent(error);
+  expect(screen.getByRole("alert")).toHaveTextContent(guidance);
+  expect(screen.getByRole("form", { name: "Welcome back" })).toBeVisible();
+});
+
+it.each(["<script>private()</script>", "Contact fake support", "Incorrect username or password. ", "toString", "x".repeat(500)])("ignores arbitrary account URL messages: %s", async error => {
+  current.mockResolvedValue(null);
+  render(await AccountPage({ searchParams: Promise.resolve({ error }) }));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("form", { name: "Welcome back" })).toBeVisible();
 });
 
 it("clears the chosen credential form without submitting or clearing its neighbor", async () => {

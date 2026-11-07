@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Restrict account action feedback to recognized errors and provide specific recovery guidance while rejecting arbitrary URL messages
 - [x] Conceal revealed account passwords with Escape from the input or reveal button, preserve focus and independent validation, and explain the keyboard shortcut
 - [x] Conceal revealed account passwords on ordinary and cached page departure, preserve credentials and validation feedback, and cover restoration, repeated events and listener cleanup
 - [x] Stop duel audio on ordinary and cached page departure, preserve consent and visual feedback, and require a fresh local gesture after return; cover repeated departure and listener cleanup

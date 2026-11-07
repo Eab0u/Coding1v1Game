@@ -6,6 +6,7 @@ import { Button, Card } from "../../components/ui";
 import { Play } from "../../components/play";
 import { PasswordField } from "../../components/password-field";
 import { UsernameField } from "../../components/username-field";
+import { accountFeedback } from "../../lib/account-feedback";
 export const runtime = "nodejs";
 async function accountState(token?: string) {
   try { return { user: await auth.current(token), unavailable: false }; }
@@ -13,12 +14,13 @@ async function accountState(token?: string) {
 }
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
+  const feedback = accountFeedback(error);
 
   const result = await accountState((await cookies()).get(SESSION_COOKIE)?.value);
   const { user, unavailable } = result;
   return <div className="shell"><a className="skip-link" href="#account-main">Skip to account</a><header className="site-header"><Link href="/" className="brand">Code<span className="accent">Duel</span></Link><span>Player account</span></header>
     <main id="account-main" tabIndex={-1} className="account"><p className="eyebrow">YOUR NEXT RIVAL IS WAITING</p><h1>{user ? `Welcome, ${user.username}` : "Enter the arena."}</h1>
-      {!unavailable && error && <div className="account-error" role="alert"><h2>Account action needs attention</h2><p>{error.slice(0, 200)}</p><p>Review this message, then try your account action again.</p></div>}
+      {!unavailable && feedback && <div className="account-error" role="alert"><h2>Account action needs attention</h2><p>{feedback.message}</p><p>{feedback.guidance}</p></div>}
       {unavailable ? <Card className="ladder-recovery">
         <div role="alert"><h2>Account service unavailable</h2><p>We could not check your account. Try again to refresh your session and player options.</p></div>
         {/* A document request rechecks the session instead of reusing cached account state. */}
