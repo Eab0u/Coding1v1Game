@@ -41,7 +41,18 @@ export default async function Profile({ params }: { params: Promise<{ username: 
             </svg>
           </div>
           <div className="rating-timeline"><span>Before first duel</span><span>Latest: <time dateTime={new Date(data.ratings.at(-1)!.completed_at).toISOString()}>{new Date(data.ratings.at(-1)!.completed_at).toISOString().slice(0, 10)}</time> UTC</span></div>
-          <details><summary>Rating history data</summary><ol>{data.ratings.map((row, i) => <li key={i}>{new Date(row.completed_at).toISOString().slice(0, 10)}: {Math.round(row.rating_before)} → {Math.round(row.rating_after)} MMR</li>)}</ol></details>
+          <details className="rating-history"><summary>Rating history data</summary>
+            <p>Oldest to newest within this history window. Dates are UTC. MMR values and changes are rounded for display.</p>
+            <ol aria-label="Rated duel changes">{data.ratings.map((row, i) => {
+              const delta = Math.round(row.rating_after) - Math.round(row.rating_before);
+              const date = new Date(row.completed_at).toISOString();
+              return <li key={i}>
+                <time dateTime={date}>{date.slice(0, 10)} UTC</time>
+                <span>{Math.round(row.rating_before)} <span aria-hidden="true">&rarr;</span><span className="sr-only">to</span> {Math.round(row.rating_after)} MMR</span>
+                <strong className="rating-history-change">{delta > 0 ? "+" : ""}{delta || 0} MMR<span className="sr-only"> change</span></strong>
+              </li>;
+            })}</ol>
+          </details>
         </> : <p>Your rating journey starts at 800. Completed rated duels will draw your graph.</p>}</Card>
         <Card className="profile-history"><h2>Recent duels</h2><p>Most recent 20 completed matches. Dates are UTC.</p>{data.history.length > 0 && <p id="history-scroll-hint" className="history-scroll-hint">Scroll the table sideways to see every column. Keyboard users can focus the table region and use the arrow keys.</p>}{data.history.length ? <div className="ladder-scroll" role="region" aria-label="Recent duel history" aria-describedby="history-scroll-hint" tabIndex={0}><table className="ladder-table"><caption>Match history for {data.username}</caption><thead><tr>{['Result', 'Opponent', 'Problem', 'Rating change', 'Date'].map(label => <th scope="col" key={label}>{label}</th>)}</tr></thead><tbody>{data.history.map(match => <tr key={match.id}><th scope="row"><span className={`history-result history-result--${match.result.toLowerCase()}`}>{match.result}</span></th><td><Link href={`/profile/${encodeURIComponent(match.opponent)}`}>{match.opponent}</Link></td><td>{match.title}</td><td>{match.delta === null ? 'Unrated' : `${Math.round(match.delta) > 0 ? '+' : ''}${Math.round(match.delta) === 0 ? 0 : Math.round(match.delta)} MMR`}</td><td><time dateTime={new Date(match.completed_at).toISOString()}>{new Date(match.completed_at).toISOString().slice(0, 10)}</time></td></tr>)}</tbody></table></div> : <p>No completed duels yet. Your next rival is waiting.</p>}</Card>
         <Link className="button button--primary" href="/">Find a duel</Link>

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Readable expanded rating history
+- Reviewed both unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
+- Replaced compact rating-history text with bordered, wrapping entries showing machine-readable UTC dates, before/after MMR and signed changes. Explained chronological order and display rounding. Changes use rounded endpoints consistently with the journey summary and avoid signed zero. Preserved native keyboard disclosure and added an open-state accent.
+- Added component coverage for chronology, dates, gains, losses, fractional rounding and zero changes. Extended Chromium checks at 320, 375 and 1280px for expanded data, focus retention and overflow. Fixed an arrow encoding issue caught by existing tests.
+- Validation: all 505 tests across 45 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Empty public leaderboard guidance
 - Reviewed both unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent public leaderboard usability item. Catalog items remain unchecked.
 - Replaced the public empty-state dead end with a named guidance section, styled duel and account actions, and entry rules for global and weekly standings. Explained the 800 MMR starting rating and that weekly eligibility includes completed rated wins, losses and draws. Reused the responsive action layout for full-width phone buttons.

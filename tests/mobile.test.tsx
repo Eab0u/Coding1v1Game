@@ -417,6 +417,12 @@ it('keeps rating scales, timeline and history data usable at phone and desktop w
       await page.keyboard.press('Enter');
       expect(await page.locator('.profile-climb details').getAttribute('open')).not.toBeNull();
       expect(await page.locator('.profile-climb details ol').isVisible()).toBe(true);
+      const history = page.locator('.rating-history');
+      expect(await history.getByRole('list', {name:'Rated duel changes'}).isVisible()).toBe(true);
+      expect(await history.locator('time').getAttribute('datetime')).toBe('2026-11-01T00:00:00.000Z');
+      expect(await history.locator('.rating-history-change').textContent()).toBe('+434 MMR change');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      expect(await summary.evaluate(el => el === document.activeElement)).toBe(true);
       await page.keyboard.press('Enter');
     }
   } finally { await page.close(); }

@@ -104,3 +104,19 @@ it('distinguishes history outcomes and formats rounded MMR changes without signe
   expect(screen.queryByText(/^[+-]0 MMR$/)).not.toBeInTheDocument();
   expect(screen.getByRole('region',{name:'Recent duel history'})).toHaveAccessibleDescription(/Scroll the table sideways.*arrow keys/);
 });
+
+
+it('shows chronological rating changes with machine-readable dates and consistent rounded deltas', async () => {
+  mocks.load.mockResolvedValue({username:'Ada',rating:810,record:{wins:1,losses:1,draws:1},history:[],ratings:[
+    {rating_before:800.4,rating_after:810.6,completed_at:new Date('2026-01-01Z')},
+    {rating_before:810.6,rating_after:809.8,completed_at:new Date('2026-01-02Z')},
+    {rating_before:809.8,rating_after:810.2,completed_at:new Date('2026-01-03Z')},
+  ]});
+  const {container} = render(await Profile({params}));
+  const list = screen.getByRole('list',{name:'Rated duel changes',hidden:true});
+  expect(list.querySelectorAll('li')).toHaveLength(3);
+  expect(Array.from(list.querySelectorAll('strong')).map(el => el.textContent)).toEqual(['+11 MMR change','-1 MMR change','0 MMR change']);
+  expect(Array.from(list.querySelectorAll('time')).map(el => el.dateTime)).toEqual(['2026-01-01T00:00:00.000Z','2026-01-02T00:00:00.000Z','2026-01-03T00:00:00.000Z']);
+  expect(container.querySelector('.rating-history')).not.toHaveAttribute('open');
+  expect(screen.getByText(/Oldest to newest/)).toHaveTextContent('Dates are UTC');
+});
