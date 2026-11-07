@@ -26,11 +26,15 @@ export class JudgeUnavailableError extends Error {
   constructor() { super("Sandbox judge unavailable; submission must not be scored."); }
 }
 
-function jsonValue(value: unknown): boolean {
+function jsonValue(value: unknown, depth = 0): boolean {
   if (value === null || typeof value === "string" || typeof value === "boolean") return true;
   if (typeof value === "number") return Number.isFinite(value);
-  if (Array.isArray(value)) return Array.from(value).every(jsonValue);
-  return typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype && Object.values(value).every(jsonValue);
+  // Bound recursion before traversing containers, including cyclic caller data.
+  // This also keeps cloning and JSON serialization safely below stack limits.
+  if (depth >= 100) return false;
+  if (Array.isArray(value)) return Array.from(value).every(entry => jsonValue(entry, depth + 1));
+  return typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype &&
+    Object.values(value).every(entry => jsonValue(entry, depth + 1));
 }
 
 /** Server-only Judge0 adapter. No local execution or fallback is permitted. */

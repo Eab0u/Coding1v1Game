@@ -14,6 +14,39 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each(["args", "expected"] as const)("rejects cyclic and overdeep %s before network access and permits retry", async field => {
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    const cyclicArray: unknown[] = [];
+    cyclicArray.push(cyclicArray);
+    const cyclicObject: Record<string, unknown> = {};
+    cyclicObject.self = cyclicObject;
+    let deep: unknown = 42;
+    for (let index = 0; index < 10_000; index++) deep = [deep];
+    for (const value of [cyclicArray, cyclicObject, deep]) {
+      const test = { ...request.tests[0], [field]: value };
+      await expect(judge({ ...request, tests: [test] } as JudgeRequest)).rejects.toThrow(
+        "Invalid judge request; include JSON tests and a largest-test benchmark.",
+      );
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
+  it("accepts 100 JSON container levels and shared acyclic values but rejects 101", async () => {
+    let nested = 42 as unknown;
+    for (let index = 0; index < 99; index++) nested = { value: nested };
+    const shared = { nested };
+    // args adds one container level; repeated references are valid JSON trees.
+    const args = [nested, nested];
+    const fetcher = sandbox([done(shared), done(shared), done(shared)]);
+    const judge = createJudge(config, fetcher);
+    expect((await judge({ ...request, tests: [{ args, expected: shared, benchmark: true }] } as JudgeRequest)).testsPassed).toBe(1);
+    fetcher.mockClear();
+    await expect(judge({ ...request, tests: [{ args: [args], expected: 42, benchmark: true }] } as JudgeRequest)).rejects.toThrow("Invalid judge request");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it.each([null, undefined, false, 0, "test", [], {}])("rejects malformed suite entries (%j) in either position before network access", async entry => {
     const fetcher = vi.fn<typeof fetch>();
     const judge = createJudge(config, fetcher);

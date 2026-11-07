@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Bounded judge JSON nesting
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge request validation item. Arguments and expected answers now permit at most 100 nested array/object containers, including the arguments array. Cyclic and excessively nested caller data receives the consistent request validation error before cloning, serialization or network access instead of exhausting the stack. Documented the bound.
+- Added regression coverage for cyclic arrays/objects and 10,000-level nesting in both arguments and expected answers, no network access on rejection, successful adapter reuse, the 100/101-container boundary and valid shared acyclic values.
+- Validation: all 1,702 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 92 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Consistent malformed judge suite rejection
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge validation item. Validate every suite entry before inspecting benchmark selection, so null, undefined and sparse entries produce the intended request validation error instead of an incidental property-access error. Explicitly reject array and primitive entries before network access.

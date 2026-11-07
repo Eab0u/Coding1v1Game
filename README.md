@@ -122,6 +122,9 @@ Function names must be strings. Benchmark flags must be booleans when supplied;
 omitted or false flags run once, and only true flags contribute three runtime samples.
 Malformed flags and malformed or missing test entries (including sparse arrays) are
 rejected with a request validation error before any sandbox request.
+JSON arguments and expected answers allow at most 100 nested array/object containers
+(including the arguments array). Cyclic and deeper values are rejected before cloning
+or network access; shared acyclic values are supported.
 At least one test must mark the largest-input benchmark. The Python function receives
 positional JSON arguments and must return a JSON value; output must contain only that
 value. Comparisons are exact, including array order, with object key order ignored.
