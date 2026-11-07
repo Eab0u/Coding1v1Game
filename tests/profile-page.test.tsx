@@ -167,3 +167,17 @@ it.each([
   expect(terms.map(term => term.textContent)).toEqual(['Wins', 'Losses', 'Draws']);
   expect(screen.getAllByRole('definition').map(value => value.textContent)).toEqual([record.wins, record.losses, record.draws].map(String));
 });
+it.each([
+  ['2026-11-06T23:05:00Z', 'Nov 6, 2026, 23:05 UTC', '2026-11-06T23:05:00.000Z'],
+  ['2026-11-06T23:05:00-05:00', 'Nov 7, 2026, 04:05 UTC', '2026-11-07T04:05:00.000Z'],
+  [null, 'Completion date unavailable', null],
+  ['invalid', 'Completion date unavailable', null],
+])('renders profile duel completion %s safely', async (completed_at, label, iso) => {
+  mocks.load.mockResolvedValue({username:'Ada',rating:800,record:{wins:1,losses:0,draws:0},ratings:[],history:[{id:'1',title:'Test',opponent:'Bob',result:'WIN',delta:8,completed_at}]});
+  const {container} = render(await Profile({params}));
+  expect(screen.getByRole('columnheader',{name:'Completed (UTC)'})).toBeVisible();
+  expect(container.querySelector('.duel-date')).toHaveTextContent(label!);
+  const time = container.querySelector('.profile-history time');
+  if (iso) expect(time).toHaveAttribute('datetime',iso);
+  else expect(time).toBeNull();
+});

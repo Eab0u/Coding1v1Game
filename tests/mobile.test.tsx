@@ -848,3 +848,20 @@ it.each([320, 375, 1280])('keeps recent duel completion times readable at %spx',
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+it.each([320, 375, 1280])('keeps profile completion timestamps inside the scrollable history at %spx', async width => {
+  const page = await browser.newPage({viewport:{width,height:900}});
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css','utf8')}</style>${renderToStaticMarkup(await Profile({params:Promise.resolve({username})}))}`);
+    const region = page.getByRole('region',{name:'Recent duel history'});
+    await region.focus();
+    await region.evaluate(el => { el.scrollLeft = el.scrollWidth; });
+    const date = region.locator('.duel-date');
+    expect(await date.textContent()).toContain('Nov 1, 2026, 00:00 UTC');
+    expect(await date.locator('time').getAttribute('datetime')).toBe('2026-11-01T00:00:00.000Z');
+    const bounds = (await date.boundingBox())!;
+    const frame = (await region.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(frame.x);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(frame.x + frame.width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});
