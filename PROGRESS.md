@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Player-specific Friends action names
+- Retried problems 1-20 passing validation with Relay Basin Storage; JudgeUnavailableError still blocks the catalog milestone. Following the blocker rule, added and completed one bounded Friends accessibility item. Catalog milestones remain unchecked.
+- Accept, Decline, Cancel request and Remove friend buttons now include the target username in their accessible names, making repeated actions distinguishable when navigating buttons with assistive technology. Visible labels and native POST controls are preserved.
+- Updated native form submission coverage and added regression tests for multiple players sharing actions and refreshed accessible names after acceptance/removal.
+- Validation: all 1,053 tests across 66 files passed; lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Friends consent and management guide
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends-page usability item; catalog milestones remain unchecked.
 - Added a styled semantic guide before invitation controls explaining explicit acceptance (including reciprocal requests), declining versus cancelling, removal for both players, reconnecting by consent and accepted-only friends standings. The guide is hidden for guests and unavailable data and uses a single column on narrow phones.

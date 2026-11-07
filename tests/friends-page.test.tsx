@@ -55,7 +55,7 @@ it("shows invitation, incoming consent, outgoing cancellation and removal contro
   mocks.friends.mockResolvedValue([{username:"Ada",status:"pending",incoming:true},{username:"Bob",status:"pending",incoming:false},{username:"Eve",status:"accepted",incoming:true}]);
   render(await Friends({searchParams:Promise.resolve({})}));
   expect(screen.getByLabelText("Player username")).toBeRequired();
-  for (const name of ["Accept","Decline","Cancel request","Remove friend"]) expect(screen.getByRole("button",{name})).toBeVisible();
+  for (const name of ["Accept: Ada","Decline: Ada","Cancel request: Bob","Remove friend: Eve"]) expect(screen.getByRole("button",{name})).toBeVisible();
   expect(screen.getByRole("link",{name:"View Ada's profile"})).toHaveAttribute("href","/profile/Ada");
 });
 it("names and styles profile links across incoming, accepted and outgoing friends", async () => {
@@ -134,7 +134,7 @@ it("groups relationships with counts and submits the clicked action for the corr
     const form = screen.getByRole("form", {name:`Manage ${username}`}) as HTMLFormElement;
     const submit = vi.fn((event: Event) => event.preventDefault());
     form.addEventListener("submit", submit);
-    const button = within(form).getByRole("button", {name:label}) as HTMLButtonElement;
+    const button = within(form).getByRole("button", {name:`${label}: ${username}`}) as HTMLButtonElement;
     fireEvent.click(button);
     expect(submit).toHaveBeenCalledOnce();
     const event = submit.mock.calls[0][0] as SubmitEvent;
@@ -221,4 +221,33 @@ it("ignores arbitrary URL messages and suppresses results when session or data i
   view.rerender(await Friends({searchParams:Promise.resolve({message:"Friend list updated."})}));
   expect(screen.queryByText("Friend list updated")).not.toBeInTheDocument();
   expect(screen.getByRole("alert")).toHaveTextContent("Friends unavailable");
+});
+
+it("identifies repeated friend actions by player and refreshes names after relationship changes", async () => {
+  mocks.friends.mockResolvedValue([
+    {username:"Ada",status:"pending",incoming:true},
+    {username:"Grace",status:"pending",incoming:true},
+    {username:"Bob",status:"pending",incoming:false},
+    {username:"Eve",status:"accepted",incoming:false},
+    {username:"Lin",status:"accepted",incoming:true},
+  ]);
+  const view = render(await Friends({searchParams:Promise.resolve({})}));
+  for (const [username, labels] of [
+    ["Ada", ["Accept", "Decline"]], ["Grace", ["Accept", "Decline"]],
+    ["Bob", ["Cancel request"]], ["Eve", ["Remove friend"]], ["Lin", ["Remove friend"]],
+  ] as const) {
+    for (const label of labels) {
+      const button = screen.getByRole("button", {name:`${label}: ${username}`});
+      expect(button).toHaveTextContent(label);
+      const form = button.closest("form")!;
+      expect(form).toHaveAccessibleName(`Manage ${username}`);
+      expect(new FormData(form).get("username")).toBe(username);
+    }
+  }
+  mocks.friends.mockResolvedValue([{username:"Ada",status:"accepted",incoming:false}]);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.getByRole("button", {name:"Remove friend: Ada"})).toBeVisible();
+  expect(screen.queryByRole("button", {name:"Accept: Ada"})).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", {name:"Decline: Ada"})).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", {name:"Accept: Grace"})).not.toBeInTheDocument();
 });
