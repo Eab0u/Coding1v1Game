@@ -15,6 +15,69 @@ beforeEach(() => { vi.stubGlobal("WebSocket", Socket); });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 function start() { render(<Play signedIn />); fireEvent.click(screen.getByRole("button", { name: "Play a duel" })); act(() => Socket.latest.onopen()); return Socket.latest; }
 function event(data: object) { act(() => Socket.latest.onmessage({ data: JSON.stringify(data) })); }
+it.each(["focused cancel", "independent navigation"])("recovers a silent queued connection with %s and permits ticket recovery", focus => {
+  vi.useFakeTimers();
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  const stale = Socket.latest;
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  const target = focus === "focused cancel" ? screen.getByRole("button", { name: "Cancel search" }) : screen.getByRole("link", { name: "View profile" });
+  target.focus();
+  act(() => vi.advanceTimersByTime(29999));
+  expect(stale.close).not.toHaveBeenCalled();
+  act(() => vi.advanceTimersByTime(1));
+  expect(stale.close).toHaveBeenCalledOnce();
+  expect(screen.getByRole("status")).toHaveTextContent("Search updates stopped. Connection closed; retry to recover any reserved match.");
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toBeEnabled();
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(screen.queryByRole("definition")).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(0));
+  expect(vi.getTimerCount()).toBe(0);
+  expect(focus === "focused cancel" ? play : target).toHaveFocus();
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  act(() => stale.onmessage({ data: JSON.stringify({ type: "queued", waitedSeconds: 99, ratingBand: 550 }) }));
+  act(() => stale.onclose());
+  expect(screen.getByRole("status")).toHaveTextContent("Connecting");
+  event({ type: "matched", match: { id: "recovered", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  act(() => vi.advanceTimersByTime(30000));
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveAttribute("href", "/match/recovered");
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it.each(["left", "error", "disconnect", "unmount"])("clears the stale-search deadline after %s", outcome => {
+  vi.useFakeTimers();
+  const view = render(<Play signedIn />);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  if (outcome === "unmount") view.unmount();
+  else if (outcome === "disconnect") act(() => Socket.latest.onclose());
+  else event({ type: outcome, message: "Please retry." });
+  const message = outcome === "unmount" ? null : screen.getByRole("status").textContent;
+  expect(vi.getTimerCount()).toBe(0);
+  act(() => vi.advanceTimersByTime(30000));
+  if (message) expect(screen.getByRole("status").textContent).toBe(message);
+});
+
+it("renews the stale-search deadline only while authoritative queue updates continue", () => {
+  vi.useFakeTimers();
+  const ws = start();
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  act(() => vi.advanceTimersByTime(25000));
+  event({ type: "queued", waitedSeconds: 25, ratingBand: 200 });
+  act(() => vi.advanceTimersByTime(25000));
+  expect(ws.close).not.toHaveBeenCalled();
+  expect(screen.getByText("25s elapsed")).toBeInTheDocument();
+  event({ type: "matching" });
+  act(() => vi.advanceTimersByTime(9999));
+  expect(ws.close).not.toHaveBeenCalled();
+  act(() => vi.advanceTimersByTime(1));
+  expect(screen.getByRole("status")).toHaveTextContent("reservation was not confirmed");
+  expect(vi.getTimerCount()).toBe(0);
+});
 it.each(["confirmed", "independent navigation", "unfocused", "failure then retry"])("preserves reservation focus intent through %s", outcome => {
   render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
   fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Stalled matchmaking search recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking recovery item. Searches now close after 30 seconds without a valid queue update, explain the interruption and offer explicit retry to recover a reserved match. The worker normally sends queue updates every second. Each valid update renews the deadline; reservation and cancellation retain their bounded confirmation deadlines.
+- Added seven regression cases covering deadline renewal, focused Cancel search recovery, independent navigation, successful ticket recovery, stale connection events, reservation handoff and timer cleanup after departure, failure, disconnect and unmount.
+- Validation: all 1,557 tests across 72 files passed, including 96 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Queue statistics validation
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one matchmaking recovery item. Queue wait times now require nonnegative safe integers, and rating bands must match the server's supported 100-800 point range in 50-point increments. Invalid frames close the connection and restore actionable retry guidance rather than displaying rounded or impossible statistics.

@@ -60,7 +60,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     socket.current = ws;
     let cancelling = false;
     let reserving = false;
-    function awaitResponse(message: string) {
+    function awaitResponse(message: string, timeout = 10000) {
       clearResponseTimer();
       responseTimer.current = setTimeout(() => {
         if (socket.current !== ws) return;
@@ -68,7 +68,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
         clearResponseTimer();
         ws.close();
         restoreIdle(); setMessage(message);
-      }, 10000);
+      }, timeout);
     }
     function send(type: "join" | "leave") {
       if (type === "leave") cancelling = true;
@@ -97,6 +97,9 @@ export function Play({ signedIn }: { signedIn: boolean }) {
           if (!Number.isSafeInteger(data.waitedSeconds) || data.waitedSeconds < 0 || !Number.isSafeInteger(data.ratingBand) || data.ratingBand < 100 || data.ratingBand > 800 || data.ratingBand % 50 !== 0) throw new Error("Invalid queue status");
           setQueueStats({ waitedSeconds: data.waitedSeconds, ratingBand: data.ratingBand });
           setPhase("queued"); setMessage("Finding opponent. Rating bands widen as you wait. Wait estimate unavailable.");
+          // The worker sends queue status every second. Bound stale searching
+          // even when the browser never reports a broken connection.
+          awaitResponse("Search updates stopped. Connection closed; retry to recover any reserved match.", 30000);
         }
         else if (data.type === "matching") {
           reserving = true;
