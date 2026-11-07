@@ -26,4 +26,26 @@ it("contains database errors without exposing secrets", async () => {
   render(await Home());
   expect(screen.getByRole("alert")).toHaveTextContent("dashboard unavailable");
   expect(screen.queryByText("secret")).not.toBeInTheDocument();
+  expect(mocks.load).not.toHaveBeenCalled();
+  expect(screen.getByRole("link", { name: "Retry dashboard" })).toHaveAttribute("href", "/");
+  expect(screen.queryByRole("link", { name: "Sign in to play" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("region", { name: "Player dashboard" })).not.toBeInTheDocument();
+});
+it("hides invented empty stats after a dashboard failure and recovers on a fresh read", async () => {
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 912.3 });
+  mocks.load.mockRejectedValueOnce(new Error("private database details"));
+  const view = render(await Home());
+  expect(screen.getByRole("alert")).toHaveTextContent("Player dashboard unavailable");
+  expect(screen.queryByText(/0 consecutive wins/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Your first duel/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/fresh challenge is on its way/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Play a duel" })).not.toBeInTheDocument();
+  expect(screen.queryByText(/private database/)).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "View leaderboard" })).toHaveAttribute("href", "/leaderboard");
+  view.rerender(await Home());
+  expect(mocks.current).toHaveBeenCalledTimes(2);
+  expect(mocks.load).toHaveBeenCalledTimes(2);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Play a duel" })).toBeEnabled();
+  expect(screen.getByText("0 consecutive wins")).toBeVisible();
 });

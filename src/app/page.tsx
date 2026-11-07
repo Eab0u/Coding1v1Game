@@ -29,7 +29,7 @@ export default async function Home() {
             <p className="eyebrow">ONE PROBLEM. TWO PLAYERS.</p>
             <h1 id="welcome">Your next rival<br />thinks in code.</h1>
             <p className="intro">Ranked Python duels. Solve the same algorithm problem, race the clock, and climb the ladder.</p>
-            <Play signedIn={!!user && !unavailable} />
+            {!unavailable && <Play signedIn={!!user} />}
             <p className="availability">Arena preview ? Published problems and match activation are still in development.</p>
           </div>
           <Card>
@@ -39,12 +39,17 @@ export default async function Home() {
             <p className="preview-caption">One function. Hidden tests. A place on the ladder.</p>
           </Card>
         </section>
-        {unavailable && <p role="alert">Player dashboard unavailable. Please try again later.</p>}
-        <section className="dashboard-grid" aria-label="Player dashboard">
+        {unavailable ? <Card className="ladder-recovery">
+          <div role="alert"><h2>Player dashboard unavailable</h2><p>We could not load your dashboard. Try again to refresh your rating, recent duels and daily challenge.</p></div>
+          {/* A full document request rechecks the session and dashboard instead of reusing the client router cache. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a className="button button--primary" href="/">Retry dashboard</a>
+          <a className="button button--secondary" href="/leaderboard">View leaderboard</a>
+        </Card> : <section className="dashboard-grid" aria-label="Player dashboard">
           <Card><p className="eyebrow">YOUR LADDER</p><h2>{user ? Math.round(user.rating) : "800"} <small>MMR</small></h2><p>{user ? `${data.streak} consecutive wins` : "Your starting rating ? Sign in to track your climb"}</p></Card>
           <Card><p className="eyebrow">DAILY CHALLENGE ? UTC</p>{data.daily ? <><h2>{data.daily.title}</h2><Badge>{data.daily.difficulty}</Badge><p>{data.daily.statement}</p><code>{data.daily.function_signature}</code></> : <><h2>A fresh challenge is on its way.</h2><p>Daily problems appear here once the validated catalog is published.</p></>}</Card>
           <Card><h2>Recent duels</h2>{data.recent.length ? <ul className="recent-duels">{data.recent.map(match => <li key={match.id}><strong>{match.winner_id === user?.id ? "WIN" : match.winner_id ? "LOSS" : "DRAW"}</strong><span>{match.title}<br /><small>vs {match.opponent}</small></span></li>)}</ul> : <p>{user ? "Your first duel starts your story. Completed matches will appear here." : "Sign in to see your match history."}</p>}</Card>
-        </section>
+        </section>}
         <section className="principles" aria-labelledby="scoring">
           <h2 id="scoring">What wins a duel?</h2>
           <div className="principle-grid">
