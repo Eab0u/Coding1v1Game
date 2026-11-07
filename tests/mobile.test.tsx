@@ -479,6 +479,13 @@ it('keeps the arena readable with keyboard-scrollable code on narrow screens', a
           await page.keyboard.press('Enter');
           expect(await page.locator(target).evaluate(el => el === document.activeElement)).toBe(true);
         }
+        const judging = page.getByRole('complementary', { name: 'How your solution is judged' });
+        expect(await judging.isVisible()).toBe(true);
+        expect(await judging.locator('ol li').count()).toBe(3);
+        const judgingBounds = (await judging.boundingBox())!;
+        expect(judgingBounds.x).toBeGreaterThanOrEqual(0);
+        expect(judgingBounds.x + judgingBounds.width).toBeLessThanOrEqual(width);
+        expect(await judging.evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('1px');
         const guide = page.getByRole('complementary', { name: 'Example format guide' });
         expect(await guide.isVisible()).toBe(true);
         expect(await guide.textContent()).toContain('return its result');

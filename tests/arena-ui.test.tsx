@@ -11,6 +11,18 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it.each(['pending','active','completed','cancelled'] as const)('explains hidden tests and ordered scoring in the %s arena',status=>{
+  render(<Arena initial={{...initial,status}}/>);
+  const guide=screen.getByRole('complementary',{name:'How your solution is judged'});
+  expect(guide).toHaveTextContent('Matching the examples alone does not guarantee a correct solution');
+  expect(Array.from(guide.querySelectorAll('ol li'),el=>el.textContent)).toEqual([
+    'Most hidden tests passed.',
+    'Lower median CPU time across three runs on the largest tests.',
+    'Earlier submission time if correctness and CPU time tie.',
+  ]);
+  expect(guide).toHaveTextContent('A weaker later attempt does not replace it');
+  expect(guide).toHaveTextContent('Editor changes count only after you submit them');
+});
 it('follows authoritative judging stages without presenting partial worker counts as a verdict',async()=>{
   vi.useFakeTimers();
   let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:05:00Z',bestProgress:{passed:4,total:8},submission:{id:'latest',status:'queued',passed:0,total:8}};

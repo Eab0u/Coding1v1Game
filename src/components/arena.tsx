@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { JudgingGuide } from "./judging-guide";
 import { ProblemExamples } from "./problem-examples";
 import { SubmissionStatus } from "./submission-status";
 import { useEffect, useRef, useState } from "react";
@@ -147,6 +148,6 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         <p id="solution-validation" role="status">{sourceError || "Within the submission limit. Some symbols count as two character units."}</p>
       </div>}
       <button className="button button--primary" aria-busy={sending==="submit"} disabled={!!sending || match.status!=="active" || seconds===0 || !!sourceError} onClick={()=>void act("submit")} aria-keyshortcuts="Control+Enter Meta+Enter" aria-describedby={closed ? "submission-status submit-shortcut" : "solution-size solution-validation submission-status submit-shortcut"}>Submit solution</button><p id="submission-status" role="status" aria-atomic="true" className={sending ? "arena-action-pending" : undefined}>{sending==="ready" ? "Confirming readiness with the server. Please wait for acknowledgement." : sending==="submit" ? "Sending your solution. Waiting for server acknowledgement; edits made now are not included in this request." : submission || "Your best judged solution counts. Results settle after the clock expires."}</p>
-    </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2 id="arena-problem-title" tabIndex={-1}>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre tabIndex={0} role="region" aria-label="Function signature">{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><h3>Examples</h3><ProblemExamples examples={match.problem.examples}/><a className="button button--secondary arena-return" href="#arena-solution-title">Back to your solution</a></section></div>
+    </section><section className="card arena-problem"><p className="eyebrow">{match.problem.difficulty}</p><h2 id="arena-problem-title" tabIndex={-1}>{match.problem.title}</h2><p className="arena-text">{match.problem.statement}</p><h3>Function</h3><pre tabIndex={0} role="region" aria-label="Function signature">{match.problem.signature}</pre><h3>Constraints</h3><p className="arena-text">{match.problem.constraints}</p><JudgingGuide/><h3>Examples</h3><ProblemExamples examples={match.problem.examples}/><a className="button button--secondary arena-return" href="#arena-solution-title">Back to your solution</a></section></div>
     </main></div>;
 }
