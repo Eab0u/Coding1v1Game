@@ -5,6 +5,45 @@ import { LoadingStatus } from "../src/components/loading-status";
 
 afterEach(() => vi.useRealTimers());
 
+it.each(["pageshow", "visibilitychange"])("offers overdue recovery on %s even when the suspended timer has not fired", event => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-11-07T12:00:00Z"));
+  const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+  try {
+    const view = render(<Loading />);
+    const status = screen.getByRole("status");
+    const home = screen.getByRole("link", { name: "Back to arena" });
+    home.focus();
+    const restore = () => fireEvent(event === "pageshow" ? window : document, new Event(event));
+    vi.setSystemTime(new Date("2026-11-07T12:00:14.999Z"));
+    restore();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    vi.setSystemTime(new Date("2026-11-07T12:00:15Z"));
+    if (event === "visibilitychange") {
+      visibility.mockReturnValue("hidden");
+      restore();
+      expect(screen.queryByRole("button")).not.toBeInTheDocument();
+      visibility.mockReturnValue("visible");
+    }
+    restore();
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status).toHaveTextContent("This page is taking longer than usual.");
+    const reload = screen.getByRole("button", { name: "Reload page" });
+    expect(reload).toHaveAccessibleDescription(/Unsaved changes may be lost/);
+    expect(home).toHaveFocus();
+    reload.focus();
+    restore();
+    expect(reload).toHaveFocus();
+    const clear = vi.spyOn(window, "clearTimeout");
+    view.unmount();
+    expect(clear).toHaveBeenCalledTimes(1);
+    clear.mockRestore();
+    render(<Loading />);
+    restore();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  } finally { visibility.mockRestore(); }
+});
+
 it("refreshes missed connectivity events on page restoration while preserving recovery and focus", () => {
   const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
   const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");

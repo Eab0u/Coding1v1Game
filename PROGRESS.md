@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Overdue loading recovery after suspension
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one loading recovery item. Visible-tab and page restoration now check the elapsed fifteen-second deadline independently of suspended timeout delivery, immediately exposing existing styled recovery guidance and the reload control when overdue. Stable announcements, connection feedback and keyboard focus are preserved.
+- Added regression tests for both restoration events, the exact delay boundary, hidden-tab deferral, stable live regions, recovery descriptions, preserved focus, timeout cleanup and a fresh deadline after reopening. Corrected the cleanup assertion to support the test environment's object timer handles.
+- Validation: all 1,641 tests across 73 files passed with `npm test -- --maxWorkers=2`; all ten focused loading tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Loading-page resume recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: loading screens now recheck browser connectivity on visible-tab restoration and page restoration. Missed events no longer leave stale offline or reconnection guidance. Existing styled notices, server-availability uncertainty, explicit recovery controls and keyboard focus remain intact.

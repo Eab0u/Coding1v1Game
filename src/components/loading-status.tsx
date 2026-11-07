@@ -9,6 +9,10 @@ export function LoadingStatus() {
   const [recoveryOffered, setRecoveryOffered] = useState(false);
   const guidanceId = useId();
   useEffect(() => {
+    const deadline = Date.now() + 15_000;
+    const checkDelay = () => {
+      if (Date.now() >= deadline) setDelayed(true);
+    };
     let wasOffline = false;
     const updateConnection = () => {
       const disconnected = navigator.onLine === false;
@@ -19,19 +23,23 @@ export function LoadingStatus() {
       if (disconnected) setRecoveryOffered(true);
     };
     const resume = () => {
-      if (document.visibilityState === "visible") updateConnection();
+      if (document.visibilityState === "visible") restore();
+    };
+    const restore = () => {
+      updateConnection();
+      checkDelay();
     };
     updateConnection();
     window.addEventListener("online", updateConnection);
     window.addEventListener("offline", updateConnection);
-    window.addEventListener("pageshow", updateConnection);
+    window.addEventListener("pageshow", restore);
     document.addEventListener("visibilitychange", resume);
     const timeout = window.setTimeout(() => setDelayed(true), 15_000);
     return () => {
       window.clearTimeout(timeout);
       window.removeEventListener("online", updateConnection);
       window.removeEventListener("offline", updateConnection);
-      window.removeEventListener("pageshow", updateConnection);
+      window.removeEventListener("pageshow", restore);
       document.removeEventListener("visibilitychange", resume);
     };
   }, []);
