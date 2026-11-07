@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Retire expired arena submission action feedback and busy indicators, preserving server-confirmation and code-export guidance with reopening, delayed-response and terminal polling regression coverage
 - [x] Retire expired readiness action prompts and busy indicators, preserving authoritative server confirmation guidance with reopening, delayed-response and terminal polling regression coverage
 - [x] Make arena submission-shortcut guidance follow readiness, active play, expiry and terminal states, preserving accessible button descriptions with polling and reopening regression coverage
 - [x] Make verified arena best-score guidance follow settlement and terminal states, retiring future-attempt and result-confirmation promises while preserving scores, verdict badges and accessible descriptions with participant-symmetric reopening and polling regression coverage

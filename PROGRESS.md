@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Expired submission action feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: submission action feedback now explains closed submissions, outstanding judging and server confirmation at clock expiry. Busy accents end at expiry, while automatic polling and code-export guidance remain available. Late acknowledgements and errors cannot restore obsolete action prompts.
+- Added expired-arena reopening coverage and countdown checks for pending, acknowledged and failed requests, including delayed responses, shortcut duplicate prevention and authoritative completion/cancellation recovery.
+- Validation: All 1,413 tests across 72 files passed, including 147 focused arena UI tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Expired readiness action feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one arena improvement: expired readiness action feedback now explains closed readiness and authoritative activation/cancellation confirmation instead of prompting readiness or retaining obsolete acknowledgement/error messages. Pending action accents and the Ready button busy state end at expiry; automatic polling continues.

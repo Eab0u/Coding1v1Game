@@ -11,6 +11,39 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('explains closed submissions when reopening an expired active duel',()=>{
+  render(<Arena initial={{...initial,status:'active',deadline:initial.serverTime}}/>);
+  expect(screen.getByRole('button',{name:'Submit solution'})).toHaveAccessibleDescription(/Submissions are closed.*confirm results/);
+});
+it.each(['pending','acknowledged','failed'] as const)('retires %s submission action feedback at expiry, including late responses',async response=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z'};
+  let resolvePost!:(value:unknown)=>void;
+  const post=new Promise(resolve=>{resolvePost=resolve;});
+  const fetcher=vi.fn().mockImplementation((_url,options)=>options?.method==='POST' ? post : Promise.resolve({ok:true,json:async()=>snapshot}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={snapshot}/>);
+  const feedback=document.getElementById('submission-status')!;
+  const button=screen.getByRole('button',{name:'Submit solution'});
+  fireEvent.click(button);
+  expect(feedback).toHaveTextContent('Sending your solution');
+  const respond=async()=>{await act(async()=>{resolvePost({ok:response!=='failed',json:async()=>({status:'queued',error:'Try submitting again.'})});});};
+  if(response==='acknowledged') await respond();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAttribute('aria-busy','false');
+  expect(button).toBeDisabled();
+  expect(feedback).not.toHaveClass('arena-action-pending');
+  if(response!=='acknowledged') await respond();
+  expect(button).toHaveAccessibleDescription(/Submissions are closed.*confirm results/);
+  expect(feedback).not.toHaveTextContent(/Sending your solution|Solution queued|Try submitting again|Results settle after/);
+  fireEvent.keyDown(screen.getByRole('textbox',{name:'Python solution'}),{key:'Enter',ctrlKey:true});
+  expect(fetcher.mock.calls.filter(call=>call[1]?.method==='POST')).toHaveLength(1);
+  snapshot={...snapshot,status:response==='failed' ? 'cancelled' : 'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(document.getElementById('submission-status')).toBe(feedback);
+  expect(feedback).toHaveTextContent(response==='failed' ? 'No ratings changed' : 'Results are ready');
+  expect(feedback).not.toHaveTextContent('keeps checking automatically');
+});
 it.each([false,true])('replaces expired readiness action feedback on reopening (ready %s)',ready=>{
   render(<Arena initial={{...initial,player:{...initial.player,ready},reservationExpiresAt:initial.serverTime}}/>);
   const button=screen.getByRole('button',{name:ready ? 'Ready confirmed' : 'Ready to duel'});
