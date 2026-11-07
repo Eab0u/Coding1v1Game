@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Clear best-score milestones
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. Judge0 returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. No Python executed on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena usability item. Both best-progress panels now distinguish partial scores with amber bars and Tests remaining badges from full scores with green bars and All tests passed badges. Wrapping badges support narrow layouts. Full scores explain that passing every test does not confirm a win and the server confirms the result after the duel ends.
+- Extended player/opponent polling regression coverage across invalid, zero, partial, full and removed scores. Checks cover badge and accent cleanup, accessible full-score guidance and preservation of current-edit submission guidance.
+- Validation: all 1,245 tests across 72 files passed; lint, typecheck, production build and whitespace checks passed. Existing browser fixture tests passed; live deployment visual verification remains pending.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Reliable best-progress bars
 - Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python executed on the host and nothing was published.
 - Followed the blocker rule to add and complete one arena correctness item. Both best-progress panels now share score validation with submission verdicts. Invalid counts show explicit unavailable-score and automatic-update guidance without a misleading bar. Missing submissions show a distinct empty state; valid zero-pass scores retain a determinate bar.

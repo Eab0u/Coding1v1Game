@@ -260,6 +260,10 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .arena-connection .muted, .arena-connection > span { color:var(--color-muted); font-size:.875rem; }
 .arena-connection > span { flex-basis:100%; }
 .arena-progress progress { width:100%; height:14px; accent-color:#81b64c; }
+.arena-progress--partial progress { accent-color: #e5b567; }
+.arena-progress-badge { justify-self: start; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.arena-progress--partial .arena-progress-badge { color: #e5b567; }
+.arena-progress--full .arena-progress-badge { color: var(--color-accent); }
 .arena-text { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7; }
 .arena-problem pre { overflow:auto; padding:16px; background:#262421; border-radius:8px; }
 @media(max-width:800px) { .arena-columns { grid-template-columns:minmax(0,1fr); } .arena-scoreboard { gap:12px; padding:16px; } .arena-scoreboard h2 { font-size:1rem; } .arena-clock p { font-size:1rem; } }
