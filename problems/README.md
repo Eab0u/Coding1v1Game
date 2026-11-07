@@ -290,3 +290,28 @@ calibration. This draft remains private, unpublished and unapproved. Run:
 npm run problems -- validate problems/drafts/relay-balanced-cuts.json
 npm run problems -- publish problems/drafts/relay-balanced-cuts.json
 ```
+
+### Relay Prefix Diversity
+
+`drafts/relay-prefix-diversity.json` is an original easy array/hash-set problem:
+sum the number of distinct channel IDs in every nonempty prefix of a log.
+Repeated, zero and negative IDs are ordinary values; order matters.
+
+The reference maintains a set and accumulates its size in O(n) expected time
+and O(n) space. The quadratic baseline reconstructs each prefix set, requiring
+5,000,050,000 insertions on each 100,000-entry benchmark. Constant, all-distinct
+and alternating logs have answers 100,000, 5,000,050,000 and 199,999 respectively.
+The distinct benchmark catches answers exceeding signed 32-bit range.
+
+The generator supplies 2,000 seeded small cases. Data-only tests compare prefix
+enumeration with independent first-occurrence contributions: an ID first seen
+at zero-based index i contributes n-i. Tests also check injective renaming,
+appending an existing ID, fixture answers and full-size formulas. No draft
+Python executes locally. Proposed 1-second CPU and 64-MiB limits need isolated
+Judge0 calibration, reference/brute-force agreement and baseline timeouts.
+This draft remains private, unpublished and unapproved. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-prefix-diversity.json
+npm run problems -- publish problems/drafts/relay-prefix-diversity.json
+```
