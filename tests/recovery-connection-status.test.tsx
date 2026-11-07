@@ -8,6 +8,46 @@ import { RecoveryConnectionStatus } from "../src/components/recovery-connection-
 
 afterEach(() => vi.restoreAllMocks());
 
+it.each([false, true])("refreshes missed connection events on resume with stable guidance (unavailable=%s)", unavailablePage => {
+  let online = true;
+  let visibility = "visible";
+  vi.spyOn(navigator, "onLine", "get").mockImplementation(() => online);
+  vi.spyOn(document, "visibilityState", "get").mockImplementation(() => visibility as DocumentVisibilityState);
+  const view = render(<><RecoveryConnectionStatus unavailablePage={unavailablePage} /><button>Recover</button></>);
+  const status = screen.getByRole("status");
+  const button = screen.getByRole("button");
+  button.focus();
+  fireEvent(window, new Event("pageshow"));
+  expect(status).toBeEmptyDOMElement();
+  visibility = "hidden";
+  online = false;
+  fireEvent(document, new Event("visibilitychange"));
+  expect(status).toBeEmptyDOMElement();
+  visibility = "visible";
+  fireEvent(document, new Event("visibilitychange"));
+  expect(status).toHaveTextContent("Browser offline");
+  expect(button).toHaveFocus();
+  online = true;
+  fireEvent(window, new Event("pageshow"));
+  expect(screen.getByRole("status")).toBe(status);
+  expect(status).toHaveTextContent("Browser back online");
+  expect(status).toHaveTextContent(unavailablePage ? "Server availability and access to this page are not yet confirmed" : "Server availability is not yet confirmed");
+  expect(button).toHaveFocus();
+  online = false;
+  fireEvent(window, new Event("pageshow"));
+  expect(status).toHaveTextContent("Browser offline");
+  online = true;
+  fireEvent(document, new Event("visibilitychange"));
+  expect(status).toHaveTextContent("Browser back online");
+  const removeWindow = vi.spyOn(window, "removeEventListener");
+  const removeDocument = vi.spyOn(document, "removeEventListener");
+  view.unmount();
+  expect(removeWindow).toHaveBeenCalledWith("pageshow", expect.any(Function));
+  expect(removeDocument).toHaveBeenCalledWith("visibilitychange", expect.any(Function));
+  render(<RecoveryConnectionStatus unavailablePage={unavailablePage} />);
+  expect(screen.getByRole("status")).toBeEmptyDOMElement();
+});
+
 function browserConnection(initial: boolean) {
   let online = initial;
   vi.spyOn(navigator, "onLine", "get").mockImplementation(() => online);

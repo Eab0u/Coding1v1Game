@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Resumed-page connection recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: error and unavailable-page connection notices now recheck browser connectivity on visible-tab restoration and page restoration. Missed connection events no longer leave stale offline guidance after resuming. Existing styled notices, server-availability uncertainty and manual recovery remain intact.
+- Added regression coverage for silent online restoration, hidden-tab deferral, missed offline and online events, recurring outages, stable polite regions, keyboard focus, listener cleanup and fresh reopening for both notice variants.
+- Validation: all 1,638 tests across 73 files passed with `npm test -- --maxWorkers=2`; focused recovery tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Unavailable-page connection recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: unavailable pages now reuse the styled polite connection notice, with page-specific offline and reconnection guidance. The notice explains the continuing server clock and uncertainty about both server availability and page access. Connection changes preserve recovery links and keyboard focus without automatic navigation.

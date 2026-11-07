@@ -14,12 +14,19 @@ export function RecoveryConnectionStatus({ unavailablePage = false }: { unavaila
         setConnection("reconnected");
       }
     };
+    const resume = () => {
+      if (document.visibilityState === "visible") update();
+    };
     update();
     window.addEventListener("offline", update);
     window.addEventListener("online", update);
+    window.addEventListener("pageshow", update);
+    document.addEventListener("visibilitychange", resume);
     return () => {
       window.removeEventListener("offline", update);
       window.removeEventListener("online", update);
+      window.removeEventListener("pageshow", update);
+      document.removeEventListener("visibilitychange", resume);
     };
   }, []);
 
