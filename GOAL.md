@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Distinguish saved results with no judged submission from zero-pass attempts, explain fallback CPU scores and cover phone layouts
 - [x] Connect saved results to completed problem review with honest code availability guidance, styled navigation and phone keyboard coverage
 - [x] Visualize saved results correctness with styled, text-labeled hidden-test pass meters, historical fallback and phone browser coverage
 - [x] Explain saved results comparison metrics with styled best-attempt guidance, CPU and submission units, scoring precision and phone browser coverage

@@ -925,3 +925,18 @@ it.each([320,375,1280])('makes completed problem review keyboard accessible at %
   expect(await panel.evaluate(el=>getComputedStyle(el).borderLeftStyle)).toBe('solid');
  } finally {await page.close();}
 });
+
+it.each([320,375,1280])('keeps no-judged-submission guidance readable at %spx',async width=>{
+ const page=await browser.newPage({viewport:{width,height:900}});
+ try {
+  await page.setContent(`<style>${readFileSync('src/app/globals.css','utf8')}</style>${renderToStaticMarkup(<Results result={{title:'Sample',outcome:'DRAW',players:[{username:'Ada',before:800,after:800,passed:0,total:8,cpu:1000,submitted:null}]}}/>)}`);
+  const notice=page.locator('.result-no-submission');
+  expect(await notice.textContent()).toContain('No judged submission');
+  expect(await notice.evaluate(el=>getComputedStyle(el).borderLeftStyle)).toBe('solid');
+  const box=(await notice.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x+box.width).toBeLessThanOrEqual(width);
+  expect(await page.getByRole('progressbar').count()).toBe(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+ } finally {await page.close();}
+});

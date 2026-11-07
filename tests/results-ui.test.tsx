@@ -20,7 +20,7 @@ it.each([null,0])('does not invent a correctness meter for unavailable totals %s
  expect(screen.getAllByText('Not recorded')).toHaveLength(2);
 });
 it('gives both player meters distinct label associations',()=>{
- render(<Results result={{title:'Sample',outcome:'WIN',players}}/>);
+ render(<Results result={{title:'Sample',outcome:'WIN',players:[players[0],{...players[1],submitted:2000}]}}/>);
  const meters=screen.getAllByRole('progressbar');
  expect(meters).toHaveLength(2);
  expect(meters[0].id).not.toBe(meters[1].id);
@@ -146,4 +146,20 @@ it('omits problem review when no match identifier is available',()=>{
  render(<Results result={{title:'Legacy',outcome:'DRAW',players}}/>);
  expect(screen.queryByRole('region',{name:'Learn from this duel'})).not.toBeInTheDocument();
  expect(screen.queryByRole('link',{name:'Review problem'})).not.toBeInTheDocument();
+});
+
+it('distinguishes fallback scores from measured zero-pass attempts and missing history',()=>{
+ const view=render(<Results result={{title:'Sample',outcome:'DRAW',players:[{...players[0],passed:0,submitted:null,cpu:1000}]}}/>);
+ expect(screen.getByText('No judged submission')).toBeVisible();
+ expect(screen.getByText('Fallback benchmark CPU')).toBeVisible();
+ expect(screen.getByText(/rather than measured execution time/)).toBeVisible();
+ expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+ expect(screen.getByText('1000.00 ms')).toBeVisible();
+ view.rerender(<Results result={{title:'Sample',outcome:'DRAW',players:[{...players[0],passed:0,submitted:0}]}}/>);
+ expect(screen.queryByText('No judged submission')).not.toBeInTheDocument();
+ expect(screen.getByRole('progressbar')).toHaveAttribute('value','0');
+ expect(screen.getByText('Median benchmark CPU')).toBeVisible();
+ view.rerender(<Results result={{title:'Legacy',outcome:'DRAW',players:[{...players[0],passed:null,submitted:null,cpu:null}]}}/>);
+ expect(screen.queryByText('No judged submission')).not.toBeInTheDocument();
+ expect(screen.queryByText('Fallback benchmark CPU')).not.toBeInTheDocument();
 });
