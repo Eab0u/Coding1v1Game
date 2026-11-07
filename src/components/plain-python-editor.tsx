@@ -2,7 +2,7 @@
 import { useId, useLayoutEffect, useRef } from "react";
 
 // Retain string and delimiter context from earlier lines when checking a header.
-function blockHeaderIndent(line: string) {
+function pythonLineContext(line: string) {
   let quote = "";
   let escaped = false;
   let code = "";
@@ -55,7 +55,7 @@ function blockHeaderIndent(line: string) {
   const header = code.trim();
   const isHeader = !mismatched && !quote && brackets.length === 0 && header.endsWith(":") &&
     /^(?:(?:async\s+)?(?:def|for|with)\b|(?:if|elif|else|while|try|except|finally|class|match|case)\b)/.test(header);
-  return isHeader ? (code.match(/^[\t ]*/)?.[0] ?? "") : null;
+  return { headerIndent: isHeader ? (code.match(/^[\t ]*/)?.[0] ?? "") : null, inString: Boolean(quote) };
 }
 
 export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wordWrap = false }: {
@@ -149,7 +149,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
         if (event.key === "Backspace" && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
           const { selectionStart: start, selectionEnd: end } = event.currentTarget;
           const prefix = value.slice(value.slice(0, start).lastIndexOf("\n") + 1, start);
-          if (start === end && /^ +$/.test(prefix)) {
+          if (start === end && /^ +$/.test(prefix) && !pythonLineContext(value.slice(0, start)).inString) {
             const removed = ((prefix.length - 1) % 4) + 1;
             event.preventDefault();
             caret.current = [start - removed, start - removed];
@@ -166,7 +166,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
         const { selectionStart: start, selectionEnd: end } = event.currentTarget;
         const prefix = value.slice(value.slice(0, start).lastIndexOf("\n") + 1, start);
         const indent = prefix.match(/^[\t ]*/)?.[0] ?? "";
-        const headerIndent = blockHeaderIndent(value.slice(0, start));
+        const { headerIndent } = pythonLineContext(value.slice(0, start));
         const insertion = "\n" + (headerIndent === null ? indent : headerIndent + "    ");
         event.preventDefault();
         caret.current = [start + insertion.length, start + insertion.length];
@@ -175,6 +175,6 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
     <p id={hint} className="editor-hint">{readOnly
       ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
-      : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Backspace in space-only leading indentation removes spaces to the previous four-space stop. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+      : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Backspace in space-only leading indentation outside strings removes spaces to the previous four-space stop. Shift+Enter inserts a plain newline. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
   </>;
 }

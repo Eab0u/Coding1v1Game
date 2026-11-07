@@ -709,3 +709,43 @@ it("resumes indentation Backspace after composition ends", () => {
   expect(fireEvent.keyDown(input, { key: "Backspace" })).toBe(false);
   expect(input).toHaveValue("code");
 });
+
+
+it.each([
+  "text = \"\"\"\n        ",
+  "text = '''\n        ",
+  "text = r\"\"\"\n# literal comment\n        ",
+  "text = \"\"\"\nif ready:\n        ",
+  "text = \"continued\\\n        ",
+  "text = 'continued\\\n        ",
+])("preserves native Backspace inside string content: %s", prefix => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value={prefix + "tail"} onChange={change} readOnly={false}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(prefix.length, prefix.length);
+  expect(fireEvent.keyDown(input, { key: "Backspace" })).toBe(true);
+  expect(change).not.toHaveBeenCalled();
+  expect(input).toHaveValue(prefix + "tail");
+  expect(input.selectionStart).toBe(prefix.length);
+  expect(input.selectionEnd).toBe(prefix.length);
+  expect(input).toHaveFocus();
+});
+
+it.each([
+  "text = \"\"\"\nbody\n\"\"\"\n        ",
+  "text = '''\nbody\n'''\n        ",
+  "text = \"unfinished\n        ",
+  "# \"\"\" ignored\n        ",
+  "text = \"# quoted\"\n        ",
+])("recovers indent-stop Backspace outside string content: %s", prefix => {
+  render(<Harness initial={prefix + "tail"}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(prefix.length, prefix.length);
+  expect(fireEvent.keyDown(input, { key: "Backspace" })).toBe(false);
+  expect(input).toHaveValue(prefix.slice(0, -4) + "tail");
+  expect(input.selectionStart).toBe(prefix.length - 4);
+  expect(input.selectionEnd).toBe(prefix.length - 4);
+  expect(input).toHaveFocus();
+});
