@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Friends consent and management guide
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends-page usability item; catalog milestones remain unchecked.
+- Added a styled semantic guide before invitation controls explaining explicit acceptance (including reciprocal requests), declining versus cancelling, removal for both players, reconnecting by consent and accepted-only friends standings. The guide is hidden for guests and unavailable data and uses a single column on narrow phones.
+- Added component regression coverage for the management rules, semantic definitions, placement and guest/error suppression. Extended Chromium coverage at 320, 375 and 1280px for visibility, accent styling, responsive columns and overflow. Corrected a browser test assertion to ignore collapsed CSS grid tracks.
+- Validation: all 1,052 tests across 66 files passed; the subsequently extended three browser cases passed after the assertion fix. Lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Friends section jump navigation
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends-page usability item; catalog milestones remain unchecked.
 - Added styled native links to incoming requests, accepted friends and sent requests, with current counts and an accent when replies are waiting. Section destinations receive native fragment focus and a visible target outline. Navigation wraps on phones and is hidden for guests and unavailable data.

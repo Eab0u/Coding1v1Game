@@ -8,6 +8,26 @@ vi.mock("../src/lib/leaderboard", () => ({ loadLeaderboard: mocks.standings }));
 import Friends from "../src/app/friends/page";
 import Leaderboard from "../src/app/leaderboard/page";
 beforeEach(() => { vi.resetAllMocks(); mocks.current.mockResolvedValue({id:"actor"}); mocks.friends.mockResolvedValue([]); mocks.standings.mockResolvedValue([]); });
+it("explains invitation consent, reversible requests and mutual removal before management controls", async () => {
+  const view = render(await Friends({searchParams:Promise.resolve({})}));
+  const guide = screen.getByRole("heading", {name:"How your circle works"}).parentElement!;
+  expect(guide).toHaveClass("friend-guide");
+  expect(within(guide).getAllByRole("term")).toHaveLength(3);
+  expect(within(guide).getAllByRole("definition")).toHaveLength(3);
+  expect(guide).toHaveTextContent("The recipient must choose Accept, even if you both send requests.");
+  expect(guide).toHaveTextContent("Decline dismisses an incoming invitation. Cancel request withdraws an invitation you sent.");
+  expect(guide).toHaveTextContent("Remove friend removes the relationship for both players.");
+  expect(guide).toHaveTextContent("To reconnect, send a new invitation and wait for acceptance.");
+  expect(guide).toHaveTextContent("Pending invitations do not count.");
+  expect(guide.compareDocumentPosition(screen.getByLabelText("Player username")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  mocks.current.mockResolvedValue(null);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.queryByRole("heading", {name:"How your circle works"})).not.toBeInTheDocument();
+  mocks.current.mockResolvedValue({id:"actor"});
+  mocks.friends.mockRejectedValue(new Error("unavailable"));
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.queryByRole("heading", {name:"How your circle works"})).not.toBeInTheDocument();
+});
 it("links counted friend sections to focusable destinations and highlights waiting replies", async () => {
   mocks.friends.mockResolvedValue([{username:"Ada",status:"pending",incoming:true},{username:"Eve",status:"accepted",incoming:false}]);
   const view = render(await Friends({searchParams:Promise.resolve({})}));

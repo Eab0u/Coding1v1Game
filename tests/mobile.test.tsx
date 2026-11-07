@@ -36,6 +36,13 @@ it.each([320, 375, 1280])('jumps to friend sections with native keyboard focus a
   try {
     await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Friends({searchParams:Promise.resolve({})}))}`);
     const navigation = page.getByRole('navigation', {name:'Friend sections'});
+    const guide = page.locator('.friend-guide');
+    expect(await guide.getByRole('heading', {name:'How your circle works'}).isVisible()).toBe(true);
+    expect(await guide.locator('dt').count()).toBe(3);
+    expect(await guide.evaluate(el => getComputedStyle(el).borderLeftWidth)).toBe('4px');
+    expect(await guide.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    const columns = await guide.locator('dl').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').filter(track => parseFloat(track) > 0).length);
+    expect(columns).toBe(width < 400 ? 1 : 3);
     for (const title of ['Incoming requests', 'Your friends', 'Sent requests']) {
       const link = navigation.getByRole('link', {name:`${title} 1`});
       const bounds = (await link.boundingBox())!;

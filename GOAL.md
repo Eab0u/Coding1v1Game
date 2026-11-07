@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Explain Friends invitation consent, cancellation, mutual removal and standings eligibility in a styled responsive guide with component and phone browser regression coverage
 - [x] Add counted Friends-page jump navigation with waiting-request accents, keyboard-focusable destinations and phone browser regression coverage
 - [x] Preserve native visual-line Home/End navigation when plain-editor line wrapping is enabled, with mode-aware keyboard guidance and editable/read-only selection regression tests
 - [x] Add trailing-whitespace-aware End and Shift+End navigation to the plain Python editor, preserving selection anchors, read-only copying, modified keys and IME composition with regression tests

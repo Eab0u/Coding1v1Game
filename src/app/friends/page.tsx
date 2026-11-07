@@ -41,6 +41,15 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
             <span>{group.title}</span>{" "}<Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge>
           </a>)}
         </nav>
+        <Card className="friend-guide">
+          <h2>How your circle works</h2>
+          <dl>
+            <div><dt>Invitations need a reply</dt><dd>Sending a request does not add a friend. The recipient must choose Accept, even if you both send requests.</dd></div>
+            <div><dt>You control your requests</dt><dd>Decline dismisses an incoming invitation. Cancel request withdraws an invitation you sent.</dd></div>
+            <div><dt>Removing ends the friendship</dt><dd>Remove friend removes the relationship for both players. To reconnect, send a new invitation and wait for acceptance.</dd></div>
+          </dl>
+          <p>Friends standings compare accepted friends and your own rating. Pending invitations do not count.</p>
+        </Card>
         <Card><h2>Invite a player</h2><form className="account-form" method="post" action="/api/friends"><input type="hidden" name="action" value="request"/><UsernameField mode="friend" /><Button type="submit">Send friend request</Button></form></Card>
         <div className="friend-groups">{groups.map(group => <section key={group.id} id={`friend-section-${group.id}`} tabIndex={-1} className="friend-section" aria-labelledby={`friends-${group.id}`}>
           <h2 className="friend-group-title" id={`friends-${group.id}`}>{group.title} <Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge></h2>
