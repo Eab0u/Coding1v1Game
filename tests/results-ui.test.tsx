@@ -389,3 +389,24 @@ it.each([0,1])('renders saved timing independently of missing test counts for pa
  expect(timing()).toHaveTextContent(index===0?'1.25 s':'2.00 s');
  expect(screen.getAllByRole('progressbar')).toHaveLength(2);
 });
+
+it.each([0,1])('explains invalid saved CPU for participant %s and recovers corrected history',index=>{
+ const result:DuelResult={title:'Saved duel',outcome:'WIN',players:players.map(p=>({...p}))};
+ const view=render(<Results result={result}/>);
+ const card=within(screen.getByRole('region',{name:index===0?'Your result':'Opponent result'}));
+ const other=within(screen.getByRole('region',{name:index===0?'Opponent result':'Your result'}));
+ for(const cpu of [-1,NaN,Infinity,-Infinity,undefined,'12']) {
+  view.rerender(<Results result={{...result,players:result.players.map((p,i)=>i===index?{...p,cpu}:p)} as DuelResult}/>);
+  expect(card.getByText('Benchmark CPU unavailable')).toBeVisible();
+  expect(card.getByText(/saved CPU time could not be verified/)).toHaveTextContent('cannot be used to compare execution speed');
+  expect(card.getByText(/saved CPU time could not be verified/)).toHaveTextContent('recorded match outcome still applies');
+  expect(other.queryByText('Benchmark CPU unavailable')).toBeNull();
+  expect(card.getByRole('progressbar')).toBeVisible();
+  expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
+ }
+ for(const cpu of [null,0,12.345]) {
+  view.rerender(<Results result={{...result,players:result.players.map((p,i)=>i===index?{...p,cpu}:p)}}/>);
+  expect(card.queryByText('Benchmark CPU unavailable')).toBeNull();
+  expect(card.getByText(cpu===null?'Not recorded':`${cpu.toFixed(2)} ms`)).toBeVisible();
+ }
+});

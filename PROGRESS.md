@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Explicit unavailable benchmark CPU guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one results-page improvement. Invalid saved CPU metrics now include a visible explanation that execution speed cannot be compared using that value, while preserving the recorded outcome and independently valid test progress.
+- Added participant-symmetric regression coverage for negative, nonfinite, missing and nonnumeric corrupt CPU values, plus recovery to valid zero/fractional times and absent historical data. The other player's card remains unaffected.
+- Validation: all 1,298 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate the draft catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Independent saved submission timing
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one saved-results fix: valid submission timestamps now display independently of missing or invalid test counts. Invalid timestamps remain unavailable even when counts are absent. A missing timestamp with incomplete or invalid counts shows Unavailable instead of claiming No submission; fully absent count/timestamp history retains Not recorded.
