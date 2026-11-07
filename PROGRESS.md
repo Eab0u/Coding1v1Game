@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Readable daily challenge previews
+- Reviewed both unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent daily challenge usability item. Catalog items remain unchecked.
+- Daily previews now use a native keyboard-accessible statement disclosure with a 44px target and visible focus styling. Preserved statement line breaks and indentation, styled the Python signature as a wrapping code block, and explicitly explained that practice submissions are not yet available. Empty catalog and dashboard recovery states remain covered.
+- Added component checks for collapsed initial state, intact text/signature formatting, escaped markup and practice availability. Chromium checks open and close statements with Enter and Space at 320, 375 and 1280px and verify target size and document overflow.
+- Validation: all 470 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Friends standings guidance
 - Reviewed both unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent leaderboard usability item. Catalog items remain unchecked.
 - Empty friends standings now use circle-specific guidance instead of asking signed-in players to create accounts. Weekly guidance explains that completed rated wins, losses and draws qualify. Added Find a duel and Invite friends actions without assuming the player has no friends. Signed-out friends standings now have a styled sign-in panel and a public standings link preserving the selected period.

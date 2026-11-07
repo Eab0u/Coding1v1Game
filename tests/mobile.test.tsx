@@ -53,6 +53,25 @@ it.each([true, false])('keeps empty friends standings actions usable on phones (
   } finally { state.signedIn = true; state.leaderboardEmpty = false; await page.close(); }
 });
 
+it.each([320, 375, 1280])('opens daily challenge statements with the keyboard at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const summary = page.locator('.daily-statement summary');
+    const statement = page.locator('.daily-statement > div');
+    expect(await statement.isVisible()).toBe(false);
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    expect(await statement.isVisible()).toBe(true);
+    expect(await page.locator('.daily-statement').getAttribute('open')).not.toBeNull();
+    expect(await statement.evaluate(el => getComputedStyle(el).whiteSpace)).toBe('pre-wrap');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await page.keyboard.press('Space');
+    expect(await statement.isVisible()).toBe(false);
+  } finally { await page.close(); }
+});
+
 it('makes recent duel results and opponents keyboard accessible on narrow phones', async () => {
   const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
   try {

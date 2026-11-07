@@ -64,3 +64,16 @@ it("hides invented empty stats after a dashboard failure and recovers on a fresh
   expect(screen.getByRole("button", { name: "Play a duel" })).toBeEnabled();
   expect(screen.getByText("0 consecutive wins")).toBeVisible();
 });
+
+it("presents daily problems as expandable previews with intact plain text", async () => {
+  const statement = "Find the signal.\n\nConstraints:\n  1 <= n <= 100000\n<script>private()</script>";
+  mocks.load.mockResolvedValue({ daily: { title: "Signal", difficulty: "easy", statement, function_signature: "def signal(values):\n    pass" }, recent: [], streak: 0 });
+  const { container } = render(await Home());
+  const disclosure = container.querySelector(".daily-statement")!;
+  expect(disclosure).not.toHaveAttribute("open");
+  expect(disclosure.querySelector("summary")).toHaveTextContent("Read challenge statement");
+  expect(disclosure.querySelector("div")?.textContent).toBe(statement);
+  expect(disclosure.querySelector("script")).toBeNull();
+  expect(container.querySelector(".daily-signature code")?.textContent).toBe("def signal(values):\n    pass");
+  expect(screen.getByText(/Practice submissions are not available yet/)).toBeVisible();
+});
