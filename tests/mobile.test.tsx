@@ -886,6 +886,12 @@ it.each([320, 375, 1280])('keeps friend action recovery feedback readable at %sp
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole('link', { name: 'Skip to friends' }).focus();
     await page.keyboard.press('Enter');
+    await page.keyboard.press('Tab');
+    const refresh = page.getByRole('link', {name:'Refresh friends'});
+    expect(await refresh.evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await refresh.getAttribute('href')).toBe('/friends');
+    expect((await refresh.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    expect(await page.locator('.friend-refresh').textContent()).toContain('reflect when this page loaded');
     for (const title of ['Incoming requests', 'Your friends', 'Sent requests']) {
       await page.keyboard.press('Tab');
       expect(await page.getByRole('navigation', {name:'Friend sections'}).getByRole('link', {name:`${title} 1`}).evaluate(el => el === document.activeElement)).toBe(true);

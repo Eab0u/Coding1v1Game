@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Friends refresh and snapshot guidance
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends usability item; catalog milestones remain unchecked.
+- Added a wrapping, styled Check for updates panel explaining that invitations, friendships and ratings reflect page load. Refresh friends uses a native /friends link for a fresh server read and clears stale action-query feedback. Guests and unavailable lists retain their existing recovery flows.
+- Added component coverage for accessible guidance, native refresh destination, refreshed relationship data, cleared feedback and guest/error suppression. Chromium checks at 320, 375 and 1280px verify keyboard order, a 44px refresh target and no page overflow. Corrected an overly broad status assertion that also matched username validation.
+- Validation: all 1,055 tests across 66 files passed; lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Friends player ratings and tiers
 - Retried problems 1-20 passing validation with Relay Basin Storage; JudgeUnavailableError still blocks that milestone. Following the blocker rule, added and completed one bounded Friends improvement; catalog milestones remain unchecked.
 - Incoming, accepted and outgoing player cards now show current rounded MMR and shared rating-tier badges in a wrapping row. Accessible guidance explains whole-number display and full-precision tier thresholds. The database query adds only public rating data.

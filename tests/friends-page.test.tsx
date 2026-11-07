@@ -8,6 +8,24 @@ vi.mock("../src/lib/leaderboard", () => ({ loadLeaderboard: mocks.standings }));
 import Friends from "../src/app/friends/page";
 import Leaderboard from "../src/app/leaderboard/page";
 beforeEach(() => { vi.resetAllMocks(); mocks.current.mockResolvedValue({id:"actor"}); mocks.friends.mockResolvedValue([]); mocks.standings.mockResolvedValue([]); });
+it("offers a fresh native page read with snapshot guidance only for available private lists", async () => {
+  const view = render(await Friends({searchParams:Promise.resolve({message:"Friend list updated."})}));
+  const refresh = screen.getByRole("link", {name:"Refresh friends"});
+  expect(refresh).toHaveAttribute("href", "/friends");
+  expect(refresh).toHaveAccessibleDescription("Invitations, friendships and player ratings reflect when this page loaded. Refresh to see new replies and current ratings.");
+  expect(refresh).toHaveClass("button", "button--secondary");
+  mocks.friends.mockResolvedValue([{username:"NewReply", rating:1200, status:"accepted", incoming:false}]);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.getByRole("link", {name:"View NewReply's profile"})).toBeVisible();
+  expect(screen.queryByRole("heading", {name:"Friend list updated"})).not.toBeInTheDocument();
+  mocks.current.mockResolvedValue(null);
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.queryByRole("link", {name:"Refresh friends"})).not.toBeInTheDocument();
+  mocks.current.mockResolvedValue({id:"actor"});
+  mocks.friends.mockRejectedValue(new Error("unavailable"));
+  view.rerender(await Friends({searchParams:Promise.resolve({})}));
+  expect(screen.queryByRole("link", {name:"Refresh friends"})).not.toBeInTheDocument();
+});
 it("explains invitation consent, reversible requests and mutual removal before management controls", async () => {
   const view = render(await Friends({searchParams:Promise.resolve({})}));
   const guide = screen.getByRole("heading", {name:"How your circle works"}).parentElement!;

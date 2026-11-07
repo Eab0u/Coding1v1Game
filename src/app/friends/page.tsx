@@ -37,6 +37,10 @@ export default async function Friends({ searchParams }: { searchParams: Promise<
         <p>Sign in or create a player account to invite friends, respond to requests and compare your ratings in friends standings. Friendships begin when the other player accepts.</p>
         <div className="ladder-empty-actions"><Link className="button button--primary" href="/account">Sign in to manage friends</Link><Link className="button button--secondary" href="/leaderboard">Explore public standings</Link></div>
       </Card> : <>
+        <Card className="friend-refresh">
+          <div><h2>Check for updates</h2><p id="friend-refresh-note">Invitations, friendships and player ratings reflect when this page loaded. Refresh to see new replies and current ratings.</p></div>
+          <a className="button button--secondary" href="/friends" aria-describedby="friend-refresh-note">Refresh friends</a>
+        </Card>
         <nav className="friend-jumps" aria-label="Friend sections">
           {groups.map(group => <a key={group.id} href={`#friend-section-${group.id}`} className={group.id === "incoming" && group.entries.length ? "friend-jump friend-jump--pending" : "friend-jump"}>
             <span>{group.title}</span>{" "}<Badge tone={group.id === "incoming" && group.entries.length ? "accent" : "neutral"}>{group.entries.length}</Badge>
