@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Form-wide password concealment shortcut
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account usability item: Escape from username or submit controls now conceals the password in the owning form. Updated visible shortcut guidance; field-local Escape continues to work independently.
+- Added regression coverage for both forms covering sibling controls, unrelated keys, outside-form Escape, explicit reveal recovery, stable visibility notices, independent forms, retained focus, values and invalid-password feedback.
+- Validation: all 1,612 tests across 72 files passed, including browser coverage; focused password tests (38), lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Password minimum-length guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one usability item: sign-in and sign-up password budgets now explain exactly how many characters are still needed, then confirm when the minimum length is met. Guidance shares the existing responsive budget layout and accessible input description without per-keystroke live announcements.

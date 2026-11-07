@@ -501,3 +501,34 @@ it.each(["login", "signup"] as const)("tracks %s minimum length independently th
   expect(input).toHaveValue("");
   expect(input).toHaveAttribute("type", "password");
 });
+
+it.each(["login", "signup"] as const)("conceals %s from sibling form controls without changing focus, values or validation", mode => {
+  render(<><form><input aria-label="Login username" /><PasswordField mode="login" /><button>Sign in</button></form><form><input aria-label="Signup username" /><PasswordField mode="signup" /><button>Create account</button></form><button>Outside</button></>);
+  const input = document.getElementById(`${mode}-password`)! as HTMLInputElement;
+  const otherMode = mode === "login" ? "signup" : "login";
+  const other = document.getElementById(`${otherMode}-password`)!;
+  const username = screen.getByLabelText(mode === "login" ? "Login username" : "Signup username");
+  const submit = screen.getByRole("button", { name: mode === "login" ? "Sign in" : "Create account" });
+  const reveal = screen.getByRole("button", { name: mode === "login" ? "Show sign-in password" : "Show sign-up password" });
+  fireEvent.change(input, { target: { value: "short" } });
+  fireEvent.click(screen.getByRole("button", { name: otherMode === "login" ? "Show sign-in password" : "Show sign-up password" }));
+  const status = document.getElementById(`${mode}-password-visibility`)!;
+  for (const target of [username, submit]) {
+    fireEvent.click(reveal);
+    target.focus();
+    expect(fireEvent.keyDown(target, { key: "ArrowLeft" })).toBe(true);
+    expect(input).toHaveAttribute("type", "text");
+    expect(fireEvent.keyDown(screen.getByRole("button", { name: "Outside" }), { key: "Escape" })).toBe(true);
+    expect(input).toHaveAttribute("type", "text");
+    expect(fireEvent.keyDown(target, { key: "Escape" })).toBe(false);
+    expect(target).toHaveFocus();
+    expect(input).toHaveAttribute("type", "password");
+    expect(input).toHaveValue("short");
+    expect(input.validationMessage).toBe("Use at least 12 characters.");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(status).toBeEmptyDOMElement();
+    expect(document.getElementById(`${mode}-password-visibility`)).toBe(status);
+    expect(other).toHaveAttribute("type", "text");
+    expect(fireEvent.keyDown(target, { key: "Escape" })).toBe(true);
+  }
+});

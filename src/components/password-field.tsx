@@ -35,6 +35,21 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
     };
   }, [inputRef]);
   useEffect(() => {
+    const form = inputRef.current?.form;
+    if (!form || !visible) return;
+    const concealOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      // The field handles its own Escape, including independently rendered fields.
+      if (event.target instanceof Element && event.target.closest(".password-field")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setVisible(false);
+      setCapsLock(false);
+    };
+    form.addEventListener("keydown", concealOnEscape);
+    return () => form.removeEventListener("keydown", concealOnEscape);
+  }, [inputRef, visible]);
+  useEffect(() => {
     const concealOnDeparture = () => {
       setVisible(false);
       setCapsLock(false);
@@ -92,7 +107,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
         }}>{visible ? "Hide" : "Show"}</Button>
     </div>
     <p id={`${mode}-password-visibility`} className="password-visibility" role="status">{visible ? "Password is visible. Hide it when you finish checking." : ""}</p>
-    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape in the password field or Hide button to conceal a revealed password. Revealed passwords hide when you switch tabs. They also hide when the browser window loses focus, when you leave this page or submit this form, including when a field needs correction.</p>
+    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape anywhere in this form to conceal a revealed password, or use Hide. Revealed passwords hide when you switch tabs. They also hide when the browser window loses focus, when you leave this page or submit this form, including when a field needs correction.</p>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
       <span>{length < PASSWORD_MIN_LENGTH
         ? `At least ${PASSWORD_MIN_LENGTH - length} more ${PASSWORD_MIN_LENGTH - length === 1 ? "character" : "characters"} needed`
