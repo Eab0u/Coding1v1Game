@@ -16,7 +16,20 @@ export function useDuelFeedback() {
   useEffect(() => {
     try { enabledRef.current = localStorage.getItem(preferenceKey) === "on"; } catch { /* Storage is optional. */ }
     setEnabled(enabledRef.current);
-    return () => { sound.current?.dispose(); sound.current = null; };
+    function syncPreference(event: StorageEvent) {
+      try {
+        if (event.storageArea !== localStorage || (event.key !== preferenceKey && event.key !== null)) return;
+      } catch { return; }
+      enabledRef.current = event.key === preferenceKey && event.newValue === "on";
+      setEnabled(enabledRef.current);
+      // Remote consent updates the control, but audio still needs a local gesture.
+      if (!enabledRef.current) { sound.current?.dispose(); sound.current = null; }
+    }
+    window.addEventListener("storage", syncPreference);
+    return () => {
+      window.removeEventListener("storage", syncPreference);
+      sound.current?.dispose(); sound.current = null;
+    };
   }, []);
   function unlock() {
     if (enabledRef.current) { sound.current ??= new DuelSound(); sound.current.unlock(); }

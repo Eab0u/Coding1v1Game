@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Sound preferences across tabs
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded sound usability item.
+- Sound controls now follow localStorage preference changes from other tabs. Remote mute, removal, invalid values and storage clear dispose active audio immediately while visual duel feedback remains available. Remote enablement updates the pressed state without autoplay or writing the preference back; audio still requires a local user gesture. Unrelated keys and sessionStorage events are ignored, and listeners are removed on unmount.
+- Added regression tests for remote mute variants, remote enablement and local unlock, no write-back, storage clear, unrelated storage events and listener cleanup.
+- Validation: all 772 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Account credential reset recovery
 - Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account usability item.
 - Added styled Clear form actions to sign-in and registration. Native reset now clears username/password custom validity and stale accessible errors, conceals revealed passwords, clears Caps Lock feedback and restores the byte budget. Each form remains independent. The shared field reset hook waits for native value restoration, respects cancelled resets and removes listeners on unmount; friend username fields also recover on native reset.
