@@ -8,6 +8,42 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it.each([false, true])("preserves native Enter during composition without keyboard flags (readOnly=%s)", readOnly => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value="def solve():" onChange={change} readOnly={readOnly}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(4, 9, "backward");
+  fireEvent.compositionStart(input);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    expect(fireEvent.keyDown(input, { key: "Enter", keyCode: 13, isComposing: false })).toBe(true);
+    expect(input).toHaveValue("def solve():");
+    expect(input.selectionStart).toBe(4);
+    expect(input.selectionEnd).toBe(9);
+    expect(input.selectionDirection).toBe("backward");
+    expect(input).toHaveFocus();
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
+it.each(["compositionend", "blur"])("resumes indentation after composition clears through %s", ending => {
+  render(<Harness initial="def solve():"/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(12, 12);
+  fireEvent.compositionStart(input);
+  expect(fireEvent.keyDown(input, { key: "Enter" })).toBe(true);
+  if (ending === "compositionend") fireEvent.compositionEnd(input);
+  else { input.blur(); input.focus(); }
+  expect(fireEvent.keyDown(input, { key: "Enter" })).toBe(false);
+  expect(input).toHaveValue("def solve():\n    ");
+  expect(input.selectionStart).toBe(17);
+  expect(input).toHaveFocus();
+  fireEvent.compositionStart(input);
+  expect(fireEvent.keyDown(input, { key: "Enter" })).toBe(true);
+  expect(input).toHaveValue("def solve():\n    ");
+});
+
 it.each([
   ["def solve():", 12, 12, "def solve():\n    ", 17],
   ["    return 1", 12, 12, "    return 1\n    ", 17],

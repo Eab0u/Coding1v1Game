@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Track plain-editor composition lifecycle
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor correction.
+- Track composition start/end independently of keyboard flags so IME confirmation Enter cannot replace selected code or insert an unintended indented newline during an active composition. Blur clears interrupted composition state so returning to the editor restores ordinary indentation.
+- Added editable/read-only tests for repeated unflagged Enter, backward selection and focus preservation, plus composition-end, blur/refocus and subsequent-composition recovery.
+- Validation: all 827 tests across 60 files passed, including 34 focused plain-editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Preserve IME confirmation in the plain editor
 - Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor input correction.
 - Plain-editor automatic indentation now leaves Enter events with IME key code 229 to native input handling, including when isComposing has already cleared. This prevents confirming composed text from inserting a Python newline or replacing a selection.
