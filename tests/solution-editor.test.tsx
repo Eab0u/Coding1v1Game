@@ -315,3 +315,38 @@ it("preserves wrapping on automatic advanced editor failure", () => {
   fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
   expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "off");
 });
+it.each([false, true])("expires reset confirmation on edits without reviving it when code returns, plain mode %s", plain => {
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const input = screen.getByLabelText("Python solution");
+  fireEvent.change(input, { target: { value: "first draft" } });
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  input.focus();
+  fireEvent.change(input, { target: { value: "new work" } });
+  expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
+  expect(input).toHaveFocus();
+  expect(input).toHaveValue("new work");
+  fireEvent.change(input, { target: { value: "first draft" } });
+  expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  fireEvent.click(screen.getByRole("button", { name: "Replace with starter code" }));
+  expect(input).toHaveValue("def solve():\n    pass");
+});
+
+it.each(["starter", "readOnly", "value", "missing starter"])("requires a fresh reset request after %s changes and returns", change => {
+  const onChange = vi.fn();
+  const props = { value: "valuable code", starter: "original starter", readOnly: false, onChange };
+  const view = render(<SolutionEditor {...props}/>);
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  const changed = change === "starter" ? { starter: "new starter" }
+    : change === "readOnly" ? { readOnly: true }
+    : change === "missing starter" ? { starter: undefined } : { value: "external draft" };
+  view.rerender(<SolutionEditor {...props} {...changed}/>);
+  expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
+  expect(onChange).not.toHaveBeenCalled();
+  view.rerender(<SolutionEditor {...props}/>);
+  expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  fireEvent.click(screen.getByRole("button", { name: "Replace with starter code" }));
+  expect(onChange).toHaveBeenCalledExactlyOnceWith("original starter");
+});

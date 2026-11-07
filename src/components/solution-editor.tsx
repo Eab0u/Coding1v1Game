@@ -26,14 +26,17 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const copying = useRef(false);
   const [copyPending, setCopyPending] = useState(false);
   const [copyResult, setCopyResult] = useState<{ value: string; ok: boolean } | null>(null);
-  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
   const resetButton = useRef<HTMLButtonElement>(null);
   const editorGroup = useRef<HTMLDivElement>(null);
   function cancelReset() {
-    setConfirmReset(false);
+    setResetRequest(null);
     resetButton.current?.focus();
   }
   const canReset = !readOnly && starter !== undefined && value !== starter;
+  const confirmReset = resetRequest !== null && canReset && resetRequest.value === value && resetRequest.starter === starter;
+  // Invalidate the request permanently, even if the previous draft later returns.
+  if (resetRequest !== null && !confirmReset) setResetRequest(null);
   async function copySolution() {
     if (copying.current) return;
     copying.current = true;
@@ -88,17 +91,17 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     </button>
     <button type="button" className="button button--secondary" onClick={downloadSolution}>Download solution (.py)</button>
     <button type="button" className="button button--secondary" disabled={copyPending} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
-    {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" disabled={!canReset} onClick={() => setConfirmReset(true)}>Reset to starter code</button>}</div>
+    {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" disabled={!canReset} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
     {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" onKeyDown={event => {
       if (event.key !== "Escape") return;
       event.preventDefault();
       event.stopPropagation();
       cancelReset();
     }}>
-      <p>Replace your current solution with the starter code? Download your solution first if you want to keep it.</p>
+      <p>Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Download your solution first if you want to keep it.</p>
       <div className="solution-editor-actions">
         <button autoFocus type="button" className="button button--secondary" onClick={cancelReset}>Keep my solution</button>
-        <button type="button" className="button button--primary" onClick={() => { if (canReset) onChange(starter); setConfirmReset(false); editorGroup.current?.focus(); }}>Replace with starter code</button>
+        <button type="button" className="button button--primary" onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
       </div>
     </div>}
     {downloadError && <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>}

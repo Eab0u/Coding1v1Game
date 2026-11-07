@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Expire stale solution reset confirmations
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded solution-editor recovery item.
+- Reset confirmation now applies only to the draft and starter code present when requested. Edits, external draft replacement, starter changes or removal, and read-only transitions permanently dismiss it. Returning to previous values requires a fresh request, protecting newer work from stale reset actions. Visible confirmation guidance explains edit dismissal.
+- Added six regression cases covering both editor modes, preserved code and editing focus, prop changes, return to earlier values and successful reset after renewed confirmation.
+- Validation: all 807 tests across 60 files passed; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Conceal passwords on submission
 - Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account password improvement.
 - Revealed passwords now hide when their own form submits or any field in that form fails native validation. Capture listeners cover non-bubbling username validation failures, clear stale Caps Lock guidance and preserve credentials, byte budgets and correction feedback. Adjacent account forms remain independent; inline guidance explains the behavior.
