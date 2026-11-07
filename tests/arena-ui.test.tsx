@@ -64,15 +64,16 @@ it('shows authoritative best progress separately from weaker latest attempts and
   let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:05:00Z',bestProgress:null};
   vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
   render(<Arena initial={snapshot}/>);
-  const progress=screen.getByRole('progressbar',{name:'Your best tests passed: No judged submission yet'});
-  expect(progress).toHaveAttribute('value','0');
-  expect(progress).toHaveAccessibleDescription(/does not confirm that your current edits were submitted/);
+  const progress=screen.getByRole('region',{name:'Your best progress'});
+  expect(progress).toHaveTextContent('No judged submission yet');
+  expect(progress.querySelector('progress')).toBeNull();
+  expect(progress).toHaveTextContent('does not confirm that your current edits were submitted');
   snapshot={...snapshot,bestProgress:{passed:5,total:8},submission:{id:'latest',status:'judged',passed:1,total:8}};
   await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
   expect(screen.getByRole('progressbar',{name:'Your best tests passed: 5 / 8'})).toHaveAttribute('max','8');
   expect(screen.getByText('Latest solution: 1 / 8 tests passed.')).toBeVisible();
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'unsent edits'}});
-  expect(progress).toHaveAttribute('value','5');
+  expect(screen.getByRole('progressbar',{name:'Your best tests passed: 5 / 8'})).toHaveAttribute('value','5');
   snapshot={...snapshot,status:'completed',bestProgress:{passed:8,total:8}};
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
   expect(screen.getByRole('progressbar',{name:'Your best tests passed: 8 / 8'})).toHaveAttribute('value','8');
@@ -305,8 +306,8 @@ it('shows pending state and editable drafts without implying submission works',(
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my draft'}});
   expect(screen.getByLabelText('Python solution')).toHaveValue('my draft');
-  expect(screen.getByRole('progressbar',{name:'Opponent best tests passed: No judged submission yet'})).toBeInTheDocument();
-  expect(screen.getByRole('progressbar',{name:'Your best tests passed: No judged submission yet'})).toBeInTheDocument();
+  expect(screen.getByRole('region',{name:'Opponent progress'})).toHaveTextContent('No judged submission yet');
+  expect(screen.getByRole('region',{name:'Your best progress'})).toHaveTextContent('No judged submission yet');
 });
 it('refreshes authoritative progress without overwriting code and reports stale updates',async()=>{
   vi.useFakeTimers();
@@ -608,7 +609,8 @@ it('replaces the reservation clock with the active match clock after server acti
 it('labels opponent progress as best judged correctness and explains scoring ties',()=>{
   vi.stubGlobal('fetch',vi.fn().mockReturnValue(new Promise(()=>{})));
   const view=render(<Arena initial={initial}/>);
-  expect(screen.getByRole('progressbar',{name:'Opponent best tests passed: No judged submission yet'})).toHaveAttribute('value','0');
+  expect(screen.getByRole('region',{name:'Opponent progress'})).toHaveTextContent('No judged submission yet');
+  expect(screen.queryByRole('progressbar')).toBeNull();
   view.rerender(<Arena initial={{...initial,id:'scored',progress:{passed:5,total:8}}}/>);
   const progress=screen.getByRole('progressbar',{name:'Opponent best tests passed: 5 / 8'});
   expect(progress).toHaveAttribute('value','5');

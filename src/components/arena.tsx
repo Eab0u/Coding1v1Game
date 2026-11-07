@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { JudgingGuide } from "./judging-guide";
 import { ProblemExamples } from "./problem-examples";
+import { ArenaProgress } from "./arena-progress";
 import { SubmissionStatus } from "./submission-status";
 import { hasSubmissionScore } from "../lib/submission-score";
 import { useEffect, useRef, useState } from "react";
@@ -118,7 +119,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <button type="button" className="button button--secondary" disabled={refreshPending} onClick={()=>void retryRefresh.current?.()}>Retry live updates</button>
       <span role="status">{refreshPending ? "Refreshing match state…" : "Automatic retries continue every two seconds."}</span>
     </section>}
-    <section className="arena-progress" aria-label="Opponent progress"><label htmlFor="opponent-progress">Opponent best tests passed: {match.progress ? `${match.progress.passed} / ${match.progress.total}` : "No judged submission yet"}</label><progress id="opponent-progress" aria-describedby="opponent-progress-help" value={match.progress?.passed ?? 0} max={match.progress?.total || 1}/><p className="muted" id="opponent-progress-help">Best judged test count. Later attempts cannot lower it; runtime and submission time break ties.</p></section>
+    <ArenaProgress score={match.progress}/>
     <div className="arena-columns"><section className="card arena-editor"><div className="arena-panel-heading"><h1 id="arena-solution-title" tabIndex={-1}>Your solution</h1><span className="badge">Python 3</span></div>
       <div onKeyDownCapture={event=>{
         if (event.key!=="Enter" || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.repeat || event.nativeEvent.isComposing) return;
@@ -131,11 +132,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         <SolutionEditor value={source} onChange={setSource} readOnly={closed} starter={`${initial.problem.signature}\n    pass\n`}/>
       </div>
       <p className="muted" id="submit-shortcut">From the editor, press Ctrl+Enter or Command+Enter to submit your solution.</p>
-      <section className="arena-progress" aria-label="Your best progress">
-        <label htmlFor="player-progress">Your best tests passed: {match.bestProgress ? `${match.bestProgress.passed} / ${match.bestProgress.total}` : "No judged submission yet"}</label>
-        <progress id="player-progress" aria-describedby="player-progress-help" value={match.bestProgress?.passed ?? 0} max={match.bestProgress?.total || 1}/>
-        <p className="muted" id="player-progress-help">Best judged test count across your attempts. Later attempts cannot lower it; runtime and submission time break ties. This score does not confirm that your current edits were submitted.</p>
-      </section>
+      <ArenaProgress score={match.bestProgress} player/>
       {!closed && <p role="status">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code."}</p>}
       <SubmissionStatus submission={match.submission}/>
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>

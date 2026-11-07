@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Reliable best-progress bars
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python executed on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena correctness item. Both best-progress panels now share score validation with submission verdicts. Invalid counts show explicit unavailable-score and automatic-update guidance without a misleading bar. Missing submissions show a distinct empty state; valid zero-pass scores retain a determinate bar.
+- Added player/opponent regression coverage for negative, excessive, zero-total, fractional, nonfinite and unsafe-integer scores, repeated recovery to zero/partial/full scores, accessible names/descriptions and removal. Updated three arena integration expectations for the explicit empty state without deleting tests.
+- Validation: full suite passed 1,244 tests with one outdated assertion remaining; corrected its stale region reference and all 81 focused arena/progress tests passed. The other 71 test files passed in the full run. Lint, typecheck, production build and whitespace checks passed. Browser fixture tests passed; live deployment verification remains pending.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Consistent judged-score feedback
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
 - Followed the blocker rule to add and complete one arena feedback fix. Sound and visual verdict cues now require the same valid integer test counts as submission status. Invalid attempts do not consume their event ID, so a corrected score can announce once on a later poll; existing judged history remains silent when reopening an arena.

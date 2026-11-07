@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Validate both arena best-progress bars, distinguish missing submissions from unavailable scores, and recover valid zero/full scores after polling with regression coverage
 - [x] Withhold arena sound and visual verdict cues for invalid judged scores, share score validation with submission status, and cover corrected-score polling and once-only recovery
 - [x] Replace unavailable or invalid judged submission counts with explicit automatic-update guidance, withholding verdict accents until a valid score arrives, with polling-transition regression tests
 - [x] Distinguish fully and partially passing arena submissions with text verdict badges, responsive green/amber accents and explicit full-pass tiebreak guidance, with status-transition regression tests
