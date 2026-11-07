@@ -131,6 +131,9 @@ full CPU limit for that run. Judge0 averaging and wall-clock measurements are no
 Network is disabled, processes and files are limited, and CPU, wall and memory limits
 are set on every submission.
 
+Judge request timeouts (positive) and poll intervals (zero allowed) must be integer
+milliseconds at most 2,147,483,647; larger settings are rejected before network access
+because Node would reduce those timer delays to 1ms.
 Configured CPU limits must remain finite in milliseconds. CPU timing conversions and
 benchmark totals that overflow are rejected before scoring.
 HTTP failures, exhausted polling, missing CPU timing and Judge0 internal errors throw

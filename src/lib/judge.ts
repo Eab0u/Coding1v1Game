@@ -44,13 +44,15 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
   const timeout = config.requestTimeoutMs ?? 10_000;
   const maxPolls = config.maxPolls ?? 120;
   const pollInterval = config.pollIntervalMs ?? 250;
+  // Node clamps larger timer delays to 1ms instead of honoring the setting.
+  const maxTimerDelayMs = 2_147_483_647;
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash ||
       !Number.isSafeInteger(config.pythonLanguageId) || config.pythonLanguageId <= 0 ||
       !Number.isFinite(config.cpuLimitSeconds) || config.cpuLimitSeconds <= 0 ||
       !Number.isFinite(config.cpuLimitSeconds * 1000) ||
       !Number.isSafeInteger(config.memoryLimitKb) || config.memoryLimitKb <= 0 ||
-      !Number.isSafeInteger(timeout) || timeout <= 0 || !Number.isSafeInteger(maxPolls) || maxPolls <= 0 ||
-      !Number.isSafeInteger(pollInterval) || pollInterval < 0) throw new RangeError("Invalid judge configuration.");
+      !Number.isSafeInteger(timeout) || timeout <= 0 || timeout > maxTimerDelayMs || !Number.isSafeInteger(maxPolls) || maxPolls <= 0 ||
+      !Number.isSafeInteger(pollInterval) || pollInterval < 0 || pollInterval > maxTimerDelayMs) throw new RangeError("Invalid judge configuration.");
   const base = config.url.replace(/\/$/, "");
 
   async function api(path: string, body?: object) {

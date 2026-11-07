@@ -14,6 +14,21 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each(["requestTimeoutMs", "pollIntervalMs"] as const)("rejects overflowing %s before network access", field => {
+    const fetcher = vi.fn<typeof fetch>();
+    for (const delay of [2_147_483_648, Number.MAX_SAFE_INTEGER]) {
+      expect(() => createJudge({ ...config, [field]: delay }, fetcher)).toThrow("Invalid judge configuration.");
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("accepts the maximum supported timer delay and preserves successful scoring", async () => {
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge({ ...config, requestTimeoutMs: 2_147_483_647, pollIntervalMs: 2_147_483_647 }, fetcher);
+    expect((await judge(request)).testsPassed).toBe(1);
+    expect(fetcher).toHaveBeenCalledTimes(6);
+  });
+
   it.each(["POST", "GET"])("never follows %s redirects or forwards sandbox credentials", async redirectedMethod => {
     const received: string[] = [];
     const server = createServer((req, res) => {
