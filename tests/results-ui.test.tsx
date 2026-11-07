@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { RATING_TIERS } from '../src/lib/profile';
 import { DuelSound } from '../src/lib/duel-sound';
@@ -190,4 +190,24 @@ it.each([
  expect(screen.queryByRole('progressbar')).toBeNull();
  expect(screen.queryByText('Test score unavailable')).toBeNull();
  expect(screen.getAllByText('Not recorded').length).toBeGreaterThan(0);
+});
+
+it.each([-1, NaN, Infinity, -Infinity, undefined])('withholds invalid saved timing values %s and recovers valid times', value=>{
+ const result:DuelResult={title:'Sample',outcome:'WIN',players:[{...players[0],cpu:value as number,submitted:value as number}]};
+ const view=render(<Results result={result}/>);
+ const panel=within(screen.getByRole('region',{name:'Your result'}));
+ expect(panel.getAllByText('Unavailable')).toHaveLength(2);
+ expect(panel.getByRole('progressbar')).toBeVisible();
+ expect(screen.getByRole('heading',{name:'WIN'})).toBeVisible();
+ expect(screen.getByRole('region',{name:'Reading the comparison'})).toHaveTextContent('Invalid saved times are shown as unavailable; the recorded match outcome still applies.');
+ view.rerender(<Results result={{...result,players:[{...players[0],cpu:0,submitted:0}]}}/>);
+ expect(panel.queryByText('Unavailable')).not.toBeInTheDocument();
+ expect(panel.getByText('0.00 ms')).toBeVisible();
+ expect(panel.getByText('0.00 s')).toBeVisible();
+ view.rerender(<Results result={{...result,players:[players[0]]}}/>);
+ expect(panel.getByText('12.35 ms')).toBeVisible();
+ expect(panel.getByText('1.25 s')).toBeVisible();
+ view.rerender(<Results result={{...result,players:[{...players[0],cpu:null,submitted:null}]}}/>);
+ expect(panel.getByText('Not recorded')).toBeVisible();
+ expect(panel.getByText('No submission')).toBeVisible();
 });
