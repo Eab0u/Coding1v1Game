@@ -79,6 +79,37 @@ npm run problems -- publish problems/drafts/relay-balance-window.json
 Both commands perform full sandbox validation; publication also requires Postgres.
 Never publish through direct SQL or treat mocked runner results as approval.
 
+### Channel Budget Windows
+
+`drafts/channel-budget-windows.json` is an original medium sliding-window
+problem: count nonempty contiguous intervals using at most a given number of
+distinct channels. Duplicate readings consume one channel slot.
+
+The reference maintains a frequency map and moves the left endpoint until the
+budget holds, then counts every valid suffix ending at the right endpoint.
+Each endpoint moves at most n times: O(n) expected time and O(n) space. The
+O(n^2) brute force builds a set for each left endpoint and visits all right
+endpoints, including invalid windows. Its lack of early termination deliberately
+keeps all three benchmarks useful for timeout validation.
+
+The generator supplies 2,000 seeded small arrays and budgets. Fixtures cover
+singletons, repeated channels, signed boundary values, oversized budgets and
+repeated shrinking. Three 100,000-element benchmarks use equal, unique and
+three-channel cycling records; their expected totals follow closed-form counts.
+The equal-channel answer exceeds signed 32-bit range. The supplied brute force
+visits 5,000,050,000 windows per benchmark.
+
+Data-only fixture tests independently enumerate small intervals and verify
+reversal invariance, budget monotonicity and large-case formulas. Neither Python
+solution runs locally. The proposed 1-second CPU and 64-MiB limits require
+measurement in isolated Judge0; correctness and timeout approval remain pending.
+The draft is private and unpublished. Once connectivity is restored, run:
+
+```sh
+npm run problems -- validate problems/drafts/channel-budget-windows.json
+npm run problems -- publish problems/drafts/channel-budget-windows.json
+```
+
 ### Spaced Beacon Pairs
 
 `drafts/spaced-beacon-pairs.json` adds an original easy counting problem: count
