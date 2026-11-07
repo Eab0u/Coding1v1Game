@@ -1,4 +1,5 @@
 import { Badge, Card } from "../components/ui";
+import Link from "next/link";
 
 import { cookies } from "next/headers";
 import { auth, database } from "../lib/auth-server";
@@ -48,7 +49,7 @@ export default async function Home() {
         </Card> : <section className="dashboard-grid" aria-label="Player dashboard">
           <Card><p className="eyebrow">YOUR LADDER</p><h2>{user ? Math.round(user.rating) : "800"} <small>MMR</small></h2><p>{user ? `${data.streak} consecutive wins` : "Your starting rating ? Sign in to track your climb"}</p></Card>
           <Card><p className="eyebrow">DAILY CHALLENGE ? UTC</p>{data.daily ? <><h2>{data.daily.title}</h2><Badge>{data.daily.difficulty}</Badge><p>{data.daily.statement}</p><code>{data.daily.function_signature}</code></> : <><h2>A fresh challenge is on its way.</h2><p>Daily problems appear here once the validated catalog is published.</p></>}</Card>
-          <Card><h2>Recent duels</h2>{data.recent.length ? <ul className="recent-duels">{data.recent.map(match => <li key={match.id}><strong>{match.winner_id === user?.id ? "WIN" : match.winner_id ? "LOSS" : "DRAW"}</strong><span>{match.title}<br /><small>vs {match.opponent}</small></span></li>)}</ul> : <p>{user ? "Your first duel starts your story. Completed matches will appear here." : "Sign in to see your match history."}</p>}</Card>
+          <Card><h2>Recent duels</h2>{data.recent.length ? <ul className="recent-duels">{data.recent.map(match => <li key={match.id}><strong>{match.winner_id === user?.id ? "WIN" : match.winner_id ? "LOSS" : "DRAW"}</strong><span><Link className="recent-duel-result" href={`/match/${encodeURIComponent(match.id)}/results`} aria-label={`View results for ${match.title} against ${match.opponent}`}>{match.title}</Link><small>vs <Link className="recent-duel-opponent" href={`/profile/${encodeURIComponent(match.opponent)}`}>{match.opponent}</Link></small></span></li>)}</ul> : <p>{user ? "Your first duel starts your story. Completed matches will appear here." : "Sign in to see your match history."}</p>}</Card>
         </section>}
         <section className="principles" aria-labelledby="scoring">
           <h2 id="scoring">What wins a duel?</h2>

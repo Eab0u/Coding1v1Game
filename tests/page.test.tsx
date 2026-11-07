@@ -18,8 +18,23 @@ it("shows real account stats, daily challenge and completed results", async () =
   render(await Home());
   expect(screen.getByText("3 consecutive wins")).toBeVisible();
   expect(screen.getByText("WIN")).toBeVisible();
+  expect(screen.getByRole("link", { name: "View results for Pairs against Bob" })).toHaveAttribute("href", "/match/m/results");
+  expect(screen.getByRole("link", { name: "Bob" })).toHaveAttribute("href", "/profile/Bob");
   expect(screen.getByText("Signal")).toBeVisible();
   expect(screen.getByRole("button", { name: "Play a duel" })).toBeEnabled();
+});
+it("links each recent outcome to its own results and safely encodes destinations", async () => {
+  mocks.current.mockResolvedValue({ id: "one", username: "Ada", rating: 800 });
+  mocks.load.mockResolvedValue({ daily: null, streak: 0, recent: [
+    { id: "a/b", title: "Pairs", winner_id: "two", opponent: "B ob" },
+    { id: "draw", title: "Signals", winner_id: null, opponent: "Carol" },
+  ] });
+  render(await Home());
+  expect(screen.getByText("LOSS")).toBeVisible();
+  expect(screen.getByText("DRAW")).toBeVisible();
+  expect(screen.getByRole("link", { name: "View results for Pairs against B ob" })).toHaveAttribute("href", "/match/a%2Fb/results");
+  expect(screen.getByRole("link", { name: "B ob" })).toHaveAttribute("href", "/profile/B%20ob");
+  expect(screen.getByRole("link", { name: "View results for Signals against Carol" })).toHaveAttribute("href", "/match/draw/results");
 });
 it("contains database errors without exposing secrets", async () => {
   mocks.current.mockRejectedValue(new Error("secret"));

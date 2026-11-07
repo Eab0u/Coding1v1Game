@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Recent duel navigation
+- Reviewed the two unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent dashboard usability item. Catalog items remain unchecked.
+- Recent duel titles now open their saved results, and opponent names open public profiles. Added explicit results link names, encoded route segments, visible underlines and 44px touch targets with wrapping for long titles and names.
+- Added component coverage for win, loss and draw navigation and encoded destinations. Chromium coverage verifies the populated dashboard at 320px, touch target heights, overflow and keyboard order from results to opponent.
+- Validation: all 455 tests across 45 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Friend invitation username guidance
 - Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent friend invitation usability item. Catalog items remain unchecked.
 - Reused shared username validation for friend invitations with visible player-specific rules, styled accessible inline errors and correction recovery. Disabled automatic capitalization, spellcheck and account autofill for the rival's username while preserving native POST actions and exact typed names.

@@ -30,6 +30,27 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
+it('makes recent duel results and opponents keyboard accessible on narrow phones', async () => {
+  const page = await browser.newPage({ viewport: { width: 320, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Home())}`);
+    const results = page.locator('.recent-duel-result');
+    const opponent = page.locator('.recent-duel-opponent');
+    expect(await results.getAttribute('href')).toBe('/match/1/results');
+    expect(await opponent.getAttribute('href')).toBe(`/profile/${username}`);
+    for (const link of [results, opponent]) {
+      const bounds = (await link.boundingBox())!;
+      expect(bounds.height).toBeGreaterThanOrEqual(44);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(320);
+    }
+    await results.focus();
+    expect(await results.evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await opponent.evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  } finally { await page.close(); }
+});
+
 it('keeps populated password guidance within the phone account layout', async () => {
   state.signedIn = false;
   const page = await browser.newPage({ viewport: { width: 320, height: 900 } });

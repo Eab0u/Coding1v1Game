@@ -138,6 +138,9 @@ code { font-family: var(--font-mono); }
 .site-header > a { display: inline-flex; align-items: center; min-height: 44px; }
 .recent-duels li > span { min-width: 0; }
 .recent-duels strong { flex-shrink: 0; }
+.recent-duel-result, .recent-duel-opponent { display: flex; align-items: center; min-height: 44px; width: fit-content; max-width: 100%; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 4px; }
+.recent-duels small { display: flex; align-items: baseline; gap: 6px; }
+.recent-duel-opponent { min-width: 0; }
 .ladder-scroll { max-width: 100%; overscroll-behavior-x: contain; }
 .ladder-table { min-width: 420px; }
 .profile-history .ladder-table { min-width: 640px; }
