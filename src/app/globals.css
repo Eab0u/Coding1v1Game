@@ -288,6 +288,10 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .result-correctness label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; font-weight: 700; }
 .result-correctness label span { color: var(--color-text-muted); }
 .result-correctness progress { display: block; width: 100%; height: 14px; margin-block: .75rem; accent-color: var(--color-success); }
+.result-correctness--partial progress { accent-color: #e5b567; }
+.result-correctness-badge { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.result-correctness--partial .result-correctness-badge { color: #e5b567; }
+.result-correctness--full .result-correctness-badge { color: var(--color-success); }
 .result-correctness p { margin: 0; color: var(--color-text-muted); font-size: .875rem; }
 .result-player h2 { margin-top: .5rem; }
 .result-player h2 a { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; padding-block: 6px; border-radius: var(--radius-sm); text-decoration: underline; text-underline-offset: 4px; }

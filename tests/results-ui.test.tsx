@@ -35,6 +35,26 @@ it.each([[0,'No hidden tests passed'],[5,'Some hidden tests passed'],[8,'All hid
  expect(meter).toHaveAttribute('max','8');
  expect(meter).toHaveAttribute('aria-valuetext',`${passed} of 8 hidden tests passed`);
  expect(screen.getByText(label)).toBeVisible();
+ expect(screen.getByText(label)).toHaveClass('badge','result-correctness-badge');
+ expect(meter.parentElement).toHaveClass(`result-correctness--${passed===8?'full':'partial'}`);
+});
+it('removes verdict styling for invalid or absent scores and recovers corrected scores',()=>{
+ const result={title:'Sample',outcome:'WIN' as const,players:[players[0]]};
+ const view=render(<Results result={result}/>);
+ for(const score of [{passed:-1,total:8},{passed:9,total:8},{passed:NaN,total:8},{passed:0,total:0},{passed:null,total:null}]) {
+  view.rerender(<Results result={{...result,players:[{...players[0],...score}]}}/>);
+  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  expect(view.container.querySelector('.result-correctness-badge')).toBeNull();
+  expect(view.container.querySelector('.result-correctness--full, .result-correctness--partial')).toBeNull();
+ }
+ view.rerender(<Results result={{...result,players:[{...players[0],passed:0}]}}/>);
+ expect(screen.getByText('No hidden tests passed')).toHaveClass('result-correctness-badge');
+ expect(screen.getByRole('progressbar').parentElement).toHaveClass('result-correctness--partial');
+ view.rerender(<Results result={result}/>);
+ expect(screen.getByRole('progressbar').parentElement).toHaveClass('result-correctness--full');
+ view.rerender(<Results result={{...result,players:[{...players[0],submitted:null}]}}/>);
+ expect(screen.getByText('No judged submission')).toBeVisible();
+ expect(view.container.querySelector('.result-correctness-badge')).toBeNull();
 });
 it.each([null,0])('does not invent a correctness meter for unavailable totals %s',total=>{
  render(<Results result={{title:'Legacy',outcome:'DRAW',players:[{...players[0],passed:null,total}]}}/>);

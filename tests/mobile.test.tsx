@@ -298,6 +298,26 @@ it.each([320, 375, 1280])('distinguishes result rating directions with contained
   } finally { await page.close(); }
 });
 
+it.each([320, 1280])('distinguishes final full, partial and zero-pass scores visibly at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    for (const passed of [0, 5, 8]) {
+      const player = { username, before: 800, after: 800, passed, total: 8, cpu: 1, submitted: 1000 };
+      await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<Results result={{title:'Sample',outcome:'DRAW',players:[player]}}/>)}`);
+      const badge = page.locator('.result-correctness-badge');
+      expect(await badge.textContent()).toBe(passed===8?'All hidden tests passed':passed===0?'No hidden tests passed':'Some hidden tests passed');
+      expect(await badge.isVisible()).toBe(true);
+      const color = passed===8?'rgb(164, 210, 117)':'rgb(229, 181, 103)';
+      expect(await badge.evaluate(el=>getComputedStyle(el).color)).toBe(color);
+      expect(await page.getByRole('progressbar').evaluate(el=>getComputedStyle(el).accentColor)).toBe(color);
+      const box = (await badge.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x+box.width).toBeLessThanOrEqual(width);
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    }
+  } finally { await page.close(); }
+});
+
 it.each([320, 375, 1280])('supports results skip navigation and player touch targets at %spx', async width => {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
   try {

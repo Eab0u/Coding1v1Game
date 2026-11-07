@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+
+### 2026-11-07 - Final-score verdict polish
+- Retried the highest-priority unchecked catalog validation with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured isolated judge still returned JudgeUnavailableError. Both catalog backlog items remain blocked and unchecked. No Python ran outside the sandbox.
+- Added and completed one results-page improvement under the blocker rule: full, partial and zero-pass judged scores now have explicit text badges, with green full-pass and amber incomplete progress accents. Badges wrap on narrow screens. Unavailable scores and missing submissions retain their existing guidance without verdict styling.
+- Extended component tests for all three verdicts, invalid and missing counts, corrected-score recovery and missing submissions. Added Chromium checks for actual badge/meter colors and overflow at 320px and 1280px. Corrected an initial browser assertion to use the existing success color token.
+- Validation: all 1,274 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 deployment and validate the initial catalog; live infrastructure smoke checks remain pending.
 ### 2026-11-07 - Validate saved results ratings
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured sandbox returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
 - Followed the blocker rule to add and complete one results-page fix. Negative, nonfinite or missing invalid rating values now show a styled Rating unavailable notice instead of numeric totals, change badges or misleading tiers. The notice preserves the recorded outcome; historical null ratings retain Rating not recorded.
