@@ -19,6 +19,7 @@ import { Results } from '../src/components/results';
 vi.mock('../src/lib/friends', () => ({ loadFriends: async () => { if (state.friendsUnavailable) throw new Error('private'); if (state.friendsEmpty) return []; return [{ username: 'abcdefghijklmnopqrstuvwx', rating: 999.75, status: 'pending', incoming: true }, { username: 'another_long_player_name', rating: 999.75, status: 'accepted', incoming: false }, { username: 'outgoing_long_player_name', rating: 999.75, status: 'pending', incoming: false }]; } }));
 import Friends from '../src/app/friends/page';
 import NotFound from '../src/app/not-found';
+import ErrorRecovery from '../src/app/error';
 import Home from '../src/app/page';
 import Profile from '../src/app/profile/[username]/page';
 import Leaderboard from '../src/app/leaderboard/page';
@@ -32,15 +33,21 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
-it.each([320, 375, 1280])('keeps unavailable-page recovery usable at %spx', async width => {
+it.each([320, 375, 1280].flatMap(width => [ {width, interrupted: false}, {width, interrupted: true} ]))('keeps page recovery usable at $width px (interrupted: $interrupted)', async ({width, interrupted}) => {
   const page = await browser.newPage({ viewport: { width, height: 600 } });
   try {
-    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<NotFound />)}`);
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(interrupted ? <ErrorRecovery error={new Error("private")} reset={() => {}} /> : <NotFound />)}`);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.keyboard.press('Tab');
     expect(await page.getByRole('link', {name:'Skip to page recovery'}).evaluate(el => document.activeElement === el)).toBe(true);
     await page.keyboard.press('Enter');
     expect(await page.getByRole('main').evaluate(el => document.activeElement === el)).toBe(true);
+    if (interrupted) {
+      await page.keyboard.press('Tab');
+      const retry = page.getByRole('button', {name:'Try this page again'});
+      expect(await retry.evaluate(el => document.activeElement === el)).toBe(true);
+      expect((await retry.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
     for (const name of ['Back to arena', 'Explore standings']) {
       await page.keyboard.press('Tab');
       const link = page.getByRole('link', {name});

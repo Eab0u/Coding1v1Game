@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Unexpected-page error recovery
+- Retried problems 1-20 validation using Relay Basin Storage; JudgeUnavailableError still blocks the catalog milestones. Following the blocker rule, added and completed one bounded recovery item.
+- Added the root route error boundary with a branded responsive recovery card, explicit Next.js reset action, public arena/standings links and native skip navigation. Internal exception messages and digests are never rendered. Guidance explains that retrying the view does not submit code and an active match clock may continue running.
+- Added component tests for explicit/repeated retry, private-detail exclusion, recovery destinations and clock guidance. Extended Chromium checks at 320, 375 and 1280px for native skip navigation, retry focus, touch targets and overflow.
+- Validation: full suite passed (1,066 tests across 68 files) before the additional three browser cases; updated recovery/browser checks also passed. Lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Unavailable-page recovery
 - Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded recovery improvement; catalog milestones remain unchecked.
 - Replaced the default missing-page screen with a branded CodeDuel recovery card, clear address guidance and public arena and standings links. Generic wording preserves unavailable-resource privacy. Added responsive green-accented styling and native skip navigation to a focusable main destination.
