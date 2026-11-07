@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, act } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import Link from "next/link";
 import { Play } from "../src/components/play";
 class Socket {
   static OPEN = 1;
@@ -198,4 +199,49 @@ it("renders readable matchmaking copy throughout connection, search, cancellatio
   expect(screen.getByRole("status")).toHaveTextContent("Reserving your match… Waiting for server confirmation.");
   event({ type: "matched", match: { id: "m", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
   expect(screen.getByRole("status")).toHaveTextContent("Matched with Ada (800) · easy.");
+});
+
+
+it.each(["play", "cancel"])("focuses the arena link when a match replaces the focused %s search control", control => {
+  render(<Play signedIn />);
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  play.focus();
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  if (control === "cancel") screen.getByRole("button", { name: "Cancel search" }).focus();
+  event({ type: "matched", match: { id: "keyboard", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
+
+it("preserves independent navigation through queue updates, reservation and duplicate match frames", () => {
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  const profile = screen.getByRole("link", { name: "View profile" });
+  profile.focus();
+  event({ type: "queued", waitedSeconds: 5, ratingBand: 100 });
+  event({ type: "matching" });
+  event({ type: "matched", match: { id: "background", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(profile).toHaveFocus();
+  event({ type: "matched", match: { id: "background", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(profile).toHaveFocus();
+});
+
+
+it("does not transfer focus after a failed search or from an obsolete connection", () => {
+  const ws = start();
+  event({ type: "error", message: "Please retry" });
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  play.focus();
+  expect(play).toHaveFocus();
+  expect(screen.queryByRole("link", { name: "Open arena" })).not.toBeInTheDocument();
+  fireEvent.click(play);
+  act(() => ws.onmessage({ data: JSON.stringify({ type: "matched", match: { id: "old", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } }) }));
+  expect(play).toHaveFocus();
+  expect(screen.queryByRole("link", { name: "Open arena" })).not.toBeInTheDocument();
+  act(() => Socket.latest.onopen());
+  event({ type: "matching" });
+  event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
 });

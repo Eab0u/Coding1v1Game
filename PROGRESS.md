@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Matchmaking keyboard handoff
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one keyboard-flow improvement. A confirmed match focuses Open arena when focus was on the Play/search button or Cancel search control. Players navigating elsewhere retain their focus; no automatic navigation occurs.
+- Focus moves after the link mounts, once per confirmed match. Existing connection identity checks prevent stale or duplicate frames from redirecting focus. Added coverage for both search controls, independent navigation through queue/reservation updates, failed searches, stale frames and successful retry.
+- Validation: all 1,480 tests across 72 files passed; the final 19-test matchmaking suite, lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Readable matchmaking rating range
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one UI polish item. Matchmaking now displays the rating band with a plus/minus symbol instead of a question mark, making the widening range understandable.
