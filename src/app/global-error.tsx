@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { RecoveryConnectionStatus } from "../components/recovery-connection-status";
 
 /* eslint-disable @next/next/no-html-link-for-pages -- Full document navigation recovers a failed root layout without relying on its client router. */
 // This boundary replaces the root layout, so it owns its document and styles.
@@ -38,6 +39,7 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
         <p className="recovery-label">PAGE INTERRUPTED</p>
         <h1>Get back in the game.</h1>
         <p role="alert">We could not load the site view. Try loading it again.</p>
+        <RecoveryConnectionStatus />
         <p id={guidanceId} className="recovery-guidance">Retrying this view does not submit code or start a new duel. If you were playing, the match clock may still be running.</p>
         <p id={reloadGuidanceId} className="recovery-guidance">If retrying keeps failing, reload the full page. Unsaved changes may be lost; a live match clock continues.</p>
         <p id={matchGuidanceId} className="recovery-guidance">The live duel server clock continues while this page is unavailable. Return home and press Play to recover your existing match; availability depends on what the server confirms.</p>

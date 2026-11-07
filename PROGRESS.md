@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Error-screen connection recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: both route and standalone root error screens now show styled browser-offline guidance and a stable polite reconnection notice. Guidance explains the continuing live server clock and retains uncertainty about server availability. Recovery remains explicit; connection changes do not retry, reload or move keyboard focus.
+- Added regression coverage for initially offline browsers, repeated outages, initial online events, stable announcement regions and controls, preserved keyboard focus, listener cleanup, fresh reopening and standalone root-document hydration.
+- Validation: all 1,634 tests across 73 files passed with `npm test -- --maxWorkers=2`; all ten focused recovery tests, lint, production build, typecheck and whitespace checks passed. Corrected a test matcher for elements belonging to a separately parsed document before the successful runs.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Loading reconnection feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one loading improvement: a green reconnection notice appears inside the existing polite status after a browser-reported outage, explicitly retaining uncertainty about server availability. Existing delayed guidance, recovery controls and keyboard focus remain stable. A new outage retires the notice; reopening starts fresh.
