@@ -40,7 +40,9 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     if (document.activeElement === document.body || document.activeElement === play) play?.focus();
   }, [phase]);
   function restoreIdle() {
-    if (panel.current?.querySelector("[data-search-cancel]")?.matches(":focus")) focusAfterSearch.current = true;
+    if (panel.current?.querySelector("[data-search-cancel]")?.matches(":focus")
+      || (focusArena.current && document.activeElement === document.body)) focusAfterSearch.current = true;
+    focusArena.current = false;
     setPhase("idle");
   }
   function join() {

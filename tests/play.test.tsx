@@ -94,7 +94,7 @@ it.each(["confirmed", "independent navigation", "unfocused", "failure then retry
   }
   event({ type: "matched", match: { id: "reserved", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
   const arena = screen.getByRole("link", { name: "Open arena" });
-  if (outcome === "confirmed") expect(arena).toHaveFocus();
+  if (outcome === "confirmed" || outcome === "failure then retry") expect(arena).toHaveFocus();
   else expect(arena).not.toHaveFocus();
   if (outcome === "independent navigation") expect(screen.getByRole("link", { name: "View profile" })).toHaveFocus();
 });
@@ -581,4 +581,34 @@ it.each([100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 8
   expect(screen.getByText("0s elapsed")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Cancel search" })).toBeEnabled();
   expect(screen.getByRole("status")).toHaveTextContent("Finding opponent");
+});
+
+it.each(["timeout", "error", "disconnect", "malformed"])("restores reservation keyboard focus after %s without overriding independent navigation", outcome => {
+  vi.useFakeTimers();
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  for (const navigate of [false, true]) {
+    fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+    act(() => Socket.latest.onopen());
+    event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+    screen.getByRole("button", { name: "Cancel search" }).focus();
+    event({ type: "matching" });
+    const profile = screen.getByRole("link", { name: "View profile" });
+    if (navigate) profile.focus();
+    if (outcome === "timeout") act(() => vi.advanceTimersByTime(10000));
+    else if (outcome === "disconnect") act(() => Socket.latest.onclose());
+    else if (outcome === "malformed") event({ type: "matched" });
+    else event({ type: "error", message: "Reservation failed. Retry." });
+    const play = screen.getByRole("button", { name: "Play a duel" });
+    expect(play).toBeEnabled();
+    expect(play).toHaveAttribute("aria-busy", "false");
+    expect(navigate ? profile : play).toHaveFocus();
+    const failure = screen.getByRole("status").textContent;
+    act(() => vi.advanceTimersByTime(30000));
+    expect(screen.getByRole("status").textContent).toBe(failure);
+    expect(vi.getTimerCount()).toBe(0);
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "matched", match: { id: "recovered", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveAttribute("href", "/match/recovered");
 });
