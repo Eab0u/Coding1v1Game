@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Calendar-safe completion dates
+- Retried the highest-value unchecked catalog milestone using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. No Python ran outside the sandbox and catalog milestones remain unchecked.
+- Followed the blocker rule and added/completed one history-display fix: shared completion dates now reject impossible calendar days and 24:00 normalization instead of showing a different completion instant. Dashboard, profile and results inherit the fix.
+- Added regression tests for month/day bounds, leap-year century rules, invalid clock values, offset conversion across a month boundary and recovery after corrected history.
+- Validation: all 1,323 tests across 72 files passed; lint and typecheck passed. Corrected a test syntax typo found by the initial targeted run.
+- Next: restore isolated Judge0 access and validate the initial catalog. Live infrastructure smoke checks and existing blockers remain pending.
+
 ### 2026-11-07 - Unambiguous completion timestamps
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule to add and complete one shared history fix. Dashboard, profile and results completion dates now reject date-only, timezone-free and locale-dependent strings instead of risking different server/browser interpretations. Date objects and ISO timestamps with explicit UTC or numeric offsets retain the existing UTC display; ambiguous history shows Completion date unavailable.
