@@ -1,6 +1,7 @@
 export function JudgingGuide() {
-  return <aside className="judging-guide" aria-labelledby="judging-guide-title">
-    <h3 id="judging-guide-title">How your solution is judged</h3>
+  return <aside className="judging-guide" aria-label="How your solution is judged">
+    <details className="judging-details">
+    <summary>How your solution is judged</summary>
     <p>Examples illustrate the problem. Submissions are checked against hidden tests, including cases beyond these examples. Matching the examples alone does not guarantee a correct solution.</p>
     <ol>
       <li>Most hidden tests passed.</li>
@@ -8,5 +9,6 @@ export function JudgingGuide() {
       <li>Earlier submission time if correctness and CPU time tie.</li>
     </ol>
     <p>Your best judged submission counts at the deadline. A weaker later attempt does not replace it. Editor changes count only after you submit them.</p>
+    </details>
   </aside>;
 }

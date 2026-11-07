@@ -316,7 +316,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .example-format-guide p { margin: 8px 0 0; color: var(--color-text-muted, #b8b6b3); }
 .example-format-guide code { color: var(--color-text, #fff); }
 .judging-guide { min-width: 0; margin: 24px 0; padding: 16px; border: 1px solid var(--color-accent, #81b64c); border-radius: 12px; background: var(--color-bg, #262421); overflow-wrap: anywhere; line-height: 1.6; }
-.judging-guide h3 { margin: 0; }
+.judging-details summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 700; border-radius: 4px; }
+.judging-details summary:hover, .judging-details[open] summary { color: var(--color-accent, #81b64c); }
 .judging-guide p { color: var(--color-text-muted, #b8b6b3); margin: 12px 0 0; }
 .judging-guide ol { padding-left: 24px; margin: 12px 0; }
 .judging-guide li + li { margin-top: 8px; }

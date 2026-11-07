@@ -14,6 +14,8 @@ function leaveIsGuarded() {
 it.each(['pending','active','completed','cancelled'] as const)('explains hidden tests and ordered scoring in the %s arena',status=>{
   render(<Arena initial={{...initial,status}}/>);
   const guide=screen.getByRole('complementary',{name:'How your solution is judged'});
+  expect(guide.querySelector('details')).not.toHaveAttribute('open');
+  expect(guide.querySelector('summary')).toHaveTextContent('How your solution is judged');
   expect(guide).toHaveTextContent('Matching the examples alone does not guarantee a correct solution');
   expect(Array.from(guide.querySelectorAll('ol li'),el=>el.textContent)).toEqual([
     'Most hidden tests passed.',

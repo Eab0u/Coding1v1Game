@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Make arena judging guidance a compact native disclosure with styled touch controls and component and phone keyboard regression coverage
 - [x] Add visible keyboard scrolling guidance to public example code regions with unique accessible descriptions, responsive styling and component and phone browser regression coverage
 - [x] Make repeated example-format guidance a compact native disclosure with styled touch controls and keyboard and phone regression coverage
 - [x] Make weekly standings scoring guidance a compact native disclosure with styled touch controls and component and phone keyboard regression coverage
