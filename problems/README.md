@@ -21,6 +21,31 @@ The pipeline has no published catalog yet; the original drafts below are awaitin
 
 ## Original problem drafts
 
+### Relay Cycle Intervals
+
+`drafts/relay-cycle-intervals.json` is an original medium prefix-remainder
+problem: count nonempty contiguous intervals whose signed sum is divisible
+by a positive cycle length. Zero and negative multiples count. Equal prefix
+remainders identify balanced intervals; seed the empty prefix and count before
+inserting the current prefix. The reference uses O(n) expected time and O(n)
+space. The baseline enumerates every interval in O(n^2) time and O(1) space.
+
+The generator supplies 2,000 seeded signed inputs. Fixtures cover unit cycles,
+negative sums, zeroes, missing intervals and signed bounds. Three 100,000-entry
+benchmarks use zeroes, ones with no qualifying interval, and alternating signed
+multiples. Each requires 5,000,050,000 baseline visits; two answers exceed 32 bits.
+Data-only tests compare enumeration with a sorted prefix-residue pairing identity,
+check reversal, negation and adding a cycle to each value, and verify large-case
+formulas. They never execute Python or establish sandbox approval.
+
+The proposed 1-second CPU and 64-MiB limits require isolated measurement. This
+draft remains private and unpublished until full sandbox validation succeeds:
+
+```sh
+npm run problems -- validate problems/drafts/relay-cycle-intervals.json
+npm run problems -- publish problems/drafts/relay-cycle-intervals.json
+```
+
 ### Delayed Drop Pairs
 
 `drafts/delayed-drop-pairs.json` is an original medium divide-and-conquer
