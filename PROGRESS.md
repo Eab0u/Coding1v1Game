@@ -37,6 +37,12 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Rematch action button feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks catalog validation. Both catalog milestones remain unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one usability improvement: rematch action buttons display action-specific sending, accepting, declining or cancelling labels with aria-busy while awaiting confirmation. Other controls retain their labels. Expiry retires busy feedback while preserving disabled controls and server-confirmation guidance; failures, reopened windows and authoritative outcomes restore the appropriate controls.
+- Updated all four action-failure cases and added incoming/outgoing deadline, delayed-failure, reopening, explicit-retry and terminal-outcome regressions. All 1,457 tests across 72 files passed, including all 68 focused rematch tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then perform live deployment smoke checks. Existing infrastructure blockers remain; live browser visual inspection remains pending.
+
 ### 2026-11-07 - Rematch invitation countdown urgency
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked. No Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one visual improvement: the final ten rematch invitation seconds show an amber countdown border and explicit “Invitation closing soon” text. The cue clears during actions, extended invitation windows, expiry and authoritative outcomes. The timer retains aria-live="off" to avoid per-second announcements; existing deadline confirmation guidance remains intact.

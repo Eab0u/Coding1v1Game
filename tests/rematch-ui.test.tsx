@@ -2,6 +2,40 @@ import {act,render,screen,fireEvent,waitFor} from '@testing-library/react';
 import {it,expect,vi,afterEach} from 'vitest';
 import {Rematch} from '../src/components/rematch';
 afterEach(()=>vi.unstubAllGlobals());
+it.each([
+ ['accept',false,'Accept rematch','Accepting rematch?'],
+ ['decline',false,'Decline','Declining invitation?'],
+ ['cancel',true,'Cancel invitation','Cancelling invitation?'],
+] as const)('retires %s button feedback at expiry and restores it only for an active retry',async(action,outgoing,label,pendingLabel)=>{
+ vi.useFakeTimers();
+ try {
+  const snapshot={status:'pending',outgoing,matchId:null,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:00:01Z'};
+  const pending=deferred<{ok:boolean;json:()=>Promise<{error:string}>}>();
+  const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>snapshot}).mockReturnValueOnce(pending.promise).mockResolvedValue({ok:true,json:async()=>({...snapshot,expiresAt:'2026-11-07T12:01:00Z'})});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const button=screen.getByRole('button',{name:label});
+  fireEvent.click(button);
+  expect(button).toHaveAccessibleName(pendingLabel);
+  expect(button).toHaveAttribute('aria-busy','true');
+  for (const other of screen.getAllByRole('button').filter(control=>control!==button)) expect(other).toHaveAttribute('aria-busy','false');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAccessibleName(label);
+  expect(button).toHaveAttribute('aria-busy','false');
+  expect(button).toBeDisabled();
+  await act(async()=>{pending.resolve({ok:false,json:async()=>({error:'Retry the action.'})});});
+  expect(button).toBeEnabled();
+  expect(button).toHaveAccessibleName(label);
+  expect(button).toHaveAttribute('aria-busy','false');
+  const retry=deferred<ReturnType<typeof response>>();
+  fetcher.mockReturnValueOnce(retry.promise);
+  fireEvent.click(button);
+  expect(button).toHaveAccessibleName(pendingLabel);
+  await act(async()=>{retry.resolve(response(action==='accept'?'accepted':action==='decline'?'declined':'cancelled'));});
+  expect(button).not.toBeInTheDocument();
+  expect(screen.queryByRole('button',{busy:true})).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
 it.each([true,false])('highlights the final ten invitation seconds and retires urgency across lifecycle changes (outgoing=%s)',async(outgoing)=>{
  vi.useFakeTimers();
  try {
@@ -256,6 +290,8 @@ it.each([
  render(<Rematch id="old"/>);
  const button=await screen.findByRole('button',{name:label});
  fireEvent.click(button);
+ expect(button).toHaveTextContent(`${message}?`);
+ expect(button).toHaveAttribute('aria-busy','true');
  expect(screen.getByRole('status')).toHaveTextContent(message);
  expect(screen.getByRole('status')).toHaveClass('rematch-pending');
  for (const control of screen.getAllByRole('button')) expect(control).toBeDisabled();
@@ -267,6 +303,7 @@ it.each([
  expect(screen.getByRole('status')).not.toHaveTextContent(message);
  expect(screen.getByRole('status')).not.toHaveClass('rematch-pending');
  expect(screen.getByRole('button',{name:label})).toBeEnabled();
+ expect(button).toHaveAttribute('aria-busy','false');
 });
 
 it('replaces sending feedback with the confirmed invitation state',async()=>{
@@ -656,6 +693,8 @@ it('keeps invitation action descriptions current through sending and deadline ex
   expect(cancel).toHaveAccessibleDescription('Cancelling invitation. Waiting for server confirmation.');
   await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
   expect(cancel).toBeDisabled();
+  expect(cancel).toHaveTextContent('Cancel invitation');
+  expect(cancel).toHaveAttribute('aria-busy','false');
   expect(cancel).toHaveAccessibleDescription('The invitation window has ended. Acceptance and invitation changes are closed. Waiting for server confirmation; no rematch is confirmed yet.');
  } finally {vi.useRealTimers();}
 });
