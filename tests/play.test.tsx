@@ -15,6 +15,28 @@ beforeEach(() => { vi.stubGlobal("WebSocket", Socket); });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 function start() { render(<Play signedIn />); fireEvent.click(screen.getByRole("button", { name: "Play a duel" })); act(() => Socket.latest.onopen()); return Socket.latest; }
 function event(data: object) { act(() => Socket.latest.onmessage({ data: JSON.stringify(data) })); }
+it("recovers from a browser connection setup failure and permits a successful retry", () => {
+  vi.useFakeTimers();
+  vi.stubGlobal("WebSocket", class { constructor() { throw new DOMException("Blocked", "SecurityError"); } });
+  render(<Play signedIn />);
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  play.focus();
+  fireEvent.click(play);
+  expect(play).toBeEnabled();
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(play).toHaveFocus();
+  expect(screen.getByRole("status")).toHaveTextContent("Could not open a matchmaking connection. Please try again.");
+  expect(screen.queryByRole("button", { name: "Cancel search" })).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("status")).toHaveTextContent("Could not open a matchmaking connection");
+  vi.stubGlobal("WebSocket", Socket);
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  expect(Socket.latest.send).toHaveBeenCalledExactlyOnceWith('{"type":"join"}');
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
 it.each(["confirmed", "timeout", "disconnect", "error", "connecting"])("restores Play focus after focused cancellation ends through %s", outcome => {
   vi.useFakeTimers();
   start();

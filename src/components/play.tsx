@@ -45,7 +45,13 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     setPhase("connecting"); setMessage("Connecting to the arena…");
     const url = new URL("/matchmaking", window.location.href);
     url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(url);
+    let ws: WebSocket;
+    try { ws = new WebSocket(url); }
+    catch {
+      setPhase("idle");
+      setMessage("Could not open a matchmaking connection. Please try again.");
+      return;
+    }
     socket.current = ws;
     let cancelling = false;
     let reserving = false;

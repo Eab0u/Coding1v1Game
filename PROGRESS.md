@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Matchmaking connection setup recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking recovery item. Browser WebSocket construction failures now restore enabled Play controls, clear busy feedback and show actionable retry guidance instead of leaving the panel stuck connecting.
+- Added regression coverage for a browser SecurityError, preserved keyboard focus, no stale timeout feedback, and a successful retry through queue confirmation and focused Open arena navigation.
+- Validation: all 1,494 tests across 72 files passed, including all 33 matchmaking component tests. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Matchmaking action guidance and busy feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one accessibility improvement. Play, Cancel search and Open arena now reference stable visible matchmaking guidance through a unique per-panel description ID. Play exposes busy feedback while connecting, cancelling or reserving, and clears it on queue confirmation, cancellation, reservation success and failures.
