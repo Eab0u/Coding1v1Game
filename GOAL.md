@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Explain browser outages and reconnection on unavailable pages with styled polite guidance, preserving access uncertainty, recovery links and keyboard focus with lifecycle regression coverage
 - [x] Explain browser outages and reconnection on route and root error screens with styled polite guidance, preserving manual recovery, keyboard focus and listener cleanup with regression coverage
 - [x] Announce browser reconnection during page loading with a styled, stable polite notice, preserving server-availability uncertainty, recovery controls and keyboard focus with outage and reopening regression coverage
 - [x] Explain existing-match recovery on route and root error screens with prominent live-clock and server-confirmation guidance associated with home links, preserving stable descriptions and focus with regression coverage

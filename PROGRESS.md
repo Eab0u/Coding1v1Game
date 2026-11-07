@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Unavailable-page connection recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: unavailable pages now reuse the styled polite connection notice, with page-specific offline and reconnection guidance. The notice explains the continuing server clock and uncertainty about both server availability and page access. Connection changes preserve recovery links and keyboard focus without automatic navigation.
+- Added tests for initial offline state, stable polite announcements, repeated outages, preserved focus, initial online silence, listener cleanup and fresh reopening.
+- Validation: all 1,636 tests across 73 files passed with `npm test -- --maxWorkers=2`; all 11 focused recovery tests, lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Error-screen connection recovery
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one recovery item: both route and standalone root error screens now show styled browser-offline guidance and a stable polite reconnection notice. Guidance explains the continuing live server clock and retains uncertainty about server availability. Recovery remains explicit; connection changes do not retry, reload or move keyboard focus.
