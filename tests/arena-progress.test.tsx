@@ -69,3 +69,19 @@ it("keeps both players' progress names and descriptions separate", () => {
   expect(own).toHaveAccessibleDescription(/current edits were submitted/);
   expect(opponent).not.toHaveAccessibleDescription(/current edits were submitted/);
 });
+
+it.each([true, false])("separates waiting guidance from unavailable scores (player=%s)", player => {
+  const { rerender } = render(<ArenaProgress player={player} />);
+  expect(screen.getByRole('region')).toHaveClass('arena-progress--empty');
+  expect(screen.getByText('No judged submission yet')).toHaveClass('arena-progress-summary');
+  expect(screen.getByText(player ? /Submit your solution when ready/ : /after they submit/)).toBeVisible();
+  expect(screen.queryByRole('progressbar')).toBeNull();
+  rerender(<ArenaProgress player={player} score={{passed:9,total:8}} />);
+  expect(screen.getByRole('region')).toHaveClass('arena-progress--unavailable');
+  expect(screen.getByRole('region')).not.toHaveClass('arena-progress--empty');
+  expect(screen.queryByText(/Submit your solution when ready|after they submit/)).toBeNull();
+  expect(screen.getByText(/next automatic update/)).toBeVisible();
+  rerender(<ArenaProgress player={player} score={{passed:0,total:8}} />);
+  expect(screen.getByRole('region')).not.toHaveClass('arena-progress--empty', 'arena-progress--unavailable');
+  expect(screen.getByRole('progressbar')).toHaveAttribute('value', '0');
+});

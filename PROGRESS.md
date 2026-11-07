@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Arena empty-progress card polish
+- Selected and completed the actionable arena empty-progress polish item while catalog validation remains blocked on isolated Judge0 access.
+- Gave waiting cards a muted participant label, prominent status, distinct player/opponent next-step guidance, neutral bordered surfaces and compact phone spacing. Unavailable scores retain explicit automatic-update guidance without waiting or verdict cues; valid scores recover their existing bars and labels.
+- Added participant-symmetric component coverage for waiting/unavailable/valid transitions and Chromium checks at 320, 375 and 1280px for readable hierarchy, spacing, overflow and native Tab order past informational cards.
+- Validation: all 1,331 tests across 72 files passed; targeted arena/browser suite passed 277 tests. Lint, typecheck, production build and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Exact accessible arena progress
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one accessibility item: both arena progress bars now expose exact passed/total hidden-test counts through aria-valuetext instead of leaving assistive technology to announce percentages. Existing labels, scoring descriptions and unavailable-state safeguards remain intact.

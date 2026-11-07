@@ -1688,3 +1688,28 @@ it.each([320, 1280])('distinguishes arena zero, partial and full scores at %spx'
     }
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps empty arena progress readable and keyboard navigation clear at %spx', async width => {
+  const { ArenaProgress } = await import('../src/components/arena-progress');
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    for (const score of [null, {passed:9,total:8}]) {
+      await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(<><button>Before progress</button><ArenaProgress player score={score}/><ArenaProgress score={score}/><button>Submit solution</button></>)}`);
+      expect(await page.getByRole('progressbar').count()).toBe(0);
+      for (const card of await page.locator('.arena-progress').all()) {
+        const bounds = (await card.boundingBox())!;
+        expect(bounds.x).toBeGreaterThanOrEqual(0);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+        expect(await card.evaluate(el => getComputedStyle(el).paddingTop)).toBe(width <= 600 ? '16px' : '20px');
+        const summary = card.locator('.arena-progress-summary');
+        expect(await summary.innerText()).toBe(score ? 'Score unavailable' : 'No judged submission yet');
+        expect(await summary.evaluate(el => getComputedStyle(el).fontWeight)).toBe('700');
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.keyboard.press('Tab');
+      expect(await page.getByRole('button',{name:'Before progress'}).evaluate(el => el === document.activeElement)).toBe(true);
+      await page.keyboard.press('Tab');
+      expect(await page.getByRole('button',{name:'Submit solution'}).evaluate(el => el === document.activeElement)).toBe(true);
+    }
+  } finally { await page.close(); }
+});

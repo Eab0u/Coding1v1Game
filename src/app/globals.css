@@ -254,6 +254,14 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .solution-editor-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
 .plain-solution-editor { display: block; width: 100%; max-width: 100%; height: 480px; resize: vertical; padding: 16px; border: 1px solid var(--color-border, #555); border-radius: 8px; background: #1e1e1e; color: #eee; font: 15px/1.6 monospace; tab-size: 4; }
 .arena-progress { display:grid; gap:10px; margin-bottom:20px; }
+.arena-progress--empty, .arena-progress--unavailable { padding:20px; border:1px solid var(--color-border); border-radius:12px; background:var(--color-bg, #262421); min-width:0; overflow-wrap:anywhere; }
+.arena-progress-placeholder { display:grid; gap:6px; }
+.arena-progress .arena-progress-eyebrow { margin:0; font-size:.875rem; color:var(--color-muted); }
+.arena-progress .arena-progress-summary { margin:0; font-size:1.125rem; font-weight:700; line-height:1.4; }
+.arena-progress--empty p, .arena-progress--unavailable p { margin:0; }
+.arena-progress-next { line-height:1.6; }
+.arena-progress--empty > .muted, .arena-progress--unavailable > .muted { font-size:.875rem; line-height:1.6; }
+@media(max-width:600px) { .arena-progress--empty, .arena-progress--unavailable { padding:16px; gap:12px; } }
 .arena-connection { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; padding:16px; margin-bottom:20px; border:1px solid var(--color-border); border-left:4px solid var(--color-muted); border-radius:var(--radius-card, 12px); }
 .arena-connection > div { flex:1 1 260px; min-width:0; }
 .arena-connection p { margin:0 0 6px; overflow-wrap:anywhere; }
