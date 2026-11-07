@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Stable arena cancellation feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one cancellation improvement: a persistent polite atomic live region announces server-confirmed cancellation, unchanged ratings, matchmaking recovery and code export. Removed the nested transient status region from the visible panel to avoid duplicate announcements. Other match states keep the persistent region empty.
+- Updated reopening and polling regression tests to verify region identity, stable feedback after time advances, preserved code/export actions and silence for pending, active and completed states.
+- Validation: all 1,358 tests across 72 files passed, including 106 targeted arena UI tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech remains a manual check.
+
 ### 2026-11-07 - Arena start feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one arena improvement: a green-accented responsive notice confirms authoritative activation, explains that the clock is running and prompts submission of latest edits. A stable polite atomic live region keeps countdown ticks out of the announcement. Pending, expired, missing-deadline and terminal states withhold the notice.

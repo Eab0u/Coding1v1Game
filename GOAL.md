@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Announce authoritative arena cancellation through a stable polite live region, preserving recovery and code-export guidance with reopening, polling and other-state regression coverage
 - [x] Announce authoritative arena activation with a responsive start notice, stable polite feedback and reopening, expiry and terminal-state regression coverage
 - [x] Announce authoritative arena completion with a prominent responsive results panel, preserved code-export guidance and initial/polling/terminal-state regression coverage
 - [x] Announce restored arena live updates after connection failures with visible snapshot feedback and retry, recurring-outage and terminal-state regression coverage

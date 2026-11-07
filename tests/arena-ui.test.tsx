@@ -225,7 +225,8 @@ it('keeps unsent edit guidance honest at expiry and removes it when the match en
 it('explains an already cancelled reservation and links back to matchmaking',()=>{
   render(<Arena initial={{...initial,status:'cancelled'}}/>);
   expect(screen.getByRole('region',{name:'Duel cancelled'})).toBeVisible();
-  expect(screen.getByText(/No ratings changed/)).toBeVisible();
+  expect(screen.getByRole('region',{name:'Duel cancelled'})).toHaveTextContent('No ratings changed');
+  expect(screen.getByRole('status',{name:'Duel cancellation'})).toHaveTextContent('Duel cancelled. No ratings changed.');
   expect(screen.getByRole('link',{name:'Back to matchmaking'})).toHaveAttribute('href','/');
   expect(screen.queryByRole('button',{name:'Ready to duel'})).not.toBeInTheDocument();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
@@ -235,15 +236,28 @@ it('announces cancellation discovered by polling and retains code for export',as
   vi.useFakeTimers();
   vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status:'cancelled'})}));
   render(<Arena initial={initial}/>);
+  const announcement=screen.getByRole('status',{name:'Duel cancellation'});
+  expect(announcement).toBeEmptyDOMElement();
+  expect(announcement).toHaveAttribute('aria-live','polite');
+  expect(announcement).toHaveAttribute('aria-atomic','true');
   expect(screen.queryByRole('region',{name:'Duel cancelled'})).not.toBeInTheDocument();
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'def solve():\n    return 42'}});
   await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
   const panel=screen.getByRole('region',{name:'Duel cancelled'});
-  expect(panel.querySelector('[role="status"]')).toHaveTextContent('No ratings changed');
+  expect(panel.querySelector('[role="status"]')).toBeNull();
+  expect(screen.getByRole('status',{name:'Duel cancellation'})).toBe(announcement);
+  expect(announcement).toHaveTextContent('No ratings changed. Return home to find a new opponent.');
   expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    return 42');
   expect(screen.getByRole('button',{name:/Copy solution/})).toBeEnabled();
   expect(screen.getByRole('button',{name:/Download/})).toBeEnabled();
   expect(screen.queryByRole('region',{name:'Duel readiness'})).not.toBeInTheDocument();
+  const message=announcement.textContent;
+  await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
+  expect(announcement.textContent).toBe(message);
+});
+it.each(['pending','active','completed'] as const)('keeps cancellation announcements silent for %s matches',status=>{
+  render(<Arena initial={{...initial,status}}/>);
+  expect(screen.getByRole('status',{name:'Duel cancellation'})).toBeEmptyDOMElement();
 });
 it('resets a recovered draft to the full starter, persists it and clears the exit warning',()=>{
   vi.stubGlobal('fetch',vi.fn());
