@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Explicit password visibility notice
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks the highest-value catalog milestone. Catalog items remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one interface improvement: revealed passwords now show a styled notice in a stable polite status region. Reveal controls describe the notice and existing concealment guidance. Empty notices take no layout space.
+- Added regression coverage for both credential forms: reveal, Hide, Escape, window blur, page departure, invalid submission and reset, plus independent notices, stable status identity and accessible button descriptions.
+- Validation: all 1,601 tests across 72 files passed; lint, production build, typecheck and diff whitespace check passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Clear invalid credential field styling
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one form improvement: invalid username and password fields now use danger-colored borders, and their explicit validation messages use matching text and border accents. Shared username styling also applies to friend invitations. Existing validation controls when the cues appear and retire; keyboard focus outlines remain visible.

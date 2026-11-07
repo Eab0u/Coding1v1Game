@@ -5,6 +5,46 @@ import { PasswordField } from "../src/components/password-field";
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
 afterEach(() => vi.restoreAllMocks());
 
+it.each(["login", "signup"] as const)("keeps a stable %s visibility announcement through reveal and concealment", async mode => {
+  render(<form><PasswordField mode={mode} /></form>);
+  const input = screen.getByLabelText<HTMLInputElement>("Password");
+  const status = document.getElementById(`${mode}-password-visibility`)!;
+  expect(status).toHaveAttribute("role", "status");
+  expect(status).toBeEmptyDOMElement();
+  fireEvent.change(input, { target: { value: "private password" } });
+  const button = screen.getByRole("button", { name: /Show .* password/ });
+  for (const conceal of [
+    () => fireEvent.click(button),
+    () => fireEvent.keyDown(button, { key: "Escape" }),
+    () => fireEvent.blur(window),
+    () => fireEvent(window, new Event("pagehide")),
+    () => fireEvent.invalid(input),
+    () => input.form!.reset(),
+  ]) {
+    fireEvent.click(button);
+    expect(input).toHaveAttribute("type", "text");
+    expect(status).toHaveTextContent("Password is visible. Hide it when you finish checking.");
+    expect(button).toHaveAccessibleDescription(/Password is visible/);
+    expect(button).toHaveAccessibleDescription(/Press Escape/);
+    await act(async () => { conceal(); });
+    expect(input).toHaveAttribute("type", "password");
+    expect(status).toBeEmptyDOMElement();
+    expect(document.getElementById(`${mode}-password-visibility`)).toBe(status);
+    expect(button).not.toHaveAccessibleDescription(/Password is visible/);
+  }
+});
+
+it("keeps visibility notices independent between credential forms", () => {
+  render(<><PasswordField mode="login" /><PasswordField mode="signup" /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  expect(document.getElementById("login-password-visibility")).not.toBeEmptyDOMElement();
+  expect(document.getElementById("signup-password-visibility")).toBeEmptyDOMElement();
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-up password" }));
+  fireEvent.click(screen.getByRole("button", { name: "Hide sign-in password" }));
+  expect(document.getElementById("login-password-visibility")).toBeEmptyDOMElement();
+  expect(document.getElementById("signup-password-visibility")).not.toBeEmptyDOMElement();
+});
+
 it.each(["login", "signup"] as const)("explains remaining and exceeded UTF-8 capacity for %s with recovery and reset", async mode => {
   render(<form><PasswordField mode={mode} /></form>);
   const input = screen.getByLabelText<HTMLInputElement>("Password");

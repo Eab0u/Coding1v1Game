@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Add a styled, politely announced password visibility notice and describe reveal controls with concealment guidance, preserving independent forms and automatic concealment with regression coverage
 - [x] Distinguish invalid username and password fields with danger-colored borders and explicit validation messages, preserving correction recovery and keyboard focus with phone/desktop browser regression coverage
 - [x] Explain remaining password UTF-8 capacity and exact overflow with responsive danger-colored cues, preserving validation, reveal and reset recovery with component and browser regression coverage
 - [x] Conceal revealed account passwords when the browser window loses focus, preserving values, validation and explicit reveal recovery with regression coverage
