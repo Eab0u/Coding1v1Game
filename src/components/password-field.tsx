@@ -11,6 +11,14 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
   const [capsLock, setCapsLock] = useState(false);
   const [bytes, setBytes] = useState(0);
   const [length, setLength] = useState(0);
+  useEffect(() => {
+    if (!visible) return;
+    const timeout = window.setTimeout(() => {
+      setVisible(false);
+      setCapsLock(false);
+    }, 30_000);
+    return () => window.clearTimeout(timeout);
+  }, [visible]);
   const inputRef = useFieldReset(useCallback((input: HTMLInputElement) => {
     input.setCustomValidity("");
     setError("");
@@ -112,8 +120,8 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
           setVisible(value => !value);
         }}>{visible ? "Hide" : "Show"}</Button>
     </div>
-    <p id={`${mode}-password-visibility`} className="password-visibility" role="status">{visible ? "Password is visible. Hide it when you finish checking." : ""}</p>
-    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape anywhere in this form to conceal a revealed password, or use Hide. Revealed passwords hide when you switch tabs. They also hide when focus leaves this form, when the browser window loses focus, when you leave this page or submit this form, including when a field needs correction.</p>
+    <p id={`${mode}-password-visibility`} className="password-visibility" role="status">{visible ? "Password is visible. Hide it when you finish checking. It automatically hides after 30 seconds." : ""}</p>
+    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Press Escape anywhere in this form to conceal a revealed password, or use Hide. Revealed passwords automatically hide after 30 seconds. They also hide when you switch tabs. They also hide when focus leaves this form, when the browser window loses focus, when you leave this page or submit this form, including when a field needs correction.</p>
     <p id={`${mode}-password-budget`} className="password-budget" data-over-limit={bytes > PASSWORD_MAX_BYTES ? "true" : undefined}>
       <span>{length < PASSWORD_MIN_LENGTH
         ? `At least ${PASSWORD_MIN_LENGTH - length} more ${PASSWORD_MIN_LENGTH - length === 1 ? "character" : "characters"} needed`

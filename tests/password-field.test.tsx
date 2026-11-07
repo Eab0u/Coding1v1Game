@@ -568,3 +568,50 @@ it.each(["login", "signup"] as const)("conceals %s from sibling form controls wi
     expect(fireEvent.keyDown(target, { key: "Escape" })).toBe(true);
   }
 });
+
+
+it.each(["login", "signup"] as const)("limits each %s reveal to 30 seconds and starts a fresh window on retry", mode => {
+  vi.useFakeTimers();
+  try {
+    const view = render(<><form><PasswordField mode="login" /></form><form><PasswordField mode="signup" /></form></>);
+    const input = document.getElementById(`${mode}-password`)! as HTMLInputElement;
+    const otherMode = mode === "login" ? "signup" : "login";
+    const other = document.getElementById(`${otherMode}-password`)!;
+    const button = screen.getByRole("button", { name: mode === "login" ? "Show sign-in password" : "Show sign-up password" });
+    const otherButton = screen.getByRole("button", { name: otherMode === "login" ? "Show sign-in password" : "Show sign-up password" });
+    fireEvent.change(input, { target: { value: "short" } });
+    act(() => input.focus());
+    fireEvent.click(button);
+    expect(button).toHaveAccessibleDescription(/automatically hides after 30 seconds/);
+    act(() => vi.advanceTimersByTime(15_000));
+    fireEvent.click(otherButton);
+    // Editing and keyboard activity do not extend exposure.
+    fireEvent.change(input, { target: { value: "shorter" } });
+    fireEvent.keyDown(input, { key: "a", modifierCapsLock: true });
+    act(() => vi.advanceTimersByTime(14_999));
+    expect(input).toHaveAttribute("type", "text");
+    act(() => vi.advanceTimersByTime(1));
+    expect(input).toHaveAttribute("type", "password");
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue("shorter");
+    expect(input.validationMessage).toBe("Use at least 12 characters.");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(document.getElementById(`${mode}-caps-lock`)).toBeEmptyDOMElement();
+    expect(document.getElementById(`${mode}-password-visibility`)).toBeEmptyDOMElement();
+    expect(other).toHaveAttribute("type", "text");
+    fireEvent.click(button);
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(other).toHaveAttribute("type", "password");
+    expect(input).toHaveAttribute("type", "text");
+    // Explicit hiding cancels the old deadline before another reveal.
+    fireEvent.click(button);
+    act(() => vi.advanceTimersByTime(1_000));
+    fireEvent.click(button);
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(input).toHaveAttribute("type", "text");
+    view.unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  } finally {
+    vi.useRealTimers();
+  }
+});

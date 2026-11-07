@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Bounded password reveal windows
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account usability item: revealed passwords automatically conceal after 30 seconds. Visible polite reveal feedback and persistent field guidance explain the limit. Each field owns its timer; editing does not extend exposure, and explicitly revealing again starts a fresh window.
+- Added both account-mode regression coverage for independent deadlines, exact timeout boundaries, unchanged credentials, validation and keyboard focus, Caps Lock clearing, explicit hide/reveal recovery and timer cleanup on unmount. Preserved existing tab-departure guidance after an initial wording assertion failure.
+- Validation: all 1,619 tests across 72 files passed, including browser coverage; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Specific username correction guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one usability item: sign-in, sign-up and friend username feedback now identifies missing names, short/long values and unsupported characters. Combined errors explain both corrections, while retaining the existing form-specific rules, danger styling, character budget and server/native validation contract.
