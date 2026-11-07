@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Strict judge benchmark metadata
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge correctness item. Requests now reject non-boolean benchmark flags and non-string function names before network access. Truthy malformed flags can no longer silently add tests to runtime scoring, and coercible function names cannot produce an invalid sandbox function lookup.
+- Added regression coverage for seven malformed benchmark values, five non-string function names and successful scoring with omitted, false and true flags. Documented the strict metadata contract.
+- Validation: all 1,691 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 81 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Stable judge submission snapshots
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Both catalog milestones remain unchecked, and no draft Python ran on the host.
 - Followed the blocker rule and added/completed one judge reliability item. Each execution now owns a deep snapshot of its validated test suite and the submission timestamp before network access. Caller mutations during requests cannot change nested inputs, expected answers, benchmark selection, test totals or submission-time tiebreakers. Documented the execution snapshot contract.

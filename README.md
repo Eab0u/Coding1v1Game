@@ -118,6 +118,9 @@ Do not use player-supplied URLs, language IDs, limits or test suites.
 
 Call the returned function with Python source, a function name, server-recorded
 submission time and JSON tests `{ args: [...], expected: ..., benchmark: true }`.
+Function names must be strings. Benchmark flags must be booleans when supplied;
+omitted or false flags run once, and only true flags contribute three runtime samples.
+Malformed flags are rejected before any sandbox request.
 At least one test must mark the largest-input benchmark. The Python function receives
 positional JSON arguments and must return a JSON value; output must contain only that
 value. Comparisons are exact, including array order, with object key order ignored.

@@ -14,6 +14,30 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each(["false", "true", 0, 1, null, [], {}])("rejects malformed benchmark flags (%j) before network access", async benchmark => {
+    const fetcher = vi.fn<typeof fetch>();
+    const input = { ...request, tests: [...request.tests, { args: [42], expected: 42, benchmark }] };
+    await expect(createJudge(config, fetcher)(input as JudgeRequest)).rejects.toThrow(RangeError);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([null, undefined, 123, ["solve"], { toString: () => "solve" }])("rejects non-string function names (%j) before network access", async functionName => {
+    const fetcher = vi.fn<typeof fetch>();
+    await expect(createJudge(config, fetcher)({ ...request, functionName } as JudgeRequest)).rejects.toThrow(RangeError);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("benchmarks only explicit true flags while accepting false and omitted flags", async () => {
+    const fetcher = sandbox(Array.from({ length: 5 }, () => done()));
+    const result = await createJudge(config, fetcher)({ ...request, tests: [
+      { args: [42], expected: 42 },
+      { args: [42], expected: 42, benchmark: false },
+      ...request.tests,
+    ] });
+    expect(result).toEqual({ testsPassed: 3, testsTotal: 3, largestTestsCpuMs: [12, 12, 12], submittedAtMs: 150 });
+    expect(fetcher).toHaveBeenCalledTimes(10);
+  });
+
   it.each([true, false])("snapshots nested tests and scoring metadata during execution (correct=%s)", async correct => {
     const expected = { values: [42] };
     const tests = [

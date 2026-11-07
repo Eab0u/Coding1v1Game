@@ -74,11 +74,13 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
 
   return async function judge(request: JudgeRequest): Promise<ScoredSubmission> {
     if (typeof request.source !== "string" || !request.source.trim() || request.source.length > 65_536 ||
-        !/^[A-Za-z_][A-Za-z0-9_]*$/.test(request.functionName) ||
+        typeof request.functionName !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(request.functionName) ||
         !Number.isFinite(request.submittedAtMs) || request.submittedAtMs < 0 ||
         !Array.isArray(request.tests) || !request.tests.length || request.tests.length > 1000 ||
         !request.tests.some(test => test.benchmark === true) ||
-        !Array.from(request.tests).every(test => test && Array.isArray(test.args) && jsonValue(test.args) && jsonValue(test.expected))) {
+        !Array.from(request.tests).every(test => test &&
+          (test.benchmark === undefined || typeof test.benchmark === "boolean") &&
+          Array.isArray(test.args) && jsonValue(test.args) && jsonValue(test.expected))) {
       throw new RangeError("Invalid judge request; include JSON tests and a largest-test benchmark.");
     }
     // Own the validated suite before the first await; callers may reuse or mutate it.
