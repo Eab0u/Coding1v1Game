@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui";
 import { passwordValidationMessage, PASSWORD_MIN_LENGTH, PASSWORD_MAX_BYTES } from "../lib/password-validation";
 
@@ -8,6 +8,16 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState("");
   const [capsLock, setCapsLock] = useState(false);
+  useEffect(() => {
+    const conceal = () => {
+      if (document.visibilityState === "hidden") {
+        setVisible(false);
+        setCapsLock(false);
+      }
+    };
+    document.addEventListener("visibilitychange", conceal);
+    return () => document.removeEventListener("visibilitychange", conceal);
+  }, []);
   const id = `${mode}-password`;
   return <>
     <label htmlFor={id}>Password</label>
@@ -30,7 +40,7 @@ export function PasswordField({ mode }: { mode: "login" | "signup" }) {
         aria-label={`${visible ? "Hide" : "Show"} ${mode === "login" ? "sign-in" : "sign-up"} password`}
         onClick={() => setVisible(value => !value)}>{visible ? "Hide" : "Show"}</Button>
     </div>
-    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes.</p>
+    <p id={`${mode}-hint`}>At least 12 characters; up to 256 bytes. Revealed passwords hide when you switch tabs.</p>
     <p id={`${mode}-password-error`} className="password-validation" role="status">{error}</p>
     <p id={`${mode}-caps-lock`} className="password-caps-lock" role="status">{capsLock ? "Caps Lock is on. Passwords are case-sensitive." : ""}</p>
   </>;

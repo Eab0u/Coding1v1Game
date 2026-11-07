@@ -1,8 +1,45 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { PasswordField } from "../src/components/password-field";
 
 const warning = "Caps Lock is on. Passwords are case-sensitive.";
+afterEach(() => vi.restoreAllMocks());
+
+it("conceals both revealed passwords on a hidden tab without losing credentials or revealing them on return", () => {
+  const visibility = vi.spyOn(document, "visibilityState", "get");
+  render(<form><PasswordField mode="login" /><PasswordField mode="signup" /></form>);
+  const inputs = screen.getAllByLabelText<HTMLInputElement>("Password");
+  inputs.forEach((input, index) => fireEvent.change(input, { target: { value: `Private password ${index}` } }));
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-up password" }));
+  fireEvent.keyDown(inputs[0], { key: "A", modifierCapsLock: true });
+  visibility.mockReturnValue("visible");
+  fireEvent(document, new Event("visibilitychange"));
+  inputs.forEach(input => expect(input).toHaveAttribute("type", "text"));
+  visibility.mockReturnValue("hidden");
+  fireEvent(document, new Event("visibilitychange"));
+  inputs.forEach((input, index) => {
+    expect(input).toHaveAttribute("type", "password");
+    expect(input).toHaveValue(`Private password ${index}`);
+    expect(input).toBeValid();
+    expect(input).toHaveAccessibleDescription(/hide when you switch tabs/);
+  });
+  expect(screen.queryByText(warning)).not.toBeInTheDocument();
+  visibility.mockReturnValue("visible");
+  fireEvent(document, new Event("visibilitychange"));
+  expect(screen.getByRole("button", { name: "Show sign-in password" })).toHaveAttribute("aria-pressed", "false");
+  expect(screen.getByRole("button", { name: "Show sign-up password" })).toHaveAttribute("aria-pressed", "false");
+  fireEvent.click(screen.getByRole("button", { name: "Show sign-in password" }));
+  expect(inputs[0]).toHaveAttribute("type", "text");
+  expect(inputs[1]).toHaveAttribute("type", "password");
+});
+
+it("removes the visibility listener on unmount", () => {
+  const remove = vi.spyOn(document, "removeEventListener");
+  const { unmount } = render(<PasswordField mode="login" />);
+  unmount();
+  expect(remove).toHaveBeenCalledWith("visibilitychange", expect.any(Function));
+});
 
 it("tracks Caps Lock independently on keydown and keyup and clears stale state on blur", () => {
   render(<form><PasswordField mode="login" /><PasswordField mode="signup" /></form>);

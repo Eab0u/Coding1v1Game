@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Password concealment on tab switches
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent account improvement.
+- Sign-in and sign-up now conceal revealed passwords when the document becomes hidden. Returning to the tab leaves passwords concealed, preserves entered credentials and validation, and allows either field to be revealed independently again. Clears stale Caps Lock feedback and explains concealment in the existing accessible password hint. Visibility listeners are removed on unmount.
+- Added tests for both forms, visible versus hidden document events, preserved values and validity, accessible toggle state, return-to-tab behavior, independent reveal and listener cleanup.
+- Validation: all 740 tests across 54 files passed; targeted password tests (5), lint, typecheck and production build passed. No Python solution executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the eight authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Recent home duel rating changes
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent home-dashboard improvement.
 - Recent home duels now display the signed-in player's MMR change from persisted rating history. A player-scoped left join preserves older duels without rating snapshots, which explicitly say "Rating change unavailable". Styled labels include units and signed gains, normalize rounded negative zero, and explain that a displayed zero may include a small gain or loss.
