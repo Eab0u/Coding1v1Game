@@ -134,3 +134,37 @@ it("blocks over-limit Unicode passwords locally and recovers independently in ea
   expect(screen.queryByText("Use at least 12 characters.")).not.toBeInTheDocument();
 });
 
+
+it.each(['guest', 'player', 'unavailable'])('offers account skip navigation for %s state', async state => {
+  if (state === 'unavailable') current.mockRejectedValue(new Error('private'));
+  else current.mockResolvedValue(state === 'player' ? { id: '1', username: 'Duelist', rating: 800 } : null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByRole('link', { name: 'Skip to account' })).toHaveAttribute('href', '#account-main');
+  expect(screen.getByRole('main')).toHaveAttribute('id', 'account-main');
+  expect(screen.getByRole('main')).toHaveAttribute('tabindex', '-1');
+  expect(screen.queryByRole('navigation', { name: 'Account options' }) !== null).toBe(state === 'guest');
+});
+
+it('names credential forms and provides focusable direct entry destinations', async () => {
+  current.mockResolvedValue(null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  for (const [mode, heading, link] of [['login', 'Welcome back', 'Go to sign in'], ['signup', 'Create your player', 'Go to create account']]) {
+    expect(screen.getByRole('form', { name: heading })).toHaveAttribute('action', `/api/auth/${mode}`);
+    expect(screen.getByRole('link', { name: link })).toHaveAttribute('href', `#account-${mode}`);
+    expect(screen.getByRole('heading', { name: heading })).toHaveAttribute('tabindex', '-1');
+  }
+});
+
+it('presents bounded, escaped account errors with visible recovery guidance', async () => {
+  current.mockResolvedValue(null);
+  const error = '<script>private()</script>' + 'x'.repeat(250);
+  render(await AccountPage({ searchParams: Promise.resolve({ error }) }));
+  const alert = screen.getByRole('alert');
+  expect(alert).toHaveClass('account-error');
+  expect(alert).toHaveTextContent('Account action needs attention');
+  expect(alert).toHaveTextContent(error.slice(0, 200));
+  expect(alert).not.toHaveTextContent(error);
+  expect(alert.querySelector('script')).toBeNull();
+  expect(alert).toHaveTextContent('Review this message, then try your account action again.');
+  expect(screen.getByRole('form', { name: 'Welcome back' })).toBeVisible();
+});

@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Accessible account entry and recovery
+- Reviewed both unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent account accessibility item. Catalog items remain unchecked.
+- Added a visible-on-focus account skip link and focusable main destination in guest, signed-in and unavailable states. Guests can jump directly to sign-in or registration headings; the next Tab reaches the chosen username field. Named both credential forms for assistive navigation and added wrapping, phone-friendly jump buttons.
+- Presented bounded, escaped account errors in a bordered panel with a clear heading and retry guidance. Service outages continue to suppress stale action errors and credential forms.
+- Added component tests for all navigation states, form names, destinations and bounded error rendering. Chromium checks at 320, 375 and 1280px verify skip focus, both form jumps, subsequent input focus, touch heights and document overflow with long errors.
+- Validation: all 499 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Friends guest guidance and navigation
 - Reviewed both unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent friends usability item. Catalog items remain unchecked.
 - Replaced the guest friends-page link with a styled invitation panel explaining accounts, requests, friends standings and acceptance. Added prominent sign-in and public standings actions that expand on phones, plus a visible-on-focus skip link and predictable main-content focus for all friends page states.

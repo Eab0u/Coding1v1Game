@@ -470,3 +470,36 @@ it.each([320, 375, 1280])('guides friends guests with keyboard navigation at %sp
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { state.signedIn = true; await page.close(); }
 });
+
+it.each([320, 375, 1280])('supports direct account entry and error recovery at %spx', async width => {
+  state.signedIn = false;
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Account({ searchParams: Promise.resolve({ error: 'Invalid credentials. ' + 'x'.repeat(200) }) }))}`);
+    await page.keyboard.press('Tab');
+    const skip = page.getByRole('link', { name: 'Skip to account' });
+    expect(await skip.evaluate(el => el === document.activeElement)).toBe(true);
+    expect((await skip.boundingBox())!.y).toBeGreaterThanOrEqual(0);
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('main').evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
+    const login = page.getByRole('link', { name: 'Go to sign in' });
+    expect(await login.evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
+    const signup = page.getByRole('link', { name: 'Go to create account' });
+    expect(await signup.evaluate(el => el === document.activeElement)).toBe(true);
+    for (const link of [login, signup]) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('heading', { name: 'Create your player' }).evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
+    const form = page.getByRole('form', { name: 'Create your player' });
+    expect(await form.getByRole('textbox', { name: 'Username', exact: true }).evaluate(el => el === document.activeElement)).toBe(true);
+    await login.focus();
+    await page.keyboard.press('Enter');
+    expect(await page.getByRole('heading', { name: 'Welcome back' }).evaluate(el => el === document.activeElement)).toBe(true);
+    await page.keyboard.press('Tab');
+    expect(await page.getByRole('form', { name: 'Welcome back' }).getByRole('textbox', { name: 'Username', exact: true }).evaluate(el => el === document.activeElement)).toBe(true);
+    expect(await page.getByRole('alert').isVisible()).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { state.signedIn = true; await page.close(); }
+});
