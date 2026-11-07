@@ -65,3 +65,15 @@ it.each([[{ input: 1, output: 2 }], [{ args: [], explanation: "Missing output" }
   expect(fallback.textContent).toBe(JSON.stringify(examples, null, 2) ?? "No examples available.");
   expect(fallback).toHaveAttribute("tabindex", "0");
 });
+
+it("associates scrolling guidance with every code region using instance-specific descriptions", () => {
+  render(<><ProblemExamples examples={[{ args: [1], expected: 2, explanation: "First." }]}/><ProblemExamples examples={{ legacy: "value" }}/></>);
+  const regions = screen.getAllByRole("region").filter(region => region.tagName === "PRE");
+  expect(regions).toHaveLength(3);
+  for (const region of regions) {
+    expect(region).toHaveAccessibleDescription(/Long examples scroll sideways.*left and right arrow keys/);
+    expect(document.getElementById(region.getAttribute("aria-describedby")!)).toBeVisible();
+  }
+  expect(regions[0].getAttribute("aria-describedby")).toBe(regions[1].getAttribute("aria-describedby"));
+  expect(regions[0].getAttribute("aria-describedby")).not.toBe(regions[2].getAttribute("aria-describedby"));
+});

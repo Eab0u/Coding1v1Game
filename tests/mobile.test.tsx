@@ -1562,3 +1562,21 @@ it.each([320, 375, 1280])('keeps example format guidance compact and keyboard ac
     expect(await page.getByRole('region', { name: 'Example 1 input' }).evaluate(el => document.activeElement === el)).toBe(true);
   } finally { await page.close(); }
 });
+
+it.each([320, 375, 1280])('keeps long public examples keyboard scrollable at %spx', async width => {
+  const { ProblemExamples } = await import('../src/components/problem-examples');
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style><main class="shell"><div class="arena-problem">${renderToStaticMarkup(<ProblemExamples examples={[{ args: ['x'.repeat(600)], expected: 'y'.repeat(600), explanation: 'Long strings.' }]} />)}</div></main>`);
+    expect(await page.locator('.example-scroll-hint').isVisible()).toBe(true);
+    for (const name of ['Example 1 input', 'Example 1 expected output']) {
+      const region = page.getByRole('region', { name, exact: true });
+      expect(await region.getAttribute('aria-describedby')).toBe(await page.locator('.example-scroll-hint').getAttribute('id'));
+      await region.focus();
+      await page.keyboard.press('ArrowRight');
+      await page.waitForFunction(label => [...document.querySelectorAll('pre')].some(el => el.getAttribute('aria-label') === label && el.scrollLeft > 0), name);
+      expect(await region.evaluate(el => document.activeElement === el)).toBe(true);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); }
+});

@@ -37,6 +37,12 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Discoverable example scrolling
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one usability item. Public examples now show styled keyboard scrolling guidance, associated with each input/output region through unique per-instance accessible descriptions. Legacy examples receive equivalent guidance; unavailable examples retain their existing notice.
+- Kept long code lines within horizontally scrollable regions. Added component coverage for description associations and multiple instances, plus Chromium coverage at 320/375/1280px for actual arrow-key scrolling, focus retention, visible guidance and no document overflow.
+- Validation: all 1,207 tests across 70 files passed; focused component/browser coverage (179 tests), lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
 ### 2026-11-07 - Compact example-format guidance
 - Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
 - Followed the blocker rule to add and complete one usability item. Repeated example-format guidance now starts collapsed in a native details/summary disclosure so players reach example inputs faster. Preserved JSON/Python notation and function-contract explanations, visible example data, unavailable notices and legacy rendering.

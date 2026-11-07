@@ -309,6 +309,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .arena-problem h2 { overflow-wrap: anywhere; }
 .arena-problem pre { max-width: 100%; }
 .problem-examples { display: grid; gap: 16px; min-width: 0; }
+.example-scroll-hint { margin: 0; color: var(--color-text-muted, #b8b6b3); font-size: 0.875rem; line-height: 1.6; overflow-wrap: anywhere; }
+.problem-examples pre { min-width: 0; max-width: 100%; overflow-x: auto; white-space: pre; overflow-wrap: normal; }
 .example-format-guide { min-width: 0; padding: 16px; border-left: 4px solid var(--color-accent, #81b64c); border-radius: 8px; background: var(--color-bg, #262421); line-height: 1.6; overflow-wrap: anywhere; }
 .example-format-guide strong { color: var(--color-text, #fff); }
 .example-format-guide p { margin: 8px 0 0; color: var(--color-text-muted, #b8b6b3); }
