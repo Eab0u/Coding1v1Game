@@ -6,6 +6,17 @@ import { Results } from '../src/components/results';
 import type { DuelResult } from '../src/lib/results';
 const players=[{username:'Ada',before:800,after:808,passed:8,total:8,cpu:12.345,submitted:1250},{username:'Bob',before:800,after:792,passed:5,total:8,cpu:42,submitted:null}];
 beforeEach(()=>localStorage.clear());
+it('explains best-attempt metrics, units, tie order and display precision',()=>{
+ render(<Results result={{title:'Sample',outcome:'WIN',players}}/>);
+ const guide=screen.getByRole('region',{name:'Reading the comparison'});
+ expect(guide).toHaveTextContent('best judged submission counts, even if a later attempt was weaker');
+ expect(guide).toHaveTextContent('Milliseconds of CPU time on the largest tests, using the median of three runs');
+ expect(guide).toHaveTextContent('Lower is better when hidden test counts tie');
+ expect(guide).toHaveTextContent('Seconds from the start of the duel to that best submission');
+ expect(guide).toHaveTextContent('Earlier wins only when correctness and CPU time tie');
+ expect(guide).toHaveTextContent('Displayed times are rounded; scoring uses saved precision');
+ expect(guide.querySelectorAll('dt')).toHaveLength(2);
+});
 it.each([
  [800,808,'+8','gain','MMR gained'],
  [800,792,'-8','loss','MMR lost'],

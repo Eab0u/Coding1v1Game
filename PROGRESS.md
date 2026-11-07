@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Results comparison metric guide
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError again; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Added a named, styled comparison guide explaining best judged attempt selection, median-of-three largest-test CPU milliseconds, elapsed submission seconds and tiebreak order. Clarified that displayed times are rounded while scoring uses saved precision, with explicit historical missing-metric guidance.
+- Added semantic UI coverage for the guide and extended Chromium checks at 320, 375 and 1280px to verify metric card containment and styling.
+- Validation: all 678 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate the authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Results rating change direction
 - Selected problems 1-20 as the highest-value unchecked item. Real Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
 - Fixed rating losses appearing green: gains use the shared success color, losses use danger, and unchanged displayed totals use a neutral color. Visible MMR gained/lost/unchanged labels supplement the signed accessible change. Explained that changes compare rounded MMR totals; fractional movements within the same displayed total remain neutral.

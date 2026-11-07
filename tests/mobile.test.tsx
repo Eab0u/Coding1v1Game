@@ -156,6 +156,14 @@ it.each([320, 375, 1280])('supports results skip navigation and player touch tar
     expect(dateBox.x).toBeGreaterThanOrEqual(0);
     expect(dateBox.x + dateBox.width).toBeLessThanOrEqual(width);
     const links = page.locator('.result-player h2 a');
+    const guide = page.getByRole('region', { name: 'Reading the comparison' });
+    expect(await guide.isVisible()).toBe(true);
+    for (const metric of await guide.locator('dl > div').all()) {
+      const box = (await metric.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+      expect(await metric.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
+    }
     expect(await page.locator('.result-tier .badge').allTextContents()).toEqual(['Silver', 'Silver']);
     expect(await page.getByText('Tier changed from Bronze to Silver').count()).toBe(2);
     for (const panel of await page.locator('.result-tier').all()) {
