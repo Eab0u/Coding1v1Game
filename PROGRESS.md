@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Player profile read recovery
+- Reviewed the unchecked catalog items; both remain blocked by missing isolated Judge0 configuration (only .env.example is present). Added and completed one independent profile usability item; catalog items remain unchecked.
+- Replaced the profile error dead end with a styled accessible recovery card, Retry profile action preserving the requested username and Back to arena navigation. Retry uses a fresh page request; infrastructure details and false empty records remain hidden. Invalid and unknown players retain their 404 behavior.
+- Added tests for player-preserving retry, successful fresh-read recovery, private error containment and absent misleading graph/records. Chromium coverage verifies the rendered panel at 320px, no horizontal overflow, a 44px retry target and keyboard focus order.
+- Validation: all 415 tests across 42 files passed; lint, typecheck and production build passed. Corrected an unescaped apostrophe found by lint, then reran lint, affected tests and typecheck successfully. No player code executed.
+- Next: configure isolated Judge0 and author/validate problems 1-20, then 21-60. Existing infrastructure blockers and live deployment smoke checks remain.
+
 ### 2026-11-06 - Leaderboard read recovery
 - Reviewed the unchecked catalog items; both remain blocked by the missing isolated Judge0 configuration (only .env.example is present). Added and completed one independent leaderboard usability item; catalog items remain unchecked.
 - Replaced the error dead end with a styled, accessible recovery panel, primary Retry standings action and Back to arena link. Retry performs a fresh page request while preserving the normalized period and friends scope. Infrastructure details remain private and signed-out friends views retain their sign-in action.

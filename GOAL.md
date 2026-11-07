@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Recover unavailable player profiles with a styled accessible retry that preserves the requested player, with recovery and phone keyboard coverage
 - [x] Recover unavailable leaderboard reads with a styled accessible retry that preserves period and friends filters, with phone and keyboard coverage
 - [x] Validate account passwords against the server's UTF-8 byte limit before submission, with styled accessible inline feedback and correction recovery
 - [x] Present matchmaking wait and rating range as styled metrics without repeating screen-reader announcements on every server tick

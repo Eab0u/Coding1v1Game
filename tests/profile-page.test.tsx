@@ -28,7 +28,10 @@ it('contains infrastructure errors without showing false empty records', async (
   mocks.load.mockRejectedValue(new Error('SECRET'));
   render(await Profile({params}));
   expect(screen.getByRole('alert')).toHaveTextContent('Profile unavailable');
-  expect(screen.queryByText(/SECRET|No completed duels/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/SECRET|No completed duels|Your rating journey/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  expect(screen.getByRole('link', {name:'Retry profile'})).toHaveAttribute('href','/profile/Ada');
+  expect(screen.getByRole('link', {name:'Back to arena'})).toHaveAttribute('href','/');
 });
 it('returns not found for unknown or invalid players', async () => {
   mocks.load.mockResolvedValue(null);
@@ -36,4 +39,17 @@ it('returns not found for unknown or invalid players', async () => {
   mocks.load.mockClear();
   await expect(Profile({params:Promise.resolve({username:'bad!'})})).rejects.toThrow('NOT_FOUND');
   expect(mocks.load).not.toHaveBeenCalled();
+});
+
+it('preserves the requested player on retry and recovers with fresh profile data', async () => {
+  const requested = Promise.resolve({username:'Another_Player'});
+  mocks.load.mockRejectedValueOnce(new Error('private database detail'));
+  const view = render(await Profile({params:requested}));
+  expect(screen.getByRole('link',{name:'Retry profile'})).toHaveAttribute('href','/profile/Another_Player');
+  view.unmount();
+  render(await Profile({params:requested}));
+  expect(mocks.load).toHaveBeenLastCalledWith({}, 'Another_Player');
+  expect(screen.getByRole('heading',{name:'Ada'})).toBeVisible();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.queryByRole('link',{name:'Retry profile'})).not.toBeInTheDocument();
 });

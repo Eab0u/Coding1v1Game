@@ -21,7 +21,11 @@ export default async function Profile({ params }: { params: Promise<{ username: 
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="site-header"><Link className="brand" href="/">CodeDuel<span className="accent">.</span></Link><Link href="/leaderboard">Leaderboard</Link><Link href="/account">Your account</Link></header>
     <main id="main" tabIndex={-1} className="ladder">
-      {unavailable ? <p role="alert">Profile unavailable. Please try again later.</p> : data && <>
+      {unavailable ? <Card className="ladder-recovery">
+        <div role="alert"><h1>Profile unavailable</h1><p>We could not load this player. Try again to refresh their rating and duel history.</p></div>
+        <a className="button button--primary" href={`/profile/${username}`}>Retry profile</a>
+        <Link className="button button--secondary" href="/">Back to arena</Link>
+      </Card> : data && <>
         <p className="eyebrow">PLAYER PROFILE</p><h1>{data.username}</h1>
         <div className="profile-rating"><strong>{Math.round(data.rating)} <small>MMR</small></strong><Badge tone="accent">{ratingTier(data.rating)}</Badge></div>
         <div className="profile-record" aria-label="All-time match record">{([['Wins', data.record.wins], ['Losses', data.record.losses], ['Draws', data.record.draws]] as const).map(([label, count]) => <Card key={label}><strong>{count}</strong><span>{label}</span></Card>)}</div>
