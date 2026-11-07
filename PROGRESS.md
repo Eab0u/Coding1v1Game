@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Full-page error recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: route and root error screens now offer an explicit full-page reload when view retries keep failing, with styled unsaved-change and live-clock guidance attached through independent stable accessible descriptions.
+- Kept reload separate from retry; neither runs on render or error replacement. Regression coverage verifies reload invocation, independent retry behavior, stable descriptions, retained focus and standalone document hydration. Updated browser keyboard expectations for the added control and checked phone/desktop touch sizing and overflow.
+- Validation: focused recovery tests (6), lint, production build, typecheck and whitespace checks passed. All 1,625 tests across 72 files passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Accessible page retry guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one recovery usability item: both route and root error boundaries now visually highlight retry and live-clock guidance and associate it with the retry button through an accessible description.

@@ -6,6 +6,7 @@ import { useId } from "react";
 // This boundary replaces the root layout, so it owns its document and styles.
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const guidanceId = useId();
+  const reloadGuidanceId = useId();
 
   return <html lang="en"><head><title>Page recovery | CodeDuel</title></head><body>
     <style>{`
@@ -25,6 +26,8 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
       nav a, button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 20px; border: 1px solid #575149; border-radius: 8px; font: 800 1rem/1.5 Arial, Helvetica, sans-serif; text-align: center; }
       button { background: #81b64c; color: #18210f; cursor: pointer; }
       button:hover { background: #98ca65; }
+      .recovery-reload { background: #312e2b; color: #f5f3ef; }
+      .recovery-reload:hover { background: #403b35; }
       @media (max-width: 480px) { nav > * { width: 100%; } }
     `}</style>
     <a className="recovery-skip" href="#global-recovery">Skip to page recovery</a>
@@ -35,8 +38,10 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
         <h1>Get back in the game.</h1>
         <p role="alert">We could not load the site view. Try loading it again.</p>
         <p id={guidanceId} className="recovery-guidance">Retrying this view does not submit code or start a new duel. If you were playing, the match clock may still be running.</p>
+        <p id={reloadGuidanceId} className="recovery-guidance">If retrying keeps failing, reload the full page. Unsaved changes may be lost; a live match clock continues.</p>
         <nav aria-label="Page recovery">
           <button type="button" aria-describedby={guidanceId} onClick={reset}>Try this page again</button>
+          <button className="recovery-reload" type="button" onClick={() => window.location.reload()} aria-describedby={reloadGuidanceId}>Reload full page</button>
           <a href="/">Back to arena</a>
           <a href="/leaderboard">Explore standings</a>
         </nav>

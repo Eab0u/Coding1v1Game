@@ -32,7 +32,7 @@ it("provides accessible recovery destinations and honest live-match guidance", (
 it("keeps retry guidance associated, unique and stable without moving focus", () => {
   const reset = vi.fn();
   const first = render(<ErrorRecovery error={new Error("first")} reset={reset} />);
-  const retry = within(first.container).getByRole("button");
+  const retry = within(first.container).getByRole("button", { name: "Try this page again" });
   const id = retry.getAttribute("aria-describedby")!;
   expect(retry).toHaveAccessibleDescription(/does not submit code or start a new duel.*match clock may still be running/);
   expect(document.getElementById(id)).toHaveClass("recovery-guidance");
@@ -41,6 +41,30 @@ it("keeps retry guidance associated, unique and stable without moving focus", ()
   expect(retry).toHaveAttribute("aria-describedby", id);
   expect(retry).toHaveFocus();
   const second = render(<ErrorRecovery error={new Error("second")} reset={reset} />);
-  expect(within(second.container).getByRole("button").getAttribute("aria-describedby")).not.toBe(id);
+  expect(within(second.container).getByRole("button", { name: "Try this page again" }).getAttribute("aria-describedby")).not.toBe(id);
   expect(reset).not.toHaveBeenCalled();
+});
+
+it("offers a native current-document reload with stable loss guidance and independent retry", () => {
+  const reset = vi.fn();
+  const view = render(<ErrorRecovery error={new Error("private")} reset={reset} />);
+  const reload = screen.getByRole("button", { name: "Reload full page" });
+  expect(reload).toHaveAttribute("type", "button");
+  expect(reload).toHaveAccessibleDescription("If retrying keeps failing, reload the full page. Unsaved changes may be lost; a live match clock continues.");
+  const id = reload.getAttribute("aria-describedby");
+  expect(id).not.toBe(screen.getByRole("button", { name: "Try this page again" }).getAttribute("aria-describedby"));
+  reload.focus();
+  view.rerender(<ErrorRecovery error={new Error("again")} reset={reset} />);
+  expect(reload).toHaveFocus();
+  expect(reload).toHaveAttribute("aria-describedby", id);
+  expect(reset).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Try this page again" }));
+  expect(reset).toHaveBeenCalledTimes(1);
+  const reloadDocument = vi.fn();
+  vi.stubGlobal("location", { reload: reloadDocument });
+  try {
+    fireEvent.click(reload);
+    expect(reloadDocument).toHaveBeenCalledTimes(1);
+    expect(reset).toHaveBeenCalledTimes(1);
+  } finally { vi.unstubAllGlobals(); }
 });

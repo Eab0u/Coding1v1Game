@@ -93,7 +93,7 @@ it.each([320, 375, 1280])('keeps root-layout recovery usable without app styles 
     expect(await page.getByRole('link', {name: 'Skip to page recovery'}).evaluate(el => document.activeElement === el)).toBe(true);
     await page.keyboard.press('Enter');
     expect(await page.getByRole('main').evaluate(el => document.activeElement === el)).toBe(true);
-    for (const action of [page.getByRole('button', {name: 'Try this page again'}), page.getByRole('link', {name: 'Back to arena'}), page.getByRole('link', {name: 'Explore standings'})]) {
+    for (const action of [page.getByRole('button', {name: 'Try this page again'}), page.getByRole('button', {name: 'Reload full page'}), page.getByRole('link', {name: 'Back to arena'}), page.getByRole('link', {name: 'Explore standings'})]) {
       await page.keyboard.press('Tab');
       expect(await action.evaluate(el => document.activeElement === el)).toBe(true);
       const bounds = (await action.boundingBox())!;
@@ -118,6 +118,14 @@ it.each([320, 375, 1280].flatMap(width => [ {width, interrupted: false}, {width,
       const retry = page.getByRole('button', {name:'Try this page again'});
       expect(await retry.evaluate(el => document.activeElement === el)).toBe(true);
       expect((await retry.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      await page.keyboard.press('Tab');
+      const reload = page.getByRole('button', {name:'Reload full page'});
+      expect(await reload.evaluate(el => document.activeElement === el)).toBe(true);
+      const bounds = (await reload.boundingBox())!;
+      expect(bounds.height).toBeGreaterThanOrEqual(44);
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+      expect(await reload.getAttribute('aria-describedby')).toBeTruthy();
     }
     for (const name of ['Back to arena', 'Explore standings']) {
       await page.keyboard.press('Tab');

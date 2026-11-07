@@ -24,6 +24,11 @@ it("hydrates the standalone document and retries only on explicit activation", a
   const root = await act(async () => hydrateRoot(doc, view));
   try {
     expect(reset).not.toHaveBeenCalled();
+    const reload = doc.querySelector('button.recovery-reload')!;
+    expect(reload.textContent).toBe("Reload full page");
+    const reloadGuidanceId = reload.getAttribute("aria-describedby")!;
+    expect(reloadGuidanceId).not.toBe(doc.querySelector("button")!.getAttribute("aria-describedby"));
+    expect(doc.getElementById(reloadGuidanceId)?.textContent).toContain("Unsaved changes may be lost; a live match clock continues");
     const button = doc.querySelector("button")!;
     expect(button.type).toBe("button");
     const guidanceId = button.getAttribute("aria-describedby")!;
@@ -34,7 +39,16 @@ it("hydrates the standalone document and retries only on explicit activation", a
     await act(async () => root.render(<GlobalError error={new Error("next failure")} reset={reset} />));
     expect(doc.querySelector("button")?.getAttribute("aria-describedby")).toBe(guidanceId);
     expect(doc.getElementById(guidanceId)).toBe(guidance);
+    expect(doc.querySelector('button.recovery-reload')).toBe(reload);
+    expect(reload.getAttribute("aria-describedby")).toBe(reloadGuidanceId);
     await act(async () => { button.click(); button.click(); });
     expect(reset).toHaveBeenCalledTimes(2);
+    const reloadDocument = vi.fn();
+    vi.stubGlobal("location", { reload: reloadDocument });
+    try {
+      await act(async () => { (reload as HTMLButtonElement).click(); });
+      expect(reloadDocument).toHaveBeenCalledTimes(1);
+      expect(reset).toHaveBeenCalledTimes(2);
+    } finally { vi.unstubAllGlobals(); }
   } finally { await act(async () => root.unmount()); }
 });

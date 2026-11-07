@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Add explicit full-page reload recovery to route and root error screens with styled unsaved-change and live-clock guidance, stable accessible descriptions and independent retry regression coverage
 - [x] Associate page retry controls with prominent visible retry and live-clock guidance across route and root error boundaries, preserving stable descriptions and focus with regression coverage
 - [x] Explain page loads exceeding fifteen seconds with styled recovery guidance and stable polite feedback, preserving keyboard focus and covering delay boundaries, navigation cleanup and reopening
 - [x] Make password privacy guidance expandable with a keyboard-accessible styled disclosure, keeping requirements visible and independent form state covered by regression tests
