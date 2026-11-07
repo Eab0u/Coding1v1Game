@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Lifecycle-aware latest attempt feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: latest-attempt feedback now uses the same lifecycle phase as best progress. Zero-pass correction prompts disappear at clock expiry; terminal unavailable attempts no longer promise sandbox retries or automatic updates. Completed attempts direct players to recorded results, and cancelled attempts explain closure and unchanged ratings.
+- Preserved verified score counts, verdict badges and the stable status region. Added status-by-phase regression coverage, reopening coverage and an arena countdown-to-completion polling test.
+- Validation: all 1,392 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Lifecycle-aware empty arena progress
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one arena improvement: both empty progress cards now explain readiness, open submissions, pending settlement, completed results or cancellation according to the current phase. Closed matches no longer prompt players to submit; terminal unavailable scores direct players to results or explain cancellation instead of promising automatic updates after polling stops.

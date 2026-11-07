@@ -74,3 +74,33 @@ it("removes zero-pass correction guidance through polling and a newly queued att
     expect(screen.getByRole("status")).toHaveClass("arena-verdict--zero");
   }
 });
+
+
+it.each(["queued", "running", "error", "unknown", "judged"])("retires live latest-attempt promises at closure for %s", status => {
+  const submission = { status, passed: null, total: 8 };
+  const view = render(<SubmissionStatus submission={submission} />);
+  const panel = screen.getByRole("status");
+  for (const phase of ["completed", "cancelled"] as const) {
+    view.rerender(<SubmissionStatus submission={submission} phase={phase} />);
+    expect(screen.getByRole("status")).toBe(panel);
+    expect(panel).toHaveTextContent(phase === "completed" ? "View results for the recorded outcome" : "no ratings changed");
+    expect(panel).not.toHaveTextContent(/next automatic update|will retry|waiting for a sandbox worker|being judged|submit a corrected/);
+    expect(panel.querySelector(".arena-verdict-badge")).toBeNull();
+  }
+  view.rerender(<SubmissionStatus submission={{status:"judged",passed:0,total:8}} />);
+  expect(panel).toHaveTextContent("submit a corrected solution");
+});
+
+it.each([0,3,8])("preserves verified %i-test verdicts with phase-appropriate guidance", passed => {
+  const submission = {status:"judged",passed,total:8};
+  const view = render(<SubmissionStatus submission={submission} />);
+  for (const phase of ["pending", "settling", "completed", "cancelled"] as const) {
+    view.rerender(<SubmissionStatus submission={submission} phase={phase} />);
+    const panel = screen.getByRole("status");
+    expect(panel).toHaveTextContent(`Latest solution: ${passed} / 8 tests passed.`);
+    expect(panel.querySelector(".arena-verdict-badge")).not.toBeNull();
+    expect(panel).not.toHaveTextContent("submit a corrected solution");
+    if (phase === "settling") expect(panel).toHaveTextContent("Submissions are closed");
+    if (phase === "completed" || phase === "cancelled") expect(panel).not.toHaveTextContent("final result is confirmed after");
+  }
+});

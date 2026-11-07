@@ -148,7 +148,7 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       <p className="muted" id="submit-shortcut">From the editor, press Ctrl+Enter or Command+Enter to submit your solution.</p>
       <ArenaProgress score={match.bestProgress} player phase={progressPhase}/>
       {!closed && <p role="status">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code."}</p>}
-      <SubmissionStatus submission={match.submission}/>
+      <SubmissionStatus submission={match.submission} phase={progressPhase}/>
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>
       {match.status==="active" && <div className="arena-submission-state" role="status">
         <strong>{submittedSource===null ? "Check your latest edits" : submittedSource===source ? "Current code sent" : "Edits not submitted"}</strong>

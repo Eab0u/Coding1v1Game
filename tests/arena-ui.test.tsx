@@ -1051,3 +1051,21 @@ it('updates empty score guidance through activation, expiry and completion polli
   expect(card).toHaveTextContent('View results for the recorded outcome');
   expect(card).not.toHaveTextContent('Submit your solution when ready');
 });
+
+
+it('updates latest-attempt correction guidance through clock expiry and terminal polling',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z',submission:{status:'judged',passed:0,total:8}};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={snapshot}/>);
+  const panel=screen.getByRole('status',{name:'Latest submission'});
+  expect(panel).toHaveTextContent('submit a corrected solution');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(panel).not.toHaveTextContent('submit a corrected solution');
+  expect(panel).toHaveTextContent('Submissions are closed');
+  snapshot={...snapshot,status:'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('status',{name:'Latest submission'})).toBe(panel);
+  expect(panel).toHaveTextContent('View results for the recorded outcome');
+  expect(panel).toHaveTextContent('Latest solution: 0 / 8');
+});

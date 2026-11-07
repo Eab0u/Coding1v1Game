@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Make latest arena attempt feedback follow clock expiry and terminal states, retiring closed-submission correction prompts and stopped-polling promises while preserving verified verdicts with component and arena transition regression coverage
 - [x] Make empty and unavailable arena progress guidance follow readiness, running, settlement and terminal phases, removing closed-submission prompts and stopped-polling promises with participant-symmetric reopening and transition regression coverage
 - [x] Announce expired arena readiness windows through a stable polite region, preserving pre-expiry readiness feedback and authoritative activation/cancellation guidance with reopening, outage and terminal-state regression coverage
 - [x] Announce expired arena clocks through a stable polite settlement region, preserving visible waiting and code-export guidance with expiry, reopening, outage and terminal-state regression coverage
