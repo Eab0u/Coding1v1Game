@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Preserve IME confirmation in the plain editor
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor input correction.
+- Plain-editor automatic indentation now leaves Enter events with IME key code 229 to native input handling, including when isComposing has already cleared. This prevents confirming composed text from inserting a Python newline or replacing a selection.
+- Added editable/read-only regression cases preserving text, backward selections and focus, plus recovery coverage proving the next ordinary Enter still indents normally.
+- Validation: all 823 tests across 60 files passed, including 30 focused plain-editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - Preserve indentation selection direction
 - Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks catalog validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correction.
 - Plain-editor block indentation now preserves selection direction, keeping the active cursor at the correct end of backward selections and the cursor-position display accurate through repeated edits. Existing focus recovery and selected-line boundaries are preserved.

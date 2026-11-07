@@ -63,7 +63,7 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
       onChange={event => { updatePosition(); onChange(event.target.value); }} readOnly={readOnly} spellCheck={false}
       autoCapitalize="off" autoCorrect="off" wrap={wordWrap ? "soft" : "off"}
       onKeyDown={event => {
-        if (readOnly || event.key !== "Enter" || event.nativeEvent.isComposing || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+        if (readOnly || event.key !== "Enter" || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
         const { selectionStart: start, selectionEnd: end } = event.currentTarget;
         const prefix = value.slice(value.slice(0, start).lastIndexOf("\n") + 1, start);
         const indent = prefix.match(/^[\t ]*/)?.[0] ?? "";

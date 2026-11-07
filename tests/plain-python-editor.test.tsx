@@ -152,3 +152,34 @@ it('preserves backward selection when outdent changes no text', () => {
   expect(change).not.toHaveBeenCalled();
   expect(screen.getByLabelText('Solution cursor position')).toHaveTextContent('Line 1, column 2');
 });
+
+
+it.each([false, true])("preserves IME confirmation Enter when isComposing is false (readOnly=%s)", readOnly => {
+  const change = vi.fn();
+  render(<PlainPythonEditor value="def solve():" onChange={change} readOnly={readOnly}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(4, 9, "backward");
+  // Some IMEs report their confirmation key as 229 after isComposing clears.
+  expect(fireEvent.keyDown(input, { key: "Enter", keyCode: 229, isComposing: false })).toBe(true);
+  expect(change).not.toHaveBeenCalled();
+  expect(input).toHaveValue("def solve():");
+  expect(input.selectionStart).toBe(4);
+  expect(input.selectionEnd).toBe(9);
+  expect(input.selectionDirection).toBe("backward");
+  expect(input).toHaveFocus();
+});
+
+it("resumes automatic indentation on the next ordinary Enter after IME confirmation", () => {
+  render(<Harness initial="def solve():"/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(12, 12);
+  expect(fireEvent.keyDown(input, { key: "Enter", keyCode: 229 })).toBe(true);
+  expect(input).toHaveValue("def solve():");
+  expect(fireEvent.keyDown(input, { key: "Enter", keyCode: 13 })).toBe(false);
+  expect(input).toHaveValue("def solve():\n    ");
+  expect(input.selectionStart).toBe(17);
+  expect(input.selectionEnd).toBe(17);
+  expect(input).toHaveFocus();
+});
