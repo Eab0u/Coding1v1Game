@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Initial invitation lookup recovery guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks both catalog milestones. No Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one improvement: failed initial rematch lookups now replace indefinite checking feedback with explicit unavailable-status, automatic-retry and unconfirmed-rematch guidance. The stable polite summary also describes the retry control and persists during recovery requests.
+- Added automatic/manual retry regression coverage for initial loading, failure, pending recovery and restored invitation actions with stable announcements and accessible descriptions.
+- Validation: all 1,450 tests across 72 files passed; all 61 focused rematch tests passed. Lint, typecheck and production build passed after correcting an unsupported test query option. Diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then perform live deployment smoke checks. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Accessible rematch action context
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks both catalog milestones. No Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one improvement: rematch action buttons, invitation retry and terminal recovery links reference the stable visible invitation summary through unique accessible descriptions. Guidance follows sending, deadline expiry and authoritative outcomes without merging descriptions between independent panels.

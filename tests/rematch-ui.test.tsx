@@ -598,3 +598,28 @@ it('keeps invitation action descriptions current through sending and deadline ex
   expect(cancel).toHaveAccessibleDescription('The invitation window has ended. Acceptance and invitation changes are closed. Waiting for server confirmation; no rematch is confirmed yet.');
  } finally {vi.useRealTimers();}
 });
+it.each([true,false])('explains unavailable initial invitations and recovers (manual=%s)',async(manual)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline'));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  const summary=screen.getByRole('status');
+  expect(summary).toHaveTextContent('Checking invitation');
+  await act(async()=>{});
+  expect(summary).toHaveTextContent('Invitation status is unavailable. Automatic retries continue; no rematch is confirmed yet.');
+  expect(summary).toHaveAttribute('aria-live','polite');
+  expect(screen.getByRole('button',{name:'Retry invitation update'})).toHaveAccessibleDescription(summary.textContent!);
+  expect(screen.queryByRole('button',{name:'Rematch'})).not.toBeInTheDocument();
+  const retry=deferred<ReturnType<typeof response>>();
+  fetcher.mockReturnValueOnce(retry.promise).mockResolvedValue(response('none'));
+  if (manual) fireEvent.click(screen.getByRole('button',{name:'Retry invitation update'}));
+  else await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(summary).toHaveTextContent('Invitation status is unavailable');
+  await act(async()=>{retry.resolve(response('none'));});
+  expect(screen.getByRole('status')).toBe(summary);
+  expect(summary).toHaveTextContent('Invite your opponent to a fresh ranked duel.');
+  expect(screen.getByRole('button',{name:'Rematch'})).toHaveAccessibleDescription(summary.textContent!);
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
