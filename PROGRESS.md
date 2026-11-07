@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Daily challenge input constraints
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent daily-preview improvement.
+- Extended the public daily projection with input constraints. Added a named, bordered panel within the statement disclosure, solution-planning guidance, preserved line breaks and wrapping for long limits. Missing or blank constraints do not create a misleading empty panel. Practice availability guidance remains visible.
+- Added embedded database projection/privacy assertions and component tests for exact multiline text, escaped markup and absent limits. Extended Chromium keyboard disclosure coverage at 320, 375 and 1280px for styled constraint containment and preserved formatting.
+- Validation: all 714 tests across 53 files passed; targeted tests, lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Arena function signature guidance
 - Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent arena improvement.
 - Added visible function-name/parameter guidance and described keyboard and touch scrolling. Styled the signature with a border, preserved whitespace and semantic code markup, and connected the focusable code region to its guidance with aria-describedby.

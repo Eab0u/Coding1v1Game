@@ -7,7 +7,7 @@ const username = 'abcdefghijklmnopqrstuvwx';
 const state = vi.hoisted(() => ({ signedIn: true, accountUnavailable: false, leaderboardUnavailable: false, leaderboardEmpty: false, profileUnavailable: false, profileEmpty: false, friendsUnavailable: false, homeUnavailable: false, homeOutcomes: false }));
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock('../src/lib/auth-server', () => ({ database: () => ({}), auth: { current: async () => { if (state.accountUnavailable) throw new Error('private'); return state.signedIn ? ({ id: '1', username: 'abcdefghijklmnopqrstuvwx', rating: 800 }) : null; } } }));
-vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), function_signature: `def solve_${'long_name_'.repeat(20)}(values: list[int]) -> list[int]:`, difficulty: 'easy' }, recent: [...(state.homeOutcomes ? [{ id: 'loss', title: 'Lost duel', opponent: 'another_long_player_name', winner_id: '2' }, { id: 'draw', title: 'Drawn duel', opponent: 'another_long_player_name', winner_id: null }] : []), { id: '1', completed_at: new Date('2026-11-06T23:05:00Z'), title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
+vi.mock('../src/lib/home', () => ({ loadHome: async () => { if (state.homeUnavailable) throw new Error('private'); return ({ streak: 0, daily: { title: 'A'.repeat(120), statement: 'B'.repeat(200), constraints: '1 <= n <= 100000\n' + 'C'.repeat(200), function_signature: `def solve_${'long_name_'.repeat(20)}(values: list[int]) -> list[int]:`, difficulty: 'easy' }, recent: [...(state.homeOutcomes ? [{ id: 'loss', title: 'Lost duel', opponent: 'another_long_player_name', winner_id: '2' }, { id: 'draw', title: 'Drawn duel', opponent: 'another_long_player_name', winner_id: null }] : []), { id: '1', completed_at: new Date('2026-11-06T23:05:00Z'), title: 'C'.repeat(120), opponent: 'abcdefghijklmnopqrstuvwx', winner_id: '1' }] }); } }));
 vi.mock('../src/lib/leaderboard', () => ({ loadLeaderboard: async () => {
   if (state.leaderboardUnavailable) throw new Error('unavailable');
   if (state.leaderboardEmpty) return [];
@@ -225,6 +225,14 @@ it.each([320, 375, 1280])('opens daily challenge statements with the keyboard at
     await summary.focus();
     await page.keyboard.press('Enter');
     expect(await statement.isVisible()).toBe(true);
+    const constraints = page.getByRole('region', { name: 'Input constraints' });
+    expect(await constraints.isVisible()).toBe(true);
+    expect(await constraints.evaluate(el => getComputedStyle(el).borderTopWidth)).toBe('1px');
+    expect(await constraints.locator('.daily-constraints-text').evaluate(el => getComputedStyle(el).whiteSpace)).toBe('pre-wrap');
+    expect(await constraints.locator('.daily-constraints-text').textContent()).toBe('1 <= n <= 100000\n' + 'C'.repeat(200));
+    const bounds = (await constraints.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
     expect(await page.locator('.daily-statement').getAttribute('open')).not.toBeNull();
     expect(await statement.evaluate(el => getComputedStyle(el).whiteSpace)).toBe('pre-wrap');
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);

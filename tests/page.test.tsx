@@ -191,3 +191,19 @@ it("shows the saved completion time beside its recent duel", async () => {
   expect(row).toHaveTextContent("Completed Nov 6, 2026, 23:05 UTC");
   expect(row.querySelector("time")).toHaveAttribute("dateTime", "2026-11-06T23:05:00.000Z");
 });
+
+it("keeps daily constraints intact as plain text within the preview disclosure", async () => {
+  const constraints = "1 <= n <= 100000\n  values[i] < 10\n<script>unsafe()</script>";
+  mocks.load.mockResolvedValue({ daily: { title: "Signal", difficulty: "easy", statement: "Find a signal", function_signature: "def signal(a):", constraints }, recent: [], streak: 0 });
+  const { container } = render(await Home());
+  const panel = screen.getByRole("region", { name: "Input constraints", hidden: true });
+  expect(panel.querySelector(".daily-constraints-text")?.textContent).toBe(constraints);
+  expect(panel.closest("details")).toBe(container.querySelector(".daily-statement"));
+  expect(panel.querySelector("script")).toBeNull();
+  expect(panel).toHaveTextContent("Use the largest allowed inputs to plan your solution.");
+});
+it.each([undefined, "", "  "])("omits absent daily constraints (%s) without inventing limits", async constraints => {
+  mocks.load.mockResolvedValue({ daily: { title: "Signal", difficulty: "easy", statement: "Find a signal", function_signature: "def signal(a):", constraints }, recent: [], streak: 0 });
+  const { container } = render(await Home());
+  expect(container.querySelector(".daily-constraints")).toBeNull();
+});

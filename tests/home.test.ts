@@ -21,6 +21,8 @@ it("counts the current streak, excludes unfinished matches and keeps private pro
     expect(data.streak).toBe(6);
     expect(data.recent).toHaveLength(5);
     expect(data.daily?.title).toBe("Public");
+    expect(data.daily?.constraints).toBe("n<10");
+    expect(Object.keys(data.daily!).sort()).toEqual(["constraints", "difficulty", "function_signature", "statement", "title"]);
     expect(JSON.stringify(data)).not.toContain("SECRET");
     const guest = await loadHome(db as unknown as Pool);
     expect(guest.recent).toEqual([]);
