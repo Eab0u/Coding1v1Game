@@ -442,3 +442,31 @@ timeouts per benchmark. This draft is private, unpublished and unapproved.
 ```sh
 npm run problems -- validate problems/drafts/relay-missing-slot.json
 ```
+
+### Relay Unique Span
+
+`drafts/relay-unique-span.json` is an original medium sliding-window problem:
+find the longest contiguous packet span with distinct channel labels. Negative
+labels and zero are ordinary channels; an empty log returns zero. The reference
+tracks each label's latest index and moves the left boundary only forward.
+Each right endpoint therefore contributes its longest valid suffix, yielding
+O(n) expected time and O(n) space. Taking max with the existing boundary is
+necessary when a repeated channel last appeared outside the current window.
+The baseline starts a fresh set at every position and extends until a repeat,
+requiring O(n squared) work on long distinct runs.
+
+Three 100,000-entry benchmarks cover ascending distinct labels, descending
+distinct labels and two copies of a 50,000-label cycle. Answers are 100000,
+100000 and 50000. Each requires over a billion baseline inner iterations.
+The deterministic generator supplies 2,000 small inputs. Data-only tests use
+independent contiguous-span enumeration and a shrinking queue, plus reversal,
+label-renaming and extension properties. Large answers are certified by a
+matching distinct-label upper bound and a contiguous witness.
+
+No authored Python runs on the host. Proposed 1-second CPU and 64-MiB limits
+require isolated sandbox calibration, solution agreement and three baseline
+timeouts per benchmark. This draft remains private, unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/relay-unique-span.json
+```
