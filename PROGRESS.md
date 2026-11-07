@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - IME-safe whole-solution selection
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Protected Select all code during active IME composition and prevented mouse activation from blurring the textarea before the selection guard. Drafts, backward selections and cursor feedback remain intact, including through read-only mode changes.
+- Added regression coverage for repeated actions, cancelled mouse defaults, mode changes and normal whole-solution selection recovery after composition-end or blur.
+- Validation: all 852 tests across 60 files passed; after the final pointer adjustment, all 57 editor tests passed again. Lint, typecheck and production build passed. No Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
 ### 2026-11-07 - IME-safe toolbar indentation
 - Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
 - Guarded shared plain-editor indentation against active IME composition so toolbar actions preserve the draft, selection direction, focus and cursor feedback, matching existing keyboard protection.

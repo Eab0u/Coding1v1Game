@@ -65,9 +65,12 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(false)}>Indent</button>
       <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(true)}>Outdent</button>
     </div>
-    <div className="solution-editor-actions"><button type="button" className="button button--secondary" onClick={() => {
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary" onMouseDown={event => {
+      // Keep pointer activation from blurring the textarea before the click guard.
+      if (composing.current) event.preventDefault();
+    }} onClick={() => {
       const editor = input.current;
-      if (!editor) return;
+      if (!editor || composing.current) return;
       editor.focus();
       editor.setSelectionRange(0, editor.value.length, "forward");
       updatePosition();

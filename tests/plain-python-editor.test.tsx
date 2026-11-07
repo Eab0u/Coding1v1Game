@@ -8,6 +8,38 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it.each(["compositionend", "blur"])("preserves IME selection through Select all code and recovers after %s", ending => {
+  const change = vi.fn();
+  const value = "    first\n    second";
+  const { rerender } = render(<PlainPythonEditor value={value} onChange={change} readOnly={false}/>);
+  const input = screen.getByRole("textbox") as HTMLTextAreaElement;
+  input.focus();
+  input.setSelectionRange(2, 15, "backward");
+  fireEvent.select(input);
+  const feedback = screen.getByRole("group", { name: "Solution cursor position" }).textContent;
+  fireEvent.compositionStart(input);
+  for (const readOnly of [false, true, false]) {
+    rerender(<PlainPythonEditor value={value} onChange={change} readOnly={readOnly}/>);
+    expect(fireEvent.mouseDown(screen.getByRole("button", { name: "Select all code" }))).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Select all code" }));
+    expect(input).toHaveValue(value);
+    expect(input).toHaveFocus();
+    expect(input.selectionStart).toBe(2);
+    expect(input.selectionEnd).toBe(15);
+    expect(input.selectionDirection).toBe("backward");
+    expect(screen.getByRole("group", { name: "Solution cursor position" })).toHaveTextContent(feedback!);
+  }
+  if (ending === "compositionend") fireEvent.compositionEnd(input);
+  else input.blur();
+  fireEvent.click(screen.getByRole("button", { name: "Select all code" }));
+  expect(input).toHaveFocus();
+  expect(input.selectionStart).toBe(0);
+  expect(input.selectionEnd).toBe(value.length);
+  expect(input.selectionDirection).toBe("forward");
+  expect(screen.getByRole("group", { name: "Solution cursor position" })).toHaveTextContent(`${value.length} code units selected across 2 lines`);
+  expect(change).not.toHaveBeenCalled();
+});
+
 it.each(["compositionend", "blur"])("protects toolbar indentation during IME and recovers after %s", ending => {
   render(<Harness initial={"    first\n    second"}/>);
   const input = screen.getByRole("textbox") as HTMLTextAreaElement;
