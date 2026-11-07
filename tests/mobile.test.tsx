@@ -906,3 +906,22 @@ it.each([320, 375, 1280])('keeps profile completion timestamps inside the scroll
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+
+it.each([320,375,1280])('makes completed problem review keyboard accessible at %spx',async width=>{
+ const page=await browser.newPage({viewport:{width,height:900}});
+ try {
+  await page.setContent(`<style>${readFileSync('src/app/globals.css','utf8')}</style>${renderToStaticMarkup(<Results matchId="saved-duel" result={{title:'Sample',outcome:'DRAW',players:[]}}/>)}`);
+  const panel=page.getByRole('region',{name:'Learn from this duel'});
+  const link=page.getByRole('link',{name:'Review problem'});
+  expect(await link.getAttribute('href')).toBe('/match/saved-duel');
+  await link.focus();
+  expect(await link.evaluate(el=>el===document.activeElement)).toBe(true);
+  expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  for(const item of [panel,link]) {
+   const box=(await item.boundingBox())!;
+   expect(box.x).toBeGreaterThanOrEqual(0);
+   expect(box.x+box.width).toBeLessThanOrEqual(width);
+  }
+  expect(await panel.evaluate(el=>getComputedStyle(el).borderLeftStyle)).toBe('solid');
+ } finally {await page.close();}
+});

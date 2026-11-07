@@ -133,3 +133,17 @@ it.each([undefined,null,'invalid'])('handles historical completion dates safely 
  expect(screen.getByText('Completion date unavailable')).toBeVisible();
  expect(container.querySelector('time')).toBeNull();
 });
+
+it('links to the completed problem with honest code and submission guidance',()=>{
+ render(<Results matchId="duel/#" result={{title:'Sample',outcome:'WIN',players}}/>);
+ const review=screen.getByRole('region',{name:'Learn from this duel'});
+ expect(review).toHaveTextContent('problem statement and examples');
+ expect(review).toHaveTextContent('Submissions are closed');
+ expect(review).toHaveTextContent('reopening does not restore your submitted code');
+ expect(screen.getByRole('link',{name:'Review problem'})).toHaveAttribute('href','/match/duel%2F%23');
+});
+it('omits problem review when no match identifier is available',()=>{
+ render(<Results result={{title:'Legacy',outcome:'DRAW',players}}/>);
+ expect(screen.queryByRole('region',{name:'Learn from this duel'})).not.toBeInTheDocument();
+ expect(screen.queryByRole('link',{name:'Review problem'})).not.toBeInTheDocument();
+});

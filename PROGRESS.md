@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-06 - Completed problem review from results
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Added a styled, named review panel linking saved results to the same completed arena's problem statement and examples. Explicitly explained closed submissions and that reopening does not restore submitted code. Omitted the panel when no match identifier is available and encoded the destination identifier.
+- Added UI coverage for navigation, availability guidance and missing identifiers, plus Chromium checks at 320, 375 and 1280px for containment, styling, keyboard focus and touch-target height.
+- Validation: all 689 tests across 52 files passed; lint, production build and typecheck passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
 ### 2026-11-06 - Results hidden-test pass meters
 - Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
 - Added styled native progress meters for both players' saved hidden-test counts, with distinct associated labels, accessible exact counts and visible all/some/none summaries. Missing historical counts and zero totals do not produce misleading meters.
