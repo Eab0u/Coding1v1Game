@@ -401,3 +401,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .friend-feedback { border-left: 4px solid var(--color-accent); margin-bottom: 1.5rem; }
 .friend-feedback h2 { margin-top: 0; }
 .friend-feedback p { color: var(--color-muted); margin-bottom: 0; overflow-wrap: anywhere; }
+
+.standings-rating { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding-block: 4px; font-variant-numeric: tabular-nums; }

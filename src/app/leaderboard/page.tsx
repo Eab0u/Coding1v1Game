@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE } from "../../lib/auth";
-import { Card } from "../../components/ui";
+import { ratingTier } from "../../lib/profile";
+import { Badge, Card } from "../../components/ui";
 import { auth, database } from "../../lib/auth-server";
 import { loadLeaderboard, type LeaderboardEntry } from "../../lib/leaderboard";
 
@@ -34,7 +35,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       </nav>
       <nav className="ladder-filters" aria-label="Leaderboard players"><Link href={`/leaderboard?period=${period}`} aria-current={!scope ? "page" : undefined}>Everyone</Link><Link href={`/leaderboard?period=${period}&scope=friends`} aria-current={scope ? "page" : undefined}>Friends</Link><Link href="/friends">Manage friends</Link></nav>
       {scope && <p>You and your accepted friends, ranked within your circle.</p>}
-      <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
+      <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Tier badges follow current MMR, using full precision even when the displayed rating rounds up. Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
       <Card className="ladder-card">
         {period === "weekly" && !unavailable && !needsLogin && <section className="weekly-guide" aria-labelledby="weekly-guide-title">
           <h2 id="weekly-guide-title">How the weekly climb works</h2>
@@ -62,7 +63,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
             <caption>{period === "weekly" ? "Weekly climb" : "Global rating"} standings</caption>
             <thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Rating</th>{period === "weekly" && <th scope="col">Weekly gain</th>}</tr></thead>
             <tbody>{entries.map(entry => <tr key={entry.username} className={entry.rank <= 3 ? "ladder-podium" : undefined}>
-              <td><span className="ladder-rank">#{entry.rank}</span></td><th scope="row"><Link className="standings-player" href={`/profile/${encodeURIComponent(entry.username)}`}>{entry.username}</Link></th><td>{Math.round(entry.rating)} MMR</td>
+              <td><span className="ladder-rank">#{entry.rank}</span></td><th scope="row"><Link className="standings-player" href={`/profile/${encodeURIComponent(entry.username)}`}>{entry.username}</Link></th><td><div className="standings-rating"><span>{Math.round(entry.rating)} MMR</span><Badge tone="accent">{ratingTier(entry.rating)}</Badge></div></td>
               {period === "weekly" && <td className="standings-change">{Math.round(entry.score) > 0 ? "+" : ""}{Math.round(entry.score) || 0} MMR</td>}
             </tr>)}</tbody>
           </table></div></> : scope ? <section className="ladder-empty" aria-labelledby="friends-empty-title">

@@ -772,3 +772,21 @@ it.each([320, 375, 1280])('keeps the weekly scoring guide readable at %spx', asy
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   } finally { await page.close(); }
 });
+
+
+it.each([320, 375, 1280])('keeps standings tier badges readable at %spx', async width => {
+  const page = await browser.newPage({ viewport: { width, height: 900 } });
+  try {
+    await page.setContent(`<style>${readFileSync('src/app/globals.css', 'utf8')}</style>${renderToStaticMarkup(await Leaderboard({searchParams:Promise.resolve({period:'weekly'})}))}`);
+    const rating = page.locator('.standings-rating');
+    expect(await rating.textContent()).toBe('1234 MMRGold');
+    const badge = rating.locator('.badge');
+    expect(await badge.isVisible()).toBe(true);
+    expect(await rating.evaluate(el => getComputedStyle(el).flexDirection)).toBe('column');
+    const cell = (await rating.boundingBox())!;
+    const bounds = (await badge.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(cell.x);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(cell.x + cell.width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  } finally { await page.close(); }
+});

@@ -141,3 +141,23 @@ it.each(["global", "unavailable", "signed-out"])("omits weekly scoring guidance 
   render(await Leaderboard({ searchParams: Promise.resolve({ period: state === "global" ? "global" : "weekly", scope: "friends" }) }));
   expect(screen.queryByRole("region", { name: "How the weekly climb works" })).not.toBeInTheDocument();
 });
+
+
+it.each([
+  [999.9, "Bronze"], [1000, "Silver"], [1199.9, "Silver"], [1200, "Gold"],
+  [1599.9, "Gold"], [1600, "Platinum"], [1999.9, "Platinum"],
+  [2000, "Diamond"], [2399.9, "Diamond"], [2400, "Master"],
+])("uses full current rating %s for standings tier %s", async (rating, tier) => {
+  mocks.load.mockResolvedValue([{ username: "Ada", rating, score: -30, rank: 1 }]);
+  render(await Leaderboard({ searchParams: Promise.resolve({ period: "weekly", scope: "friends" }) }));
+  const badge = screen.getByText(tier, { exact: true });
+  expect(badge).toHaveClass("badge--accent");
+  expect(badge.closest("td")).toHaveTextContent(`${Math.round(rating)} MMR`);
+  expect(document.getElementById("ranking-rules")).toHaveTextContent("Tier badges follow current MMR");
+});
+
+it("includes a current tier on the global ladder", async () => {
+  mocks.load.mockResolvedValue([{ username: "Ada", rating: 800, score: 800, rank: 1 }]);
+  render(await Leaderboard({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByText("Bronze", { exact: true })).toBeVisible();
+});
