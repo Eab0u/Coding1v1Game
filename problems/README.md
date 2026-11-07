@@ -21,6 +21,35 @@ The pipeline has no published catalog yet; the original drafts below are awaitin
 
 ## Original problem drafts
 
+### Delayed Drop Pairs
+
+`drafts/delayed-drop-pairs.json` is an original medium divide-and-conquer
+problem: count earlier/later signal pairs whose drop strictly exceeds a
+nonnegative tolerance. Equal-to-tolerance differences are excluded; sorting
+the entire input before counting would lose the required time order.
+
+The reference recursively counts within each time half, then counts crossing
+pairs with a monotone pointer over the sorted halves before merging them.
+This takes O(n log n) time and O(n) peak auxiliary space. The brute force
+checks all n(n-1)/2 position pairs, taking O(n^2) time and O(1) space.
+The seeded generator supplies 2,000 small cases. Fixtures cover ties, signed
+boundaries, zero tolerance, exact thresholds and shared endpoints.
+
+Three 100,000-tick benchmarks use descending, constant and split high/low
+levels. Each requires 4,999,950,000 brute-force comparisons; the descending
+and split answers exceed signed 32-bit range. Data-only tests enumerate
+small answers, compare an independent ordered-prefix identity and check
+translation invariance, tolerance monotonicity and large-case formulas.
+
+Neither Python solution runs locally. The proposed 1-second CPU and 64-MiB
+limits require isolated sandbox measurement. This private draft remains
+unpublished until full validation succeeds:
+
+```sh
+npm run problems -- validate problems/drafts/delayed-drop-pairs.json
+npm run problems -- publish problems/drafts/delayed-drop-pairs.json
+```
+
 These are private authoring inputs, outside the site's public assets. No draft is
 approved for ranked play until the sandbox pipeline passes and publishes it.
 
