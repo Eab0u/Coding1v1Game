@@ -85,3 +85,27 @@ it.each([true, false])("separates waiting guidance from unavailable scores (play
   expect(screen.getByRole('region')).not.toHaveClass('arena-progress--empty', 'arena-progress--unavailable');
   expect(screen.getByRole('progressbar')).toHaveAttribute('value', '0');
 });
+
+it.each([true, false])("withholds score claims until verified progress recovers (player=%s)", player => {
+  const view = render(<ArenaProgress player={player} />);
+  const helpId = `${player ? "player" : "opponent"}-progress-help`;
+  for (const score of [null, { passed: -1, total: 8 }, { passed: 9, total: 8 }, { passed: NaN, total: 8 }, { passed: 0, total: 0 }]) {
+    view.rerender(<ArenaProgress player={player} score={score} />);
+    expect(view.container.querySelector(`#${helpId}`)).toBeNull();
+    expect(screen.queryByText(/Best judged test count|Later attempts cannot lower|runtime and submission time break ties/)).toBeNull();
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    expect(screen.getByText(score ? /next automatic update/ : player ? /Submit your solution when ready/ : /after they submit/)).toBeVisible();
+    for (const passed of [0, 3, 8]) {
+      view.rerender(<ArenaProgress player={player} score={{ passed, total: 8 }} />);
+      const bar = screen.getByRole("progressbar");
+      expect(bar).toHaveAttribute("aria-describedby", helpId);
+      expect(view.container.querySelectorAll(`#${helpId}`)).toHaveLength(1);
+      expect(bar).toHaveAccessibleDescription(/Best judged test count.*Later attempts cannot lower it/);
+      expect(bar).toHaveAttribute("aria-valuetext", `${passed} of 8 hidden tests passed`);
+      expect(screen.queryByText(/next automatic update/)).toBeNull();
+    }
+  }
+  view.rerender(<ArenaProgress player={player} />);
+  expect(view.container.querySelector(`#${helpId}`)).toBeNull();
+  expect(screen.queryByRole("progressbar")).toBeNull();
+});

@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Verified arena scoring guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one arena clarity item: missing and invalid progress no longer presents best-score or tiebreak claims. Existing waiting and automatic-update guidance remains visible; valid zero/partial/full scores restore individually associated scoring explanations and unsent-edit guidance.
+- Added participant-symmetric regression tests for repeated missing/invalid/valid transitions and unique description targets. Updated the arena polling test to verify unsent-edit guidance returns with a verified score.
+- Validation: all 1,337 tests across 72 files passed; targeted arena suites passed all 97 tests. Lint, typecheck and production build passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
 ### 2026-11-07 - Saved progress scoring guidance
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
 - Followed the blocker rule and added/completed one accessibility item: each saved-results progress bar now has visible, individually associated guidance explaining best judged submissions, later attempts and CPU/submission-time tiebreaks. Full-pass scores explicitly do not promise a win.

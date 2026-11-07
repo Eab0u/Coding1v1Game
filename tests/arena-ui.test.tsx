@@ -67,10 +67,12 @@ it('shows authoritative best progress separately from weaker latest attempts and
   const progress=screen.getByRole('region',{name:'Your best progress'});
   expect(progress).toHaveTextContent('No judged submission yet');
   expect(progress.querySelector('progress')).toBeNull();
-  expect(progress).toHaveTextContent('does not confirm that your current edits were submitted');
+  expect(progress).toHaveTextContent('Submit your solution when ready');
+  expect(progress).not.toHaveTextContent('Best judged test count');
   snapshot={...snapshot,bestProgress:{passed:5,total:8},submission:{id:'latest',status:'judged',passed:1,total:8}};
   await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
   expect(screen.getByRole('progressbar',{name:'Your best tests passed: 5 / 8'})).toHaveAttribute('max','8');
+  expect(progress).toHaveTextContent('does not confirm that your current edits were submitted');
   expect(screen.getByText('Latest solution: 1 / 8 tests passed.')).toBeVisible();
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'unsent edits'}});
   expect(screen.getByRole('progressbar',{name:'Your best tests passed: 5 / 8'})).toHaveAttribute('value','5');
