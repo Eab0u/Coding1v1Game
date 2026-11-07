@@ -106,7 +106,8 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
     </div>
     <p role="status" aria-label="Duel start" aria-live="polite" aria-atomic="true" className={match.status==="active" && seconds!==null && seconds>0 ? "arena-started" : "sr-only"}>{match.status==="active" && seconds!==null && seconds>0 ? "Duel started. The clock is running. You can now submit your solution; submit your latest edits before time expires." : ""}</p>
     <div role="status" aria-atomic="true" className={finalMinute ? "arena-time-warning" : undefined}>{finalMinute ? "Final minute. Submit your latest edits before the clock expires." : ""}</div>
-    {match.status==="pending" && <section className="arena-readiness" aria-label="Duel readiness" role="status">
+    <p role="status" aria-label="Readiness expiry" aria-live="polite" aria-atomic="true" className="sr-only">{reservationExpired ? "Time to mark ready has expired. Waiting for server confirmation of activation or cancellation. This page keeps checking automatically; no result or rating change is confirmed." : ""}</p>
+    {match.status==="pending" && <section className="arena-readiness" aria-label="Duel readiness" role="status" aria-live={reservationExpired ? "off" : "polite"}>
       <div><span className={`badge${playerReady ? " arena-ready" : ""}`}>You: {playerReady ? "Ready" : "Not ready"}</span><span className={`badge${match.opponent.ready ? " arena-ready" : ""}`}>Opponent: {match.opponent.ready ? "Ready" : "Not ready"}</span></div>
       <p>{reservationExpired ? "The readiness window has ended. Checking with the server for activation or cancellation; no result is confirmed yet." : playerReady ? "Waiting for the server to start the duel when both players are ready." : "Review the problem, then mark yourself ready to start."} Reservations expire 60 seconds after pairing.</p>
     </section>}

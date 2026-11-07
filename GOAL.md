@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Announce expired arena readiness windows through a stable polite region, preserving pre-expiry readiness feedback and authoritative activation/cancellation guidance with reopening, outage and terminal-state regression coverage
 - [x] Announce expired arena clocks through a stable polite settlement region, preserving visible waiting and code-export guidance with expiry, reopening, outage and terminal-state regression coverage
 - [x] Retire obsolete arena action feedback after lifecycle changes, including delayed acknowledgements, with phase-specific guidance and polling regression coverage
 - [x] Announce authoritative arena cancellation through a stable polite live region, preserving recovery and code-export guidance with reopening, polling and other-state regression coverage

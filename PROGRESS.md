@@ -38,6 +38,13 @@ Configure an isolated Judge0 instance and author/validate problems 1?20 to enabl
 
 ## Log
 
+### 2026-11-07 - Stable readiness expiry feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: a persistent polite atomic region announces readiness expiry, automatic checking and pending server confirmation without claiming cancellation or rating changes. The visible readiness panel keeps normal readiness announcements before expiry and stops duplicate live feedback at expiry.
+- Updated countdown, cancellation and activation tests and added reopening/outage and other-state regressions. Coverage checks stable region identity and text, disabled readiness and available code copying.
+- Validation: all 1,375 tests across 72 files passed, including 123 arena UI tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech remains a manual check.
+
 ### 2026-11-07 - Stable arena settlement feedback
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
 - Followed the blocker rule and added/completed one arena improvement: a persistent polite atomic live region announces clock expiry, closed submissions, pending authoritative results and available code export. Removed the nested transient status region from the visible settlement panel to avoid duplicate announcements.

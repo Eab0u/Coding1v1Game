@@ -730,12 +730,35 @@ it('clears settlement feedback when polling confirms cancellation',async()=>{
   expect(notice).toBeEmptyDOMElement();
 });
 
+it.each(['pending','active','completed','cancelled'] as const)('withholds readiness-expiry announcements without an expired pending reservation (%s)',status=>{
+  render(<Arena initial={{...initial,status,reservationExpiresAt:status==='pending' ? null : initial.serverTime}}/>);
+  expect(screen.getByRole('status',{name:'Readiness expiry'})).toBeEmptyDOMElement();
+});
+
+it('keeps reopened readiness-expiry feedback stable during polling outages',async()=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockRejectedValue(new Error('offline')));
+  render(<Arena initial={{...initial,reservationExpiresAt:initial.serverTime}}/>);
+  const notice=screen.getByRole('status',{name:'Readiness expiry'});
+  const message=notice.firstChild;
+  expect(notice).toHaveTextContent('no result or rating change is confirmed');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(4000);});
+  expect(screen.getByRole('status',{name:'Readiness expiry'})).toBe(notice);
+  expect(notice.firstChild).toBe(message);
+  expect(screen.getByRole('button',{name:'Ready to duel'})).toBeDisabled();
+  expect(screen.getByRole('button',{name:'Copy solution'})).toBeEnabled();
+});
+
 it('counts down the server reservation window and awaits authoritative cancellation at zero',async()=>{
   vi.useFakeTimers();
   let snapshot:ArenaSnapshot={...initial,reservationExpiresAt:'2026-11-06T12:00:02Z'};
   vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
   render(<Arena initial={snapshot}/>);
   expect(screen.getByRole('timer')).toHaveTextContent('Ready in 2s');
+  const expiry=screen.getByRole('status',{name:'Readiness expiry'});
+  expect(expiry).toBeEmptyDOMElement();
+  expect(expiry).toHaveAttribute('aria-live','polite');
+  expect(expiry).toHaveAttribute('aria-atomic','true');
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'preserved code'}});
   await act(async()=>{await vi.advanceTimersByTimeAsync(1750);});
   expect(screen.getByRole('timer')).toHaveTextContent('Ready in 1s');
@@ -744,12 +767,16 @@ it('counts down the server reservation window and awaits authoritative cancellat
   await act(async()=>{await vi.advanceTimersByTimeAsync(500);});
   expect(screen.getByRole('timer')).toHaveTextContent('Confirming status');
   expect(screen.getByText(/The readiness window has ended/)).toBeVisible();
+  expect(screen.getByRole('status',{name:'Readiness expiry'})).toBe(expiry);
+  expect(expiry).toHaveTextContent('Waiting for server confirmation of activation or cancellation');
+  expect(screen.getByRole('status',{name:'Duel readiness'})).toHaveAttribute('aria-live','off');
   expect(screen.getByRole('button',{name:'Ready to duel'})).toBeDisabled();
   expect(screen.queryByRole('region',{name:'Duel cancelled'})).not.toBeInTheDocument();
   expect(screen.getByLabelText('Python solution')).toHaveValue('preserved code');
   snapshot={...snapshot,status:'cancelled'};
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
   expect(screen.getByRole('region',{name:'Duel cancelled'})).toBeVisible();
+  expect(expiry).toBeEmptyDOMElement();
   expect(screen.queryByText(/The readiness window has ended/)).not.toBeInTheDocument();
 });
 
@@ -758,8 +785,12 @@ it('replaces the reservation clock with the active match clock after server acti
   vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status:'active',deadline:'2026-11-06T12:05:00Z',reservationExpiresAt:null})}));
   render(<Arena initial={{...initial,reservationExpiresAt:'2026-11-06T11:59:59Z'}}/>);
   expect(screen.getByRole('timer')).toHaveTextContent('Confirming status');
+  const expiry=screen.getByRole('status',{name:'Readiness expiry'});
+  expect(expiry).toHaveTextContent('Time to mark ready has expired');
   await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
   expect(screen.getByRole('timer')).toHaveTextContent('5:00');
+  expect(screen.getByRole('status',{name:'Readiness expiry'})).toBe(expiry);
+  expect(expiry).toBeEmptyDOMElement();
   expect(screen.queryByRole('region',{name:'Duel readiness'})).not.toBeInTheDocument();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeEnabled();
 });
