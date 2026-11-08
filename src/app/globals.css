@@ -678,3 +678,8 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .solution-copy-delay-heading { display: block; color: #e5b567; margin-top: 8px; }
 
 .arena-draft-warning { color: #e9b65b; margin-block: 16px 8px; font-size: 1.125rem; line-height: 1.4; overflow-wrap: anywhere; }
+
+.solution-wrap-toggle { gap: var(--space-2); }
+.solution-wrap-state { min-width: 3ch; padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-pill); color: var(--color-muted); }
+.solution-wrap-toggle[aria-pressed="true"] { border-color: var(--color-accent); }
+.solution-wrap-toggle[aria-pressed="true"] .solution-wrap-state { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }

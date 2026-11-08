@@ -24,6 +24,7 @@ it("restores preferences across visits without persisting code", () => {
   render(<Harness readOnly/>);
   expect(screen.getByRole("button", { name: "Use advanced editor" })).toHaveAttribute("aria-pressed", "true");
   expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveTextContent("On");
   expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
   expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
 });
@@ -39,6 +40,7 @@ it("keeps valid fields when another stored preference is invalid", () => {
   render(<Harness/>);
   expect(screen.getByRole("button", { name: "Use advanced editor" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveTextContent("On");
   expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
 });
 it("keeps editing and controls usable when storage fails, then retries on a preference change", () => {
@@ -449,6 +451,7 @@ it.each([false, true])("expires download errors after editing and restoring code
   expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
   expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
   expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveTextContent("On");
   fireEvent.click(button);
   expect(screen.getByRole("alert")).toHaveTextContent("Unable to download");
 });
@@ -1073,3 +1076,25 @@ it.each([false, true])("refreshes overdue clipboard guidance after suspension in
   expect(writeText).toHaveBeenLastCalledWith("latest draft");
   expect(copy).toHaveAccessibleDescription("Solution copied to clipboard.");
  });
+
+it.each([false, true])("shows wrapping state and preserves focus and code in readOnly %s", readOnly => {
+  render(<Harness readOnly={readOnly}/>);
+  for (let mode = 0; mode < 2; mode++) {
+    const toggle = screen.getByRole("button", { name: "Wrap long lines" });
+    expect(toggle).toHaveClass("solution-wrap-toggle");
+    expect(toggle).toHaveTextContent("Off");
+    toggle.focus();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    expect(toggle).toHaveTextContent("On");
+    expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "soft");
+    expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(toggle).toHaveTextContent("Off");
+    expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "off");
+    if (mode === 0) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  }
+});

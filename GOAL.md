@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Make editor line wrapping visibly show On/Off with an accent selected state, preserving accessible toggle names, preferences, code and focus in both editor modes with regression coverage
 - [x] Announce repeated arena draft-reading retry failures with amber feedback and accessible recovery descriptions, preserving earlier code, focus and both-editor recovery with regression coverage
 - [x] Highlight arena draft storage failures with amber warning headings and associate recovery controls with code-protection guidance, preserving both-editor focus and recovery with regression coverage
 - [x] Retry local arena draft saving with Ctrl+S / Command+S in both editors, preserving unread-draft consent, focus and closed-match safety with visible guidance and regression coverage

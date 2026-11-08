@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Visible editor wrapping state
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no Python solutions ran on the host. Followed the blocker rule and added/completed one visual improvement.
+- Line wrapping now has a visible On/Off badge and an accent border and green badge when enabled. The accessible toggle name stays stable and aria-pressed exposes its state without duplicating the decorative badge.
+- Added editable/read-only regressions for both editor modes, displayed states, actual wrapping, unchanged code and retained focus; restored-preference tests also check the visible On state.
+- Validation: all 1,825 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused editor coverage passed (88 tests). Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Draft-reading retry feedback
 - Retried initial catalog validation with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. Followed the blocker rule and added/completed one draft-recovery feedback item. No draft Python ran on the host.
 - Failed reading retries now update an amber, politely announced message with the attempt number and confirmation that earlier saved code remains protected and automatic saving is paused. Recovery actions include the feedback in their accessible descriptions. Focus stays on Retry while storage remains unavailable.
