@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Visible line-wrapping guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
+- Added styled wrapping guidance beside its control, explaining horizontal scrolling when wrapping is off and that wrapping preserves code and indentation. Stable editor-specific accessible descriptions retain preference-saving recovery guidance when storage is unavailable.
+- Added regression coverage for independent editor descriptions, both editor modes, read-only recovery, unchanged code, keyboard focus and persisted preferences.
+- Validation: all 1,837 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused solution-editor tests (94), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Visible editor mode preference
 - Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
 - Added a visible preferred-mode badge beside the editor switch and an accent selected state for plain mode. The badge wraps on narrow layouts and describes the preference accurately even when advanced loading falls back to plain text. Existing accessible action names and pressed state remain intact.

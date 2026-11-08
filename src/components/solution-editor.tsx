@@ -51,6 +51,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   useEffect(() => { currentRevision.current = draftVersion.revision; }, [draftVersion.revision]);
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean; earlierDraft: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
+  const wrapGuidanceId = useId();
   const textSizeGuidanceId = useId();
   const preferenceGuidanceId = useId();
   const preferenceDescription = unavailable ? preferenceGuidanceId : undefined;
@@ -133,7 +134,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-disabled={fontSize === 15} onClick={() => { if (fontSize !== 15) setFontSize(15); }}>Reset text size</button>
     </div>
     <p id={textSizeGuidanceId} className="solution-text-size-guide">Text size: 12 to 24px. {fontSize === 12 ? "Minimum size reached. Increase text size for larger code." : fontSize === 24 ? "Maximum size reached. Decrease text size for smaller code." : "Adjust the code size to read comfortably."}</p>
-    <div className="solution-editor-actions"><button type="button" className="button button--secondary solution-wrap-toggle" aria-label="Wrap long lines" aria-describedby={preferenceDescription} aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines <span className="solution-wrap-state" aria-hidden="true">{wordWrap ? "On" : "Off"}</span></button></div>
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary solution-wrap-toggle" aria-label="Wrap long lines" aria-describedby={[wrapGuidanceId, preferenceDescription].filter(Boolean).join(" ")} aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines <span className="solution-wrap-state" aria-hidden="true">{wordWrap ? "On" : "Off"}</span></button></div>
+    <p id={wrapGuidanceId} className="solution-wrap-guide">{wordWrap ? "Long lines wrap to fit the editor." : "Long lines stay on one visual line. Scroll horizontally to read them, or turn wrapping on."} Wrapping changes only the display; your code and indentation stay unchanged.</p>
     {plain ? textEditor : <EditorBoundary key={editorAttempt} fallback={<><p id={recoveryGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Advanced editor unavailable. Continue in plain text; your code is preserved. Retry loads the advanced editor again using your current solution and preferences.</p>{textEditor}<div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={recoveryGuidanceId} onClick={() => { editorGroup.current?.focus(); setEditorAttempt(attempt => attempt + 1); }}>Retry advanced editor</button></div></>}>
       <PythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>
     </EditorBoundary>}

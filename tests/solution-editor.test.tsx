@@ -1148,3 +1148,32 @@ it.each([false, true])("shows the preferred editor mode while preserving switch 
   }
   expect(change).not.toHaveBeenCalled();
 });
+it.each([false, true])("explains wrapping independently across modes and read-only recovery, plain %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: false }));
+  const view = render(<><Harness/><Harness readOnly/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const first = within(groups[0]);
+  const second = within(groups[1]);
+  const toggle = first.getByRole("button", { name: "Wrap long lines" });
+  const other = second.getByRole("button", { name: "Wrap long lines" });
+  expect(toggle).toHaveAccessibleDescription(/Scroll horizontally.*code and indentation stay unchanged/);
+  expect(toggle.getAttribute("aria-describedby")).not.toBe(other.getAttribute("aria-describedby"));
+  expect(document.getElementById(toggle.getAttribute("aria-describedby")!)).toHaveClass("solution-wrap-guide");
+  toggle.focus();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAccessibleDescription(/Long lines wrap to fit the editor/);
+  expect(other).toHaveAccessibleDescription(/Scroll horizontally/);
+  view.rerender(<><Harness readOnly/><Harness readOnly/></>);
+  expect(toggle).toHaveFocus();
+  expect(first.getByLabelText("Python solution")).toHaveAttribute("readonly");
+  fireEvent.click(first.getByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" }));
+  expect(toggle).toHaveAccessibleDescription(/Long lines wrap to fit the editor/);
+  view.rerender(<><Harness/><Harness readOnly/></>);
+  toggle.focus();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAccessibleDescription(/Scroll horizontally/);
+  expect(first.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toMatchObject({ wordWrap: false, plain: !plain });
+});
