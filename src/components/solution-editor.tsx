@@ -51,8 +51,10 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   useEffect(() => { currentRevision.current = draftVersion.revision; }, [draftVersion.revision]);
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean; earlierDraft: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
+  const textSizeGuidanceId = useId();
   const preferenceGuidanceId = useId();
   const preferenceDescription = unavailable ? preferenceGuidanceId : undefined;
+  const textSizeDescription = [textSizeGuidanceId, preferenceDescription].filter(Boolean).join(" ");
   const resetGuidanceId = useId();
   const resetConfirmationId = useId();
   const resetAvailabilityId = useId();
@@ -125,11 +127,12 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       if (retrySaving() && focused) editorGroup.current?.focus();
     }}>Retry saving preferences</button></div>}
     <div className="solution-editor-actions" role="group" aria-label="Solution text size">
-      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-label="Decrease solution text size" aria-disabled={fontSize <= 12} onClick={() => { if (fontSize > 12) setFontSize(size => Math.max(12, size - 1)); }}>A-</button>
+      <button type="button" className="button button--secondary" aria-describedby={textSizeDescription} aria-label="Decrease solution text size" aria-disabled={fontSize <= 12} onClick={() => { if (fontSize > 12) setFontSize(size => Math.max(12, size - 1)); }}>A-</button>
       <span aria-live="polite" aria-atomic="true">{fontSize}px</span>
-      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-label="Increase solution text size" aria-disabled={fontSize >= 24} onClick={() => { if (fontSize < 24) setFontSize(size => Math.min(24, size + 1)); }}>A+</button>
+      <button type="button" className="button button--secondary" aria-describedby={textSizeDescription} aria-label="Increase solution text size" aria-disabled={fontSize >= 24} onClick={() => { if (fontSize < 24) setFontSize(size => Math.min(24, size + 1)); }}>A+</button>
       <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-disabled={fontSize === 15} onClick={() => { if (fontSize !== 15) setFontSize(15); }}>Reset text size</button>
     </div>
+    <p id={textSizeGuidanceId} className="solution-text-size-guide">Text size: 12 to 24px. {fontSize === 12 ? "Minimum size reached. Increase text size for larger code." : fontSize === 24 ? "Maximum size reached. Decrease text size for smaller code." : "Adjust the code size to read comfortably."}</p>
     <div className="solution-editor-actions"><button type="button" className="button button--secondary solution-wrap-toggle" aria-label="Wrap long lines" aria-describedby={preferenceDescription} aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines <span className="solution-wrap-state" aria-hidden="true">{wordWrap ? "On" : "Off"}</span></button></div>
     {plain ? textEditor : <EditorBoundary key={editorAttempt} fallback={<><p id={recoveryGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Advanced editor unavailable. Continue in plain text; your code is preserved. Retry loads the advanced editor again using your current solution and preferences.</p>{textEditor}<div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={recoveryGuidanceId} onClick={() => { editorGroup.current?.focus(); setEditorAttempt(attempt => attempt + 1); }}>Retry advanced editor</button></div></>}>
       <PythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>

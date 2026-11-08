@@ -699,7 +699,7 @@ it.each([false, true])("associates preference storage recovery guidance with eac
     expect(notice).toHaveAttribute("aria-atomic", "true");
     expect(notice).toHaveTextContent("retries saving your preferences; your solution stays in the editor");
     for (const name of ["Decrease solution text size", "Increase solution text size", "Reset text size", "Wrap long lines", "Use plain text editor"]) {
-      expect(within(group).getByRole("button", { name })).toHaveAttribute("aria-describedby", notice.id);
+      expect(within(group).getByRole("button", { name }).getAttribute("aria-describedby")?.split(" ")).toContain(notice.id);
     }
     return notice.id;
   });
@@ -714,7 +714,7 @@ it.each([false, true])("associates preference storage recovery guidance with eac
   expect(wrap).toHaveFocus();
   expect(within(groups[0]).queryByRole("status")).not.toBeInTheDocument();
   for (const name of ["Decrease solution text size", "Increase solution text size", "Reset text size", "Wrap long lines", "Use plain text editor"]) {
-    expect(within(groups[0]).getByRole("button", { name })).not.toHaveAttribute("aria-describedby");
+    expect(within(groups[0]).getByRole("button", { name }).getAttribute("aria-describedby")?.split(" ") ?? []).not.toContain(ids[0]);
   }
   expect(within(groups[1]).getByRole("status")).toHaveAttribute("id", ids[1]);
   expect(within(groups[0]).getByLabelText("Python solution")).toHaveValue("first draft");
@@ -1097,4 +1097,32 @@ it.each([false, true])("shows wrapping state and preserves focus and code in rea
     expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "off");
     if (mode === 0) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
   }
+});
+
+
+it.each([false, true])("explains text-size boundaries and recovery with isolated descriptions in plain mode %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, fontSize: 15 }));
+  render(<><Harness/><Harness readOnly/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const first = within(groups[0]);
+  const second = within(groups[1]);
+  const increase = first.getByRole("button", { name: "Increase solution text size" });
+  const decrease = first.getByRole("button", { name: "Decrease solution text size" });
+  expect(increase).toHaveAccessibleDescription(/12 to 24px.*Adjust the code size/);
+  expect(increase.getAttribute("aria-describedby")).not.toBe(second.getByRole("button", { name: "Increase solution text size" }).getAttribute("aria-describedby"));
+  increase.focus();
+  for (let i = 0; i < 9; i++) fireEvent.click(increase);
+  expect(increase).toHaveFocus();
+  expect(increase).toHaveAccessibleDescription(/Maximum size reached.*Decrease text size/);
+  fireEvent.click(increase);
+  expect(first.getByLabelText("Python solution")).toHaveStyle({ fontSize: "24px" });
+  decrease.focus();
+  for (let i = 0; i < 12; i++) fireEvent.click(decrease);
+  expect(decrease).toHaveFocus();
+  expect(decrease).toHaveAccessibleDescription(/Minimum size reached.*Increase text size/);
+  fireEvent.click(first.getByRole("button", { name: "Reset text size" }));
+  expect(decrease).toHaveAccessibleDescription(/Adjust the code size/);
+  expect(first.queryByText(/Minimum size reached/)).not.toBeInTheDocument();
+  expect(second.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
+  for (const group of groups) expect(within(group).getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
 });
