@@ -33,5 +33,15 @@ export function useEditorPreferences() {
       setUnavailable(false);
     } catch { setUnavailable(true); }
   }, [loaded, preferences]);
-  return { preferences, setPreferences, unavailable };
+  function retrySaving() {
+    try {
+      localStorage.setItem(key, JSON.stringify(preferences));
+      setUnavailable(false);
+      return true;
+    } catch {
+      setUnavailable(true);
+      return false;
+    }
+  }
+  return { preferences, setPreferences, unavailable, retrySaving };
 }

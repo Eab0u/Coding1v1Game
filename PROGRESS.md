@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Retry unchanged editor preferences
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor recovery item.
+- Added a styled Retry saving preferences action associated with the existing editor-specific recovery guidance. Players can save their current settings without changing text size, wrapping or editor mode. Repeated failures preserve the button and keyboard focus; successful recovery clears stale guidance and transfers focus from the removed button to its editor group without interrupting independent navigation.
+- Added editable/read-only regression coverage for repeated failure, successful recovery, exact saved settings, preserved private drafts, independent editors and keyboard focus.
+- Validation: all 1,778 tests across 75 files passed, including all 66 solution-editor tests; lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native browser storage restrictions and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Accessible editor preference storage recovery
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
 - Preference storage failure guidance now uses the padded amber recovery surface and explains that changing text size, wrapping or editor mode retries preference saving while preserving the solution. Each preference control references its own editor's stable, politely announced guidance; successful saving removes stale descriptions.

@@ -18,7 +18,7 @@ class EditorBoundary extends Component<{ children: ReactNode; fallback: ReactNod
 export function SolutionEditor({ value, onChange, readOnly, starter }: {
   value: string; onChange: (value: string) => void; readOnly: boolean; starter?: string;
 }) {
-  const { preferences: { plain, wordWrap, fontSize }, setPreferences, unavailable } = useEditorPreferences();
+  const { preferences: { plain, wordWrap, fontSize }, setPreferences, unavailable, retrySaving } = useEditorPreferences();
   const setPlain = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, plain: update(current.plain) }));
   const setWordWrap = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, wordWrap: update(current.wordWrap) }));
   const setFontSize = (update: number | ((value: number) => number)) => setPreferences(current => ({ ...current, fontSize: typeof update === "number" ? update : update(current.fontSize) }));
@@ -91,7 +91,11 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   }
   const textEditor = <PlainPythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>;
   return <div ref={editorGroup} className="solution-editor" role="group" aria-label="Solution editor" tabIndex={-1}>
-    {unavailable && <p id={preferenceGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Editor preferences apply for this visit. Browser storage is unavailable, so they may reset next time. Changing text size, line wrapping or editor mode retries saving your preferences; your solution stays in the editor.</p>}
+    {unavailable && <p id={preferenceGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Editor preferences apply for this visit. Browser storage is unavailable, so they may reset next time. Changing text size, line wrapping or editor mode retries saving your preferences; your solution stays in the editor. Retry saving preferences keeps your current settings.</p>}
+    {unavailable && <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={preferenceGuidanceId} onClick={event => {
+      const focused = document.activeElement === event.currentTarget;
+      if (retrySaving() && focused) editorGroup.current?.focus();
+    }}>Retry saving preferences</button></div>}
     <div className="solution-editor-actions" role="group" aria-label="Solution text size">
       <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-label="Decrease solution text size" disabled={fontSize <= 12} onClick={() => setFontSize(size => Math.max(12, size - 1))}>A-</button>
       <span aria-live="polite" aria-atomic="true">{fontSize}px</span>

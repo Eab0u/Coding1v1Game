@@ -714,3 +714,32 @@ it.each([false, true])("associates preference storage recovery guidance with eac
   expect(within(groups[0]).getByLabelText("Python solution")).toHaveValue("first draft");
   expect(within(groups[1]).getByLabelText("Python solution")).toHaveValue("second draft");
 });
+
+it.each([false, true])("retries saving unchanged preferences with isolated recovery and focus, readOnly %s", readOnly => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain: true, wordWrap: true, fontSize: 24 }));
+  const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+  const change = vi.fn();
+  render(<><SolutionEditor value="private first draft" onChange={change} readOnly={readOnly}/><SolutionEditor value="private second draft" onChange={change} readOnly={readOnly}/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const retry = within(groups[0]).getByRole("button", { name: "Retry saving preferences" });
+  const notice = within(groups[0]).getByRole("status");
+  expect(retry).toHaveAttribute("aria-describedby", notice.id);
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(within(groups[0]).getByRole("status")).toBe(notice);
+  write.mockRestore();
+  fireEvent.click(retry);
+  expect(groups[0]).toHaveFocus();
+  expect(within(groups[0]).queryByRole("status")).not.toBeInTheDocument();
+  expect(within(groups[0]).queryByRole("button", { name: "Retry saving preferences" })).not.toBeInTheDocument();
+  expect(within(groups[1]).getByRole("button", { name: "Retry saving preferences" })).toBeInTheDocument();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: true, wordWrap: true, fontSize: 24 });
+  expect(within(groups[0]).getByLabelText("Python solution")).toHaveValue("private first draft");
+  expect(within(groups[1]).getByLabelText("Python solution")).toHaveValue("private second draft");
+  expect(change).not.toHaveBeenCalled();
+  const otherRetry = within(groups[1]).getByRole("button", { name: "Retry saving preferences" });
+  fireEvent.click(otherRetry);
+  expect(groups[0]).toHaveFocus();
+  expect(within(groups[1]).queryByRole("status")).not.toBeInTheDocument();
+});
