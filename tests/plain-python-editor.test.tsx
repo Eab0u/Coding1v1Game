@@ -8,6 +8,38 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it("exposes isolated indentation shortcuts and restores them after read-only recovery without disturbing drafts", () => {
+  const change = vi.fn();
+  const editors = (readOnly: boolean) => <><PlainPythonEditor value="    return 42" onChange={change} readOnly={readOnly}/><PlainPythonEditor value="other" onChange={change} readOnly={false}/></>;
+  const { rerender } = render(editors(false));
+  const [indent, otherIndent] = screen.getAllByRole("button", { name: "Indent" });
+  const [outdent] = screen.getAllByRole("button", { name: "Outdent" });
+  const [input] = screen.getAllByRole("textbox") as HTMLTextAreaElement[];
+  const description = indent.getAttribute("aria-describedby")!;
+  expect(description).not.toBe(otherIndent.getAttribute("aria-describedby"));
+  expect(outdent).toHaveAttribute("aria-describedby", description);
+  expect(document.getElementById(description)).toBeVisible();
+  expect(document.getElementById(description)).toHaveClass("editor-hint");
+  expect(indent).toHaveAccessibleDescription(/Ctrl\+\] \/ Cmd\+\].*Ctrl\+\[ \/ Cmd\+\[.*Tab moves to the next control/);
+  input.setSelectionRange(4, 10, "backward");
+  indent.focus();
+  for (const readOnly of [true, false, true, false]) {
+    rerender(editors(readOnly));
+    expect(indent).toHaveFocus();
+    expect(input).toHaveValue("    return 42");
+    expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([4, 10, "backward"]);
+    if (readOnly) {
+      expect(document.getElementById(description)).toBeNull();
+      expect(indent).toHaveAccessibleDescription(/Read-only solution/);
+    } else {
+      expect(indent).toHaveAttribute("aria-describedby", description);
+      expect(document.getElementById(description)).toBeVisible();
+    }
+    expect(otherIndent).toHaveAccessibleDescription(/Tab moves to the next control/);
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
 it("keeps select-all copy guidance isolated and preserves whole-draft selection through read-only recovery", () => {
   const change = vi.fn();
   const value = "def solve():\n    return 42\n";
@@ -83,7 +115,7 @@ it.each(["Indent", "Outdent"])("retains %s focus through read-only transitions w
   rerender(editor(false));
   expect(button).toHaveFocus();
   expect(button).toHaveAttribute("aria-disabled", "false");
-  expect(button).not.toHaveAttribute("aria-describedby");
+  expect(button).toHaveAccessibleDescription(/Indent and Outdent adjust the current line.*Tab moves to the next control/);
   fireEvent.click(button);
   expect(input).toHaveFocus();
   expect(onChange).toHaveBeenCalledWith(name === "Indent" ? "        return 1" : "return 1");

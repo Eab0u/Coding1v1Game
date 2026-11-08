@@ -73,6 +73,7 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
   const positionId = useId();
   const summaryId = useId();
   const selectAllId = useId();
+  const indentationId = useId();
   const lineCount = value.split("\n").length;
   function updatePosition() {
     const editor = input.current;
@@ -124,13 +125,14 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
   return <>
     {readOnly && <p id={readOnlyId} className="editor-readonly-notice" role="note" aria-label="Read-only solution">Read-only solution. Indent and Outdent are unavailable. You can select and copy your code.</p>}
     <div className="solution-editor-actions" role="group" aria-label="Python indentation">
-      <button type="button" className="button button--secondary" aria-disabled={readOnly} aria-describedby={readOnly ? readOnlyId : undefined} onMouseDown={event => {
+      <button type="button" className="button button--secondary" aria-disabled={readOnly} aria-describedby={readOnly ? readOnlyId : indentationId} onMouseDown={event => {
         if (composing.current) event.preventDefault();
       }} onClick={() => changeIndent(false)}>Indent</button>
-      <button type="button" className="button button--secondary" aria-disabled={readOnly} aria-describedby={readOnly ? readOnlyId : undefined} onMouseDown={event => {
+      <button type="button" className="button button--secondary" aria-disabled={readOnly} aria-describedby={readOnly ? readOnlyId : indentationId} onMouseDown={event => {
         if (composing.current) event.preventDefault();
       }} onClick={() => changeIndent(true)}>Outdent</button>
     </div>
+    {!readOnly && <p id={indentationId} className="editor-hint">Indent and Outdent adjust the current line or selected lines by four spaces (Outdent also removes one leading tab). Use Ctrl+] / Cmd+] to indent and Ctrl+[ / Cmd+[ to outdent. Tab moves to the next control.</p>}
     <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={selectAllId} onMouseDown={event => {
       // Keep pointer activation from blurring the textarea before the click guard.
       if (composing.current) event.preventDefault();

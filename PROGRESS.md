@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Visible indentation shortcuts
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
+- Added styled visible indentation guidance beside the plain editor controls, explaining current-line/selection behavior, four-space indentation, leading-tab removal, keyboard shortcuts and Tab navigation. Both controls reference their own editor's guidance; read-only mode substitutes its existing unavailable explanation.
+- Added regression coverage for independent descriptions, visible styling, repeated read-only recovery, preserved focus, backward selection and unchanged drafts. Updated existing recovery assertions to verify restored shortcut guidance.
+- Validation: all 1,833 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused plain-editor tests (237), lint, typecheck, production build and whitespace checks passed. Corrected two outdated description assertions before the successful full-suite rerun.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Select-all clipboard guidance
 - Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability improvement.
 - Added visible styled guidance beside Select all code explaining that it focuses and selects the whole draft, that Ctrl+C / Cmd+C copies it, and that selection alone does not change the clipboard. Each button references its own editor's guidance.
