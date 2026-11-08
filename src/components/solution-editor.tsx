@@ -137,8 +137,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     {plain ? textEditor : <EditorBoundary key={editorAttempt} fallback={<><p id={recoveryGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Advanced editor unavailable. Continue in plain text; your code is preserved. Retry loads the advanced editor again using your current solution and preferences.</p>{textEditor}<div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={recoveryGuidanceId} onClick={() => { editorGroup.current?.focus(); setEditorAttempt(attempt => attempt + 1); }}>Retry advanced editor</button></div></>}>
       <PythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>
     </EditorBoundary>}
-    <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-pressed={plain} onClick={() => setPlain(current => !current)}>
-      {plain ? "Use advanced editor" : "Use plain text editor"}
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary solution-mode-toggle" aria-label={plain ? "Use advanced editor" : "Use plain text editor"} aria-describedby={preferenceDescription} aria-pressed={plain} onClick={() => setPlain(current => !current)}>
+      {plain ? "Use advanced editor" : "Use plain text editor"} <span className="solution-mode-state" aria-hidden="true">{plain ? "Plain preferred" : "Advanced preferred"}</span>
     </button>
     <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : undefined} onClick={downloadSolution}>Download solution (.py)</button>
     <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>

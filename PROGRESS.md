@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Visible editor mode preference
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
+- Added a visible preferred-mode badge beside the editor switch and an accent selected state for plain mode. The badge wraps on narrow layouts and describes the preference accurately even when advanced loading falls back to plain text. Existing accessible action names and pressed state remain intact.
+- Added editable/read-only regression coverage for repeated switching, visible styled states, accessible names, keyboard focus, unchanged code and persisted mode preferences.
+- Validation: all 1,835 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused solution-editor tests (92), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Visible indentation shortcuts
 - Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
 - Added styled visible indentation guidance beside the plain editor controls, explaining current-line/selection behavior, four-space indentation, leading-tab removal, keyboard shortcuts and Tab navigation. Both controls reference their own editor's guidance; read-only mode substitutes its existing unavailable explanation.

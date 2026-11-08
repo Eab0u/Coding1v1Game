@@ -1126,3 +1126,25 @@ it.each([false, true])("explains text-size boundaries and recovery with isolated
   expect(second.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
   for (const group of groups) expect(within(group).getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
 });
+
+
+it.each([false, true])("shows the preferred editor mode while preserving switch focus and code (readOnly %s)", readOnly => {
+  const change = vi.fn();
+  render(<SolutionEditor value="private draft" onChange={change} readOnly={readOnly}/>);
+  const toggle = screen.getByRole("button", { name: "Use plain text editor" });
+  toggle.focus();
+  for (const plain of [true, false, true, false]) {
+    fireEvent.click(toggle);
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveClass("solution-mode-toggle");
+    expect(toggle).toHaveAttribute("aria-pressed", String(plain));
+    expect(toggle).toHaveAccessibleName(plain ? "Use advanced editor" : "Use plain text editor");
+    const state = within(toggle).getByText(plain ? "Plain preferred" : "Advanced preferred");
+    expect(state).toBeVisible();
+    expect(state).toHaveClass("solution-mode-state");
+    expect(state).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByLabelText("Python solution")).toHaveValue("private draft");
+    expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!).plain).toBe(plain);
+  }
+  expect(change).not.toHaveBeenCalled();
+});
