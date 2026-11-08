@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Advanced editor keyboard navigation
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor accessibility item. Monaco now enables tab focus mode so Tab and Shift+Tab navigate between controls by default. Visible guidance explains Ctrl/Cmd bracket shortcuts for indentation without capturing navigation keys.
+- Added regression coverage for editable and read-only configurations, preservation through wrapping/font/read-only changes, current source propagation and change callbacks. Tests verify the Monaco integration contract; live browser Monaco keyboard interaction remains a deployment smoke check.
+- Validation: all 1,759 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Reject request accessors before judge validation
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
 - Followed the blocker rule and added/completed one judge validation item. Required top-level request fields now come from own data descriptors before suite traversal, rejecting own and inherited accessors without invoking getters or accessing the network. Frozen requests remain supported and unrelated metadata is ignored.
