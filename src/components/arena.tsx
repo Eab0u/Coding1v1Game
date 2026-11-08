@@ -5,7 +5,7 @@ import { ProblemExamples } from "./problem-examples";
 import { ArenaProgress } from "./arena-progress";
 import { SubmissionStatus } from "./submission-status";
 import { hasSubmissionScore } from "../lib/submission-score";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { ArenaSnapshot } from "../lib/arena";
 import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
 import { useArenaDraft } from "./use-arena-draft";
@@ -30,7 +30,9 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
     notify(verdict.passed===verdict.total ? "passed" : "failed");
   },[match.submission,notify]);
   const closed=match.status==="completed" || match.status==="cancelled";
-  const {source,setSource,saved}=useArenaDraft(initial.id,initial.player.username,initial.problem.signature,closed);
+  const {source,setSource,saved,retrySaving}=useArenaDraft(initial.id,initial.player.username,initial.problem.signature,closed);
+  const draftGuidanceId=useId();
+  const draftGuidance=useRef<HTMLParagraphElement>(null);
   const sourceError=solutionError(source);
   const [elapsed,setElapsed]=useState(0);
   const [error,setError]=useState("");
@@ -148,7 +150,11 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       </div>
       <p className="muted" id="submit-shortcut">{closed ? "Submissions are closed. You can still copy or download your code." : match.status==="pending" ? "The submission shortcut becomes available when the duel starts." : seconds===0 ? "Submissions are closed while the server confirms results. You can still copy or download your code." : "From the editor, press Ctrl+Enter or Command+Enter to submit your solution."}</p>
       <ArenaProgress score={match.bestProgress} player phase={progressPhase}/>
-      {!closed && <p role="status">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code."}</p>}
+      {!closed && <p id={draftGuidanceId} ref={draftGuidance} tabIndex={-1} className={saved ? undefined : "solution-editor-recovery"} role="status" aria-atomic="true">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : "Draft recovery unavailable. Keep this tab open to retain your code. Retry saving your current draft after browser storage becomes available, or download your solution. Saving a draft does not submit it."}</p>}
+      {!closed && !saved && <button type="button" className="button button--secondary" aria-describedby={draftGuidanceId} onClick={event=>{
+        const focused=document.activeElement===event.currentTarget;
+        if (retrySaving() && focused) draftGuidance.current?.focus();
+      }}>Retry saving draft</button>}
       <SubmissionStatus submission={match.submission} phase={progressPhase}/>
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>
       {match.status==="active" && <div className="arena-submission-state" role="status">

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Retry failed arena draft saves without edits or submission, with prominent recovery guidance, preserved code and keyboard focus, and storage/closed-match regression coverage
 - [x] Explain clipboard completion after edits with amber earlier-draft success guidance and explicit failure context, preserving focus, current-draft retry and stale-notice cleanup in both editor modes with regression coverage
 - [x] Refresh overdue clipboard recovery guidance when suspended tabs resume or regain focus, preserving fresh-request deadlines, focus and timer/listener cleanup in both editor modes with regression coverage
 - [x] Explain stalled clipboard requests after ten seconds with prominent permission and alternative-export guidance, preserving focus, draft safety and timer cleanup in both editors

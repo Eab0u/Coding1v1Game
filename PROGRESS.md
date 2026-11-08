@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Retry arena draft recovery
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one draft recovery item.
+- Added Retry saving draft after browser storage failures, using the current match/player-scoped code without requiring edits or submitting it. Amber recovery guidance explains keeping the tab open, downloading code and the distinction between saving and submitting.
+- Failed retries preserve code and keyboard focus; successful retries focus the stable saved confirmation when the retry button held focus. Recovery actions disappear when the server closes the match, while code remains available for export.
+- Added regression coverage in both editor modes for repeated failure, exact current-draft storage, accessible guidance, focus, successful recovery without submission and completed/cancelled match cleanup.
+- Validation: all 1,802 tests across 75 files passed; focused arena coverage passed (151 tests). Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live browser storage recovery checks and existing infrastructure blockers remain.
+
 ### 2026-11-07 - Explain completion of older clipboard drafts
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one clipboard recovery item.
 - Clipboard requests completing after edits now explain that an earlier draft was copied, with an amber accent and explicit current-solution copy guidance. Failed requests identify their earlier-draft context. Feedback describes the Copy action, preserves focus and code, and clears on further edits or a fresh request.

@@ -1184,3 +1184,43 @@ it('updates latest-attempt correction guidance through clock expiry and terminal
   expect(panel).toHaveTextContent('View results for the recorded outcome');
   expect(panel).toHaveTextContent('Latest solution: 0 / 8');
 });
+
+it.each([false,true])('retries saving the current draft without editing or submitting in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'current unsaved draft'}});
+  const retry=screen.getByRole('button',{name:'Retry saving draft'});
+  const guidance=screen.getByText(/Draft recovery unavailable/);
+  expect(guidance).toHaveClass('solution-editor-recovery');
+  expect(retry).toHaveAccessibleDescription(/Saving a draft does not submit it/);
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('current unsaved draft');
+  write.mockRestore();
+  const recoveredWrite=vi.spyOn(Storage.prototype,'setItem');
+  fireEvent.click(retry);
+  expect(recoveredWrite).toHaveBeenCalledExactlyOnceWith('codeduel:draft:Ada:match','current unsaved draft');
+  expect(screen.queryByRole('button',{name:'Retry saving draft'})).not.toBeInTheDocument();
+  expect(guidance).toHaveTextContent('Draft saved in this tab');
+  expect(guidance).not.toHaveClass('solution-editor-recovery');
+  expect(guidance).toHaveFocus();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('current unsaved draft');
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+it.each(['completed','cancelled'] as const)('removes draft saving recovery when a match becomes %s',async status=>{
+  vi.useFakeTimers();
+  const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status})}));
+  render(<Arena initial={initial}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'keep this code'}});
+  expect(screen.getByRole('button',{name:'Retry saving draft'})).toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  write.mockClear();
+  expect(screen.queryByRole('button',{name:'Retry saving draft'})).not.toBeInTheDocument();
+  expect(screen.queryByText(/Draft recovery unavailable/)).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('keep this code');
+  expect(write).not.toHaveBeenCalled();
+});

@@ -1,7 +1,7 @@
 "use client";
 /* Browser storage must be read after hydration, and write failures update the visible save status. */
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /** Tab-scoped recovery only; drafts never enter shared localStorage. */
 export function useArenaDraft(matchId: string, username: string, signature: string, closed: boolean) {
@@ -27,13 +27,18 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
     } catch { /* Editing still works when storage is blocked. */ }
     setLoaded(true);
   }, [key, closed]);
-  useEffect(() => {
-    if (!loaded) return;
+  const saveDraft = useCallback(() => {
+    if (!loaded) return false;
     try {
       if (closed) sessionStorage.removeItem(key);
       else sessionStorage.setItem(key, source);
       setSaved(!closed);
-    } catch { setSaved(false); }
+      return !closed;
+    } catch { setSaved(false); return false; }
   }, [key, source, closed, loaded]);
-  return { source, setSource, saved };
+  useEffect(() => { saveDraft(); }, [saveDraft]);
+  function retrySaving() {
+    return !closed && !saved && saveDraft();
+  }
+  return { source, setSource, saved, retrySaving };
 }
