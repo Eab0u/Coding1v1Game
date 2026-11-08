@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Select-all clipboard guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability improvement.
+- Added visible styled guidance beside Select all code explaining that it focuses and selects the whole draft, that Ctrl+C / Cmd+C copies it, and that selection alone does not change the clipboard. Each button references its own editor's guidance.
+- Added regression coverage for stable, independent accessible descriptions, whole-draft selection and focus, unchanged code and independent-editor selection through editable/read-only/recovery transitions.
+- Validation: all 1,832 tests across 75 files passed with `npm test -- --maxWorkers=2`; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Code-field read-only notice association
 - Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility improvement.
 - The plain Python code field now references its own styled visible read-only notice alongside the existing keyboard, cursor and size guidance. Returning to editable mode removes the notice reference without replacing the field.

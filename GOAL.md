@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Explain plain-editor Select all code with visible, editor-specific accessible clipboard guidance, preserving whole-draft selection, independent editors and read-only recovery with regression coverage
 - [x] Associate the plain Python code field with its visible read-only notice, preserving existing keyboard guidance, independent-editor descriptions, focus and selection through repeated recovery with regression coverage
 - [x] Preserve plain-editor indentation-control keyboard focus when a solution becomes read-only, with styled unavailable states, isolated visible explanations and draft/selection/recovery regression coverage
 - [x] Explain advanced-editor read-only state with styled copy/export guidance and remove misleading indentation instructions, preserving code, preferences and focus across state changes with regression coverage

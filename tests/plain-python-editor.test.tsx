@@ -8,6 +8,30 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it("keeps select-all copy guidance isolated and preserves whole-draft selection through read-only recovery", () => {
+  const change = vi.fn();
+  const value = "def solve():\n    return 42\n";
+  const editors = (readOnly: boolean) => <><PlainPythonEditor value={value} onChange={change} readOnly={readOnly}/><PlainPythonEditor value="other draft" onChange={change} readOnly/></>;
+  const { rerender } = render(editors(false));
+  const [button, otherButton] = screen.getAllByRole("button", { name: "Select all code" });
+  const [input, otherInput] = screen.getAllByRole("textbox") as HTMLTextAreaElement[];
+  const description = button.getAttribute("aria-describedby");
+  expect(description).not.toBe(otherButton.getAttribute("aria-describedby"));
+  expect(document.getElementById(description!)).toHaveClass("editor-hint");
+  expect(button).toHaveAccessibleDescription(/Then press Ctrl\+C or Cmd\+C.*Selection alone does not change your clipboard/);
+  otherInput.setSelectionRange(2, 5, "backward");
+  for (const readOnly of [false, true, false]) {
+    rerender(editors(readOnly));
+    expect(button.getAttribute("aria-describedby")).toBe(description);
+    fireEvent.click(button);
+    expect(input).toHaveFocus();
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, value.length]);
+    expect(input).toHaveValue(value);
+    expect([otherInput.selectionStart, otherInput.selectionEnd, otherInput.selectionDirection]).toEqual([2, 5, "backward"]);
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
 it("associates each code field with its visible read-only notice and removes stale references on recovery", () => {
   const change = vi.fn();
   const value = "    return 1";
