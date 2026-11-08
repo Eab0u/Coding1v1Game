@@ -1,7 +1,7 @@
 "use client";
 /* Browser storage must be read after hydration, and write failures update the visible save status. */
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Tab-scoped recovery only; drafts never enter shared localStorage. */
 export function useArenaDraft(matchId: string, username: string, signature: string, closed: boolean) {
@@ -9,6 +9,8 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
   const [source, setSource] = useState(`${signature}\n    pass\n`);
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [readFailed, setReadFailed] = useState(false);
+  const automaticSaveBlocked = useRef(false);
   const edited = source !== `${signature}\n    pass\n`;
   useEffect(() => {
     if (closed || !edited) return;
@@ -24,21 +26,28 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
     try {
       const draft = sessionStorage.getItem(key);
       if (!closed && draft !== null) setSource(draft);
-    } catch { /* Editing still works when storage is blocked. */ }
+    } catch {
+      // A failed read does not mean the slot is empty; require an explicit save.
+      automaticSaveBlocked.current = true;
+      setReadFailed(true);
+    }
     setLoaded(true);
   }, [key, closed]);
-  const saveDraft = useCallback(() => {
+  const saveDraft = useCallback((explicit = false) => {
     if (!loaded) return false;
+    if (!closed && automaticSaveBlocked.current && !explicit) return false;
     try {
       if (closed) sessionStorage.removeItem(key);
       else sessionStorage.setItem(key, source);
+      automaticSaveBlocked.current = false;
+      setReadFailed(false);
       setSaved(!closed);
       return !closed;
     } catch { setSaved(false); return false; }
   }, [key, source, closed, loaded]);
   useEffect(() => { saveDraft(); }, [saveDraft]);
   function retrySaving() {
-    return !closed && !saved && saveDraft();
+    return !closed && !saved && saveDraft(true);
   }
-  return { source, setSource, saved, retrySaving };
+  return { source, setSource, saved, readFailed, retrySaving };
 }

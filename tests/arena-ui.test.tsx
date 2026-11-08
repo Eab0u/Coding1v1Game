@@ -1224,3 +1224,39 @@ it.each(['completed','cancelled'] as const)('removes draft saving recovery when 
   expect(screen.getByLabelText('Python solution')).toHaveValue('keep this code');
   expect(write).not.toHaveBeenCalled();
 });
+
+it.each([false,true])('protects unread stored drafts until explicit replacement in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const key='codeduel:draft:Ada:match';
+  sessionStorage.setItem(key,'valuable earlier draft');
+  const originalRead=Storage.prototype.getItem;
+  const read=vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,name:string){
+    if(this===sessionStorage && name===key) throw new Error('read denied');
+    return originalRead.call(this,name);
+  });
+  const write=vi.spyOn(Storage.prototype,'setItem');
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const draftWrites=()=>write.mock.calls.filter(call=>call[0]===key);
+  expect(draftWrites()).toHaveLength(0);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'new intentional draft'}});
+  expect(draftWrites()).toHaveLength(0);
+  const retry=screen.getByRole('button',{name:'Retry saving draft'});
+  expect(retry).toHaveAccessibleDescription(/Automatic saving is paused.*replaces any unread saved draft/);
+  read.mockRestore();
+  expect(sessionStorage.getItem(key)).toBe('valuable earlier draft');
+  const failedWrite=write.mockImplementation(()=>{throw new Error('write denied');});
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('new intentional draft');
+  expect(sessionStorage.getItem(key)).toBe('valuable earlier draft');
+  failedWrite.mockRestore();
+  fireEvent.click(retry);
+  expect(sessionStorage.getItem(key)).toBe('new intentional draft');
+  expect(screen.getByText(/Draft saved in this tab/)).toHaveFocus();
+  expect(screen.queryByText(/Automatic saving is paused/)).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'subsequent edit'}});
+  expect(sessionStorage.getItem(key)).toBe('subsequent edit');
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
