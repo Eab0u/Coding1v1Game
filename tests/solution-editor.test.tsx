@@ -847,3 +847,54 @@ it.each([false, true])("cancels reset with Escape anywhere in its owning editor 
   expect(second.getByRole("group", { name: "Confirm solution reset" })).toBeInTheDocument();
   expect(change).not.toHaveBeenCalled();
 });
+it.each([false, true])("exposes stable owned reset confirmation state across cancellation and invalidation (plain=%s)", plain => {
+  const change = vi.fn();
+  const props = { value: "draft", starter: "pass", readOnly: false, onChange: change };
+  const view = render(<SolutionEditor {...props}/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const reset = screen.getByRole("button", { name: "Reset to starter code" });
+  expect(reset).toHaveAttribute("aria-expanded", "false");
+  expect(reset).not.toHaveAttribute("aria-controls");
+  fireEvent.click(reset);
+  const id = screen.getByRole("group", { name: "Confirm solution reset" }).id;
+  expect(id).not.toBe("");
+  expect(reset).toHaveAttribute("aria-expanded", "true");
+  expect(reset).toHaveAttribute("aria-controls", id);
+  fireEvent.click(screen.getByRole("button", { name: "Keep my solution" }));
+  expect(reset).toHaveFocus();
+  expect(reset).toHaveAttribute("aria-expanded", "false");
+  expect(reset).not.toHaveAttribute("aria-controls");
+  expect(document.getElementById(id)).toBeNull();
+  for (const update of [{ value: "edited" }, { starter: "new starter" }, { value: "pass" }]) {
+    view.rerender(<SolutionEditor {...props}/>);
+    fireEvent.click(reset);
+    expect(reset).toHaveAttribute("aria-controls", id);
+    view.rerender(<SolutionEditor {...props} {...update}/>);
+    expect(reset).toHaveAttribute("aria-expanded", "false");
+    expect(reset).not.toHaveAttribute("aria-controls");
+    expect(document.getElementById(id)).toBeNull();
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
+it("keeps reset disclosure targets isolated and clears state after replacement", () => {
+  render(<><Harness/><Harness/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const ids = groups.map(group => {
+    const ui = within(group);
+    fireEvent.change(ui.getByRole("textbox"), { target: { value: "draft" } });
+    const reset = ui.getByRole("button", { name: "Reset to starter code" });
+    fireEvent.click(reset);
+    const id = reset.getAttribute("aria-controls")!;
+    expect(group).toContainElement(document.getElementById(id));
+    return id;
+  });
+  expect(ids[0]).not.toBe(ids[1]);
+  fireEvent.click(within(groups[0]).getByRole("button", { name: "Replace with starter code" }));
+  const reset = within(groups[0]).getByRole("button", { name: "Reset to starter code" });
+  expect(reset).toHaveAttribute("aria-expanded", "false");
+  expect(reset).not.toHaveAttribute("aria-controls");
+  expect(reset).toHaveAttribute("aria-disabled", "true");
+  expect(document.getElementById(ids[0])).toBeNull();
+  expect(document.getElementById(ids[1])).toBeInTheDocument();
+});

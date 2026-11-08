@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Expose reset confirmation state and ownership
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one editor accessibility item.
+- Reset to starter code now exposes aria-expanded and references its owning confirmation through an editor-specific stable ID while open. Closing or invalidating the confirmation clears the relationship, avoiding references to removed content. Existing keyboard focus and draft preservation behavior remain intact.
+- Added advanced/plain-editor regression coverage for reopening, cancellation, changed drafts/starters, matching starter code, replacement and independent editor targets.
+- Validation: all 1,788 tests across 75 files passed, including all 76 solution-editor tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native screen-reader smoke checks and existing infrastructure blockers remain.
+
 ### 2026-11-07 - Cancel pending resets throughout the editor
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor keyboard recovery item.
 - Escape now dismisses a pending starter-code reset from anywhere in its owning editor, including the code field and toolbar, and restores focus to Reset. Visible confirmation guidance explains the shortcut. Capture handling works before advanced-editor key handlers; composing/key-code-229 events and Escape without a pending reset retain their normal behavior.

@@ -35,6 +35,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const preferenceGuidanceId = useId();
   const preferenceDescription = unavailable ? preferenceGuidanceId : undefined;
   const resetGuidanceId = useId();
+  const resetConfirmationId = useId();
   const resetAvailabilityId = useId();
   const recoveryGuidanceId = useId();
   const copyGuidanceId = useId();
@@ -117,9 +118,9 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     </button>
     <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : undefined} onClick={downloadSolution}>Download solution (.py)</button>
     <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
-    {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
+    {starter !== undefined && !readOnly && <button ref={resetButton} aria-expanded={confirmReset} aria-controls={confirmReset ? resetConfirmationId : undefined} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
     {starter !== undefined && !readOnly && !canReset && <p id={resetAvailabilityId} className="solution-reset-notice">Your solution already matches the starter code. Reset becomes available after you edit it.</p>}
-    {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId}>
+    {confirmReset && canReset && <div id={resetConfirmationId} className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId}>
       <p id={resetGuidanceId}>Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Press Escape anywhere in this editor to keep your solution. Download your solution first if you want to keep it.</p>
       <div className="solution-editor-actions">
         <button autoFocus aria-describedby={resetGuidanceId} type="button" className="button button--secondary" onClick={cancelReset}>Keep my solution</button>
