@@ -14,6 +14,33 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each([0, -0])("accepts sandbox JSON negative zero against expected %s", async expected => {
+    const negativeZero = { ...done(), stdout: Buffer.from("-0.0").toString("base64") };
+    const fetcher = sandbox([negativeZero, negativeZero, negativeZero]);
+    const result = await createJudge(config, fetcher)({ ...request, tests: [{ args: [], expected, benchmark: true }] });
+    expect(result.testsPassed).toBe(1);
+  });
+
+  it("compares signed zero using JSON semantics throughout nested answers without mutating the suite", async () => {
+    const expected = { values: [-0, { zero: -0 }], positive: 0 };
+    const tests = [{ args: [-0], expected, benchmark: true }];
+    const fetcher = sandbox([done({ values: [0, { zero: 0 }], positive: 0 }), done(expected), done(expected)]);
+    const result = await createJudge(config, fetcher)({ ...request, tests });
+    expect(result.testsPassed).toBe(1);
+    expect(result.largestTestsCpuMs).toEqual([12, 12, 12]);
+    expect(Object.is(expected.values[0], -0)).toBe(true);
+    expect(Object.is(tests[0].args[0], -0)).toBe(true);
+    const sent = JSON.parse(String(fetcher.mock.calls[0][1]?.body));
+    expect(Buffer.from(sent.stdin, "base64").toString()).toBe("[0]");
+  });
+
+  it("still rejects incorrect nested numeric answers after JSON normalization", async () => {
+    const fetcher = sandbox([done({ zero: 1 }), done({ zero: 0 }), done({ zero: 0 })]);
+    const result = await createJudge(config, fetcher)({ ...request, tests: [{ args: [], expected: { zero: -0 }, benchmark: true }] });
+    expect(result.testsPassed).toBe(0);
+    expect(result.largestTestsCpuMs).toEqual([2000, 12, 12]);
+  });
+
   it("rejects malformed top-level requests consistently before network access and permits retry", async () => {
     const fetcher = sandbox([done(), done(), done()]);
     const judge = createJudge(config, fetcher);

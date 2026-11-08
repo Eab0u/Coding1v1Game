@@ -130,6 +130,8 @@ or network access; shared acyclic values are supported.
 At least one test must mark the largest-input benchmark. The Python function receives
 positional JSON arguments and must return a JSON value; output must contain only that
 value. Comparisons are exact, including array order, with object key order ignored.
+Numeric negative zero and zero compare equally, including inside nested answers,
+matching the JSON argument representation sent to Python.
 Sandbox stdout must use canonical base64 containing valid UTF-8 JSON. Malformed
 encoding fails the test with the full CPU penalty; decoding never repairs output
 before comparing it with the expected answer. Valid Unicode replacement characters

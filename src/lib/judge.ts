@@ -43,6 +43,18 @@ function jsonValue(value: unknown, budget: { remaining: number }, depth = 0): bo
     Object.values(value).every(entry => jsonValue(entry, budget, depth + 1));
 }
 
+/** Normalize signed zeros on an owned JSON snapshot without touching caller data. */
+function normalizeJsonZeros(value: Json): Json {
+  if (value === 0) return 0;
+  if (value && typeof value === "object") {
+    for (const key of Object.keys(value)) {
+      const object = value as Record<string, Json>;
+      object[key] = normalizeJsonZeros(object[key]);
+    }
+  }
+  return value;
+}
+
 /** Server-only Judge0 adapter. No local execution or fallback is permitted. */
 export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch) {
   // Validate and use one snapshot, including throughout asynchronous executions.
@@ -96,7 +108,10 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
       throw new RangeError("Invalid judge request; include JSON tests and a largest-test benchmark.");
     }
     // Own the validated suite before the first await; callers may reuse or mutate it.
+    // Snapshot JSON semantics as well as ownership: JSON represents -0 as 0.
+    // Keeping JavaScript's signed zero would reject correct Python JSON answers.
     const tests = structuredClone(request.tests);
+    for (const test of tests) test.expected = normalizeJsonZeros(test.expected);
     const submittedAtMs = request.submittedAtMs;
     // Expected answers stay on the server. Only arguments are sent to the sandbox.
     const source = `import json, sys\n_payload = json.loads(sys.stdin.read())\n_namespace = {}\nexec(compile(${JSON.stringify(request.source)}, '<submission>', 'exec'), _namespace)\n_result = _namespace[${JSON.stringify(request.functionName)}](*_payload)\nprint(json.dumps(_result, allow_nan=False))\n`;
@@ -133,7 +148,7 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
             // Only compare the exact, canonically encoded sandbox output.
             if (bytes.toString("base64") === result.stdout) {
               const output = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
-              passed = isDeepStrictEqual(JSON.parse(output), test.expected);
+              passed = isDeepStrictEqual(JSON.parse(output, (_key, value) => value === 0 ? 0 : value), test.expected);
             }
           }
         } catch { /* Malformed or non-JSON output fails this test. */ }
