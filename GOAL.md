@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Explain solution copying before use with styled visible, editor-specific clipboard replacement, permission and recovery guidance, preserving focus, drafts and preferences across modes and read-only recovery with regression coverage
 - [x] Explain solution downloads before use with styled visible, editor-specific accessible guidance covering current-draft export, browser downloads and post-match availability, preserving focus and code across modes and read-only recovery with regression coverage
 - [x] Explain editor line wrapping with styled visible, isolated accessible guidance, preserving code, focus and preferences across modes and read-only recovery with regression coverage
 - [x] Show the preferred editor mode beside its switch with a selected plain-mode accent, preserving accessible action names, focus, code and saved preferences with regression coverage

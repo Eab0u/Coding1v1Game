@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Visible solution copy guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one copy usability item.
+- Added styled visible guidance explaining current-draft clipboard replacement without submission, browser permission prompts, manual copy/download recovery and availability after match end. Copy references isolated editor-specific guidance before use and restores it when draft edits clear stale completion notices; pending, success and failure descriptions remain intact.
+- Added both-mode regression coverage for isolated descriptions, repeated read-only transitions, preserved focus, failure/retry recovery, unchanged drafts and saved preferences. Updated existing clipboard tests to expect restored guidance after edits.
+- Validation: all 1,841 tests across 75 files passed with `npm test -- --maxWorkers=2`; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Visible solution download guidance
 - Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one export usability item.
 - Added styled visible guidance explaining current-draft export as solution.py, browser download recovery and availability after match end. Download references isolated editor-specific guidance before use and restores it after stale result notices clear; success and failure descriptions remain intact.

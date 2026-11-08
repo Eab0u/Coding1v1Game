@@ -583,7 +583,7 @@ it("isolates pending copy descriptions and busy states between editors", async (
   const copies = screen.getAllByRole("button", { name: "Copy solution" });
   fireEvent.click(copies[0]);
   expect(copies[1]).toHaveAttribute("aria-disabled", "false");
-  expect(copies[1]).not.toHaveAttribute("aria-describedby");
+  expect(copies[1]).toHaveAccessibleDescription(/Copy captures your current draft/);
   fireEvent.click(copies[1]);
   const ids = copies.map(copy => copy.getAttribute("aria-describedby"));
   expect(new Set(ids).size).toBe(2);
@@ -671,9 +671,9 @@ it.each([false, true])("associates styled copy results and clears stale descript
   fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
   expect(copy).toHaveAttribute("aria-describedby", success.id);
   view.rerender(<SolutionEditor value="changed" onChange={vi.fn()} readOnly={readOnly}/>);
-  expect(copy).not.toHaveAttribute("aria-describedby");
+  expect(copy).toHaveAccessibleDescription(/Copy captures your current draft/);
   view.rerender(<SolutionEditor value="draft" onChange={vi.fn()} readOnly={readOnly}/>);
-  expect(copy).not.toHaveAttribute("aria-describedby");
+  expect(copy).toHaveAccessibleDescription(/Copy captures your current draft/);
   expect(screen.queryByText("Solution copied to clipboard.")).not.toBeInTheDocument();
 });
 
@@ -682,7 +682,7 @@ it("isolates clipboard completion descriptions between editors", async () => {
   render(<><SolutionEditor value="one" onChange={vi.fn()} readOnly={false}/><SolutionEditor value="two" onChange={vi.fn()} readOnly/></>);
   const copies = screen.getAllByRole("button", { name: "Copy solution" });
   await act(async () => { fireEvent.click(copies[0]); });
-  expect(copies[1]).not.toHaveAttribute("aria-describedby");
+  expect(copies[1]).toHaveAccessibleDescription(/Copy captures your current draft/);
   await act(async () => { fireEvent.click(copies[1]); });
   const notices = screen.getAllByText("Solution copied to clipboard.");
   expect(copies[0]).toHaveAttribute("aria-describedby", notices[0].id);
@@ -1071,7 +1071,7 @@ it.each([false, true])("refreshes overdue clipboard guidance after suspension in
   expect(input).toHaveValue("current draft");
   fireEvent.change(input, { target: { value: "latest draft" } });
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  expect(copy).not.toHaveAttribute("aria-describedby");
+  expect(copy).toHaveAccessibleDescription(/Copy captures your current draft/);
   await act(async () => { fireEvent.click(copy); });
   expect(writeText).toHaveBeenLastCalledWith("latest draft");
   expect(copy).toHaveAccessibleDescription("Solution copied to clipboard.");
@@ -1206,5 +1206,40 @@ it.each([false, true])("keeps isolated visible download help through mode and re
   expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
   expect(screen.getAllByLabelText("Python solution")[0]).toHaveValue("private draft");
   expect(change).not.toHaveBeenCalled();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: !plain, wordWrap: true, fontSize: 18 });
+});
+
+it.each([false, true])("keeps copy help isolated and restores it after draft changes with plain %s", async plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 18 }));
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockRejectedValueOnce(new Error("Denied")).mockResolvedValue(undefined) } });
+  const content = (readOnly: boolean, value = "private draft") => <><SolutionEditor value={value} onChange={vi.fn()} readOnly={readOnly}/><SolutionEditor value="other draft" onChange={vi.fn()} readOnly/></>;
+  const view = render(content(false));
+  const buttons = screen.getAllByRole("button", { name: "Copy solution" });
+  const ids = buttons.map(button => button.getAttribute("aria-describedby")!);
+  expect(ids[0]).not.toBe(ids[1]);
+  for (const id of ids) {
+    expect(document.getElementById(id)).toBeVisible();
+    expect(document.getElementById(id)).toHaveClass("solution-copy-guide");
+    expect(document.getElementById(id)).toHaveTextContent("replaces the text on your clipboard");
+    expect(document.getElementById(id)).toHaveTextContent("clipboard permission");
+    expect(document.getElementById(id)).toHaveTextContent("after the match ends");
+  }
+  buttons[0].focus();
+  for (const readOnly of [true, false, true, false]) {
+    view.rerender(content(readOnly));
+    expect(buttons[0]).toHaveFocus();
+    expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+  }
+  await act(async () => { fireEvent.click(buttons[0]); });
+  expect(buttons[0]).toHaveAccessibleDescription(/Unable to copy/);
+  expect(buttons[0]).toHaveFocus();
+  await act(async () => { fireEvent.click(buttons[0]); });
+  expect(buttons[0]).toHaveAccessibleDescription("Solution copied to clipboard.");
+  view.rerender(content(false, "new draft"));
+  expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+  expect(buttons[1]).toHaveAttribute("aria-describedby", ids[1]);
+  fireEvent.click(screen.getAllByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" })[0]);
+  expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+  expect(screen.getAllByLabelText("Python solution")[0]).toHaveValue("new draft");
   expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: !plain, wordWrap: true, fontSize: 18 });
 });
