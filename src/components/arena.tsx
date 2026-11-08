@@ -32,6 +32,8 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const closed=match.status==="completed" || match.status==="cancelled";
   const {source,setSource,saved,readFailed,retrySaving,canRetryReading,retryReading}=useArenaDraft(initial.id,initial.player.username,initial.problem.signature,closed);
   const draftGuidanceId=useId();
+  const draftHeadingId=useId();
+  const draftDescriptionId=!closed && !saved ? `${draftHeadingId} ${draftGuidanceId}` : draftGuidanceId;
   const draftGuidance=useRef<HTMLParagraphElement>(null);
   function saveCurrentDraft() {
     if (closed || saved) return false;
@@ -159,12 +161,13 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
       {!closed && <p className="muted">From the editor, press Ctrl+S or Command+S to retry saving your draft in this tab. Drafts save automatically when storage is available. This does not submit your solution.</p>}
       <p className="muted" id="submit-shortcut">{closed ? "Submissions are closed. You can still copy or download your code." : match.status==="pending" ? "The submission shortcut becomes available when the duel starts." : seconds===0 ? "Submissions are closed while the server confirms results. You can still copy or download your code." : "From the editor, press Ctrl+Enter or Command+Enter to submit your solution."}</p>
       <ArenaProgress score={match.bestProgress} player phase={progressPhase}/>
+      {!closed && !saved && <h3 id={draftHeadingId} className="arena-draft-warning">{readFailed ? "Earlier saved code needs protection" : "Your draft is not saved in this tab"}</h3>}
       {!closed && <p id={draftGuidanceId} ref={draftGuidance} tabIndex={-1} className={saved ? undefined : "solution-editor-recovery"} role="status" aria-atomic="true">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : readFailed ? "Draft recovery unavailable. The saved draft could not be read. Automatic saving is paused to protect any earlier code. Your browser may ask for confirmation before leaving or refreshing while recovery is unavailable. Keep this tab open or download your solution. Before editing, Retry reading draft can recover earlier code without replacing it. After editing, reading is paused to protect your current code. Retry saving draft replaces any unread saved draft with the code currently in the editor. A confirmation asks before replacing it; cancel to keep the earlier draft. Saving a draft does not submit it." : "Draft recovery unavailable. Keep this tab open to retain your code. Retry saving your current draft after browser storage becomes available, or download your solution. Saving a draft does not submit it."}</p>}
-      {canRetryReading && <button type="button" className="button button--secondary" aria-describedby={draftGuidanceId} onClick={event=>{
+      {canRetryReading && <button type="button" className="button button--secondary" aria-describedby={draftDescriptionId} onClick={event=>{
         const focused=document.activeElement===event.currentTarget;
         if (retryReading() && focused) draftGuidance.current?.focus();
       }}>Retry reading draft</button>}
-      {!closed && !saved && <button type="button" className="button button--secondary" aria-keyshortcuts="Control+s Meta+s" aria-describedby={draftGuidanceId} onClick={event=>{
+      {!closed && !saved && <button type="button" className="button button--secondary" aria-keyshortcuts="Control+s Meta+s" aria-describedby={draftDescriptionId} onClick={event=>{
         const focused=document.activeElement===event.currentTarget;
         if (saveCurrentDraft() && focused) draftGuidance.current?.focus();
       }}>Retry saving draft</button>}

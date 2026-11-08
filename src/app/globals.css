@@ -676,3 +676,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .solution-export-error-heading { display: block; color: var(--color-danger); margin-bottom: 4px; }
 
 .solution-copy-delay-heading { display: block; color: #e5b567; margin-top: 8px; }
+
+.arena-draft-warning { color: #e9b65b; margin-block: 16px 8px; font-size: 1.125rem; line-height: 1.4; overflow-wrap: anywhere; }

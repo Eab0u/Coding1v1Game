@@ -1195,6 +1195,8 @@ it.each([false,true])('retries saving the current draft without editing or submi
   const retry=screen.getByRole('button',{name:'Retry saving draft'});
   const guidance=screen.getByText(/Draft recovery unavailable/);
   expect(guidance).toHaveClass('solution-editor-recovery');
+  expect(screen.getByRole('heading',{name:'Your draft is not saved in this tab'})).toHaveClass('arena-draft-warning');
+  expect(retry).toHaveAccessibleDescription(/^Your draft is not saved in this tab/);
   expect(retry).toHaveAccessibleDescription(/Saving a draft does not submit it/);
   retry.focus();
   fireEvent.click(retry);
@@ -1208,6 +1210,7 @@ it.each([false,true])('retries saving the current draft without editing or submi
   expect(screen.queryByRole('button',{name:'Retry saving draft'})).not.toBeInTheDocument();
   expect(guidance).toHaveTextContent('Draft saved in this tab');
   expect(guidance).not.toHaveClass('solution-editor-recovery');
+  expect(screen.queryByRole('heading',{name:'Your draft is not saved in this tab'})).not.toBeInTheDocument();
   expect(guidance).toHaveFocus();
   expect(screen.getByLabelText('Python solution')).toHaveValue('current unsaved draft');
   expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
@@ -1459,4 +1462,23 @@ it.each([false,true])('requires fresh shortcut consent and ignores unrelated key
   expect(sessionStorage.getItem(key)).toBe('replacement');
   expect(editor).toHaveFocus();
   expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+
+it.each([false,true])('highlights protection of unread drafts in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(()=>{throw new Error('unavailable');});
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const heading=screen.getByRole('heading',{name:'Earlier saved code needs protection'});
+  expect(heading).toHaveClass('arena-draft-warning');
+  const read=screen.getByRole('button',{name:'Retry reading draft'});
+  const save=screen.getByRole('button',{name:'Retry saving draft'});
+  expect(read).toHaveAccessibleDescription(/^Earlier saved code needs protection/);
+  expect(save).toHaveAccessibleDescription(/^Earlier saved code needs protection/);
+  read.focus();
+  fireEvent.click(read);
+  expect(read).toHaveFocus();
+  expect(screen.getByRole('heading',{name:'Earlier saved code needs protection'})).toBe(heading);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'keep current code'}});
+  expect(save).toHaveAccessibleDescription(/Earlier saved code needs protection.*reading is paused/);
 });

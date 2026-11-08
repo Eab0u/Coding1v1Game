@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Prominent arena draft storage warnings
+- Retried catalog validation with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one visual and accessibility improvement.
+- Added amber warning headings distinguishing an unsaved current draft from unread earlier code that needs protection. Both recovery actions reference the heading and detailed guidance. Warnings clear after saving or match closure without changing storage or submission behavior.
+- Updated both-editor regressions for heading styles, accessible descriptions, repeated read failures, editing and successful recovery with preserved focus.
+- Validation: all 1,823 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused arena coverage passed (172 tests). Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 and validate the initial catalog; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Keyboard draft-save recovery
 - Selected catalog validation first and retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. Followed the blocker rule and added/completed one keyboard draft-recovery item; no draft Python ran on the host.
 - Ctrl+S and Command+S now retry local saving from either arena editor, with visible shortcut and automatic-saving guidance. The shortcut prevents the browser save-page dialog, preserves editor focus, and never submits code.
