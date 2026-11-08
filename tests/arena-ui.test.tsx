@@ -1304,3 +1304,61 @@ it.each(['completed','cancelled'] as const)('clears unread-draft leave protectio
   expect(leaveIsGuarded()).toBe(false);
   expect(screen.queryByRole('button',{name:'Retry saving draft'})).not.toBeInTheDocument();
 });
+it.each([false,true])('retries reading earlier drafts safely in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const key='codeduel:draft:Ada:match';
+  sessionStorage.setItem(key,'earlier solution');
+  const originalRead=Storage.prototype.getItem;
+  let denied=true;
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,name:string){
+    if(this===sessionStorage && name===key && denied) throw new Error('read denied');
+    return originalRead.call(this,name);
+  });
+  const write=vi.spyOn(Storage.prototype,'setItem');
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const retry=screen.getByRole('button',{name:'Retry reading draft'});
+  expect(retry).toHaveAccessibleDescription(/recover earlier code without replacing it/);
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(write.mock.calls.filter(call=>call[0]===key)).toHaveLength(0);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    pass\n');
+  denied=false;
+  fireEvent.click(retry);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('earlier solution');
+  expect(sessionStorage.getItem(key)).toBe('earlier solution');
+  expect(screen.getByText(/Draft saved in this tab/)).toHaveFocus();
+  expect(screen.queryByRole('button',{name:'Retry reading draft'})).not.toBeInTheDocument();
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+
+it.each([false,true])('pauses draft reading after edits in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const originalRead=Storage.prototype.getItem;
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,key:string){
+    if(this===sessionStorage) throw new Error('read denied');
+    return originalRead.call(this,key);
+  });
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  expect(screen.getByRole('button',{name:'Retry reading draft'})).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'current edits'}});
+  expect(screen.queryByRole('button',{name:'Retry reading draft'})).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('current edits');
+  expect(screen.getByRole('button',{name:'Retry saving draft'})).toHaveAccessibleDescription(/reading is paused to protect your current code/);
+});
+it('resumes saving when retry confirms the unread draft slot is empty',()=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const originalRead=Storage.prototype.getItem;
+  const read=vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,key:string){
+    if(this===sessionStorage) throw new Error('read denied');
+    return originalRead.call(this,key);
+  });
+  render(<Arena initial={initial}/>);
+  read.mockRestore();
+  fireEvent.click(screen.getByRole('button',{name:'Retry reading draft'}));
+  expect(screen.getByText(/Draft saved in this tab/)).toBeInTheDocument();
+  expect(sessionStorage.getItem('codeduel:draft:Ada:match')).toBe('def solve():\n    pass\n');
+  expect(leaveIsGuarded()).toBe(false);
+});

@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Recover unread drafts without replacement
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one draft-recovery item.
+- Added Retry reading draft while the editor still contains starter code after a storage read failure. Successful reads recover earlier code and resume autosaving; an empty slot resumes starter saving. Failed reads preserve unread storage, current code and keyboard focus.
+- Associated styled recovery guidance with the new action. Successful recovery focuses the stable saved confirmation. Editing hides the read action to protect current work; closed matches offer no recovery actions.
+- Added both-editor regression coverage for repeated failure, recovery without destructive writes or submission, accessible guidance, focus and edit protection, plus empty-slot recovery.
+- Validation: all 1,812 tests across 75 files passed. Final focused arena coverage passed (162 tests), including the additional empty-slot test. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Guard unread draft recovery on exit
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog items remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one draft-safety item.
 - Unfinished arenas now register browser leave/reload protection immediately after a failed saved-draft read, even when the editor still contains untouched starter code. Existing amber recovery guidance explains the possible browser confirmation.

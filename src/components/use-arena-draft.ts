@@ -35,7 +35,7 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
   }, [key, closed]);
   const saveDraft = useCallback((explicit = false) => {
     if (!loaded) return false;
-    if (!closed && automaticSaveBlocked.current && !explicit) return false;
+    if (!closed && (readFailed || automaticSaveBlocked.current) && !explicit) return false;
     try {
       if (closed) sessionStorage.removeItem(key);
       else sessionStorage.setItem(key, source);
@@ -44,10 +44,21 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
       setSaved(!closed);
       return !closed;
     } catch { setSaved(false); return false; }
-  }, [key, source, closed, loaded]);
+  }, [key, source, closed, loaded, readFailed]);
   useEffect(() => { saveDraft(); }, [saveDraft]);
   function retrySaving() {
     return !closed && !saved && saveDraft(true);
   }
-  return { source, setSource, saved, readFailed, retrySaving };
+  const canRetryReading = readFailed && !edited && !closed;
+  function retryReading() {
+    if (!canRetryReading) return false;
+    try {
+      const draft = sessionStorage.getItem(key);
+      if (draft !== null) setSource(draft);
+      automaticSaveBlocked.current = false;
+      setReadFailed(false);
+      return true;
+    } catch { return false; }
+  }
+  return { source, setSource, saved, readFailed, retrySaving, canRetryReading, retryReading };
 }
