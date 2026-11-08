@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Distinguish destructive starter replacement with a prominent warning heading, danger-colored confirmation and replacement action, preserving safe default focus and accessible consequences in both editors with regression coverage
 - [x] Expose starter-reset confirmation expanded state and stable editor-specific ownership to assistive technology, clearing stale relationships after cancellation, draft/starter changes and replacement with regression coverage
 - [x] Dismiss pending starter-code resets with Escape anywhere in their owning editor, restoring Reset focus while preserving drafts, independent editors and IME input with regression coverage
 - [x] Keep unavailable starter reset keyboard-accessible with styled, editor-specific matching-draft guidance and focus/replacement regression coverage

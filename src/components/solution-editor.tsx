@@ -120,11 +120,12 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
     {starter !== undefined && !readOnly && <button ref={resetButton} aria-expanded={confirmReset} aria-controls={confirmReset ? resetConfirmationId : undefined} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
     {starter !== undefined && !readOnly && !canReset && <p id={resetAvailabilityId} className="solution-reset-notice">Your solution already matches the starter code. Reset becomes available after you edit it.</p>}
-    {confirmReset && canReset && <div id={resetConfirmationId} className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId}>
+    {confirmReset && canReset && <div id={resetConfirmationId} className="card solution-reset-confirmation" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId}>
+      <h3>Replace your solution?</h3>
       <p id={resetGuidanceId}>Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Press Escape anywhere in this editor to keep your solution. Download your solution first if you want to keep it.</p>
       <div className="solution-editor-actions">
         <button autoFocus aria-describedby={resetGuidanceId} type="button" className="button button--secondary" onClick={cancelReset}>Keep my solution</button>
-        <button type="button" className="button button--primary" aria-describedby={resetGuidanceId} onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
+        <button type="button" className="button solution-reset-replace" aria-describedby={resetGuidanceId} onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
       </div>
     </div>}
     {copyPending && <p id={copyGuidanceId} role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.</p>}

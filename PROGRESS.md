@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Distinguish destructive starter replacement
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one visual improvement.
+- Starter-reset confirmation now has a visible warning heading, danger-colored border and distinct outlined replacement action. The safe Keep action retains initial focus, and both actions retain their accessible consequence descriptions and existing keyboard recovery.
+- Updated regression coverage for the warning treatment in advanced/plain modes. Fixed a rematch focus test's dependence on real polling time by explicitly advancing fake timers after sending; focused editor/rematch coverage passes (162 tests).
+- Validation: all 1,788 tests across 75 files passed on rerun; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog; browser/screen-reader smoke checks and existing infrastructure blockers remain.
+
 ### 2026-11-07 - Expose reset confirmation state and ownership
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one editor accessibility item.
 - Reset to starter code now exposes aria-expanded and references its owning confirmation through an editor-specific stable ID while open. Closing or invalidating the confirmation clears the relationship, avoiding references to removed content. Existing keyboard focus and draft preservation behavior remain intact.

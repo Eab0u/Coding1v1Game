@@ -844,13 +844,19 @@ it.each([true,false])('does not move focus after background recovery or a failed
  } finally {vi.useRealTimers();}
 });
 it.each([false,true])('focuses invitation guidance after keyboard sending (polled=%s)',async(polled)=>{
+ vi.useFakeTimers();
+ try {
  const fetcher=vi.fn().mockResolvedValueOnce(response('none')).mockResolvedValueOnce(response(polled?'none':'pending')).mockResolvedValue(response('pending'));
  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
- const button=await screen.findByRole('button',{name:'Rematch'});
- button.focus();fireEvent.click(button);
- await waitFor(()=>expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeInTheDocument());
+ await act(async()=>{});
+ const button=screen.getByRole('button',{name:'Rematch'});
+ button.focus();
+ await act(async()=>{fireEvent.click(button);});
+ if (polled) await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+ expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeInTheDocument();
  expect(screen.getByRole('status')).toHaveFocus();
  expect(screen.getByRole('status')).toHaveAttribute('tabindex','-1');
+ } finally {vi.useRealTimers();}
 });
 it.each(['navigation','background','failure'] as const)('preserves focus during invitation sending: %s',async(mode)=>{
  vi.useFakeTimers();

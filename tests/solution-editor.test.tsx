@@ -485,6 +485,10 @@ it.each([false, true])("describes reset consequences on the focused action and p
   const keep = within(group).getByRole("button", { name: "Keep my solution" });
   const replace = within(group).getByRole("button", { name: "Replace with starter code" });
   const warning = "Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Press Escape anywhere in this editor to keep your solution. Download your solution first if you want to keep it.";
+  expect(group).toHaveClass("solution-reset-confirmation");
+  expect(within(group).getByRole("heading", { name: "Replace your solution?", level: 3 })).toBeVisible();
+  expect(replace).toHaveClass("solution-reset-replace");
+  expect(replace).not.toHaveClass("button--primary");
   expect(keep).toHaveFocus();
   for (const control of [group, keep, replace]) expect(control).toHaveAccessibleDescription(warning);
   const id = keep.getAttribute("aria-describedby");
