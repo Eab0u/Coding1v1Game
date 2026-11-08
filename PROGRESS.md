@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Read-only indentation focus and guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility improvement.
+- Plain-editor Indent and Outdent now remain keyboard-focusable when read-only, using the existing unavailable styling and a stable, editor-specific description linked to the visible read-only notice. Activation cannot edit code or move focus while unavailable; editable behavior returns when read-only ends.
+- Added regressions for both controls covering focus across state transitions, unchanged code and backward selection, independent-editor descriptions, and recovery. Updated existing assertions for the accessible unavailable state and revised visible guidance.
+- Validation: all 1,830 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused plain-editor tests (234), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Advanced editor read-only guidance
 - Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability improvement.
 - Added the existing styled read-only notice to the advanced editor and replaced unavailable indentation instructions with keyboard copy and solution copy/download guidance while read-only. Editable guidance returns when editing resumes.

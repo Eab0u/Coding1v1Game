@@ -8,6 +8,35 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it.each(["Indent", "Outdent"])("retains %s focus through read-only transitions with isolated recovery guidance", name => {
+  const onChange = vi.fn();
+  const value = "    return 1";
+  const editor = (readOnly: boolean) => <><PlainPythonEditor value={value} onChange={onChange} readOnly={readOnly}/><PlainPythonEditor value="other" onChange={vi.fn()} readOnly={true}/></>;
+  const { rerender } = render(editor(false));
+  const button = screen.getAllByRole("button", { name })[0];
+  const input = screen.getAllByRole("textbox")[0] as HTMLTextAreaElement;
+  input.setSelectionRange(4, 10, "backward");
+  button.focus();
+  rerender(editor(true));
+  expect(button).toHaveFocus();
+  expect(button).toBeEnabled();
+  expect(button).toHaveAttribute("aria-disabled", "true");
+  expect(button).toHaveAccessibleDescription(/Read-only solution.*Indent and Outdent are unavailable.*select and copy/);
+  expect(button.getAttribute("aria-describedby")).not.toBe(screen.getAllByRole("button", { name })[1].getAttribute("aria-describedby"));
+  fireEvent.click(button);
+  expect(button).toHaveFocus();
+  expect(onChange).not.toHaveBeenCalled();
+  expect(input).toHaveValue(value);
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([4, 10, "backward"]);
+  rerender(editor(false));
+  expect(button).toHaveFocus();
+  expect(button).toHaveAttribute("aria-disabled", "false");
+  expect(button).not.toHaveAttribute("aria-describedby");
+  fireEvent.click(button);
+  expect(input).toHaveFocus();
+  expect(onChange).toHaveBeenCalledWith(name === "Indent" ? "        return 1" : "return 1");
+});
+
 it.each([
   ["text = 'unfinished\n    if ready:", "        "],
   ['text = "unfinished\n    if ready:', "        "],
@@ -216,7 +245,7 @@ it("updates read-only guidance without replacing the draft, selection or focus",
 
   for (let attempt = 0; attempt < 2; attempt++) {
     rerender(<PlainPythonEditor value={value} onChange={change} readOnly/>);
-    expect(screen.getByRole("note")).toHaveTextContent("Read-only solution. You can select and copy your code.");
+    expect(screen.getByRole("note")).toHaveTextContent("Read-only solution. Indent and Outdent are unavailable. You can select and copy your code.");
     expect(input).toHaveAttribute("readonly");
     expect(input).toHaveAccessibleDescription(/read-only.*Ctrl\+C or Cmd\+C.*Tab moves/);
     expect(input).not.toHaveAccessibleDescription(/Enter keeps indentation/);
@@ -228,7 +257,7 @@ it("updates read-only guidance without replacing the draft, selection or focus",
     expect(input.selectionEnd).toBe(9);
     expect(input.selectionDirection).toBe("backward");
     expect(input).toHaveFocus();
-    expect(screen.getByRole("button", { name: "Indent" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Indent" })).toHaveAttribute("aria-disabled", "true");
     rerender(<PlainPythonEditor value={value} onChange={change} readOnly={false}/>);
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
     expect(input).not.toHaveAttribute("readonly");
@@ -309,8 +338,8 @@ it("does not alter completed solutions", () => {
   render(<PlainPythonEditor value="def solve():" onChange={change} readOnly/>);
   expect(fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" })).toBe(true);
   expect(change).not.toHaveBeenCalled();
-  expect(screen.getByRole("button", { name: "Indent" })).toBeDisabled();
-  expect(screen.getByRole("button", { name: "Outdent" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Indent" })).toHaveAttribute("aria-disabled", "true");
+  expect(screen.getByRole("button", { name: "Outdent" })).toHaveAttribute("aria-disabled", "true");
 });
 
 it.each([

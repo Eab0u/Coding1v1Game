@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Preserve plain-editor indentation-control keyboard focus when a solution becomes read-only, with styled unavailable states, isolated visible explanations and draft/selection/recovery regression coverage
 - [x] Explain advanced-editor read-only state with styled copy/export guidance and remove misleading indentation instructions, preserving code, preferences and focus across state changes with regression coverage
 - [x] Explain editor text-size limits with styled visible guidance and isolated accessible descriptions, preserving focus, code and independent editors with boundary/recovery regression coverage
 - [x] Make editor line wrapping visibly show On/Off with an accent selected state, preserving accessible toggle names, preferences, code and focus in both editor modes with regression coverage

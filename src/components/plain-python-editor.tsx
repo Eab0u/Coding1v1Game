@@ -69,6 +69,7 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
   const caret = useRef<[number, number, ("forward" | "backward" | "none")?] | null>(null);
   const position = useRef<HTMLDivElement>(null);
   const hint = useId();
+  const readOnlyId = useId();
   const positionId = useId();
   const summaryId = useId();
   const lineCount = value.split("\n").length;
@@ -120,12 +121,12 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
     onChange(value.slice(0, first) + block + value.slice(stop));
   }
   return <>
-    {readOnly && <p className="editor-readonly-notice" role="note" aria-label="Read-only solution">Read-only solution. You can select and copy your code.</p>}
+    {readOnly && <p id={readOnlyId} className="editor-readonly-notice" role="note" aria-label="Read-only solution">Read-only solution. Indent and Outdent are unavailable. You can select and copy your code.</p>}
     <div className="solution-editor-actions" role="group" aria-label="Python indentation">
-      <button type="button" className="button button--secondary" disabled={readOnly} onMouseDown={event => {
+      <button type="button" className="button button--secondary" aria-disabled={readOnly} aria-describedby={readOnly ? readOnlyId : undefined} onMouseDown={event => {
         if (composing.current) event.preventDefault();
       }} onClick={() => changeIndent(false)}>Indent</button>
-      <button type="button" className="button button--secondary" disabled={readOnly} onMouseDown={event => {
+      <button type="button" className="button button--secondary" aria-disabled={readOnly} aria-describedby={readOnly ? readOnlyId : undefined} onMouseDown={event => {
         if (composing.current) event.preventDefault();
       }} onClick={() => changeIndent(true)}>Outdent</button>
     </div>
