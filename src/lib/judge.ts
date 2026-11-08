@@ -84,7 +84,8 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
 
   return async function judge(request: JudgeRequest): Promise<ScoredSubmission> {
     const jsonBudget = { remaining: 1_000_000 };
-    if (typeof request.source !== "string" || !request.source.trim() || request.source.length > 65_536 ||
+    if (!request || typeof request !== "object" || Array.isArray(request) ||
+        typeof request.source !== "string" || !request.source.trim() || request.source.length > 65_536 ||
         typeof request.functionName !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(request.functionName) ||
         !Number.isFinite(request.submittedAtMs) || request.submittedAtMs < 0 ||
         !Array.isArray(request.tests) || !request.tests.length || request.tests.length > 1000 ||

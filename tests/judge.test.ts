@@ -14,6 +14,20 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it("rejects malformed top-level requests consistently before network access and permits retry", async () => {
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    // Even an array carrying all required fields is not a request object.
+    const arrayRequest = Object.assign([], request);
+    for (const input of [null, undefined, false, true, 0, 42, "request", Symbol("request"), BigInt(1), () => request, [], arrayRequest, {}]) {
+      await expect(judge(input as JudgeRequest)).rejects.toThrow(new RangeError(
+        "Invalid judge request; include JSON tests and a largest-test benchmark.",
+      ));
+      expect(fetcher).not.toHaveBeenCalled();
+    }
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
   it.each(["args", "expected"] as const)("bounds expanded shared %s before network access and permits retry", async field => {
     let shared: unknown = 42;
     for (let level = 0; level < 40; level++) shared = [shared, shared];

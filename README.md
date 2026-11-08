@@ -118,6 +118,8 @@ Do not use player-supplied URLs, language IDs, limits or test suites.
 
 Call the returned function with Python source, a function name, server-recorded
 submission time and JSON tests `{ args: [...], expected: ..., benchmark: true }`.
+Requests must be non-null objects, excluding arrays and primitive values; malformed
+top-level requests receive the same request validation error before network access.
 Function names must be strings. Benchmark flags must be booleans when supplied;
 omitted or false flags run once, and only true flags contribute three runtime samples.
 Malformed flags and malformed or missing test entries (including sparse arrays) are

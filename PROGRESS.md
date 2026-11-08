@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Consistent top-level judge request validation
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge request validation item. Null, missing, primitive, function and array requests now receive the consistent RangeError before field access or network access. Arrays carrying otherwise valid request fields are also rejected. Documented the contract.
+- Added regression coverage for malformed top-level values, zero network calls on rejection and successful adapter reuse after rejection.
+- Validation: all 1,707 tests across 74 files passed; all 97 focused judge tests, lint, typecheck, production build and whitespace checks passed. Replaced a BigInt literal in the test with the constructor to support the repository's TypeScript target after checks caught it.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Bounded expanded judge JSON values
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge validation item. A request-wide budget of 1,000,000 expanded JSON values bounds traversal before cloning or network access, including repeated references across arguments, answers and suite entries. Array lengths are checked before iteration so enormous sparse arrays cannot force allocation. Documented the limit.
