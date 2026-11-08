@@ -47,7 +47,9 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       document.removeEventListener("visibilitychange", refresh);
     };
   }, [copyPending]);
-  const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean } | null>(null);
+  const currentRevision = useRef(draftVersion.revision);
+  useEffect(() => { currentRevision.current = draftVersion.revision; }, [draftVersion.revision]);
+  const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean; earlierDraft: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
   const preferenceGuidanceId = useId();
   const preferenceDescription = unavailable ? preferenceGuidanceId : undefined;
@@ -80,9 +82,9 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     setCopyResult(null);
     try {
       await navigator.clipboard.writeText(value);
-      setCopyResult({ revision, ok: true });
+      setCopyResult({ revision: currentRevision.current, ok: true, earlierDraft: revision !== currentRevision.current });
     } catch {
-      setCopyResult({ revision, ok: false });
+      setCopyResult({ revision: currentRevision.current, ok: false, earlierDraft: revision !== currentRevision.current });
     } finally {
       copying.current = false;
       setCopyRevision(null);
@@ -152,7 +154,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       ? <p id={downloadGuidanceId} className="solution-download-notice" role="status" aria-atomic="true">Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.</p>
       : <p id={downloadGuidanceId} className="solution-download-notice solution-download-notice--error" role="alert"><strong className="solution-export-error-heading" role="heading" aria-level={3}>Unable to download your solution.</strong>{" "}Try again or copy your code to a local file.</p>)}
     {hasCopyResult && (copyResult.ok
-      ? <p id={copyResultId} className="solution-copy-notice" role="status" aria-atomic="true">Solution copied to clipboard.</p>
-      : <p id={copyResultId} className="solution-copy-notice solution-copy-notice--error" role="alert"><strong className="solution-export-error-heading" role="heading" aria-level={3}>Unable to copy your solution.</strong>{" "}Try again, download it or select and copy the code manually.</p>)}
+      ? <p id={copyResultId} className={`solution-copy-notice${copyResult.earlierDraft ? " solution-copy-notice--earlier" : ""}`} role="status" aria-atomic="true">{copyResult.earlierDraft ? "Earlier draft copied to clipboard. Your solution changed during the request. Copy again to copy your current solution." : "Solution copied to clipboard."}</p>
+      : <p id={copyResultId} className="solution-copy-notice solution-copy-notice--error" role="alert"><strong className="solution-export-error-heading" role="heading" aria-level={3}>Unable to copy your solution.</strong>{" "}{copyResult.earlierDraft && "The request contained an earlier draft. "}Try again, download it or select and copy the code manually.</p>)}
   </div>;
 }

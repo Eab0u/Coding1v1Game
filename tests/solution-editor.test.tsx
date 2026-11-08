@@ -82,7 +82,7 @@ it("reports unavailable clipboard and denied access, and allows retry", async ()
   expect(screen.getByRole("status")).toHaveTextContent("Solution copied");
 });
 
-it("prevents overlapping copies and hides feedback for code edited during copying", async () => {
+it("prevents overlapping copies and explains completed copies of earlier drafts", async () => {
   let finish!: () => void;
   const writeText = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
   vi.stubGlobal("navigator", { clipboard: { writeText } });
@@ -94,7 +94,8 @@ it("prevents overlapping copies and hides feedback for code edited during copyin
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
   await act(async () => { finish(); });
   expect(writeText).toHaveBeenCalledExactlyOnceWith("def solve():\n    pass");
-  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Earlier draft copied");
+  expect(screen.getByRole("status")).toHaveClass("solution-copy-notice--earlier");
   expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
 });
 it.each([false, true])("requires confirmation to reset in plain mode %s and supports cancellation", plain => {
@@ -365,7 +366,7 @@ it.each([true, false])("expires completed clipboard feedback permanently after e
   expect(screen.getByRole(ok ? "status" : "alert")).toBeInTheDocument();
 });
 
-it.each([true, false])("discards pending clipboard feedback after editing and restoring the draft (success %s)", async ok => {
+it.each([true, false])("identifies older clipboard completion after editing and restoring the draft (success %s)", async ok => {
   let resolve!: () => void;
   let reject!: (error: Error) => void;
   vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn(() => new Promise<void>((yes, no) => { resolve = yes; reject = no; })) } });
@@ -374,8 +375,7 @@ it.each([true, false])("discards pending clipboard feedback after editing and re
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "def solve():\n    pass" } });
   await act(async () => { if (ok) resolve(); else reject(new Error("Denied")); });
-  expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole(ok ? "status" : "alert")).toHaveTextContent(/earlier draft/i);
   expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
   expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
 });
@@ -533,8 +533,7 @@ it.each([true, false])("announces pending clipboard permission and clears busy s
   expect(notice).toHaveTextContent("solution captured when you clicked Copy");
   expect(screen.getByLabelText("Python solution")).toHaveValue("changed while waiting");
   await act(async () => { if (ok) resolve(); else reject(new Error("Denied")); });
-  expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole(ok ? "status" : "alert")).toHaveTextContent(/earlier draft/i);
   expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
   expect(screen.getByRole("button", { name: "Copy solution" })).toHaveAttribute("aria-busy", "false");
   expect(writeText).toHaveBeenCalledExactlyOnceWith("def solve():\n    pass");
@@ -924,7 +923,8 @@ it.each([false, true])("explains older pending clipboard drafts in plain mode %s
   expect(screen.getByRole("status")).toHaveAttribute("id", noticeId);
   expect(notice).toHaveTextContent("earlier draft");
   await act(async () => completions[0]());
-  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Earlier draft copied");
+  expect(screen.getByRole("status")).toHaveClass("solution-copy-notice--earlier");
   expect(input).toHaveFocus();
   fireEvent.change(input, { target: { value: "latest draft" } });
   fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
@@ -989,7 +989,8 @@ it.each([false, true])("explains stalled clipboard requests at ten seconds in pl
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
   expect(screen.getByRole("status")).toHaveTextContent("earlier draft");
   await act(async () => completions[0]());
-  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Earlier draft copied");
+  expect(screen.getByRole("status")).toHaveClass("solution-copy-notice--earlier");
   fireEvent.click(copy);
   expect(screen.queryByText("Clipboard request still waiting.")).not.toBeInTheDocument();
   await act(async () => completions[1]());
@@ -1048,3 +1049,27 @@ it.each([false, true])("refreshes overdue clipboard guidance after suspension in
   fireEvent.focus(window);
   fireEvent(document, new Event("visibilitychange"));
 });
+
+ it.each([false, true])("explains failed older copies and clears recovery on editing in plain mode %s", async plain => {
+  let fail!: () => void;
+  const writeText = vi.fn().mockImplementationOnce(() => new Promise<void>((_, reject) => { fail = () => reject(new Error("Denied")); })).mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const copy = screen.getByRole("button", { name: "Copy solution" });
+  fireEvent.click(copy);
+  const input = screen.getByLabelText("Python solution");
+  fireEvent.change(input, { target: { value: "current draft" } });
+  copy.focus();
+  await act(async () => fail());
+  expect(screen.getByRole("alert")).toHaveTextContent("The request contained an earlier draft.");
+  expect(copy).toHaveAccessibleDescription(/earlier draft/);
+  expect(copy).toHaveFocus();
+  expect(input).toHaveValue("current draft");
+  fireEvent.change(input, { target: { value: "latest draft" } });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(copy).not.toHaveAttribute("aria-describedby");
+  await act(async () => { fireEvent.click(copy); });
+  expect(writeText).toHaveBeenLastCalledWith("latest draft");
+  expect(copy).toHaveAccessibleDescription("Solution copied to clipboard.");
+ });

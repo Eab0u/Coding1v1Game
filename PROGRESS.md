@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Explain completion of older clipboard drafts
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one clipboard recovery item.
+- Clipboard requests completing after edits now explain that an earlier draft was copied, with an amber accent and explicit current-solution copy guidance. Failed requests identify their earlier-draft context. Feedback describes the Copy action, preserves focus and code, and clears on further edits or a fresh request.
+- Updated regression coverage for success/failure, edit-and-restore revisions, duplicate prevention, both editor modes, focus, accessible descriptions, styling and fresh-current-draft retries. Existing editor isolation and timer coverage remain passing.
+- Validation: all 1,798 tests across 75 files passed; focused editor coverage passed (86 tests), including final styling assertions. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live clipboard/browser checks and existing infrastructure blockers remain.
+
 ### 2026-11-07 - Refresh clipboard recovery after suspension
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor recovery item.
 - Pending clipboard requests now check their elapsed ten-second deadline on window focus and document visibility changes. Resuming a suspended tab immediately restores overdue recovery guidance even when browser timers have not run, preserving the existing amber treatment, accessible description, draft and keyboard focus.
