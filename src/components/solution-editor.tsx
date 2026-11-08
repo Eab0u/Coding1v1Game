@@ -33,6 +33,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
   const resetGuidanceId = useId();
+  const recoveryGuidanceId = useId();
   const copyGuidanceId = useId();
   const downloadGuidanceId = useId();
   const copyResultId = useId();
@@ -96,7 +97,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       <button type="button" className="button button--secondary" disabled={fontSize === 15} onClick={() => setFontSize(15)}>Reset text size</button>
     </div>
     <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines</button></div>
-    {plain ? textEditor : <EditorBoundary key={editorAttempt} fallback={<><p role="status">Advanced editor unavailable. Continue in plain text; your code is preserved.</p>{textEditor}<div className="solution-editor-actions"><button type="button" className="button button--secondary" onClick={() => { editorGroup.current?.focus(); setEditorAttempt(attempt => attempt + 1); }}>Retry advanced editor</button></div></>}>
+    {plain ? textEditor : <EditorBoundary key={editorAttempt} fallback={<><p id={recoveryGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Advanced editor unavailable. Continue in plain text; your code is preserved. Retry loads the advanced editor again using your current solution and preferences.</p>{textEditor}<div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={recoveryGuidanceId} onClick={() => { editorGroup.current?.focus(); setEditorAttempt(attempt => attempt + 1); }}>Retry advanced editor</button></div></>}>
       <PythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>
     </EditorBoundary>}
     <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={plain} onClick={() => setPlain(current => !current)}>

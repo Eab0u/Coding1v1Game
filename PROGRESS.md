@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Accessible advanced editor recovery
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor recovery accessibility and visual polish item.
+- Advanced-editor failure guidance now has a padded surface and amber border. Retry references its editor's stable, politely announced explanation that the current solution and preferences are preserved. Plain-text fallback remains usable while the advanced editor is unavailable.
+- Extended editable/read-only tests for description stability, repeated failure, successful retry, preserved code/preferences and recovery focus. Added multiple-editor isolation and stale-description cleanup when switching to plain text.
+- Validation: all 1,774 tests across 75 files passed, including all 62 solution-editor tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live Monaco loading failures and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Accessible clipboard completion guidance
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
 - Copy completion notices now use padded surfaces with green success or danger failure borders. Each Copy button references its own visible result, replacing pending permission guidance after settlement. Draft changes permanently clear stale result descriptions without moving focus.

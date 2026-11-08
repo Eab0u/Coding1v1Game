@@ -389,9 +389,16 @@ it.each([false, true])("retries advanced editor failures while preserving fallba
   const code = readOnly ? "def solve():\n    pass" : "def solve():\n    return 'fallback work'";
   if (!readOnly) fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: code } });
   const preferences = localStorage.getItem("codeduel:editor-preferences:v1");
+  const guidanceId = screen.getByRole("status").id;
+  expect(screen.getByRole("status")).toHaveClass("solution-editor-recovery");
+  expect(screen.getByRole("status")).toHaveAttribute("aria-atomic", "true");
   for (let attempt = 0; attempt < 2; attempt++) {
+    expect(screen.getByRole("button", { name: "Retry advanced editor" })).toHaveAttribute("aria-describedby", guidanceId);
+    expect(screen.getByRole("button", { name: "Retry advanced editor" })).toHaveAccessibleDescription(/your code is preserved.*current solution and preferences/);
     fireEvent.click(screen.getByRole("button", { name: "Retry advanced editor" }));
     expect(screen.getByRole("status")).toHaveTextContent("Advanced editor unavailable");
+    expect(screen.getByRole("status")).toHaveAttribute("id", guidanceId);
+    expect(screen.getByRole("group", { name: "Solution editor" })).toHaveFocus();
     expect(screen.getByLabelText("Python solution")).toHaveValue(code);
   }
   editor.fails = false;
@@ -404,6 +411,22 @@ it.each([false, true])("retries advanced editor failures while preserving fallba
   expect(screen.getByLabelText("Python solution").hasAttribute("readonly")).toBe(readOnly);
   expect(localStorage.getItem("codeduel:editor-preferences:v1")).toBe(preferences);
   expect(screen.getByRole("group", { name: "Solution editor" })).toHaveFocus();
+});
+
+it("isolates advanced editor recovery descriptions and clears them when switching to plain text", () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  editor.fails = true;
+  render(<><Harness/><Harness readOnly/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const ids = groups.map(group => within(group).getByRole("status").id);
+  expect(new Set(ids).size).toBe(2);
+  groups.forEach((group, index) => {
+    expect(within(group).getByRole("button", { name: "Retry advanced editor" })).toHaveAttribute("aria-describedby", ids[index]);
+  });
+  fireEvent.click(within(groups[0]).getByRole("button", { name: "Use plain text editor" }));
+  expect(document.getElementById(ids[0])).toBeNull();
+  expect(within(groups[0]).queryByRole("button", { name: "Retry advanced editor" })).not.toBeInTheDocument();
+  expect(document.getElementById(ids[1])).toBeInTheDocument();
 });
 
 

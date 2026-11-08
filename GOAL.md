@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Make advanced-editor fallback guidance visually prominent and associate Retry with stable, isolated code-preservation and preference guidance, covering repeated failure, recovery, keyboard focus and editor switching
 - [x] Associate styled clipboard success and retry notices with their Copy actions, preserving focus, stale-feedback cleanup and multiple-editor isolation with regression coverage
 - [x] Associate Download actions with styled, isolated save and retry guidance, preserving focus and clearing stale descriptions after draft changes with regression coverage
 - [x] Confirm solution download requests with accessible browser-save guidance, clearing stale notices after draft changes and preserving focus, editor switching and failure/retry recovery with regression coverage

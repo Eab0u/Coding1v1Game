@@ -662,3 +662,4 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 
 .solution-copy-notice, .solution-download-notice { padding: 12px 16px; border-inline-start: 4px solid var(--color-accent); border-radius: var(--radius-sm); background: var(--color-surface); line-height: 1.5; overflow-wrap: anywhere; }
 .solution-copy-notice--error, .solution-download-notice--error { border-inline-start-color: var(--color-danger); }
+.solution-editor-recovery { padding: 12px 16px; border-inline-start: 4px solid #e9b65b; border-radius: var(--radius-sm); background: var(--color-surface); line-height: 1.5; overflow-wrap: anywhere; }
