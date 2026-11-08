@@ -32,10 +32,20 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const [copyRevision, setCopyRevision] = useState<number | null>(null);
   const copyPending = copyRevision !== null;
   const [copyDelayed, setCopyDelayed] = useState(false);
+  const copyStartedAt = useRef(0);
   useEffect(() => {
     if (!copyPending) return;
+    const refresh = () => {
+      if (Date.now() - copyStartedAt.current >= 10_000) setCopyDelayed(true);
+    };
     const timer = window.setTimeout(() => setCopyDelayed(true), 10_000);
-    return () => window.clearTimeout(timer);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, [copyPending]);
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
@@ -64,6 +74,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     if (copying.current) return;
     const revision = draftVersion.revision;
     copying.current = true;
+    copyStartedAt.current = Date.now();
     setCopyDelayed(false);
     setCopyRevision(revision);
     setCopyResult(null);

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Refresh overdue clipboard recovery guidance when suspended tabs resume or regain focus, preserving fresh-request deadlines, focus and timer/listener cleanup in both editor modes with regression coverage
 - [x] Explain stalled clipboard requests after ten seconds with prominent permission and alternative-export guidance, preserving focus, draft safety and timer cleanup in both editors
 - [x] Give copy and download failures prominent danger-colored recovery headings while preserving accessible action descriptions, keyboard focus and retry recovery in both editor modes
 - [x] Highlight pending solution copies and explain when continued editing makes the captured clipboard draft stale, preserving focus, revision safety and fresh-copy recovery in both editors with regression coverage

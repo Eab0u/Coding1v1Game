@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Refresh clipboard recovery after suspension
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor recovery item.
+- Pending clipboard requests now check their elapsed ten-second deadline on window focus and document visibility changes. Resuming a suspended tab immediately restores overdue recovery guidance even when browser timers have not run, preserving the existing amber treatment, accessible description, draft and keyboard focus.
+- Added advanced/plain-editor regression coverage for the exact resume boundary without executing timers, both resume events, duplicate prevention, fresh request deadlines, completion recovery and timer/listener cleanup.
+- Validation: all 1,796 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed. Focused editor coverage passed (84 tests).
+- Next: restore isolated Judge0 availability and validate the original catalog. Live browser clipboard checks and existing infrastructure blockers remain.
+
 ### 2026-11-07 - Explain stalled clipboard requests
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one export recovery item.
 - Pending clipboard requests now show prominent amber guidance after ten seconds: check browser permissions, download or manually copy the solution, and understand that a later completion can replace clipboard contents. The request remains pending to prevent overlapping writes; drafts and keyboard focus are preserved.
