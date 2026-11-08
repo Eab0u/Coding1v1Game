@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Component, useId, useRef, useState, type ReactNode } from "react";
+import { Component, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { PlainPythonEditor } from "./plain-python-editor";
 import { useEditorPreferences } from "./use-editor-preferences";
 
@@ -31,6 +31,12 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   }
   const [copyRevision, setCopyRevision] = useState<number | null>(null);
   const copyPending = copyRevision !== null;
+  const [copyDelayed, setCopyDelayed] = useState(false);
+  useEffect(() => {
+    if (!copyPending) return;
+    const timer = window.setTimeout(() => setCopyDelayed(true), 10_000);
+    return () => window.clearTimeout(timer);
+  }, [copyPending]);
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
   const preferenceGuidanceId = useId();
@@ -58,6 +64,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     if (copying.current) return;
     const revision = draftVersion.revision;
     copying.current = true;
+    setCopyDelayed(false);
     setCopyRevision(revision);
     setCopyResult(null);
     try {
@@ -129,7 +136,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
         <button type="button" className="button solution-reset-replace" aria-describedby={resetGuidanceId} onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
       </div>
     </div>}
-    {copyPending && <p id={copyGuidanceId} className="solution-copy-notice solution-copy-notice--pending" role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.{copyRevision !== draftVersion.revision && " Your solution has changed since this copy started. This request contains the earlier draft. Copy again after it finishes to copy your current solution."}</p>}
+    {copyPending && <p id={copyGuidanceId} className="solution-copy-notice solution-copy-notice--pending" role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.{copyDelayed && <><strong className="solution-copy-delay-heading">Clipboard request still waiting.</strong> Check your browser for a clipboard permission prompt. You can download your solution or select and copy the code manually while waiting. Completing this request later can replace other text on your clipboard.</>}{copyRevision !== draftVersion.revision && " Your solution has changed since this copy started. This request contains the earlier draft. Copy again after it finishes to copy your current solution."}</p>}
     {hasDownloadResult && (downloadResult.ok
       ? <p id={downloadGuidanceId} className="solution-download-notice" role="status" aria-atomic="true">Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.</p>
       : <p id={downloadGuidanceId} className="solution-download-notice solution-download-notice--error" role="alert"><strong className="solution-export-error-heading" role="heading" aria-level={3}>Unable to download your solution.</strong>{" "}Try again or copy your code to a local file.</p>)}

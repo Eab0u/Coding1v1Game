@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Explain stalled clipboard requests
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one export recovery item.
+- Pending clipboard requests now show prominent amber guidance after ten seconds: check browser permissions, download or manually copy the solution, and understand that a later completion can replace clipboard contents. The request remains pending to prevent overlapping writes; drafts and keyboard focus are preserved.
+- Added advanced/plain-editor regression coverage for the exact delay boundary, stable accessible descriptions, duplicate prevention, changed drafts, fresh requests, completion cleanup and unmount timer cleanup.
+- Validation: all 1,794 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed. Focused editor coverage passed again after final wording refinement.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live clipboard/browser checks and existing infrastructure blockers remain.
+
 ### 2026-11-07 - Highlight solution export recovery
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one visual recovery item.
 - Copy and download failures now have prominent danger-colored headings above their recovery guidance. Existing alert announcements and action descriptions retain their full text, and success clears the failure heading.
