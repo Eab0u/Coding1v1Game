@@ -22,7 +22,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const setPlain = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, plain: update(current.plain) }));
   const setWordWrap = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, wordWrap: update(current.wordWrap) }));
   const setFontSize = (update: number | ((value: number) => number)) => setPreferences(current => ({ ...current, fontSize: typeof update === "number" ? update : update(current.fontSize) }));
-  const [downloadFailureRevision, setDownloadFailureRevision] = useState<number | null>(null);
+  const [downloadResult, setDownloadResult] = useState<{ revision: number; ok: boolean } | null>(null);
   const [editorAttempt, setEditorAttempt] = useState(0);
   const copying = useRef(false);
   const [draftVersion, setDraftVersion] = useState({ value, revision: 0 });
@@ -61,7 +61,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     }
   }
   function downloadSolution() {
-    setDownloadFailureRevision(null);
+    setDownloadResult(null);
     let url: string | undefined;
     const link = document.createElement("a");
     try {
@@ -70,8 +70,9 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       link.download = "solution.py";
       document.body.appendChild(link);
       link.click();
+      setDownloadResult({ revision: draftVersion.revision, ok: true });
     } catch {
-      setDownloadFailureRevision(draftVersion.revision);
+      setDownloadResult({ revision: draftVersion.revision, ok: false });
     } finally {
       link.remove();
       // Give the browser time to begin reading the download before releasing it.
@@ -113,7 +114,9 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       </div>
     </div>}
     {copyPending && <p id={copyGuidanceId} role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.</p>}
-    {downloadFailureRevision === draftVersion.revision && <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>}
+    {downloadResult?.revision === draftVersion.revision && (downloadResult.ok
+      ? <p role="status" aria-atomic="true">Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.</p>
+      : <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>)}
     {copyResult?.revision === draftVersion.revision && (copyResult.ok
       ? <p role="status">Solution copied to clipboard.</p>
       : <p role="alert">Unable to copy your solution. Try again, download it or select and copy the code manually.</p>)}

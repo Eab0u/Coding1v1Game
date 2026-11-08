@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Solution download request feedback
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor usability item. Successful download requests now show a polite, atomic notice directing players to browser downloads and possible save prompts, without claiming the browser saved a file. Notices track the downloaded draft revision and disappear permanently after draft replacement.
+- Added editable/read-only regression coverage for guidance, keyboard focus, editor switching, draft replacement/restoration and failure/retry recovery. Existing exact-source, resource cleanup and download failure tests remain intact.
+- Validation: all 1,769 tests across 75 files passed, including all 57 solution-editor tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Actual browser save prompts and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Keyboard access during clipboard permission
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
 - Followed the blocker rule and added/completed one editor accessibility item. Copy now uses an accessible disabled state while pending, retaining keyboard focus and tab navigation while its existing synchronous guard prevents duplicate requests. Each pending button references its own visible permission/snapshot guidance; settlement removes that description without moving focus.

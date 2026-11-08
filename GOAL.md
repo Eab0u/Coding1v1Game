@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Confirm solution download requests with accessible browser-save guidance, clearing stale notices after draft changes and preserving focus, editor switching and failure/retry recovery with regression coverage
 - [x] Keep pending Copy actions keyboard-focusable with isolated accessible permission guidance and consistent busy styling, preventing duplicate requests and preserving independent focus through success/failure with regression coverage
 - [x] Announce pending solution copies with clipboard-permission and captured-draft guidance and accessible busy state, preserving editing and stale-feedback suppression with success/failure regression coverage
 - [x] Associate solution-reset confirmation actions with the visible replacement warning using stable, isolated accessible descriptions, preserving keyboard cancellation and editor preferences with regression coverage

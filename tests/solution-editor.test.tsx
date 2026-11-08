@@ -564,3 +564,35 @@ it("isolates pending copy descriptions and busy states between editors", async (
   expect(copies[1]).toHaveAttribute("aria-busy", "true");
   await act(async () => { completions[1](); });
 });
+
+
+it.each([false, true])("shows draft-scoped download guidance without moving focus with readOnly %s", readOnly => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  vi.stubGlobal("URL", Object.assign(class extends URL {}, {
+    createObjectURL: vi.fn(() => "blob:download"), revokeObjectURL: vi.fn(),
+  }));
+  const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  const view = render(<SolutionEditor value="original" onChange={vi.fn()} readOnly={readOnly}/>);
+  const button = screen.getByRole("button", { name: "Download solution (.py)" });
+  button.focus();
+  fireEvent.click(button);
+  const notice = screen.getByRole("status");
+  expect(notice).toHaveTextContent("Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.");
+  expect(notice).toHaveAttribute("aria-atomic", "true");
+  expect(button).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(screen.getByRole("status")).toBe(notice);
+  view.rerender(<SolutionEditor value="replacement" onChange={vi.fn()} readOnly={readOnly}/>);
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  view.rerender(<SolutionEditor value="original" onChange={vi.fn()} readOnly={readOnly}/>);
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  click.mockImplementationOnce(() => { throw new Error("Blocked"); });
+  fireEvent.click(button);
+  expect(screen.getByRole("alert")).toHaveTextContent("Unable to download");
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  fireEvent.click(button);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Download requested");
+  expect(button).toHaveFocus();
+  act(() => vi.advanceTimersByTime(1000));
+});
