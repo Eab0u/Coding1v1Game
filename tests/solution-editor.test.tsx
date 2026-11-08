@@ -1270,3 +1270,48 @@ it.each([false, true])("keeps copy help isolated and restores it after draft cha
   expect(screen.getAllByLabelText("Python solution")[0]).toHaveValue("new draft");
   expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: !plain, wordWrap: true, fontSize: 18 });
 });
+
+it.each([false, true])("explains mode switching with isolated guidance and preserves drafts through recovery from plain %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 17 }));
+  const onChange = vi.fn();
+  const content = (readOnly: boolean) => <><SolutionEditor value="first draft" onChange={onChange} readOnly={readOnly}/><SolutionEditor value="second draft" onChange={onChange} readOnly={readOnly}/></>;
+  const view = render(content(false));
+  const [first, second] = screen.getAllByRole("group", { name: "Solution editor" }).map(group => within(group));
+  const toggle = first.getByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" });
+  const description = toggle.getAttribute("aria-describedby")!;
+  expect(description).not.toBe(second.getByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" }).getAttribute("aria-describedby"));
+  expect(document.getElementById(description)).toHaveClass("solution-mode-guide");
+  expect(toggle).toHaveAccessibleDescription(/Python syntax highlighting.*visible indentation controls.*Switching keeps your current draft.*without submitting code.*after the match ends/);
+  for (const readOnly of [true, false, true]) {
+    view.rerender(content(readOnly));
+    toggle.focus();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveAttribute("aria-describedby", description);
+    expect(first.getByLabelText("Python solution")).toHaveValue("first draft");
+    expect(first.getByLabelText("Python solution")).toHaveStyle({ fontSize: "17px" });
+    expect(first.getByLabelText("Python solution")).toHaveAttribute("wrap", "soft");
+    expect(first.getByLabelText("Python solution")).toHaveProperty("readOnly", readOnly);
+    expect(second.getByLabelText("Python solution")).toHaveValue("second draft");
+  }
+  expect(onChange).not.toHaveBeenCalled();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: !plain, wordWrap: true, fontSize: 17 });
+});
+
+it("combines mode help with storage recovery guidance until saving succeeds", () => {
+  const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+  render(<Harness/>);
+  const toggle = screen.getByRole("button", { name: "Use plain text editor" });
+  toggle.focus();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAccessibleDescription(/Switching keeps your current draft.*Browser storage is unavailable/);
+  expect(toggle.getAttribute("aria-describedby")!.split(" ")).toHaveLength(2);
+  write.mockRestore();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAccessibleDescription(/Switching keeps your current draft/);
+  expect(toggle).not.toHaveAccessibleDescription(/Browser storage is unavailable/);
+  expect(toggle.getAttribute("aria-describedby")!.split(" ")).toHaveLength(1);
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+});

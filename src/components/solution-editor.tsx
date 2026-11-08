@@ -51,6 +51,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   useEffect(() => { currentRevision.current = draftVersion.revision; }, [draftVersion.revision]);
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean; earlierDraft: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
+  const modeGuidanceId = useId();
   const wrapGuidanceId = useId();
   const textSizeGuidanceId = useId();
   const preferenceGuidanceId = useId();
@@ -141,12 +142,13 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     {plain ? textEditor : <EditorBoundary key={editorAttempt} fallback={<><p id={recoveryGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Advanced editor unavailable. Continue in plain text; your code is preserved. Retry loads the advanced editor again using your current solution and preferences.</p>{textEditor}<div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={recoveryGuidanceId} onClick={() => { editorGroup.current?.focus(); setEditorAttempt(attempt => attempt + 1); }}>Retry advanced editor</button></div></>}>
       <PythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>
     </EditorBoundary>}
-    <div className="solution-editor-actions"><button type="button" className="button button--secondary solution-mode-toggle" aria-label={plain ? "Use advanced editor" : "Use plain text editor"} aria-describedby={preferenceDescription} aria-pressed={plain} onClick={() => setPlain(current => !current)}>
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary solution-mode-toggle" aria-label={plain ? "Use advanced editor" : "Use plain text editor"} aria-describedby={[modeGuidanceId, preferenceDescription].filter(Boolean).join(" ")} aria-pressed={plain} onClick={() => setPlain(current => !current)}>
       {plain ? "Use advanced editor" : "Use plain text editor"} <span className="solution-mode-state" aria-hidden="true">{plain ? "Plain preferred" : "Advanced preferred"}</span>
     </button>
     <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : downloadHelpId} onClick={downloadSolution}>Download solution (.py)</button>
     <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : copyHelpId} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
     {starter !== undefined && !readOnly && <button ref={resetButton} aria-expanded={confirmReset} aria-controls={confirmReset ? resetConfirmationId : undefined} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
+    <p id={modeGuidanceId} className="solution-mode-guide">Advanced mode offers Python syntax highlighting and code suggestions. Plain text offers a simpler editor with visible indentation controls. Switching keeps your current draft, text size and wrapping settings without submitting code. You can switch after the match ends to read or copy your solution.</p>
     <p id={downloadHelpId} className="solution-download-guide">Download saves your current draft as solution.py without submitting it. Check your browser downloads if no save prompt appears. You can also download after the match ends.</p>
     <p id={copyHelpId} className="solution-copy-guide">Copy captures your current draft without submitting it and replaces the text on your clipboard. Your browser may ask for clipboard permission. If copying is unavailable, download your solution or select and copy the code manually. You can also copy after the match ends.</p>
     {starter !== undefined && !readOnly && !canReset && <p id={resetAvailabilityId} className="solution-reset-notice">Your solution already matches the starter code. Reset becomes available after you edit it.</p>}
