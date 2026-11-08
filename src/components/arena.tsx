@@ -33,6 +33,11 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
   const {source,setSource,saved,readFailed,retrySaving,canRetryReading,retryReading}=useArenaDraft(initial.id,initial.player.username,initial.problem.signature,closed);
   const draftGuidanceId=useId();
   const draftGuidance=useRef<HTMLParagraphElement>(null);
+  function saveCurrentDraft() {
+    if (closed || saved) return false;
+    if (readFailed && !window.confirm("Replace the unread saved draft with the code currently in the editor? Earlier saved code will be lost. Cancel to keep it and try reading it before editing. This does not submit your solution.")) return false;
+    return retrySaving();
+  }
   const sourceError=solutionError(source);
   const [elapsed,setElapsed]=useState(0);
   const [error,setError]=useState("");
@@ -139,15 +144,19 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
     <ArenaProgress score={match.progress} phase={progressPhase}/>
     <div className="arena-columns"><section className="card arena-editor"><div className="arena-panel-heading"><h1 id="arena-solution-title" tabIndex={-1}>Your solution</h1><span className="badge">Python 3</span></div>
       <div onKeyDownCapture={event=>{
-        if (event.key!=="Enter" || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.repeat || event.nativeEvent.isComposing) return;
+        const saving=event.key.toLowerCase()==="s";
+        if ((!saving && event.key!=="Enter") || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.nativeEvent.isComposing) return;
         const target=event.target;
         if (!(target instanceof HTMLElement) || !(target.tagName==="TEXTAREA" || target.isContentEditable)) return;
         event.preventDefault();
         event.stopPropagation();
-        void act("submit");
+        if (event.repeat) return;
+        if (saving) saveCurrentDraft();
+        else void act("submit");
       }}>
         <SolutionEditor value={source} onChange={setSource} readOnly={closed} starter={`${initial.problem.signature}\n    pass\n`}/>
       </div>
+      {!closed && <p className="muted">From the editor, press Ctrl+S or Command+S to retry saving your draft in this tab. Drafts save automatically when storage is available. This does not submit your solution.</p>}
       <p className="muted" id="submit-shortcut">{closed ? "Submissions are closed. You can still copy or download your code." : match.status==="pending" ? "The submission shortcut becomes available when the duel starts." : seconds===0 ? "Submissions are closed while the server confirms results. You can still copy or download your code." : "From the editor, press Ctrl+Enter or Command+Enter to submit your solution."}</p>
       <ArenaProgress score={match.bestProgress} player phase={progressPhase}/>
       {!closed && <p id={draftGuidanceId} ref={draftGuidance} tabIndex={-1} className={saved ? undefined : "solution-editor-recovery"} role="status" aria-atomic="true">{saved ? "Draft saved in this tab. Refreshing restores it. Recovery ends when the match ends." : readFailed ? "Draft recovery unavailable. The saved draft could not be read. Automatic saving is paused to protect any earlier code. Your browser may ask for confirmation before leaving or refreshing while recovery is unavailable. Keep this tab open or download your solution. Before editing, Retry reading draft can recover earlier code without replacing it. After editing, reading is paused to protect your current code. Retry saving draft replaces any unread saved draft with the code currently in the editor. A confirmation asks before replacing it; cancel to keep the earlier draft. Saving a draft does not submit it." : "Draft recovery unavailable. Keep this tab open to retain your code. Retry saving your current draft after browser storage becomes available, or download your solution. Saving a draft does not submit it."}</p>}
@@ -155,10 +164,9 @@ function ArenaSession({initial}:{initial:ArenaSnapshot}) {
         const focused=document.activeElement===event.currentTarget;
         if (retryReading() && focused) draftGuidance.current?.focus();
       }}>Retry reading draft</button>}
-      {!closed && !saved && <button type="button" className="button button--secondary" aria-describedby={draftGuidanceId} onClick={event=>{
+      {!closed && !saved && <button type="button" className="button button--secondary" aria-keyshortcuts="Control+s Meta+s" aria-describedby={draftGuidanceId} onClick={event=>{
         const focused=document.activeElement===event.currentTarget;
-        if (readFailed && !window.confirm("Replace the unread saved draft with the code currently in the editor? Earlier saved code will be lost. Cancel to keep it and try reading it before editing. This does not submit your solution.")) return;
-        if (retrySaving() && focused) draftGuidance.current?.focus();
+        if (saveCurrentDraft() && focused) draftGuidance.current?.focus();
       }}>Retry saving draft</button>}
       <SubmissionStatus submission={match.submission} phase={progressPhase}/>
       <p>{closed ? "This match has ended." : match.status==="pending" ? "Match reserved. The server has not started the clock." : seconds===0 ? "Time expired. Awaiting the server result." : "Clock and opponent progress are synchronized with the server."}</p>

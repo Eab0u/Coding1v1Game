@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Keyboard draft-save recovery
+- Selected catalog validation first and retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. Followed the blocker rule and added/completed one keyboard draft-recovery item; no draft Python ran on the host.
+- Ctrl+S and Command+S now retry local saving from either arena editor, with visible shortcut and automatic-saving guidance. The shortcut prevents the browser save-page dialog, preserves editor focus, and never submits code.
+- Shared the existing replacement confirmation with the retry button. Cancellation preserves unread code and each shortcut retry requires fresh consent. Repeated keydown events cannot reopen confirmations; unrelated modifiers, IME input and keys outside the editor are ignored. Saved drafts avoid redundant writes and ended matches cannot recreate recovery storage.
+- Added both-editor failure/recovery, cancellation, fresh consent, focus, modifier and no-submission regressions, plus completed/cancelled-match checks.
+- Validation: all 1,821 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused arena coverage passed (170 tests). Lint, typecheck, production build and whitespace checks passed. The initial full-concurrency run suffered a judge-test worker crash; the bounded-concurrency rerun passed without errors.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Confirm unread draft replacement
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one draft-safety item.
 - Retry saving draft now asks for browser confirmation before replacing an unread saved draft, warning that earlier code will be lost and saving does not submit. Visible recovery guidance explains cancellation.

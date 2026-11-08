@@ -1397,3 +1397,66 @@ it.each([false,true])('requires fresh consent for unread draft replacement in pl
   expect(screen.getByText(/Draft saved in this tab/)).toHaveFocus();
   expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
 });
+it.each(['completed','cancelled'] as const)('does not recreate a closed %s draft with the save shortcut',status=>{
+  const write=vi.spyOn(Storage.prototype,'setItem');
+  render(<Arena initial={{...initial,status}}/>);
+  write.mockClear();
+  const editor=screen.getByLabelText('Python solution');
+  expect(fireEvent.keyDown(editor,{key:'s',ctrlKey:true})).toBe(false);
+  expect(write).not.toHaveBeenCalled();
+  expect(sessionStorage.getItem('codeduel:draft:Ada:match')).toBeNull();
+  expect(screen.queryByText(/Command\+S to retry/)).not.toBeInTheDocument();
+});
+it.each([false,true])('saves with editor shortcuts and preserves focus through storage recovery in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const editor=screen.getByLabelText('Python solution');
+  fireEvent.change(editor,{target:{value:'keyboard draft'}});
+  editor.focus();
+  write.mockClear();
+  expect(fireEvent.keyDown(editor,{key:'s',ctrlKey:true})).toBe(false);
+  expect(write).toHaveBeenCalledExactlyOnceWith('codeduel:draft:Ada:match','keyboard draft');
+  expect(editor).toHaveFocus();
+  expect(screen.getByText(/Draft recovery unavailable/)).toBeInTheDocument();
+  write.mockRestore();
+  const recoveredWrite=vi.spyOn(Storage.prototype,'setItem');
+  expect(fireEvent.keyDown(editor,{key:'s',metaKey:true})).toBe(false);
+  expect(sessionStorage.getItem('codeduel:draft:Ada:match')).toBe('keyboard draft');
+  expect(screen.getByText(/Draft saved in this tab/)).toBeInTheDocument();
+  expect(editor).toHaveFocus();
+  recoveredWrite.mockClear();
+  fireEvent.keyDown(editor,{key:'s',ctrlKey:true});
+  expect(recoveredWrite).not.toHaveBeenCalled();
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+it.each([false,true])('requires fresh shortcut consent and ignores unrelated keys in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const key='codeduel:draft:Ada:match';
+  sessionStorage.setItem(key,'earlier code');
+  const read=vi.spyOn(Storage.prototype,'getItem').mockImplementation(()=>{throw new Error('denied');});
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  read.mockRestore();
+  const editor=screen.getByLabelText('Python solution');
+  fireEvent.change(editor,{target:{value:'replacement'}});
+  editor.focus();
+  for(const modifiers of [{},{ctrlKey:true,altKey:true},{ctrlKey:true,shiftKey:true},{ctrlKey:true,isComposing:true}]) {
+    expect(fireEvent.keyDown(editor,{key:'s',...modifiers})).toBe(true);
+  }
+  expect(fireEvent.keyDown(editor,{key:'s',ctrlKey:true,repeat:true})).toBe(false);
+  expect(fireEvent.keyDown(screen.getByRole('button',{name:'Submit solution'}),{key:'s',ctrlKey:true})).toBe(true);
+  expect(confirm).not.toHaveBeenCalled();
+  fireEvent.keyDown(editor,{key:'s',ctrlKey:true});
+  fireEvent.keyDown(editor,{key:'s',metaKey:true});
+  expect(confirm).toHaveBeenCalledTimes(2);
+  expect(sessionStorage.getItem(key)).toBe('earlier code');
+  expect(editor).toHaveFocus();
+  confirm.mockReturnValue(true);
+  fireEvent.keyDown(editor,{key:'s',ctrlKey:true});
+  expect(sessionStorage.getItem(key)).toBe('replacement');
+  expect(editor).toHaveFocus();
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
