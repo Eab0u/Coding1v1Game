@@ -577,22 +577,46 @@ it.each([false, true])("shows draft-scoped download guidance without moving focu
   button.focus();
   fireEvent.click(button);
   const notice = screen.getByRole("status");
+  expect(button).toHaveAccessibleDescription(notice.textContent!);
+  expect(notice).toHaveClass("solution-download-notice");
+  const descriptionId = notice.id;
   expect(notice).toHaveTextContent("Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.");
   expect(notice).toHaveAttribute("aria-atomic", "true");
   expect(button).toHaveFocus();
   fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
   expect(screen.getByRole("status")).toBe(notice);
+  expect(button).toHaveAttribute("aria-describedby", descriptionId);
   view.rerender(<SolutionEditor value="replacement" onChange={vi.fn()} readOnly={readOnly}/>);
+  expect(button).not.toHaveAttribute("aria-describedby");
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
   view.rerender(<SolutionEditor value="original" onChange={vi.fn()} readOnly={readOnly}/>);
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
   click.mockImplementationOnce(() => { throw new Error("Blocked"); });
   fireEvent.click(button);
   expect(screen.getByRole("alert")).toHaveTextContent("Unable to download");
+  expect(button).toHaveAccessibleDescription(screen.getByRole("alert").textContent!);
+  expect(screen.getByRole("alert")).toHaveClass("solution-download-notice--error");
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
   fireEvent.click(button);
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(screen.getByRole("status")).toHaveTextContent("Download requested");
   expect(button).toHaveFocus();
   act(() => vi.advanceTimersByTime(1000));
+});
+
+it("isolates download descriptions between editors and unrelated copy feedback", async () => {
+  vi.stubGlobal("URL", Object.assign(class extends URL {}, {
+    createObjectURL: vi.fn(() => "blob:download"), revokeObjectURL: vi.fn(),
+  }));
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+  render(<><SolutionEditor value="first" onChange={vi.fn()} readOnly={false}/><SolutionEditor value="second" onChange={vi.fn()} readOnly/></>);
+  const buttons = screen.getAllByRole("button", { name: "Download solution (.py)" });
+  expect(buttons[0]).not.toHaveAttribute("aria-describedby");
+  fireEvent.click(buttons[0]);
+  expect(buttons[1]).not.toHaveAttribute("aria-describedby");
+  fireEvent.click(buttons[1]);
+  expect(buttons[0].getAttribute("aria-describedby")).not.toBe(buttons[1].getAttribute("aria-describedby"));
+  await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: "Copy solution" })[0]); });
+  for (const button of buttons) expect(button).toHaveAccessibleDescription(/Download requested/);
 });

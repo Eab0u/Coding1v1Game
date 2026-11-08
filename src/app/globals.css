@@ -659,3 +659,6 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 [data-connection-state="offline"] .recovery-guidance { border-left-color: #ffd28a; }
 [data-connection-state="offline"] .recovery-guidance strong { color: #ffd28a; }
 [data-connection-state="reconnected"] .recovery-guidance strong { color: var(--color-success); }
+
+.solution-download-notice { padding: 12px 16px; border-inline-start: 4px solid var(--color-accent); border-radius: var(--radius-sm); background: var(--color-surface); line-height: 1.5; overflow-wrap: anywhere; }
+.solution-download-notice--error { border-inline-start-color: var(--color-danger); }

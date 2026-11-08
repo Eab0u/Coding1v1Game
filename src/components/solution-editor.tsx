@@ -34,6 +34,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
   const resetGuidanceId = useId();
   const copyGuidanceId = useId();
+  const downloadGuidanceId = useId();
+  const hasDownloadResult = downloadResult?.revision === draftVersion.revision;
   const resetButton = useRef<HTMLButtonElement>(null);
   const editorGroup = useRef<HTMLDivElement>(null);
   function cancelReset() {
@@ -98,7 +100,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={plain} onClick={() => setPlain(current => !current)}>
       {plain ? "Use advanced editor" : "Use plain text editor"}
     </button>
-    <button type="button" className="button button--secondary" onClick={downloadSolution}>Download solution (.py)</button>
+    <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : undefined} onClick={downloadSolution}>Download solution (.py)</button>
     <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
     {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" disabled={!canReset} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
     {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId} onKeyDown={event => {
@@ -114,9 +116,9 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       </div>
     </div>}
     {copyPending && <p id={copyGuidanceId} role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.</p>}
-    {downloadResult?.revision === draftVersion.revision && (downloadResult.ok
-      ? <p role="status" aria-atomic="true">Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.</p>
-      : <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>)}
+    {hasDownloadResult && (downloadResult.ok
+      ? <p id={downloadGuidanceId} className="solution-download-notice" role="status" aria-atomic="true">Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.</p>
+      : <p id={downloadGuidanceId} className="solution-download-notice solution-download-notice--error" role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>)}
     {copyResult?.revision === draftVersion.revision && (copyResult.ok
       ? <p role="status">Solution copied to clipboard.</p>
       : <p role="alert">Unable to copy your solution. Try again, download it or select and copy the code manually.</p>)}
