@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Clarify pending clipboard drafts
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor feedback improvement.
+- Pending solution copies now use a padded amber notice. Editing during a pending clipboard request adds explicit earlier-draft guidance and explains how to copy the current solution after settlement. Revision tracking keeps that warning accurate even when an earlier draft is restored, and existing stale completion suppression remains intact.
+- Added advanced/plain-editor regression coverage for notice styling, stable accessible descriptions, focus preservation, edit/restore behavior, exact copied contents and fresh-copy recovery.
+- Validation: all 1,790 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live browser/clipboard permission smoke checks and existing infrastructure blockers remain.
+
 ### 2026-11-07 - Distinguish destructive starter replacement
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one visual improvement.
 - Starter-reset confirmation now has a visible warning heading, danger-colored border and distinct outlined replacement action. The safe Keep action retains initial focus, and both actions retain their accessible consequence descriptions and existing keyboard recovery.

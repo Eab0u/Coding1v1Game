@@ -902,3 +902,34 @@ it("keeps reset disclosure targets isolated and clears state after replacement",
   expect(document.getElementById(ids[0])).toBeNull();
   expect(document.getElementById(ids[1])).toBeInTheDocument();
 });
+
+it.each([false, true])("explains older pending clipboard drafts in plain mode %s and permits a fresh copy", async plain => {
+  const completions: (() => void)[] = [];
+  const writeText = vi.fn(() => new Promise<void>(resolve => completions.push(resolve)));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
+  const notice = screen.getByRole("status");
+  const noticeId = notice.id;
+  expect(notice).toHaveClass("solution-copy-notice", "solution-copy-notice--pending");
+  expect(notice).not.toHaveTextContent("earlier draft");
+  const input = screen.getByLabelText("Python solution");
+  input.focus();
+  fireEvent.change(input, { target: { value: "new draft" } });
+  expect(input).toHaveFocus();
+  expect(notice).toHaveTextContent("This request contains the earlier draft");
+  expect(screen.getByRole("button", { name: /^Copying solution/ })).toHaveAccessibleDescription(/Copy again after it finishes/);
+  fireEvent.change(input, { target: { value: "def solve():\n    pass" } });
+  expect(screen.getByRole("status")).toHaveAttribute("id", noticeId);
+  expect(notice).toHaveTextContent("earlier draft");
+  await act(async () => completions[0]());
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(input).toHaveFocus();
+  fireEvent.change(input, { target: { value: "latest draft" } });
+  fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
+  expect(screen.getByRole("status")).not.toHaveTextContent("earlier draft");
+  expect(writeText.mock.calls).toEqual([["def solve():\n    pass"], ["latest draft"]]);
+  await act(async () => completions[1]());
+  expect(screen.getByRole("status")).toHaveTextContent("Solution copied to clipboard");
+});

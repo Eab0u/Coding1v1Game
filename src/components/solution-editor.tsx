@@ -29,7 +29,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   if (draftVersion.value !== value) {
     setDraftVersion({ value, revision: draftVersion.revision + 1 });
   }
-  const [copyPending, setCopyPending] = useState(false);
+  const [copyRevision, setCopyRevision] = useState<number | null>(null);
+  const copyPending = copyRevision !== null;
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
   const preferenceGuidanceId = useId();
@@ -57,7 +58,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     if (copying.current) return;
     const revision = draftVersion.revision;
     copying.current = true;
-    setCopyPending(true);
+    setCopyRevision(revision);
     setCopyResult(null);
     try {
       await navigator.clipboard.writeText(value);
@@ -66,7 +67,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       setCopyResult({ revision, ok: false });
     } finally {
       copying.current = false;
-      setCopyPending(false);
+      setCopyRevision(null);
     }
   }
   function downloadSolution() {
@@ -128,7 +129,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
         <button type="button" className="button solution-reset-replace" aria-describedby={resetGuidanceId} onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
       </div>
     </div>}
-    {copyPending && <p id={copyGuidanceId} role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.</p>}
+    {copyPending && <p id={copyGuidanceId} className="solution-copy-notice solution-copy-notice--pending" role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.{copyRevision !== draftVersion.revision && " Your solution has changed since this copy started. This request contains the earlier draft. Copy again after it finishes to copy your current solution."}</p>}
     {hasDownloadResult && (downloadResult.ok
       ? <p id={downloadGuidanceId} className="solution-download-notice" role="status" aria-atomic="true">Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.</p>
       : <p id={downloadGuidanceId} className="solution-download-notice solution-download-notice--error" role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>)}

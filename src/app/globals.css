@@ -670,3 +670,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .solution-reset-confirmation p { line-height: 1.5; }
 .solution-reset-replace { background: var(--color-surface); border-color: var(--color-danger); color: var(--color-danger); }
 .solution-reset-replace:hover:enabled { background: var(--color-hover); }
+
+.solution-copy-notice--pending { border-inline-start-color: #e5b567; }
