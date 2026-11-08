@@ -13,6 +13,33 @@ function Harness({ readOnly = false }: { readOnly?: boolean }) {
   const [value, setValue] = useState("def solve():\n    pass");
   return <SolutionEditor value={value} onChange={setValue} readOnly={readOnly} starter={"def solve():\n    pass"}/>;
 }
+it.each([false, true])("explains text-size reset and preserves focus through read-only recovery in plain mode %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 16 }));
+  const onChange = vi.fn();
+  const content = (readOnly: boolean) => <><SolutionEditor value="first draft" onChange={onChange} readOnly={readOnly}/><SolutionEditor value="second draft" onChange={onChange} readOnly={readOnly}/></>;
+  const view = render(content(false));
+  const [first, second] = screen.getAllByRole("group", { name: "Solution editor" }).map(group => within(group));
+  const reset = first.getByRole("button", { name: "Reset text size" });
+  expect(reset).toHaveAccessibleDescription(/Reset text size restores the default 15px size.*code stays unchanged/);
+  expect(reset.getAttribute("aria-describedby")).not.toBe(second.getByRole("button", { name: "Reset text size" }).getAttribute("aria-describedby"));
+  expect(document.getElementById(reset.getAttribute("aria-describedby")!)).toHaveClass("solution-text-size-guide");
+  for (const readOnly of [true, false, true]) {
+    view.rerender(content(readOnly));
+    reset.focus();
+    fireEvent.click(reset);
+    expect(reset).toHaveFocus();
+    expect(reset).toHaveAttribute("aria-disabled", "true");
+    expect(reset).toHaveAccessibleDescription(/Default 15px size is already selected.*Reset becomes available/);
+    expect(first.getByLabelText("Python solution")).toHaveValue("first draft");
+    expect(first.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
+    expect(second.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
+    fireEvent.click(first.getByRole("button", { name: "Increase solution text size" }));
+    expect(reset).toHaveAttribute("aria-disabled", "false");
+    expect(reset).toHaveAccessibleDescription(/Reset text size restores the default 15px size/);
+  }
+  expect(onChange).not.toHaveBeenCalled();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain, wordWrap: true, fontSize: 16 });
+});
 it("restores preferences across visits without persisting code", () => {
   const first = render(<Harness/>);
   fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));

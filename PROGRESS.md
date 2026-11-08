@@ -37,6 +37,12 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Explain text-size reset
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still cannot reach the isolated Judge0 sandbox. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
+- Extended styled text-size guidance to explain the default 15px size, why Reset is unavailable at that size, and continued availability after match end. Reset now references the same isolated guidance as the size adjustment controls, retaining storage-recovery descriptions.
+- Added both-mode regression coverage for independent editor descriptions, reset availability, preserved keyboard focus, repeated read-only recovery, unchanged drafts and saved preferences.
+- Validation: all 1,843 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused editor tests (100), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
 ### 2026-11-07 - Visible solution copy guidance
 - Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one copy usability item.
 - Added styled visible guidance explaining current-draft clipboard replacement without submission, browser permission prompts, manual copy/download recovery and availability after match end. Copy references isolated editor-specific guidance before use and restores it when draft edits clear stale completion notices; pending, success and failure descriptions remain intact.
