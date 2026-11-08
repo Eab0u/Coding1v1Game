@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Explain unavailable starter reset
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
+- Reset to starter code now remains keyboard-focusable when the current solution matches the starter, with guarded activation, consistent unavailable styling and a padded visible explanation associated only with its owning editor. Editing enables reset and removes stale guidance; replacement starter code restores the same stable description when appropriate. Read-only editors omit both the action and explanation.
+- Updated reset assertions and added advanced/plain-editor regression coverage for focus, no-op activation, changing drafts/starters, description cleanup and multiple-editor isolation.
+- Validation: full suite passed (1,782 tests across 75 files); after adding one isolation regression, all 71 solution-editor tests passed. Lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native keyboard and screen-reader smoke checks remain useful; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Keep text-size controls keyboard accessible
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and selected one editor keyboard-accessibility improvement.
 - Text-size decrease, increase and reset controls now remain keyboard-focusable when their action is unavailable. They expose aria-disabled and use the existing dimmed disabled styling while guarding activation, preserving focus at 12px/24px and after resetting to 15px. Repeated activation leaves preferences and storage untouched.

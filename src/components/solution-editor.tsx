@@ -35,6 +35,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const preferenceGuidanceId = useId();
   const preferenceDescription = unavailable ? preferenceGuidanceId : undefined;
   const resetGuidanceId = useId();
+  const resetAvailabilityId = useId();
   const recoveryGuidanceId = useId();
   const copyGuidanceId = useId();
   const downloadGuidanceId = useId();
@@ -111,7 +112,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     </button>
     <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : undefined} onClick={downloadSolution}>Download solution (.py)</button>
     <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
-    {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" disabled={!canReset} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
+    {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
+    {starter !== undefined && !readOnly && !canReset && <p id={resetAvailabilityId} className="solution-reset-notice">Your solution already matches the starter code. Reset becomes available after you edit it.</p>}
     {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId} onKeyDown={event => {
       if (event.key !== "Escape") return;
       event.preventDefault();
