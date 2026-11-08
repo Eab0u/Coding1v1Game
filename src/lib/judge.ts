@@ -59,6 +59,16 @@ function normalizeJsonZeros(value: Json): Json {
 export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch) {
   // Validate and use one snapshot, including throughout asynchronous executions.
   const config = { ...settings };
+  if ((config.authToken !== undefined && typeof config.authToken !== "string") ||
+      (config.onExecutionStatus !== undefined && typeof config.onExecutionStatus !== "function")) {
+    throw new RangeError("Invalid judge configuration.");
+  }
+  try {
+    // Validate header encoding now; fetch errors would otherwise look like outages.
+    if (config.authToken !== undefined) new Headers({ "X-Auth-Token": config.authToken });
+  } catch {
+    throw new RangeError("Invalid judge configuration.");
+  }
   let url: URL;
   try { url = new URL(config.url); }
   catch {

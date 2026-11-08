@@ -110,6 +110,9 @@ as `JudgeConfig`; the adapter does not automatically read environment variables.
 The adapter snapshots configuration at creation; later caller mutations cannot change
 credentials, execution limits, diagnostics or scoring penalties. Create a new adapter
 to apply configuration changes.
+Optional auth tokens must be strings valid as HTTP header values; optional execution
+diagnostics must be functions. Invalid values fail at adapter creation with a generic
+configuration error before network access, without retaining credentials in the error.
 Each execution also snapshots its validated test suite and submission timestamp before
 network access, preserving nested arguments, expected answers and benchmark selection
 if the caller mutates or reuses the request while judging is in progress.

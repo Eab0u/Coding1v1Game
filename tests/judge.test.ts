@@ -14,6 +14,26 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each([null, false, 42, {}, [], "secret\r\ninjected: value", "secret\u0000", "secret\u0100"])("rejects malformed credentials before network access (%#)", authToken => {
+    const fetcher = vi.fn<typeof fetch>();
+    expect(() => createJudge({ ...config, authToken } as JudgeConfig, fetcher)).toThrow(new RangeError("Invalid judge configuration."));
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([null, false, 42, "callback", {}, []])("rejects malformed diagnostic callbacks before network access (%#)", onExecutionStatus => {
+    const fetcher = vi.fn<typeof fetch>();
+    expect(() => createJudge({ ...config, onExecutionStatus } as JudgeConfig, fetcher)).toThrow(new RangeError("Invalid judge configuration."));
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, "", "valid-token"])("preserves optional credentials and valid diagnostics (%j)", async authToken => {
+    const onExecutionStatus = vi.fn();
+    const fetcher = sandbox([done(), done(), done()]);
+    expect((await createJudge({ ...config, authToken, onExecutionStatus }, fetcher)(request)).testsPassed).toBe(1);
+    expect(onExecutionStatus.mock.calls).toEqual([[3], [3], [3]]);
+    expect(fetcher.mock.calls[0][1]?.headers).toEqual({ "Content-Type": "application/json", ...(authToken ? { "X-Auth-Token": authToken } : {}) });
+  });
+
   it.each([0, -0])("accepts sandbox JSON negative zero against expected %s", async expected => {
     const negativeZero = { ...done(), stdout: Buffer.from("-0.0").toString("base64") };
     const fetcher = sandbox([negativeZero, negativeZero, negativeZero]);

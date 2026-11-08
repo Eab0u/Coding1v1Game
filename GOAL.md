@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Validate optional judge credentials and execution diagnostics at adapter creation before network access, with credential-safe errors and valid-configuration regression coverage
 - [x] Compare numeric signed zero consistently across expected answers and sandbox JSON output, preserving nested correctness, caller-owned suites and failed-test CPU penalties with regression coverage
 - [x] Distinguish offline recovery notices with amber borders and headings and restored connections with green headings across unavailable, route-error and standalone root-error screens, preserving stable announcements and focus with component and phone/desktop browser regression coverage
 - [x] Reject malformed top-level judge requests with consistent validation before network access, preserving adapter reuse with regression coverage
