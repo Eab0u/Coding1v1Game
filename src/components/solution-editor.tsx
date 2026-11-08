@@ -91,7 +91,12 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     }
   }
   const textEditor = <PlainPythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>;
-  return <div ref={editorGroup} className="solution-editor" role="group" aria-label="Solution editor" tabIndex={-1}>
+  return <div ref={editorGroup} className="solution-editor" role="group" aria-label="Solution editor" tabIndex={-1} onKeyDownCapture={event => {
+    if (!confirmReset || event.key !== "Escape" || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+    event.preventDefault();
+    event.stopPropagation();
+    cancelReset();
+  }}>
     {unavailable && <p id={preferenceGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Editor preferences apply for this visit. Browser storage is unavailable, so they may reset next time. Changing text size, line wrapping or editor mode retries saving your preferences; your solution stays in the editor. Retry saving preferences keeps your current settings.</p>}
     {unavailable && <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={preferenceGuidanceId} onClick={event => {
       const focused = document.activeElement === event.currentTarget;
@@ -114,13 +119,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
     {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
     {starter !== undefined && !readOnly && !canReset && <p id={resetAvailabilityId} className="solution-reset-notice">Your solution already matches the starter code. Reset becomes available after you edit it.</p>}
-    {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId} onKeyDown={event => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopPropagation();
-      cancelReset();
-    }}>
-      <p id={resetGuidanceId}>Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Download your solution first if you want to keep it.</p>
+    {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId}>
+      <p id={resetGuidanceId}>Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Press Escape anywhere in this editor to keep your solution. Download your solution first if you want to keep it.</p>
       <div className="solution-editor-actions">
         <button autoFocus aria-describedby={resetGuidanceId} type="button" className="button button--secondary" onClick={cancelReset}>Keep my solution</button>
         <button type="button" className="button button--primary" aria-describedby={resetGuidanceId} onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>

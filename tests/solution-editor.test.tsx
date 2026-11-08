@@ -484,7 +484,7 @@ it.each([false, true])("describes reset consequences on the focused action and p
   const group = screen.getByRole("group", { name: "Confirm solution reset" });
   const keep = within(group).getByRole("button", { name: "Keep my solution" });
   const replace = within(group).getByRole("button", { name: "Replace with starter code" });
-  const warning = "Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Download your solution first if you want to keep it.";
+  const warning = "Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Press Escape anywhere in this editor to keep your solution. Download your solution first if you want to keep it.";
   expect(keep).toHaveFocus();
   for (const control of [group, keep, replace]) expect(control).toHaveAccessibleDescription(warning);
   const id = keep.getAttribute("aria-describedby");
@@ -809,4 +809,41 @@ it("isolates unavailable reset descriptions between editors", () => {
     return id;
   });
   expect(ids[0]).not.toBe(ids[1]);
+});
+
+
+it.each([false, true])("cancels reset with Escape anywhere in its owning editor (plain=%s)", plain => {
+  const change = vi.fn();
+  render(<><SolutionEditor value="private draft" onChange={change} readOnly={false} starter="pass"/>
+    <SolutionEditor value="other draft" onChange={change} readOnly={false} starter="pass"/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const first = within(groups[0]);
+  const second = within(groups[1]);
+  if (plain) fireEvent.click(first.getByRole("button", { name: "Use plain text editor" }));
+  const reset = first.getByRole("button", { name: "Reset to starter code" });
+  fireEvent.click(reset);
+  fireEvent.click(second.getByRole("button", { name: "Reset to starter code" }));
+  const input = first.getByRole("textbox");
+  input.focus();
+  for (const flags of [{ isComposing: true }, { keyCode: 229 }]) {
+    expect(fireEvent.keyDown(input, { key: "Escape", ...flags })).toBe(true);
+    expect(first.getByRole("group", { name: "Confirm solution reset" })).toBeInTheDocument();
+    expect(input).toHaveFocus();
+  }
+  expect(fireEvent.keyDown(input, { key: "Escape" })).toBe(false);
+  expect(reset).toHaveFocus();
+  expect(first.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  expect(second.getByRole("group", { name: "Confirm solution reset" })).toBeInTheDocument();
+  expect(input).toHaveValue("private draft");
+  expect(change).not.toHaveBeenCalled();
+  // Without a pending confirmation, Escape keeps its normal editor behavior.
+  expect(fireEvent.keyDown(input, { key: "Escape" })).toBe(true);
+  fireEvent.click(reset);
+  const wrap = first.getByRole("button", { name: "Wrap long lines" });
+  wrap.focus();
+  expect(fireEvent.keyDown(wrap, { key: "Escape" })).toBe(false);
+  expect(reset).toHaveFocus();
+  expect(first.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  expect(second.getByRole("group", { name: "Confirm solution reset" })).toBeInTheDocument();
+  expect(change).not.toHaveBeenCalled();
 });

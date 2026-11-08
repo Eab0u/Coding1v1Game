@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Cancel pending resets throughout the editor
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor keyboard recovery item.
+- Escape now dismisses a pending starter-code reset from anywhere in its owning editor, including the code field and toolbar, and restores focus to Reset. Visible confirmation guidance explains the shortcut. Capture handling works before advanced-editor key handlers; composing/key-code-229 events and Escape without a pending reset retain their normal behavior.
+- Added advanced/plain-editor regression coverage for code-field and toolbar cancellation, preserved drafts, restored focus, independent confirmations and IME events.
+- Validation: all 1,785 tests across 75 files passed, including all 73 solution-editor tests; lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native Monaco and screen-reader smoke checks remain useful; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Explain unavailable starter reset
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
 - Reset to starter code now remains keyboard-focusable when the current solution matches the starter, with guarded activation, consistent unavailable styling and a padded visible explanation associated only with its owning editor. Editing enables reset and removes stale guidance; replacement starter code restores the same stable description when appropriate. Read-only editors omit both the action and explanation.
