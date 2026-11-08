@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Accessible clipboard completion guidance
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
+- Copy completion notices now use padded surfaces with green success or danger failure borders. Each Copy button references its own visible result, replacing pending permission guidance after settlement. Draft changes permanently clear stale result descriptions without moving focus.
+- Added editable/read-only coverage for failure/retry, editor switching, draft replacement/restoration and independent editor descriptions. Updated pending-copy regression expectations to verify completion guidance replaces permission guidance while independent keyboard focus remains intact.
+- Validation: all 1,773 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native clipboard permissions and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Accessible download recovery guidance
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; Judge0 remains unavailable. Catalog milestones stay unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
 - Download actions now reference their visible save or retry guidance with stable, editor-specific accessible descriptions. Notices have a padded surface and green success or danger failure border; stale descriptions clear with draft changes while focus stays on the action.

@@ -35,6 +35,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const resetGuidanceId = useId();
   const copyGuidanceId = useId();
   const downloadGuidanceId = useId();
+  const copyResultId = useId();
+  const hasCopyResult = copyResult?.revision === draftVersion.revision;
   const hasDownloadResult = downloadResult?.revision === draftVersion.revision;
   const resetButton = useRef<HTMLButtonElement>(null);
   const editorGroup = useRef<HTMLDivElement>(null);
@@ -101,7 +103,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       {plain ? "Use advanced editor" : "Use plain text editor"}
     </button>
     <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : undefined} onClick={downloadSolution}>Download solution (.py)</button>
-    <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
+    <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
     {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" disabled={!canReset} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
     {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId} onKeyDown={event => {
       if (event.key !== "Escape") return;
@@ -119,8 +121,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     {hasDownloadResult && (downloadResult.ok
       ? <p id={downloadGuidanceId} className="solution-download-notice" role="status" aria-atomic="true">Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.</p>
       : <p id={downloadGuidanceId} className="solution-download-notice solution-download-notice--error" role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>)}
-    {copyResult?.revision === draftVersion.revision && (copyResult.ok
-      ? <p role="status">Solution copied to clipboard.</p>
-      : <p role="alert">Unable to copy your solution. Try again, download it or select and copy the code manually.</p>)}
+    {hasCopyResult && (copyResult.ok
+      ? <p id={copyResultId} className="solution-copy-notice" role="status" aria-atomic="true">Solution copied to clipboard.</p>
+      : <p id={copyResultId} className="solution-copy-notice solution-copy-notice--error" role="alert">Unable to copy your solution. Try again, download it or select and copy the code manually.</p>)}
   </div>;
 }

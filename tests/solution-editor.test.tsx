@@ -540,7 +540,8 @@ it.each([true, false])("keeps pending Copy in keyboard navigation without steali
   await act(async () => { settle(); });
   expect(download).toHaveFocus();
   expect(copy).toHaveAttribute("aria-disabled", "false");
-  expect(copy).not.toHaveAttribute("aria-describedby");
+  expect(copy).toHaveAccessibleDescription(ok ? "Solution copied to clipboard." : "Unable to copy your solution. Try again, download it or select and copy the code manually.");
+  expect(copy.getAttribute("aria-describedby")).not.toBe(description);
   expect(document.getElementById(description!)).toBeNull();
   await act(async () => { fireEvent.click(copy); settle(); });
   expect(writeText).toHaveBeenCalledTimes(2);
@@ -619,4 +620,43 @@ it("isolates download descriptions between editors and unrelated copy feedback",
   expect(buttons[0].getAttribute("aria-describedby")).not.toBe(buttons[1].getAttribute("aria-describedby"));
   await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: "Copy solution" })[0]); });
   for (const button of buttons) expect(button).toHaveAccessibleDescription(/Download requested/);
+});
+it.each([false, true])("associates styled copy results and clears stale descriptions with readOnly %s", async readOnly => {
+  const writeText = vi.fn().mockRejectedValueOnce(new Error("Denied")).mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  const view = render(<SolutionEditor value="draft" onChange={vi.fn()} readOnly={readOnly}/>);
+  const copy = screen.getByRole("button", { name: "Copy solution" });
+  copy.focus();
+  await act(async () => { fireEvent.click(copy); });
+  const error = screen.getByRole("alert");
+  expect(copy).toHaveAttribute("aria-describedby", error.id);
+  expect(error).toHaveClass("solution-copy-notice", "solution-copy-notice--error");
+  expect(copy).toHaveFocus();
+  await act(async () => { fireEvent.click(copy); });
+  const success = screen.getByText("Solution copied to clipboard.");
+  expect(copy).toHaveAttribute("aria-describedby", success.id);
+  expect(success).toHaveClass("solution-copy-notice");
+  expect(success).not.toHaveClass("solution-copy-notice--error");
+  expect(success).toHaveAttribute("aria-atomic", "true");
+  expect(copy).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(copy).toHaveAttribute("aria-describedby", success.id);
+  view.rerender(<SolutionEditor value="changed" onChange={vi.fn()} readOnly={readOnly}/>);
+  expect(copy).not.toHaveAttribute("aria-describedby");
+  view.rerender(<SolutionEditor value="draft" onChange={vi.fn()} readOnly={readOnly}/>);
+  expect(copy).not.toHaveAttribute("aria-describedby");
+  expect(screen.queryByText("Solution copied to clipboard.")).not.toBeInTheDocument();
+});
+
+it("isolates clipboard completion descriptions between editors", async () => {
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+  render(<><SolutionEditor value="one" onChange={vi.fn()} readOnly={false}/><SolutionEditor value="two" onChange={vi.fn()} readOnly/></>);
+  const copies = screen.getAllByRole("button", { name: "Copy solution" });
+  await act(async () => { fireEvent.click(copies[0]); });
+  expect(copies[1]).not.toHaveAttribute("aria-describedby");
+  await act(async () => { fireEvent.click(copies[1]); });
+  const notices = screen.getAllByText("Solution copied to clipboard.");
+  expect(copies[0]).toHaveAttribute("aria-describedby", notices[0].id);
+  expect(copies[1]).toHaveAttribute("aria-describedby", notices[1].id);
+  expect(notices[0].id).not.toBe(notices[1].id);
 });
