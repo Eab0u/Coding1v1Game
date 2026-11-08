@@ -1186,6 +1186,7 @@ it('updates latest-attempt correction guidance through clock expiry and terminal
 });
 
 it.each([false,true])('retries saving the current draft without editing or submitting in plain mode %s',plain=>{
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);
   vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
   const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});
   render(<Arena initial={initial}/>);
@@ -1202,6 +1203,7 @@ it.each([false,true])('retries saving the current draft without editing or submi
   write.mockRestore();
   const recoveredWrite=vi.spyOn(Storage.prototype,'setItem');
   fireEvent.click(retry);
+  expect(confirm).not.toHaveBeenCalled();
   expect(recoveredWrite).toHaveBeenCalledExactlyOnceWith('codeduel:draft:Ada:match','current unsaved draft');
   expect(screen.queryByRole('button',{name:'Retry saving draft'})).not.toBeInTheDocument();
   expect(guidance).toHaveTextContent('Draft saved in this tab');
@@ -1226,6 +1228,7 @@ it.each(['completed','cancelled'] as const)('removes draft saving recovery when 
 });
 
 it.each([false,true])('protects unread stored drafts until explicit replacement in plain mode %s',plain=>{
+  vi.spyOn(window,'confirm').mockReturnValue(true);
   vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
   const key='codeduel:draft:Ada:match';
   sessionStorage.setItem(key,'valuable earlier draft');
@@ -1263,6 +1266,7 @@ it.each([false,true])('protects unread stored drafts until explicit replacement 
 
 
 it.each([false,true])('guards unread recovery before editing and clears after explicit starter save in plain mode %s',plain=>{
+  vi.spyOn(window,'confirm').mockReturnValue(true);
   vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
   sessionStorage.setItem('codeduel:draft:Ada:match','earlier code');
   const originalRead=Storage.prototype.getItem;
@@ -1361,4 +1365,35 @@ it('resumes saving when retry confirms the unread draft slot is empty',()=>{
   expect(screen.getByText(/Draft saved in this tab/)).toBeInTheDocument();
   expect(sessionStorage.getItem('codeduel:draft:Ada:match')).toBe('def solve():\n    pass\n');
   expect(leaveIsGuarded()).toBe(false);
+});
+
+it.each([false,true])('requires fresh consent for unread draft replacement in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const key='codeduel:draft:Ada:match';
+  sessionStorage.setItem(key,'earlier valuable code');
+  const originalRead=Storage.prototype.getItem;
+  const read=vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,name:string){
+    if(this===sessionStorage && name===key) throw new Error('read denied');
+    return originalRead.call(this,name);
+  });
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const retry=screen.getByRole('button',{name:'Retry saving draft'});
+  retry.focus();
+  fireEvent.click(retry);
+  expect(confirm).toHaveBeenCalledWith(expect.stringMatching(/Earlier saved code will be lost.*does not submit/));
+  expect(retry).toHaveFocus();
+  expect(leaveIsGuarded()).toBe(true);
+  read.mockRestore();
+  expect(sessionStorage.getItem(key)).toBe('earlier valuable code');
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'current code'}});
+  fireEvent.click(retry);
+  expect(confirm).toHaveBeenCalledTimes(2);
+  expect(sessionStorage.getItem(key)).toBe('earlier valuable code');
+  confirm.mockReturnValue(true);
+  fireEvent.click(retry);
+  expect(sessionStorage.getItem(key)).toBe('current code');
+  expect(screen.getByText(/Draft saved in this tab/)).toHaveFocus();
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
 });

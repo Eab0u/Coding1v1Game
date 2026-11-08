@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Confirm unread saved-draft replacement before retry saving, preserving cancellation, focus and fresh consent in both editors with regression coverage
 - [x] Retry reading unread arena drafts before editing without destructive replacement, with accessible recovery guidance, focus preservation and both-editor failure/recovery regression coverage
 - [x] Guard leaving or refreshing unread arena drafts before editing, with visible recovery guidance and failed-save, successful-save, match-closure and cleanup regression coverage
 - [x] Protect unread arena drafts from automatic replacement after storage read failures, with explicit replacement guidance and retry/editing regression coverage

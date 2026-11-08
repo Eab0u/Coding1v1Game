@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Confirm unread draft replacement
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one draft-safety item.
+- Retry saving draft now asks for browser confirmation before replacing an unread saved draft, warning that earlier code will be lost and saving does not submit. Visible recovery guidance explains cancellation.
+- Cancelling preserves stored code, current edits, leave protection and keyboard focus. Each replacement attempt requires fresh consent, including after edits or failed saves. Ordinary failed-save recovery needs no confirmation.
+- Added both-editor cancellation, repeated-consent, replacement, focus and no-submission coverage. Updated existing failed-write tests to authorize replacement and verified ordinary save retries avoid confirmation.
+- Validation: all 1,815 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native confirmation presentation follows the browser; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Recover unread drafts without replacement
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one draft-recovery item.
 - Added Retry reading draft while the editor still contains starter code after a storage read failure. Successful reads recover earlier code and resume autosaving; an empty slot resumes starter saving. Failed reads preserve unread storage, current code and keyboard focus.
