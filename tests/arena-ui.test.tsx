@@ -1326,9 +1326,17 @@ it.each([false,true])('retries reading earlier drafts safely in plain mode %s',p
   if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
   const retry=screen.getByRole('button',{name:'Retry reading draft'});
   expect(retry).toHaveAccessibleDescription(/recover earlier code without replacing it/);
+  expect(screen.queryByText(/Reading retry \d+ failed/)).not.toBeInTheDocument();
   retry.focus();
   fireEvent.click(retry);
   expect(retry).toHaveFocus();
+  expect(screen.getByText(/Reading retry 1 failed/)).toHaveClass('arena-draft-warning');
+  expect(retry).toHaveAccessibleDescription(/Reading retry 1 failed.*Earlier saved code is still protected/);
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(retry).toHaveAccessibleDescription(/Reading retry 2 failed/);
+  expect(screen.getByText(/Reading retry 2 failed/).closest('[role="status"]')).toHaveAttribute('aria-atomic','true');
+  expect(leaveIsGuarded()).toBe(true);
   expect(write.mock.calls.filter(call=>call[0]===key)).toHaveLength(0);
   expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    pass\n');
   denied=false;
@@ -1337,6 +1345,7 @@ it.each([false,true])('retries reading earlier drafts safely in plain mode %s',p
   expect(sessionStorage.getItem(key)).toBe('earlier solution');
   expect(screen.getByText(/Draft saved in this tab/)).toHaveFocus();
   expect(screen.queryByRole('button',{name:'Retry reading draft'})).not.toBeInTheDocument();
+  expect(screen.queryByText(/Reading retry \d+ failed/)).not.toBeInTheDocument();
   expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
 });
 
@@ -1349,8 +1358,10 @@ it.each([false,true])('pauses draft reading after edits in plain mode %s',plain=
   });
   render(<Arena initial={initial}/>);
   if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
-  expect(screen.getByRole('button',{name:'Retry reading draft'})).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Retry reading draft'}));
+  expect(screen.getByText(/Reading retry 1 failed/)).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'current edits'}});
+  expect(screen.queryByText(/Reading retry \d+ failed/)).not.toBeInTheDocument();
   expect(screen.queryByRole('button',{name:'Retry reading draft'})).not.toBeInTheDocument();
   expect(screen.getByLabelText('Python solution')).toHaveValue('current edits');
   expect(screen.getByRole('button',{name:'Retry saving draft'})).toHaveAccessibleDescription(/reading is paused to protect your current code/);

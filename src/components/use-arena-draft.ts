@@ -10,6 +10,7 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [readFailed, setReadFailed] = useState(false);
+  const [readRetryFailures, setReadRetryFailures] = useState(0);
   const automaticSaveBlocked = useRef(false);
   const edited = source !== `${signature}\n    pass\n`;
   useEffect(() => {
@@ -41,6 +42,7 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
       else sessionStorage.setItem(key, source);
       automaticSaveBlocked.current = false;
       setReadFailed(false);
+      setReadRetryFailures(0);
       setSaved(!closed);
       return !closed;
     } catch { setSaved(false); return false; }
@@ -57,8 +59,12 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
       if (draft !== null) setSource(draft);
       automaticSaveBlocked.current = false;
       setReadFailed(false);
+      setReadRetryFailures(0);
       return true;
-    } catch { return false; }
+    } catch {
+      setReadRetryFailures(count => count + 1);
+      return false;
+    }
   }
-  return { source, setSource, saved, readFailed, retrySaving, canRetryReading, retryReading };
+  return { source, setSource, saved, readFailed, readRetryFailures, retrySaving, canRetryReading, retryReading };
 }

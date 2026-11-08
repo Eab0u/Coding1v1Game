@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Draft-reading retry feedback
+- Retried initial catalog validation with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. Followed the blocker rule and added/completed one draft-recovery feedback item. No draft Python ran on the host.
+- Failed reading retries now update an amber, politely announced message with the attempt number and confirmation that earlier saved code remains protected and automatic saving is paused. Recovery actions include the feedback in their accessible descriptions. Focus stays on Retry while storage remains unavailable.
+- Extended both-editor regressions for repeated failures, unchanged code/storage, leave protection, accessible feedback, focus and successful recovery. Feedback clears after reading/saving recovery and is hidden while editing or after match closure.
+- Validation: all 1,823 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused arena coverage passed (172 tests). Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Prominent arena draft storage warnings
 - Retried catalog validation with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one visual and accessibility improvement.
 - Added amber warning headings distinguishing an unsaved current draft from unread earlier code that needs protection. Both recovery actions reference the heading and detailed guidance. Warnings clear after saving or match closure without changing storage or submission behavior.
