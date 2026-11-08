@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Keep text-size controls keyboard accessible
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and selected one editor keyboard-accessibility improvement.
+- Text-size decrease, increase and reset controls now remain keyboard-focusable when their action is unavailable. They expose aria-disabled and use the existing dimmed disabled styling while guarding activation, preserving focus at 12px/24px and after resetting to 15px. Repeated activation leaves preferences and storage untouched.
+- Updated boundary tests and added editable/read-only regression coverage for focus, accessible unavailable state, tab order, redundant-write prevention, preserved code and switching editors.
+- Validation: all 1,780 tests across 75 files passed, including all 68 solution-editor tests; lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native keyboard and screen-reader smoke checks remain useful; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Retry unchanged editor preferences
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor recovery item.
 - Added a styled Retry saving preferences action associated with the existing editor-specific recovery guidance. Players can save their current settings without changing text size, wrapping or editor mode. Repeated failures preserve the button and keyboard focus; successful recovery clears stale guidance and transfers focus from the removed button to its editor group without interrupting independent navigation.

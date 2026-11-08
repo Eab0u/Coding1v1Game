@@ -97,10 +97,10 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       if (retrySaving() && focused) editorGroup.current?.focus();
     }}>Retry saving preferences</button></div>}
     <div className="solution-editor-actions" role="group" aria-label="Solution text size">
-      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-label="Decrease solution text size" disabled={fontSize <= 12} onClick={() => setFontSize(size => Math.max(12, size - 1))}>A-</button>
+      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-label="Decrease solution text size" aria-disabled={fontSize <= 12} onClick={() => { if (fontSize > 12) setFontSize(size => Math.max(12, size - 1)); }}>A-</button>
       <span aria-live="polite" aria-atomic="true">{fontSize}px</span>
-      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-label="Increase solution text size" disabled={fontSize >= 24} onClick={() => setFontSize(size => Math.min(24, size + 1))}>A+</button>
-      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} disabled={fontSize === 15} onClick={() => setFontSize(15)}>Reset text size</button>
+      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-label="Increase solution text size" aria-disabled={fontSize >= 24} onClick={() => { if (fontSize < 24) setFontSize(size => Math.min(24, size + 1)); }}>A+</button>
+      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-disabled={fontSize === 15} onClick={() => { if (fontSize !== 15) setFontSize(15); }}>Reset text size</button>
     </div>
     <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines</button></div>
     {plain ? textEditor : <EditorBoundary key={editorAttempt} fallback={<><p id={recoveryGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Advanced editor unavailable. Continue in plain text; your code is preserved. Retry loads the advanced editor again using your current solution and preferences.</p>{textEditor}<div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={recoveryGuidanceId} onClick={() => { editorGroup.current?.focus(); setEditorAttempt(attempt => attempt + 1); }}>Retry advanced editor</button></div></>}>

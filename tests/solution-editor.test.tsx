@@ -250,14 +250,14 @@ it.each([false, true])("adjusts and bounds text size without editing code in pla
   const decrease = screen.getByRole("button", { name: "Decrease solution text size" });
   const reset = screen.getByRole("button", { name: "Reset text size" });
   expect(solution).toHaveStyle({ fontSize: "15px" });
-  expect(reset).toBeDisabled();
+  expect(reset).toHaveAttribute("aria-disabled", "true");
   for (let i = 0; i < 15; i++) fireEvent.click(increase);
   expect(solution).toHaveStyle({ fontSize: "24px" });
-  expect(increase).toBeDisabled();
+  expect(increase).toHaveAttribute("aria-disabled", "true");
   expect(screen.getByText("24px")).toHaveAttribute("aria-live", "polite");
   for (let i = 0; i < 20; i++) fireEvent.click(decrease);
   expect(solution).toHaveStyle({ fontSize: "12px" });
-  expect(decrease).toBeDisabled();
+  expect(decrease).toHaveAttribute("aria-disabled", "true");
   fireEvent.click(reset);
   expect(solution).toHaveStyle({ fontSize: "15px" });
   expect(solution).toHaveValue("def solve():\n    pass");
@@ -742,4 +742,30 @@ it.each([false, true])("retries saving unchanged preferences with isolated recov
   fireEvent.click(otherRetry);
   expect(groups[0]).toHaveFocus();
   expect(within(groups[1]).queryByRole("status")).not.toBeInTheDocument();
+});
+
+
+it.each([false, true])("preserves text-size boundary focus and avoids redundant storage writes with readOnly %s", readOnly => {
+  render(<Harness readOnly={readOnly}/>);
+  const write = vi.spyOn(Storage.prototype, "setItem");
+  const increase = screen.getByRole("button", { name: "Increase solution text size" });
+  const decrease = screen.getByRole("button", { name: "Decrease solution text size" });
+  const reset = screen.getByRole("button", { name: "Reset text size" });
+  for (const [control, steps, size] of [[increase, 9, 24], [decrease, 12, 12], [reset, 1, 15]] as const) {
+    control.focus();
+    for (let i = 0; i < steps; i++) fireEvent.click(control);
+    expect(control).toHaveFocus();
+    expect(control).toBeEnabled();
+    expect(control).toHaveAttribute("aria-disabled", "true");
+    expect(control.tabIndex).toBe(0);
+    expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: `${size}px` });
+    write.mockClear();
+    fireEvent.click(control);
+    fireEvent.click(control);
+    expect(write).not.toHaveBeenCalled();
+    expect(control).toHaveFocus();
+    expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
 });
