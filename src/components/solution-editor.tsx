@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Component, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Component, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { PlainPythonEditor } from "./plain-python-editor";
 import { useEditorPreferences } from "./use-editor-preferences";
 
@@ -76,6 +76,13 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   }
   const canReset = !readOnly && starter !== undefined && value !== starter;
   const confirmReset = resetRequest !== null && canReset && resetRequest.value === value && resetRequest.starter === starter;
+  const resetPanelFocused = useRef(false);
+  useLayoutEffect(() => {
+    if (!confirmReset && resetPanelFocused.current) {
+      resetPanelFocused.current = false;
+      resetButton.current?.focus();
+    }
+  }, [confirmReset]);
   // Invalidate the request permanently, even if the previous draft later returns.
   if (resetRequest !== null && !confirmReset) setResetRequest(null);
   async function copySolution() {
@@ -147,12 +154,12 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     </button>
     <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : downloadHelpId} onClick={downloadSolution}>Download solution (.py)</button>
     <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : copyHelpId} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
-    {starter !== undefined && !readOnly && <button ref={resetButton} aria-expanded={confirmReset} aria-controls={confirmReset ? resetConfirmationId : undefined} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
+    {starter !== undefined && <button ref={resetButton} aria-expanded={confirmReset} aria-controls={confirmReset ? resetConfirmationId : undefined} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
     <p id={modeGuidanceId} className="solution-mode-guide">Advanced mode offers Python syntax highlighting and code suggestions. Plain text offers a simpler editor with visible indentation controls. Switching keeps your current draft, text size and wrapping settings without submitting code. You can switch after the match ends to read or copy your solution.</p>
     <p id={downloadHelpId} className="solution-download-guide">Download saves your current draft as solution.py without submitting it. Check your browser downloads if no save prompt appears. You can also download after the match ends.</p>
     <p id={copyHelpId} className="solution-copy-guide">Copy captures your current draft without submitting it and replaces the text on your clipboard. Your browser may ask for clipboard permission. If copying is unavailable, download your solution or select and copy the code manually. You can also copy after the match ends.</p>
-    {starter !== undefined && !readOnly && !canReset && <p id={resetAvailabilityId} className="solution-reset-notice">Your solution already matches the starter code. Reset becomes available after you edit it.</p>}
-    {confirmReset && canReset && <div id={resetConfirmationId} className="card solution-reset-confirmation" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId}>
+    {starter !== undefined && !canReset && <p id={resetAvailabilityId} className="solution-reset-notice">{readOnly ? "Your solution is read-only. Starter replacement is unavailable; you can still copy or download your code." : "Your solution already matches the starter code. Reset becomes available after you edit it."}</p>}
+    {confirmReset && canReset && <div onFocusCapture={() => { resetPanelFocused.current = true; }} onBlurCapture={event => { resetPanelFocused.current = event.currentTarget.contains(event.relatedTarget); }} id={resetConfirmationId} className="card solution-reset-confirmation" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId}>
       <h3>Replace your solution?</h3>
       <p id={resetGuidanceId}>Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Press Escape anywhere in this editor to keep your solution. Download your solution first if you want to keep it.</p>
       <div className="solution-editor-actions">

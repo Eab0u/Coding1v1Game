@@ -144,12 +144,12 @@ it.each([false, true])("requires confirmation to reset in plain mode %s and supp
   expect(reset).toHaveAttribute("aria-disabled", "true");
   expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
 });
-it("removes reset controls and confirmation when the match ends", () => {
+it("disables reset and removes confirmation when the match ends", () => {
   const view = render(<Harness/>);
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "keep final code" } });
   fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
   view.rerender(<Harness readOnly/>);
-  expect(screen.queryByRole("button", { name: "Reset to starter code" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Reset to starter code" })).toHaveAttribute("aria-disabled", "true");
   expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
   expect(screen.getByLabelText("Python solution")).toHaveValue("keep final code");
 });
@@ -828,8 +828,8 @@ it.each([false, true])("explains unavailable starter reset and preserves focus t
   expect(change).not.toHaveBeenCalled();
   expect(screen.getByLabelText("Python solution")).toHaveValue("draft");
   view.rerender(<SolutionEditor value="draft" starter="draft" readOnly onChange={change}/>);
-  expect(screen.queryByRole("button", { name: "Reset to starter code" })).not.toBeInTheDocument();
-  expect(document.getElementById(description!)).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Reset to starter code" })).toHaveAttribute("aria-disabled", "true");
+  expect(document.getElementById(description!)).toHaveTextContent("Your solution is read-only");
 });
 
 it("isolates unavailable reset descriptions between editors", () => {
@@ -1314,4 +1314,51 @@ it("combines mode help with storage recovery guidance until saving succeeds", ()
   expect(toggle).not.toHaveAccessibleDescription(/Browser storage is unavailable/);
   expect(toggle.getAttribute("aria-describedby")!.split(" ")).toHaveLength(1);
   expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+});
+
+ it.each([false, true])("recovers focused reset confirmation after match closure in plain mode %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 17 }));
+  const change = vi.fn();
+  const content = (readOnly: boolean) => <SolutionEditor value="final draft" starter="starter" onChange={change} readOnly={readOnly}/>;
+  const view = render(content(false));
+  const reset = screen.getByRole("button", { name: "Reset to starter code" });
+  for (const action of ["Keep my solution", "Replace with starter code"]) {
+    fireEvent.click(reset);
+    screen.getByRole("button", { name: action }).focus();
+    view.rerender(content(true));
+    expect(reset).toHaveFocus();
+    expect(reset).toHaveAttribute("aria-disabled", "true");
+    expect(reset).toHaveAttribute("aria-expanded", "false");
+    expect(reset).not.toHaveAttribute("aria-controls");
+    expect(reset).toHaveAccessibleDescription(/read-only.*copy or download/);
+    expect(document.getElementById(reset.getAttribute("aria-describedby")!)).toHaveClass("solution-reset-notice");
+    fireEvent.click(reset);
+    expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+    view.rerender(content(false));
+    expect(reset).toHaveFocus();
+    expect(reset).toHaveAttribute("aria-disabled", "false");
+    expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  }
+  expect(screen.getByLabelText("Python solution")).toHaveValue("final draft");
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "17px" });
+  expect(change).not.toHaveBeenCalled();
+ });
+
+it("does not steal focus from another editor when reset confirmation closes", () => {
+  const change = vi.fn();
+  const content = (readOnly: boolean) => <><SolutionEditor value="draft" starter="starter" onChange={change} readOnly={readOnly}/><SolutionEditor value="other" starter="starter" onChange={change} readOnly={false}/></>;
+  const view = render(content(false));
+  const [first, second] = screen.getAllByRole("group", { name: "Solution editor" }).map(group => within(group));
+  fireEvent.click(first.getByRole("button", { name: "Reset to starter code" }));
+  const copy = second.getByRole("button", { name: "Copy solution" });
+  copy.focus();
+  view.rerender(content(true));
+  expect(copy).toHaveFocus();
+  const reset = first.getByRole("button", { name: "Reset to starter code" });
+  reset.focus();
+  view.rerender(content(false));
+  view.rerender(content(true));
+  expect(reset).toHaveFocus();
+  expect(reset.getAttribute("aria-describedby")).not.toBe(second.getByRole("button", { name: "Reset to starter code" }).getAttribute("aria-describedby"));
+  expect(change).not.toHaveBeenCalled();
 });

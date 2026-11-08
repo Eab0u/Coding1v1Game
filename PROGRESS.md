@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Starter-reset focus after match closure
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still cannot reach the isolated Judge0 sandbox. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one keyboard recovery item.
+- Kept starter Reset visible and keyboard-focusable after match closure with existing unavailable styling and editor-specific read-only copy/download guidance. Closing a focused reset confirmation returns focus to Reset, invalidates replacement consent and clears expanded-state ownership; focus elsewhere remains untouched.
+- Added both-mode tests for each confirmation action, repeated read-only recovery, unchanged drafts/settings, unavailable activation and independent-editor focus. Updated earlier tests for the retained unavailable control.
+- Validation: all 1,849 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused editor tests (106), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Explain editor mode choices
 - Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still cannot reach the isolated Judge0 sandbox. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
 - Added styled visible guidance explaining advanced-mode highlighting/suggestions, plain-mode indentation controls, draft/settings preservation, no submission on switching and continued switching after match end. The mode switch references stable editor-specific guidance alongside any preference-saving recovery notice.
