@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Reject accessor-backed judge suite fields
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item. Suite indices and test execution fields now use own property descriptors, rejecting accessors without invoking getters and excluding inherited fields. Frozen suites and test fields remain supported; unrelated accessor-backed test metadata is ignored. Updated the documented contract.
+- Added six regression cases covering suite-index and args/expected/benchmark accessors, inherited getters, frozen suites, ignored metadata, no-network rejection and successful adapter reuse.
+- Validation: full suite passed all 1,748 tests across 74 files; the final focused run also passed all 135 judge tests, including the subsequently added inherited-field regression. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Reject accessor-backed judge JSON
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge reliability item. JSON validation now inspects own property descriptors for array indices and enumerable object fields, rejecting accessors without invoking getters. This prevents values from changing between validation and execution snapshots while preserving frozen data properties and ignored non-enumerable object metadata. Updated the documented contract.

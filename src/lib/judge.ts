@@ -128,8 +128,15 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
     const jsonBudget = { remaining: 1_000_000 };
     // Read suite indices without invoking caller-defined iteration or array methods.
     const suite = Array.isArray(request?.tests) && request.tests.length <= 1000
-      ? Array.from({ length: request.tests.length }, (_, index) =>
-        Object.hasOwn(request.tests, index) ? request.tests[index] : undefined)
+      ? Array.from({ length: request.tests.length }, (_, index) => {
+          const descriptor = Object.getOwnPropertyDescriptor(request.tests, index);
+          if (!descriptor || !("value" in descriptor)) return undefined;
+          const entry = descriptor.value;
+          if (!entry || typeof entry !== "object" || Array.isArray(entry)) return undefined;
+          const fields = ["args", "expected", "benchmark"].map(key => Object.getOwnPropertyDescriptor(entry, key));
+          if (fields.some(field => field && !("value" in field))) return undefined;
+          return { args: fields[0]?.value, expected: fields[1]?.value, benchmark: fields[2]?.value };
+        })
       : [];
     if (!request || typeof request !== "object" || Array.isArray(request) ||
         typeof request.source !== "string" || !request.source.trim() || request.source.length > 65_536 ||

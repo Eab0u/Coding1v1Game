@@ -14,6 +14,40 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it("rejects inherited test fields without invoking prototype getters", async () => {
+    const getter = vi.fn(() => { throw new Error("Inherited getter must not execute"); });
+    const entry = Object.assign(Object.create(Object.defineProperty({}, "args", { get: getter })), { expected: 42, benchmark: true });
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    await expect(judge({ ...request, tests: [entry] })).rejects.toThrow(RangeError);
+    expect(getter).not.toHaveBeenCalled();
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
+  it.each(["index", "args", "expected", "benchmark"])(
+    "rejects accessor-backed suite %s without invoking getters and permits reuse", async field => {
+      const getter = vi.fn(() => { throw new Error("Getter must not execute"); });
+      const entry = { args: [42], expected: 42, benchmark: true };
+      const tests = [entry];
+      Object.defineProperty(field === "index" ? tests : entry, field === "index" ? "0" : field, { get: getter });
+      const fetcher = sandbox([done(), done(), done()]);
+      const judge = createJudge(config, fetcher);
+      await expect(judge({ ...request, tests })).rejects.toThrow(RangeError);
+      expect(getter).not.toHaveBeenCalled();
+      expect(fetcher).not.toHaveBeenCalled();
+      expect((await judge(request)).testsPassed).toBe(1);
+    },
+  );
+
+  it("accepts frozen test fields and ignores accessor-backed test metadata", async () => {
+    const getter = vi.fn(() => { throw new Error("Metadata must not execute"); });
+    const entry = Object.freeze(Object.defineProperty({ args: [42], expected: 42, benchmark: true }, "metadata", { enumerable: true, get: getter }));
+    const fetcher = sandbox([done(), done(), done()]);
+    expect((await createJudge(config, fetcher)({ ...request, tests: Object.freeze([entry]) })).testsPassed).toBe(1);
+    expect(getter).not.toHaveBeenCalled();
+  });
+
   it.each(["args-array", "args-object", "expected-array", "expected-object"])(
     "rejects accessor-backed %s without invoking getters and permits reuse", async field => {
       const getter = vi.fn(() => { throw new Error("Getter must not execute"); });
