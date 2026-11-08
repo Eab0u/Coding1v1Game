@@ -683,3 +683,34 @@ it("isolates clipboard completion descriptions between editors", async () => {
   expect(copies[1]).toHaveAttribute("aria-describedby", notices[1].id);
   expect(notices[0].id).not.toBe(notices[1].id);
 });
+it.each([false, true])("associates preference storage recovery guidance with each editor's controls, readOnly %s", readOnly => {
+  const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+  render(<><SolutionEditor value="first draft" onChange={vi.fn()} readOnly={readOnly}/><SolutionEditor value="second draft" onChange={vi.fn()} readOnly={readOnly}/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const ids = groups.map(group => {
+    const notice = within(group).getByRole("status");
+    expect(notice).toHaveClass("solution-editor-recovery");
+    expect(notice).toHaveAttribute("aria-atomic", "true");
+    expect(notice).toHaveTextContent("retries saving your preferences; your solution stays in the editor");
+    for (const name of ["Decrease solution text size", "Increase solution text size", "Reset text size", "Wrap long lines", "Use plain text editor"]) {
+      expect(within(group).getByRole("button", { name })).toHaveAttribute("aria-describedby", notice.id);
+    }
+    return notice.id;
+  });
+  expect(ids[0]).not.toBe(ids[1]);
+  const wrap = within(groups[0]).getByRole("button", { name: "Wrap long lines" });
+  wrap.focus();
+  fireEvent.click(wrap);
+  expect(wrap).toHaveFocus();
+  expect(within(groups[0]).getByRole("status")).toHaveAttribute("id", ids[0]);
+  write.mockRestore();
+  fireEvent.click(wrap);
+  expect(wrap).toHaveFocus();
+  expect(within(groups[0]).queryByRole("status")).not.toBeInTheDocument();
+  for (const name of ["Decrease solution text size", "Increase solution text size", "Reset text size", "Wrap long lines", "Use plain text editor"]) {
+    expect(within(groups[0]).getByRole("button", { name })).not.toHaveAttribute("aria-describedby");
+  }
+  expect(within(groups[1]).getByRole("status")).toHaveAttribute("id", ids[1]);
+  expect(within(groups[0]).getByLabelText("Python solution")).toHaveValue("first draft");
+  expect(within(groups[1]).getByLabelText("Python solution")).toHaveValue("second draft");
+});

@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Accessible editor preference storage recovery
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
+- Preference storage failure guidance now uses the padded amber recovery surface and explains that changing text size, wrapping or editor mode retries preference saving while preserving the solution. Each preference control references its own editor's stable, politely announced guidance; successful saving removes stale descriptions.
+- Added editable/read-only regression coverage for independent editors, repeated saving failure, successful recovery, stable descriptions and preserved code and keyboard focus.
+- Validation: all 1,776 tests across 75 files passed, including all 64 solution-editor tests; lint, production build, typecheck and whitespace checks passed. Reran typecheck after the build resolved a generated Next.js file race.
+- Next: restore isolated Judge0 availability and validate the original catalog. Browser storage restrictions and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Accessible advanced editor recovery
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor recovery accessibility and visual polish item.
 - Advanced-editor failure guidance now has a padded surface and amber border. Retry references its editor's stable, politely announced explanation that the current solution and preferences are preserved. Plain-text fallback remains usable while the advanced editor is unavailable.

@@ -32,6 +32,8 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const [copyPending, setCopyPending] = useState(false);
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
+  const preferenceGuidanceId = useId();
+  const preferenceDescription = unavailable ? preferenceGuidanceId : undefined;
   const resetGuidanceId = useId();
   const recoveryGuidanceId = useId();
   const copyGuidanceId = useId();
@@ -89,18 +91,18 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   }
   const textEditor = <PlainPythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>;
   return <div ref={editorGroup} className="solution-editor" role="group" aria-label="Solution editor" tabIndex={-1}>
-    {unavailable && <p role="status">Editor preferences apply for this visit. Browser storage is unavailable, so they may reset next time.</p>}
+    {unavailable && <p id={preferenceGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Editor preferences apply for this visit. Browser storage is unavailable, so they may reset next time. Changing text size, line wrapping or editor mode retries saving your preferences; your solution stays in the editor.</p>}
     <div className="solution-editor-actions" role="group" aria-label="Solution text size">
-      <button type="button" className="button button--secondary" aria-label="Decrease solution text size" disabled={fontSize <= 12} onClick={() => setFontSize(size => Math.max(12, size - 1))}>A-</button>
+      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-label="Decrease solution text size" disabled={fontSize <= 12} onClick={() => setFontSize(size => Math.max(12, size - 1))}>A-</button>
       <span aria-live="polite" aria-atomic="true">{fontSize}px</span>
-      <button type="button" className="button button--secondary" aria-label="Increase solution text size" disabled={fontSize >= 24} onClick={() => setFontSize(size => Math.min(24, size + 1))}>A+</button>
-      <button type="button" className="button button--secondary" disabled={fontSize === 15} onClick={() => setFontSize(15)}>Reset text size</button>
+      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-label="Increase solution text size" disabled={fontSize >= 24} onClick={() => setFontSize(size => Math.min(24, size + 1))}>A+</button>
+      <button type="button" className="button button--secondary" aria-describedby={preferenceDescription} disabled={fontSize === 15} onClick={() => setFontSize(15)}>Reset text size</button>
     </div>
-    <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines</button></div>
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines</button></div>
     {plain ? textEditor : <EditorBoundary key={editorAttempt} fallback={<><p id={recoveryGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Advanced editor unavailable. Continue in plain text; your code is preserved. Retry loads the advanced editor again using your current solution and preferences.</p>{textEditor}<div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={recoveryGuidanceId} onClick={() => { editorGroup.current?.focus(); setEditorAttempt(attempt => attempt + 1); }}>Retry advanced editor</button></div></>}>
       <PythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>
     </EditorBoundary>}
-    <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={plain} onClick={() => setPlain(current => !current)}>
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={preferenceDescription} aria-pressed={plain} onClick={() => setPlain(current => !current)}>
       {plain ? "Use advanced editor" : "Use plain text editor"}
     </button>
     <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : undefined} onClick={downloadSolution}>Download solution (.py)</button>
