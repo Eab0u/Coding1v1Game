@@ -135,6 +135,8 @@ positional JSON arguments and must return a JSON value; output must contain only
 value. Comparisons are exact, including array order, with object key order ignored.
 Numeric negative zero and zero compare equally, including inside nested answers,
 matching the JSON argument representation sent to Python.
+Enumerable object fields and array indices in JSON arguments and expected answers must be own data properties; accessor properties are rejected without invoking their getters. Frozen data properties remain supported, and non-enumerable object metadata is ignored.
+
 Execution snapshots copy only validated test fields and JSON values. Unrelated
 suite metadata, symbol keys and custom array properties (including `toJSON`,
 iterators and `map`)

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Reject accessor-backed JSON arguments and expected answers before invoking getters or network access, preserving frozen data, ignored metadata and adapter reuse with regression coverage
 - [x] Traverse judge suites and nested JSON arrays by index so custom iterators and mapping methods cannot bypass validation or alter snapshots, rejecting sparse arrays with no-network and adapter-reuse regression coverage
 - [x] Snapshot only validated judge suite fields and JSON values so unrelated metadata cannot break cloning or override serialized arguments, with nested-array and literal-key regression coverage
 - [x] Validate optional judge credentials and execution diagnostics at adapter creation before network access, with credential-safe errors and valid-configuration regression coverage

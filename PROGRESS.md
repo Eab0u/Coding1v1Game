@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Reject accessor-backed judge JSON
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item. JSON validation now inspects own property descriptors for array indices and enumerable object fields, rejecting accessors without invoking getters. This prevents values from changing between validation and execution snapshots while preserving frozen data properties and ignored non-enumerable object metadata. Updated the documented contract.
+- Added five regression cases covering accessors in nested argument/expected arrays and objects, no getter invocation, no-network rejection, successful adapter reuse, frozen JSON data and exact serialized sandbox arguments.
+- Validation: all 1,743 tests across 74 files passed. All 129 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Indexed judge array validation and snapshots
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge reliability item. Suite validation, benchmark selection and execution snapshots now use indexed entries without calling caller-defined iterators or mapping methods. Nested JSON arrays also validate and snapshot by index; sparse arrays are rejected even when custom iterators supply replacement values.

@@ -14,6 +14,34 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each(["args-array", "args-object", "expected-array", "expected-object"])(
+    "rejects accessor-backed %s without invoking getters and permits reuse", async field => {
+      const getter = vi.fn(() => { throw new Error("Getter must not execute"); });
+      const value = field.endsWith("array") ? [42] : { answer: 42 };
+      Object.defineProperty(value, Array.isArray(value) ? "0" : "answer", { enumerable: true, get: getter });
+      const tests = [{ args: field.startsWith("args") ? [value] : [42],
+        expected: field.startsWith("expected") ? value : 42, benchmark: true }];
+      const fetcher = sandbox([done(), done(), done()]);
+      const judge = createJudge(config, fetcher);
+      await expect(judge({ ...request, tests })).rejects.toThrow(RangeError);
+      expect(getter).not.toHaveBeenCalled();
+      expect(fetcher).not.toHaveBeenCalled();
+      expect((await judge(request)).testsPassed).toBe(1);
+    },
+  );
+
+  it("accepts frozen JSON data and ignores non-enumerable object accessors", async () => {
+    const getter = vi.fn(() => { throw new Error("Metadata must not execute"); });
+    const value = Object.freeze(Object.defineProperty({ answer: 42 }, "metadata", { get: getter }));
+    const fetcher = sandbox([done({ answer: 42 }), done({ answer: 42 }), done({ answer: 42 })]);
+    const result = await createJudge(config, fetcher)({ ...request,
+      tests: [{ args: [value], expected: value, benchmark: true }] });
+    expect(result.testsPassed).toBe(1);
+    expect(getter).not.toHaveBeenCalled();
+    const sent = JSON.parse(String(fetcher.mock.calls[0][1]?.body));
+    expect(Buffer.from(sent.stdin, "base64").toString()).toBe('[{"answer":42}]');
+  });
+
   it("ignores custom array iteration and mapping in suites and nested JSON", async () => {
     const override = vi.fn(() => { throw new Error("Array hook must not run"); });
     const nested = Object.assign([42], { map: override, [Symbol.iterator]: override });

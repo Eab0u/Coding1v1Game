@@ -50,12 +50,17 @@ function jsonValue(value: unknown, budget: { remaining: number }, depth = 0): bo
   if (Array.isArray(value)) {
     if (value.length > budget.remaining) return false;
     for (let index = 0; index < value.length; index++) {
-      if (!Object.hasOwn(value, index) || !jsonValue(value[index], budget, depth + 1)) return false;
+      const descriptor = Object.getOwnPropertyDescriptor(value, index);
+      if (!descriptor || !("value" in descriptor) || !jsonValue(descriptor.value, budget, depth + 1)) return false;
     }
     return true;
   }
-  return typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype &&
-    Object.values(value).every(entry => jsonValue(entry, budget, depth + 1));
+  if (typeof value !== "object" || Object.getPrototypeOf(value) !== Object.prototype) return false;
+  for (const key of Object.keys(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor || !("value" in descriptor) || !jsonValue(descriptor.value, budget, depth + 1)) return false;
+  }
+  return true;
 }
 
 /** Normalize signed zeros on an owned JSON snapshot without touching caller data. */
