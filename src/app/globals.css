@@ -672,3 +672,5 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .solution-reset-replace:hover:enabled { background: var(--color-hover); }
 
 .solution-copy-notice--pending { border-inline-start-color: #e5b567; }
+
+.solution-export-error-heading { display: block; color: var(--color-danger); margin-bottom: 4px; }

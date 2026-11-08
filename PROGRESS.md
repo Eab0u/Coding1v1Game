@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Highlight solution export recovery
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one visual recovery item.
+- Copy and download failures now have prominent danger-colored headings above their recovery guidance. Existing alert announcements and action descriptions retain their full text, and success clears the failure heading.
+- Added advanced/plain-editor regression coverage for heading semantics and styling hooks, accessible descriptions, keyboard focus through failures and successful retries, and preservation of solution contents.
+- Validation: all 1,792 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live browser and screen-reader checks and existing infrastructure blockers remain.
+
 ### 2026-11-07 - Clarify pending clipboard drafts
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor feedback improvement.
 - Pending solution copies now use a padded amber notice. Editing during a pending clipboard request adds explicit earlier-draft guidance and explains how to copy the current solution after settlement. Revision tracking keeps that warning accurate even when an earlier draft is restored, and existing stale completion suppression remains intact.

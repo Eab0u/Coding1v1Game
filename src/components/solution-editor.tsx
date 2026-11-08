@@ -132,9 +132,9 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     {copyPending && <p id={copyGuidanceId} className="solution-copy-notice solution-copy-notice--pending" role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.{copyRevision !== draftVersion.revision && " Your solution has changed since this copy started. This request contains the earlier draft. Copy again after it finishes to copy your current solution."}</p>}
     {hasDownloadResult && (downloadResult.ok
       ? <p id={downloadGuidanceId} className="solution-download-notice" role="status" aria-atomic="true">Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.</p>
-      : <p id={downloadGuidanceId} className="solution-download-notice solution-download-notice--error" role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>)}
+      : <p id={downloadGuidanceId} className="solution-download-notice solution-download-notice--error" role="alert"><strong className="solution-export-error-heading" role="heading" aria-level={3}>Unable to download your solution.</strong>{" "}Try again or copy your code to a local file.</p>)}
     {hasCopyResult && (copyResult.ok
       ? <p id={copyResultId} className="solution-copy-notice" role="status" aria-atomic="true">Solution copied to clipboard.</p>
-      : <p id={copyResultId} className="solution-copy-notice solution-copy-notice--error" role="alert">Unable to copy your solution. Try again, download it or select and copy the code manually.</p>)}
+      : <p id={copyResultId} className="solution-copy-notice solution-copy-notice--error" role="alert"><strong className="solution-export-error-heading" role="heading" aria-level={3}>Unable to copy your solution.</strong>{" "}Try again, download it or select and copy the code manually.</p>)}
   </div>;
 }
