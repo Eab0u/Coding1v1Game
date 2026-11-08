@@ -37,6 +37,14 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Guard unread draft recovery on exit
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog items remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one draft-safety item.
+- Unfinished arenas now register browser leave/reload protection immediately after a failed saved-draft read, even when the editor still contains untouched starter code. Existing amber recovery guidance explains the possible browser confirmation.
+- Failed explicit saves retain protection and focus. Successfully saving the starter clears protection; later edits restore it. Confirmed completed/cancelled matches and unmount remove the listener.
+- Added both-editor regression coverage for untouched starter recovery, failed/successful saves, accessible guidance, focus, subsequent edits and cleanup, plus server-confirmed closure tests.
+- Validation: all 1,808 tests across 75 files passed; focused arena coverage passed (157 tests), including the final guidance text. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Browser-specific confirmation behavior and existing infrastructure blockers remain.
+
 ### 2026-11-07 - Protect unread arena drafts
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one draft-safety item.
 - Fixed automatic starter/current-code writes after a failed session-storage read. A failed read now pauses autosaving so an unread earlier draft remains intact through editing. Amber accessible guidance explains the pause and that explicit Retry saving draft replaces the unread slot with current editor code.

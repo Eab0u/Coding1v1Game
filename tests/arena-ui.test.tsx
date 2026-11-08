@@ -1260,3 +1260,47 @@ it.each([false,true])('protects unread stored drafts until explicit replacement 
   expect(sessionStorage.getItem(key)).toBe('subsequent edit');
   expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
 });
+
+
+it.each([false,true])('guards unread recovery before editing and clears after explicit starter save in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  sessionStorage.setItem('codeduel:draft:Ada:match','earlier code');
+  const originalRead=Storage.prototype.getItem;
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,key:string){
+    if(this===sessionStorage) throw new Error('read denied');
+    return originalRead.call(this,key);
+  });
+  const view=render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    pass\n');
+  expect(leaveIsGuarded()).toBe(true);
+  const retry=screen.getByRole('button',{name:'Retry saving draft'});
+  expect(retry).toHaveAccessibleDescription(/Your browser may ask for confirmation before leaving or refreshing/);
+  const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('write denied');});
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(leaveIsGuarded()).toBe(true);
+  write.mockRestore();
+  fireEvent.click(retry);
+  expect(leaveIsGuarded()).toBe(false);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'edited'}});
+  expect(leaveIsGuarded()).toBe(true);
+  view.unmount();
+  expect(leaveIsGuarded()).toBe(false);
+});
+
+it.each(['completed','cancelled'] as const)('clears unread-draft leave protection when the server reports %s',async status=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status})}));
+  const originalRead=Storage.prototype.getItem;
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,key:string){
+    if(this===sessionStorage) throw new Error('read denied');
+    return originalRead.call(this,key);
+  });
+  render(<Arena initial={initial}/>);
+  expect(leaveIsGuarded()).toBe(true);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(leaveIsGuarded()).toBe(false);
+  expect(screen.queryByRole('button',{name:'Retry saving draft'})).not.toBeInTheDocument();
+});

@@ -13,7 +13,7 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
   const automaticSaveBlocked = useRef(false);
   const edited = source !== `${signature}\n    pass\n`;
   useEffect(() => {
-    if (closed || !edited) return;
+    if (closed || (!edited && !readFailed)) return;
     function warnBeforeLeaving(event: BeforeUnloadEvent) {
       event.preventDefault();
       // Older browsers require returnValue as well as preventDefault.
@@ -21,7 +21,7 @@ export function useArenaDraft(matchId: string, username: string, signature: stri
     }
     window.addEventListener("beforeunload", warnBeforeLeaving);
     return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
-  }, [closed, edited]);
+  }, [closed, edited, readFailed]);
   useEffect(() => {
     try {
       const draft = sessionStorage.getItem(key);
