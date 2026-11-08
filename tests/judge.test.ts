@@ -14,6 +14,31 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each(["source", "functionName", "tests", "submittedAtMs"] as const)(
+    "rejects own and inherited request %s accessors without invoking them", async field => {
+      for (const inherited of [false, true]) {
+        const getter = vi.fn(() => { throw new Error("Request getter must not execute"); });
+        const malformed = { ...request };
+        delete (malformed as Partial<JudgeRequest>)[field];
+        if (inherited) Object.setPrototypeOf(malformed, Object.defineProperty({}, field, { get: getter }));
+        else Object.defineProperty(malformed, field, { get: getter });
+        const fetcher = sandbox([done(), done(), done()]);
+        const judge = createJudge(config, fetcher);
+        await expect(judge(malformed)).rejects.toThrow("Invalid judge request; include JSON tests and a largest-test benchmark.");
+        expect(getter).not.toHaveBeenCalled();
+        expect(fetcher).not.toHaveBeenCalled();
+        expect((await judge(request)).testsPassed).toBe(1);
+      }
+    },
+  );
+
+  it("accepts frozen request data and ignores accessor-backed request metadata", async () => {
+    const getter = vi.fn(() => { throw new Error("Metadata must not execute"); });
+    const input = Object.freeze(Object.defineProperty({ ...request }, "metadata", { enumerable: true, get: getter }));
+    expect((await createJudge(config, sandbox([done(), done(), done()]))(input)).testsPassed).toBe(1);
+    expect(getter).not.toHaveBeenCalled();
+  });
+
   it("rejects inherited test fields without invoking prototype getters", async () => {
     const getter = vi.fn(() => { throw new Error("Inherited getter must not execute"); });
     const entry = Object.assign(Object.create(Object.defineProperty({}, "args", { get: getter })), { expected: 42, benchmark: true });

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Reject accessor-backed top-level judge request fields without invoking getters, preserving frozen requests, ignored metadata and adapter reuse with regression coverage
 - [x] Refresh loading and recovery connection guidance on window focus after missed browser connection events, preserving stable announcements, recovery focus and overdue loading feedback with lifecycle regression coverage
 - [x] Reject accessor-backed judge suite indices and test fields without invoking getters, preserving frozen suites, ignored metadata and adapter reuse with regression coverage
 - [x] Reject accessor-backed JSON arguments and expected answers before invoking getters or network access, preserving frozen data, ignored metadata and adapter reuse with regression coverage

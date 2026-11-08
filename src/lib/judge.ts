@@ -124,7 +124,16 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
     } catch { throw new JudgeUnavailableError(); }
   }
 
-  return async function judge(request: JudgeRequest): Promise<ScoredSubmission> {
+  return async function judge(input: JudgeRequest): Promise<ScoredSubmission> {
+    const invalidRequest = () => new RangeError("Invalid judge request; include JSON tests and a largest-test benchmark.");
+    if (!input || typeof input !== "object" || Array.isArray(input)) throw invalidRequest();
+    // Read only own data fields: request accessors must never run during validation.
+    const fields = ["source", "functionName", "tests", "submittedAtMs"].map(key => Object.getOwnPropertyDescriptor(input, key));
+    if (fields.some(field => !field || !("value" in field))) throw invalidRequest();
+    const request: JudgeRequest = {
+      source: fields[0]!.value, functionName: fields[1]!.value,
+      tests: fields[2]!.value, submittedAtMs: fields[3]!.value,
+    };
     const jsonBudget = { remaining: 1_000_000 };
     // Read suite indices without invoking caller-defined iteration or array methods.
     const suite = Array.isArray(request?.tests) && request.tests.length <= 1000
