@@ -50,12 +50,12 @@ code { font-family: var(--font-mono); }
 .badge--accent { color: var(--color-success); border-color: var(--color-accent); }
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 24px; border: 1px solid transparent; border-radius: var(--radius-sm); font-weight: 800; cursor: pointer; transition: background-color 120ms ease, transform 120ms ease; }
 .button--primary { background: var(--color-accent); color: var(--color-on-accent); box-shadow: 0 4px 0 #52792d; }
-.button--primary:hover:enabled { background: var(--color-accent-hover); }
+.button--primary:hover:enabled:not([aria-disabled="true"]) { background: var(--color-accent-hover); }
 .button--secondary { background: var(--color-surface); border-color: var(--color-border); color: var(--color-text); }
 .button--ghost { background: transparent; color: var(--color-text); }
-.button--secondary:hover:enabled, .button--ghost:hover:enabled { background: var(--color-hover); }
-.button:active:enabled { transform: translateY(2px); }
-.button:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+.button--secondary:hover:enabled:not([aria-disabled="true"]), .button--ghost:hover:enabled:not([aria-disabled="true"]) { background: var(--color-hover); }
+.button:active:enabled:not([aria-disabled="true"]) { transform: translateY(2px); }
+.button:disabled, .button[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
 .card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-6); }
 .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-12); align-items: center; padding: clamp(48px, 9vh, 100px) 0; }
 .eyebrow { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.14em; margin-bottom: 24px; }

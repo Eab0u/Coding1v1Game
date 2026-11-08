@@ -33,6 +33,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
   const resetGuidanceId = useId();
+  const copyGuidanceId = useId();
   const resetButton = useRef<HTMLButtonElement>(null);
   const editorGroup = useRef<HTMLDivElement>(null);
   function cancelReset() {
@@ -97,7 +98,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       {plain ? "Use advanced editor" : "Use plain text editor"}
     </button>
     <button type="button" className="button button--secondary" onClick={downloadSolution}>Download solution (.py)</button>
-    <button type="button" className="button button--secondary" disabled={copyPending} aria-busy={copyPending} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
+    <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
     {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" disabled={!canReset} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
     {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId} onKeyDown={event => {
       if (event.key !== "Escape") return;
@@ -111,7 +112,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
         <button type="button" className="button button--primary" aria-describedby={resetGuidanceId} onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
       </div>
     </div>}
-    {copyPending && <p role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.</p>}
+    {copyPending && <p id={copyGuidanceId} role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.</p>}
     {downloadFailureRevision === draftVersion.revision && <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>}
     {copyResult?.revision === draftVersion.revision && (copyResult.ok
       ? <p role="status">Solution copied to clipboard.</p>

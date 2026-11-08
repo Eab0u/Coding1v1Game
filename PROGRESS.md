@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Keyboard access during clipboard permission
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor accessibility item. Copy now uses an accessible disabled state while pending, retaining keyboard focus and tab navigation while its existing synchronous guard prevents duplicate requests. Each pending button references its own visible permission/snapshot guidance; settlement removes that description without moving focus.
+- Updated busy button styling to retain the disabled appearance without hover/press effects. Added success/failure, retry, independent navigation and multiple-editor description/busy-state regression coverage; existing snapshot and stale-feedback tests remain intact.
+- Validation: full suite passed (1,766 tests across 75 files); after adding the final editor-isolation regression, all 55 solution-editor tests passed. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native browser tab navigation and screen-reader announcements remain manual smoke checks; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Pending clipboard copy guidance
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
 - Followed the blocker rule and added/completed one editor accessibility item. Pending copies now expose an accessible busy state and a polite, atomic notice explaining possible browser permission prompts, the captured solution snapshot and continued editing.

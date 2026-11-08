@@ -89,7 +89,7 @@ it("prevents overlapping copies and hides feedback for code edited during copyin
   render(<Harness/>);
   fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
   const pending = screen.getByRole("button", { name: "Copying solution…" });
-  expect(pending).toBeDisabled();
+  expect(pending).toHaveAttribute("aria-disabled", "true");
   fireEvent.click(pending);
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
   await act(async () => { finish(); });
@@ -495,7 +495,7 @@ it.each([true, false])("announces pending clipboard permission and clears busy s
   render(<Harness/>);
   fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
   const pending = screen.getByRole("button", { name: /^Copying solution/ });
-  expect(pending).toBeDisabled();
+  expect(pending).toHaveAttribute("aria-disabled", "true");
   expect(pending).toHaveAttribute("aria-busy", "true");
   const notice = screen.getByRole("status");
   expect(notice).toHaveAttribute("aria-atomic", "true");
@@ -511,4 +511,56 @@ it.each([true, false])("announces pending clipboard permission and clears busy s
   expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
   expect(screen.getByRole("button", { name: "Copy solution" })).toHaveAttribute("aria-busy", "false");
   expect(writeText).toHaveBeenCalledExactlyOnceWith("def solve():\n    pass");
+});
+
+it.each([true, false])("keeps pending Copy in keyboard navigation without stealing focus on settlement (success %s)", async ok => {
+  let settle!: () => void;
+  const writeText = vi.fn(() => new Promise<void>((resolve, reject) => {
+    settle = () => ok ? resolve() : reject(new Error("Denied"));
+  }));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<Harness/>);
+  const copy = screen.getByRole("button", { name: "Copy solution" });
+  copy.focus();
+  fireEvent.click(copy);
+  expect(copy).toHaveFocus();
+  expect(copy).not.toBeDisabled();
+  expect(copy.tabIndex).toBe(0);
+  expect(copy).toHaveAccessibleDescription(/browser may ask for clipboard permission/);
+  const description = copy.getAttribute("aria-describedby");
+  fireEvent.click(copy);
+  expect(writeText).toHaveBeenCalledTimes(1);
+  const download = screen.getByRole("button", { name: "Download solution (.py)" });
+  download.focus();
+  expect(download).toHaveFocus();
+  copy.focus();
+  expect(copy).toHaveFocus();
+  expect(copy).toHaveAttribute("aria-describedby", description);
+  download.focus();
+  await act(async () => { settle(); });
+  expect(download).toHaveFocus();
+  expect(copy).toHaveAttribute("aria-disabled", "false");
+  expect(copy).not.toHaveAttribute("aria-describedby");
+  expect(document.getElementById(description!)).toBeNull();
+  await act(async () => { fireEvent.click(copy); settle(); });
+  expect(writeText).toHaveBeenCalledTimes(2);
+});
+
+it("isolates pending copy descriptions and busy states between editors", async () => {
+  const completions: (() => void)[] = [];
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn(() => new Promise<void>(resolve => completions.push(resolve))) } });
+  render(<><Harness/><Harness readOnly/></>);
+  const copies = screen.getAllByRole("button", { name: "Copy solution" });
+  fireEvent.click(copies[0]);
+  expect(copies[1]).toHaveAttribute("aria-disabled", "false");
+  expect(copies[1]).not.toHaveAttribute("aria-describedby");
+  fireEvent.click(copies[1]);
+  const ids = copies.map(copy => copy.getAttribute("aria-describedby"));
+  expect(new Set(ids).size).toBe(2);
+  for (const copy of copies) expect(copy).toHaveAccessibleDescription(/You can keep editing/);
+  await act(async () => { completions[0](); });
+  expect(document.getElementById(ids[0]!)).toBeNull();
+  expect(copies[1]).toHaveAttribute("aria-describedby", ids[1]);
+  expect(copies[1]).toHaveAttribute("aria-busy", "true");
+  await act(async () => { completions[1](); });
 });
