@@ -486,3 +486,29 @@ it("isolates reset descriptions between editors", () => {
     for (const button of within(group).getAllByRole("button")) expect(button).toHaveAttribute("aria-describedby", ids[index]);
   });
 });
+
+it.each([true, false])("announces pending clipboard permission and clears busy state after settlement (success %s)", async ok => {
+  let resolve!: () => void;
+  let reject!: (reason: Error) => void;
+  const writeText = vi.fn(() => new Promise<void>((yes, no) => { resolve = yes; reject = no; }));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<Harness/>);
+  fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
+  const pending = screen.getByRole("button", { name: /^Copying solution/ });
+  expect(pending).toBeDisabled();
+  expect(pending).toHaveAttribute("aria-busy", "true");
+  const notice = screen.getByRole("status");
+  expect(notice).toHaveAttribute("aria-atomic", "true");
+  expect(notice).toHaveTextContent("browser may ask for clipboard permission");
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "changed while waiting" } });
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(screen.getByRole("status")).toBe(notice);
+  expect(notice).toHaveTextContent("solution captured when you clicked Copy");
+  expect(screen.getByLabelText("Python solution")).toHaveValue("changed while waiting");
+  await act(async () => { if (ok) resolve(); else reject(new Error("Denied")); });
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Copy solution" })).toHaveAttribute("aria-busy", "false");
+  expect(writeText).toHaveBeenCalledExactlyOnceWith("def solve():\n    pass");
+});

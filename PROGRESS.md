@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Pending clipboard copy guidance
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor accessibility item. Pending copies now expose an accessible busy state and a polite, atomic notice explaining possible browser permission prompts, the captured solution snapshot and continued editing.
+- Added success/failure regression coverage for pending guidance stability across edits and editor switches, busy-state cleanup, exact copied source and suppression of stale completion feedback. Existing permission failure/retry and overlapping-copy tests remain intact.
+- Validation: all 1,764 tests across 75 files passed, including all 52 editor tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Actual screen-reader announcements remain a manual smoke check; existing infrastructure blockers remain.
+
 ### 2026-11-07 - Accessible solution reset warning
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
 - Followed the blocker rule and added/completed one editor accessibility item. The reset confirmation group and both actions now reference the visible replacement warning, so the initially focused Keep my solution action exposes the consequences and download guidance to assistive technology.
