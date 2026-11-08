@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Refresh recovery guidance on window focus
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python ran on the host.
+- Followed the blocker rule and added/completed one recovery improvement. Loading, route/root error and unavailable-page connection guidance now refreshes when the window regains focus after missed connection events. Loading also checks its elapsed deadline, preserving existing styling, stable announcements, manual recovery and keyboard focus.
+- Added regression coverage for missed offline/reconnection events, both recovery variants, overdue loading without timer delivery, stable controls/descriptions, listener cleanup and fresh reopening. Corrected a test-edit encoding issue before final validation.
+- Validation: all 1,752 tests across 74 files passed; all 19 focused recovery tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Reject accessor-backed judge suite fields
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge reliability item. Suite indices and test execution fields now use own property descriptors, rejecting accessors without invoking getters and excluding inherited fields. Frozen suites and test fields remain supported; unrelated accessor-backed test metadata is ignored. Updated the documented contract.

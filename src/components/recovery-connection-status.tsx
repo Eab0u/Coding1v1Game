@@ -21,11 +21,13 @@ export function RecoveryConnectionStatus({ unavailablePage = false }: { unavaila
     window.addEventListener("offline", update);
     window.addEventListener("online", update);
     window.addEventListener("pageshow", update);
+    window.addEventListener("focus", update);
     document.addEventListener("visibilitychange", resume);
     return () => {
       window.removeEventListener("offline", update);
       window.removeEventListener("online", update);
       window.removeEventListener("pageshow", update);
+      window.removeEventListener("focus", update);
       document.removeEventListener("visibilitychange", resume);
     };
   }, []);

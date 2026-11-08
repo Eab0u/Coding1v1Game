@@ -128,3 +128,31 @@ it("hydrates the standalone root error document offline and keeps controls stabl
     expect(status.textContent).toContain("Browser offline");
   } finally { await act(async () => root.unmount()); }
 });
+
+it.each([false, true])("refreshes connection on window focus without automatic recovery (unavailable=%s)", unavailablePage => {
+  const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+  const remove = vi.spyOn(window, "removeEventListener");
+  const recover = vi.fn();
+  const view = render(<><RecoveryConnectionStatus unavailablePage={unavailablePage} /><button onClick={recover}>Recover</button></>);
+  const status = screen.getByRole("status");
+  const button = screen.getByRole("button");
+  button.focus();
+  fireEvent(window, new Event("focus"));
+  expect(status).toBeEmptyDOMElement();
+  connection.mockReturnValue(false);
+  fireEvent(window, new Event("focus"));
+  expect(status).toHaveAttribute("data-connection-state", "offline");
+  expect(button).toHaveFocus();
+  connection.mockReturnValue(true);
+  fireEvent(window, new Event("focus"));
+  expect(screen.getByRole("status")).toBe(status);
+  expect(status).toHaveTextContent("Browser back online");
+  expect(status).toHaveTextContent("not yet confirmed");
+  expect(button).toHaveFocus();
+  expect(recover).not.toHaveBeenCalled();
+  view.unmount();
+  expect(remove).toHaveBeenCalledWith("focus", expect.any(Function));
+  render(<RecoveryConnectionStatus unavailablePage={unavailablePage} />);
+  fireEvent(window, new Event("focus"));
+  expect(screen.getByRole("status")).toBeEmptyDOMElement();
+});

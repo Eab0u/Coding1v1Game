@@ -33,6 +33,7 @@ export function LoadingStatus() {
     window.addEventListener("online", updateConnection);
     window.addEventListener("offline", updateConnection);
     window.addEventListener("pageshow", restore);
+    window.addEventListener("focus", restore);
     document.addEventListener("visibilitychange", resume);
     const timeout = window.setTimeout(() => setDelayed(true), 15_000);
     return () => {
@@ -40,6 +41,7 @@ export function LoadingStatus() {
       window.removeEventListener("online", updateConnection);
       window.removeEventListener("offline", updateConnection);
       window.removeEventListener("pageshow", restore);
+      window.removeEventListener("focus", restore);
       document.removeEventListener("visibilitychange", resume);
     };
   }, []);

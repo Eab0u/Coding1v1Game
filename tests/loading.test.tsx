@@ -280,3 +280,38 @@ it("provides an honest live loading status and full-page recovery without automa
   expect(within(screen.getByRole("navigation", { name: "Loading navigation" })).getByRole("link", { name: "Back to arena" })).toHaveAttribute("href", "/");
   expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
 });
+
+it("refreshes missed connectivity and overdue loading on window focus", () => {
+  vi.useFakeTimers();
+  const connection = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+  const remove = vi.spyOn(window, "removeEventListener");
+  const clear = vi.spyOn(window, "clearTimeout");
+  try {
+    const view = render(<LoadingStatus />);
+    const status = screen.getByRole("status");
+    fireEvent(window, new Event("focus"));
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    connection.mockReturnValue(false);
+    fireEvent(window, new Event("focus"));
+    expect(status).toHaveAttribute("data-loading-state", "offline");
+    const reload = screen.getByRole("button");
+    const description = reload.getAttribute("aria-describedby");
+    reload.focus();
+    // Advance wall time without firing a suspended page's timeout.
+    vi.setSystemTime(Date.now() + 15_000);
+    connection.mockReturnValue(true);
+    fireEvent(window, new Event("focus"));
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status).toHaveTextContent("Your browser is back online");
+    expect(status).toHaveAttribute("data-loading-state", "delayed");
+    expect(reload).toHaveFocus();
+    expect(reload).toHaveAttribute("aria-describedby", description);
+    view.unmount();
+    expect(remove).toHaveBeenCalledWith("focus", expect.any(Function));
+    expect(clear).toHaveBeenCalledTimes(1);
+    render(<LoadingStatus />);
+    fireEvent(window, new Event("focus"));
+    expect(screen.getByRole("status")).toHaveAttribute("data-loading-state", "loading");
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  } finally { connection.mockRestore(); remove.mockRestore(); clear.mockRestore(); }
+});
