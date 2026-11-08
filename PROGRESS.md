@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Accessible solution reset warning
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor accessibility item. The reset confirmation group and both actions now reference the visible replacement warning, so the initially focused Keep my solution action exposes the consequences and download guidance to assistive technology.
+- Added regression coverage for advanced/plain editors, initial focus, stable descriptions across preference changes, Escape cancellation and description removal, and independent IDs for multiple editors. Existing reset acceptance, edit invalidation and completed-match coverage also passes.
+- Validation: all 1,762 tests across 75 files passed; all 50 solution-editor tests, lint, typecheck, production build and whitespace checks passed. Actual screen-reader speech remains a manual smoke check.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Advanced editor keyboard navigation
 - Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
 - Followed the blocker rule and added/completed one editor accessibility item. Monaco now enables tab focus mode so Tab and Shift+Tab navigate between controls by default. Visible guidance explains Ctrl/Cmd bracket shortcuts for indentation without capturing navigation keys.

@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Component, useRef, useState, type ReactNode } from "react";
+import { Component, useId, useRef, useState, type ReactNode } from "react";
 import { PlainPythonEditor } from "./plain-python-editor";
 import { useEditorPreferences } from "./use-editor-preferences";
 
@@ -32,6 +32,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const [copyPending, setCopyPending] = useState(false);
   const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean } | null>(null);
   const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
+  const resetGuidanceId = useId();
   const resetButton = useRef<HTMLButtonElement>(null);
   const editorGroup = useRef<HTMLDivElement>(null);
   function cancelReset() {
@@ -98,16 +99,16 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     <button type="button" className="button button--secondary" onClick={downloadSolution}>Download solution (.py)</button>
     <button type="button" className="button button--secondary" disabled={copyPending} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
     {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" disabled={!canReset} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
-    {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" onKeyDown={event => {
+    {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId} onKeyDown={event => {
       if (event.key !== "Escape") return;
       event.preventDefault();
       event.stopPropagation();
       cancelReset();
     }}>
-      <p>Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Download your solution first if you want to keep it.</p>
+      <p id={resetGuidanceId}>Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Download your solution first if you want to keep it.</p>
       <div className="solution-editor-actions">
-        <button autoFocus type="button" className="button button--secondary" onClick={cancelReset}>Keep my solution</button>
-        <button type="button" className="button button--primary" onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
+        <button autoFocus aria-describedby={resetGuidanceId} type="button" className="button button--secondary" onClick={cancelReset}>Keep my solution</button>
+        <button type="button" className="button button--primary" aria-describedby={resetGuidanceId} onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
       </div>
     </div>}
     {downloadFailureRevision === draftVersion.revision && <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>}

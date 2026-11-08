@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const editor = vi.hoisted(() => ({ fails: false }));
@@ -451,4 +451,38 @@ it.each([false, true])("expires download errors after external draft replacement
   expect(onChange).not.toHaveBeenCalled();
   vi.advanceTimersByTime(1000);
   expect(revoke).toHaveBeenCalledWith("blob:recovered");
+});
+
+
+it.each([false, true])("describes reset consequences on the focused action and preserves the description across preferences (plain=%s)", plain => {
+  render(<SolutionEditor value="edited" onChange={vi.fn()} readOnly={false} starter="pass"/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  const group = screen.getByRole("group", { name: "Confirm solution reset" });
+  const keep = within(group).getByRole("button", { name: "Keep my solution" });
+  const replace = within(group).getByRole("button", { name: "Replace with starter code" });
+  const warning = "Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Download your solution first if you want to keep it.";
+  expect(keep).toHaveFocus();
+  for (const control of [group, keep, replace]) expect(control).toHaveAccessibleDescription(warning);
+  const id = keep.getAttribute("aria-describedby");
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  expect(keep).toHaveAttribute("aria-describedby", id);
+  replace.focus();
+  fireEvent.keyDown(replace, { key: "Escape" });
+  expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  expect(document.getElementById(id!)).toBeNull();
+  expect(screen.getByRole("button", { name: "Reset to starter code" })).toHaveFocus();
+});
+
+it("isolates reset descriptions between editors", () => {
+  render(<><SolutionEditor value="one" onChange={vi.fn()} readOnly={false} starter="pass"/>
+    <SolutionEditor value="two" onChange={vi.fn()} readOnly={false} starter="pass"/></>);
+  for (const reset of screen.getAllByRole("button", { name: "Reset to starter code" })) fireEvent.click(reset);
+  const groups = screen.getAllByRole("group", { name: "Confirm solution reset" });
+  const ids = groups.map(group => group.getAttribute("aria-describedby"));
+  expect(new Set(ids).size).toBe(2);
+  groups.forEach((group, index) => {
+    expect(group.querySelector("p")).toHaveAttribute("id", ids[index]);
+    for (const button of within(group).getAllByRole("button")) expect(button).toHaveAttribute("aria-describedby", ids[index]);
+  });
 });
