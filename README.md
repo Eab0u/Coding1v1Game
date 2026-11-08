@@ -136,7 +136,8 @@ value. Comparisons are exact, including array order, with object key order ignor
 Numeric negative zero and zero compare equally, including inside nested answers,
 matching the JSON argument representation sent to Python.
 Execution snapshots copy only validated test fields and JSON values. Unrelated
-suite metadata, symbol keys and custom array properties (including `toJSON`)
+suite metadata, symbol keys and custom array properties (including `toJSON`,
+iterators and `map`)
 are ignored and cannot change serialized arguments or prevent cloning.
 Sandbox stdout must use canonical base64 containing valid UTF-8 JSON. Malformed
 encoding fails the test with the full CPU penalty; decoding never repairs output

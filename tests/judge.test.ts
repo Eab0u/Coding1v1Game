@@ -14,6 +14,39 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it("ignores custom array iteration and mapping in suites and nested JSON", async () => {
+    const override = vi.fn(() => { throw new Error("Array hook must not run"); });
+    const nested = Object.assign([42], { map: override, [Symbol.iterator]: override });
+    const tests = Object.assign([{ args: [nested], expected: nested, benchmark: true }], {
+      map: override, some: override, [Symbol.iterator]: override,
+    });
+    const fetcher = sandbox([done([42]), done([42]), done([42])]);
+    const result = await createJudge(config, fetcher)({ ...request, tests });
+    expect(result.testsPassed).toBe(1);
+    expect(result.largestTestsCpuMs).toEqual([12, 12, 12]);
+    expect(override).not.toHaveBeenCalled();
+    const sent = JSON.parse(String(fetcher.mock.calls[0][1]?.body));
+    expect(Buffer.from(sent.stdin, "base64").toString()).toBe("[[42]]");
+  });
+
+  it.each(["args", "expected", "suite"])("rejects sparse %s despite a custom iterator and permits retry", async field => {
+    const sparse = new Array(1);
+    sparse[Symbol.iterator] = function* () {
+      yield field === "suite" ? { args: [42], expected: 42, benchmark: true } : 42;
+      return undefined;
+    };
+    const tests = field === "suite" ? sparse : [{
+      args: field === "args" ? sparse : [42],
+      expected: field === "expected" ? sparse : 42,
+      benchmark: true,
+    }];
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    await expect(judge({ ...request, tests } as JudgeRequest)).rejects.toThrow(RangeError);
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
   it("copies nested JSON arrays without metadata and preserves literal prototype keys", async () => {
     const array = Object.assign([42], { callback: () => undefined });
     const expected = { nested: array, ...JSON.parse('{"__proto__":{"safe":true}}') };

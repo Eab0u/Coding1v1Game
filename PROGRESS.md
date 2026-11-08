@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Indexed judge array validation and snapshots
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item. Suite validation, benchmark selection and execution snapshots now use indexed entries without calling caller-defined iterators or mapping methods. Nested JSON arrays also validate and snapshot by index; sparse arrays are rejected even when custom iterators supply replacement values.
+- Added regression coverage for throwing suite/nested-array hooks, exact sandbox arguments, correct answers and benchmark CPU samples, sparse suites/arguments/expected answers, no-network rejection and successful adapter reuse. Updated the documented snapshot contract.
+- Validation: all 1,738 tests across 74 files passed; all 124 focused judge tests, lint, typecheck, production build and whitespace checks passed. Fixed the new test generator's return type after typecheck identified it, then reran focused tests and checks successfully.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Judge snapshots exclude unrelated metadata
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge reliability item. Execution snapshots now copy only validated suite fields and JSON values, excluding unrelated suite/test metadata, symbol keys and custom array properties. Uncloneable callbacks no longer reject valid suites, and array `toJSON` overrides cannot change sandbox arguments. Documented this contract.

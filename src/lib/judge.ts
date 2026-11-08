@@ -5,7 +5,11 @@ type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 /** Copy JSON values only, excluding unrelated array properties and symbol keys. */
 function snapshotJson(value: Json): Json {
-  if (Array.isArray(value)) return value.map(snapshotJson);
+  if (Array.isArray(value)) {
+    const copy: Json[] = [];
+    for (let index = 0; index < value.length; index++) copy.push(snapshotJson(value[index]));
+    return copy;
+  }
   if (value && typeof value === "object") {
     return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, snapshotJson(entry)]));
   }
@@ -45,7 +49,9 @@ function jsonValue(value: unknown, budget: { remaining: number }, depth = 0): bo
   if (depth >= 100) return false;
   if (Array.isArray(value)) {
     if (value.length > budget.remaining) return false;
-    for (const entry of value) if (!jsonValue(entry, budget, depth + 1)) return false;
+    for (let index = 0; index < value.length; index++) {
+      if (!Object.hasOwn(value, index) || !jsonValue(value[index], budget, depth + 1)) return false;
+    }
     return true;
   }
   return typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype &&
@@ -115,15 +121,20 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
 
   return async function judge(request: JudgeRequest): Promise<ScoredSubmission> {
     const jsonBudget = { remaining: 1_000_000 };
+    // Read suite indices without invoking caller-defined iteration or array methods.
+    const suite = Array.isArray(request?.tests) && request.tests.length <= 1000
+      ? Array.from({ length: request.tests.length }, (_, index) =>
+        Object.hasOwn(request.tests, index) ? request.tests[index] : undefined)
+      : [];
     if (!request || typeof request !== "object" || Array.isArray(request) ||
         typeof request.source !== "string" || !request.source.trim() || request.source.length > 65_536 ||
         typeof request.functionName !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(request.functionName) ||
         !Number.isFinite(request.submittedAtMs) || request.submittedAtMs < 0 ||
         !Array.isArray(request.tests) || !request.tests.length || request.tests.length > 1000 ||
-        !Array.from(request.tests).every(test => test && typeof test === "object" && !Array.isArray(test) &&
+        !suite.every(test => test && typeof test === "object" && !Array.isArray(test) &&
           (test.benchmark === undefined || typeof test.benchmark === "boolean") &&
           Array.isArray(test.args) && jsonValue(test.args, jsonBudget) && jsonValue(test.expected, jsonBudget)) ||
-        !request.tests.some(test => test.benchmark === true)) {
+        !suite.some(test => test?.benchmark === true)) {
       throw new RangeError("Invalid judge request; include JSON tests and a largest-test benchmark.");
     }
     // Own the validated suite before the first await; callers may reuse or mutate it.
@@ -131,11 +142,14 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
     // Keeping JavaScript's signed zero would reject correct Python JSON answers.
     // Clone only validated fields. Unrelated caller metadata may be uncloneable
     // or arbitrarily large and must not enter the execution snapshot.
-    const tests = request.tests.map(test => ({
-      args: snapshotJson(test.args) as Json[],
-      expected: snapshotJson(test.expected),
-      benchmark: test.benchmark === true,
-    }));
+    const tests = suite.map(entry => {
+      const test = entry!;
+      return {
+        args: snapshotJson(test.args) as Json[],
+        expected: snapshotJson(test.expected),
+        benchmark: test.benchmark === true,
+      };
+    });
     for (const test of tests) test.expected = normalizeJsonZeros(test.expected);
     const submittedAtMs = request.submittedAtMs;
     // Expected answers stay on the server. Only arguments are sent to the sandbox.
