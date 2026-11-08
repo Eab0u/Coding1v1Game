@@ -8,6 +8,34 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it("associates each code field with its visible read-only notice and removes stale references on recovery", () => {
+  const change = vi.fn();
+  const value = "    return 1";
+  const editors = (readOnly: boolean) => <><PlainPythonEditor value={value} onChange={change} readOnly={readOnly}/><PlainPythonEditor value="other" onChange={change} readOnly/></>;
+  const { rerender } = render(editors(false));
+  const [input, other] = screen.getAllByRole("textbox") as HTMLTextAreaElement[];
+  const original = input.getAttribute("aria-describedby");
+  input.focus();
+  input.setSelectionRange(4, 10, "backward");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    rerender(editors(true));
+    const notices = screen.getAllByRole("note", { name: "Read-only solution" });
+    expect(input.getAttribute("aria-describedby")?.split(" ")).toContain(notices[0].id);
+    expect(other.getAttribute("aria-describedby")?.split(" ")).toContain(notices[1].id);
+    expect(input.getAttribute("aria-describedby")?.split(" ")).not.toContain(notices[1].id);
+    expect(input).toHaveAccessibleDescription(/Read-only solution\. Indent and Outdent are unavailable/);
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue(value);
+    expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([4, 10, "backward"]);
+    rerender(editors(false));
+    expect(input.getAttribute("aria-describedby")).toBe(original);
+    expect(document.getElementById(notices[0].id)).toBeNull();
+    expect(other).toHaveAccessibleDescription(/Read-only solution\. Indent and Outdent are unavailable/);
+    expect(input).toHaveFocus();
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
 it.each(["Indent", "Outdent"])("retains %s focus through read-only transitions with isolated recovery guidance", name => {
   const onChange = vi.fn();
   const value = "    return 1";

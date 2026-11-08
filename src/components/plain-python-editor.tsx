@@ -141,7 +141,7 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
       updatePosition();
     }}>Select all code</button></div>
     <p id={summaryId} className="editor-position" aria-label="Solution size">{lineCount} {lineCount === 1 ? "line" : "lines"} · {value.length} UTF-16 code {value.length === 1 ? "unit" : "units"}. An empty draft has one line; a trailing newline starts another.</p>
-    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId} ${summaryId}`} value={value}
+    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId} ${summaryId}${readOnly ? ` ${readOnlyId}` : ""}`} value={value}
       onSelect={updatePosition} onFocus={updatePosition} onKeyUp={updatePosition} onPointerUp={updatePosition}
       onCompositionStart={() => { composing.current = true; }}
       onCompositionEnd={() => { composing.current = false; }}
