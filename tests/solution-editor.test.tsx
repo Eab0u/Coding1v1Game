@@ -617,7 +617,7 @@ it.each([false, true])("shows draft-scoped download guidance without moving focu
   expect(screen.getByRole("status")).toBe(notice);
   expect(button).toHaveAttribute("aria-describedby", descriptionId);
   view.rerender(<SolutionEditor value="replacement" onChange={vi.fn()} readOnly={readOnly}/>);
-  expect(button).not.toHaveAttribute("aria-describedby");
+  expect(button).toHaveAccessibleDescription(/Download saves your current draft/);
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
   view.rerender(<SolutionEditor value="original" onChange={vi.fn()} readOnly={readOnly}/>);
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -642,9 +642,9 @@ it("isolates download descriptions between editors and unrelated copy feedback",
   vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
   render(<><SolutionEditor value="first" onChange={vi.fn()} readOnly={false}/><SolutionEditor value="second" onChange={vi.fn()} readOnly/></>);
   const buttons = screen.getAllByRole("button", { name: "Download solution (.py)" });
-  expect(buttons[0]).not.toHaveAttribute("aria-describedby");
+  expect(buttons[0]).toHaveAccessibleDescription(/Download saves your current draft/);
   fireEvent.click(buttons[0]);
-  expect(buttons[1]).not.toHaveAttribute("aria-describedby");
+  expect(buttons[1]).toHaveAccessibleDescription(/Download saves your current draft/);
   fireEvent.click(buttons[1]);
   expect(buttons[0].getAttribute("aria-describedby")).not.toBe(buttons[1].getAttribute("aria-describedby"));
   await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: "Copy solution" })[0]); });
@@ -1176,4 +1176,35 @@ it.each([false, true])("explains wrapping independently across modes and read-on
   expect(toggle).toHaveAccessibleDescription(/Scroll horizontally/);
   expect(first.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
   expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toMatchObject({ wordWrap: false, plain: !plain });
+});
+
+
+it.each([false, true])("keeps isolated visible download help through mode and read-only recovery with plain %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 18 }));
+  const change = vi.fn();
+  const content = (readOnly: boolean) => <><SolutionEditor value="private draft" onChange={change} readOnly={readOnly}/><SolutionEditor value="other draft" onChange={vi.fn()} readOnly/></>;
+  const view = render(content(false));
+  const buttons = screen.getAllByRole("button", { name: "Download solution (.py)" });
+  const ids = buttons.map(button => button.getAttribute("aria-describedby")!);
+  expect(ids[0]).not.toBe(ids[1]);
+  for (const id of ids) {
+    const help = document.getElementById(id)!;
+    expect(help).toBeVisible();
+    expect(help).toHaveClass("solution-download-guide");
+    expect(help).toHaveTextContent("without submitting it");
+    expect(help).toHaveTextContent("Check your browser downloads if no save prompt appears");
+    expect(help).toHaveTextContent("after the match ends");
+  }
+  buttons[0].focus();
+  for (const readOnly of [true, false, true, false]) {
+    view.rerender(content(readOnly));
+    expect(buttons[0]).toHaveFocus();
+    expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+    expect(screen.getAllByLabelText("Python solution")[0]).toHaveValue("private draft");
+  }
+  fireEvent.click(screen.getAllByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" })[0]);
+  expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+  expect(screen.getAllByLabelText("Python solution")[0]).toHaveValue("private draft");
+  expect(change).not.toHaveBeenCalled();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: !plain, wordWrap: true, fontSize: 18 });
 });

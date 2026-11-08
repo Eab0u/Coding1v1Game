@@ -62,6 +62,7 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
   const recoveryGuidanceId = useId();
   const copyGuidanceId = useId();
   const downloadGuidanceId = useId();
+  const downloadHelpId = useId();
   const copyResultId = useId();
   const hasCopyResult = copyResult?.revision === draftVersion.revision;
   const hasDownloadResult = downloadResult?.revision === draftVersion.revision;
@@ -142,9 +143,10 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     <div className="solution-editor-actions"><button type="button" className="button button--secondary solution-mode-toggle" aria-label={plain ? "Use advanced editor" : "Use plain text editor"} aria-describedby={preferenceDescription} aria-pressed={plain} onClick={() => setPlain(current => !current)}>
       {plain ? "Use advanced editor" : "Use plain text editor"} <span className="solution-mode-state" aria-hidden="true">{plain ? "Plain preferred" : "Advanced preferred"}</span>
     </button>
-    <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : undefined} onClick={downloadSolution}>Download solution (.py)</button>
+    <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : downloadHelpId} onClick={downloadSolution}>Download solution (.py)</button>
     <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : undefined} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
     {starter !== undefined && !readOnly && <button ref={resetButton} aria-expanded={confirmReset} aria-controls={confirmReset ? resetConfirmationId : undefined} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
+    <p id={downloadHelpId} className="solution-download-guide">Download saves your current draft as solution.py without submitting it. Check your browser downloads if no save prompt appears. You can also download after the match ends.</p>
     {starter !== undefined && !readOnly && !canReset && <p id={resetAvailabilityId} className="solution-reset-notice">Your solution already matches the starter code. Reset becomes available after you edit it.</p>}
     {confirmReset && canReset && <div id={resetConfirmationId} className="card solution-reset-confirmation" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId}>
       <h3>Replace your solution?</h3>

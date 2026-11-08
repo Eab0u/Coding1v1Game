@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Visible solution download guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one export usability item.
+- Added styled visible guidance explaining current-draft export as solution.py, browser download recovery and availability after match end. Download references isolated editor-specific guidance before use and restores it after stale result notices clear; success and failure descriptions remain intact.
+- Added regression coverage for independent descriptions, both editor modes, repeated read-only recovery, preserved focus, unchanged drafts and saved preferences. Updated existing download tests to expect restored guidance after edits.
+- Validation: all 1,839 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused solution-editor tests (96), lint, typecheck and production build passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Visible line-wrapping guidance
 - Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
 - Added styled wrapping guidance beside its control, explaining horizontal scrolling when wrapping is off and that wrapping preserves code and indentation. Stable editor-specific accessible descriptions retain preference-saving recovery guidance when storage is unavailable.

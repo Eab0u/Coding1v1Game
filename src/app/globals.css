@@ -684,6 +684,7 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .solution-wrap-toggle[aria-pressed="true"] { border-color: var(--color-accent); }
 .solution-wrap-toggle[aria-pressed="true"] .solution-wrap-state { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
 
+.solution-download-guide,
 .solution-wrap-guide,
 .solution-text-size-guide { margin: 8px 0 12px; padding: 10px 12px; border-inline-start: 3px solid var(--color-accent); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-muted); line-height: 1.5; overflow-wrap: anywhere; }
 
