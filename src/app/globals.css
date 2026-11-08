@@ -656,3 +656,6 @@ summary { min-height: 44px; padding-block: 8px; cursor: pointer; }
 .account-form .password-help p { margin: 0; padding: 0 12px 12px; }
 
 .page-recovery .recovery-guidance { padding: 16px; border-left: 3px solid var(--color-accent); border-radius: var(--radius-sm); background: var(--color-bg); overflow-wrap: anywhere; }
+[data-connection-state="offline"] .recovery-guidance { border-left-color: #ffd28a; }
+[data-connection-state="offline"] .recovery-guidance strong { color: #ffd28a; }
+[data-connection-state="reconnected"] .recovery-guidance strong { color: var(--color-success); }

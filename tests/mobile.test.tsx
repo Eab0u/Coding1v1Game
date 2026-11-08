@@ -78,6 +78,27 @@ let browser: Browser;
 beforeAll(async () => { browser = await chromium.launch(); });
 afterAll(async () => { await browser?.close(); });
 
+it.each([320, 1280].flatMap(width => [false, true].map(root => ({ width, root }))))('colors offline and restored recovery guidance at $width px (root=$root)', async ({ width, root }) => {
+  const page = await browser.newPage({ viewport: { width, height: 600 } });
+  try {
+    const view = root ? <GlobalError error={new Error('private')} reset={() => {}} /> : <ErrorRecovery error={new Error('private')} reset={() => {}} />;
+    await page.setContent(`${root ? '' : `<style>${readFileSync('src/app/globals.css', 'utf8')}</style>`}${renderToStaticMarkup(view)}`);
+    const status = page.getByRole('status');
+    await status.evaluate(el => { el.innerHTML = '<p class="recovery-guidance"><strong>Browser offline.</strong> Reconnect before retrying.</p>'; });
+    const notice = status.locator('p');
+    const retry = page.getByRole('button', { name: 'Try this page again' });
+    await retry.focus();
+    for (const state of ['offline', 'reconnected', 'offline']) {
+      await status.evaluate((el, state) => el.setAttribute('data-connection-state', state), state);
+      const expected = state === 'offline' ? 'rgb(255, 210, 138)' : 'rgb(164, 210, 117)';
+      expect(await notice.locator('strong').evaluate(el => getComputedStyle(el).color)).toBe(expected);
+      expect(await notice.evaluate(el => getComputedStyle(el).borderLeftColor)).toBe(state === 'offline' ? expected : 'rgb(129, 182, 76)');
+      expect(await retry.evaluate(el => document.activeElement === el)).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+  } finally { await page.close(); }
+});
+
 it.each([320, 375, 1280].flatMap(width => ["global", "weekly"].map(period => ({ width, period }))))('jumps past leaderboard guides with native keyboard focus at $width px ($period)', async ({ width, period }) => {
   const page = await browser.newPage({ viewport: { width, height: 600 } });
   try {

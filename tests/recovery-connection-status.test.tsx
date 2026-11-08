@@ -19,6 +19,7 @@ it.each([false, true])("refreshes missed connection events on resume with stable
   button.focus();
   fireEvent(window, new Event("pageshow"));
   expect(status).toBeEmptyDOMElement();
+  expect(status).toHaveAttribute("data-connection-state", "unknown");
   visibility = "hidden";
   online = false;
   fireEvent(document, new Event("visibilitychange"));
@@ -26,16 +27,19 @@ it.each([false, true])("refreshes missed connection events on resume with stable
   visibility = "visible";
   fireEvent(document, new Event("visibilitychange"));
   expect(status).toHaveTextContent("Browser offline");
+  expect(status).toHaveAttribute("data-connection-state", "offline");
   expect(button).toHaveFocus();
   online = true;
   fireEvent(window, new Event("pageshow"));
   expect(screen.getByRole("status")).toBe(status);
   expect(status).toHaveTextContent("Browser back online");
+  expect(status).toHaveAttribute("data-connection-state", "reconnected");
   expect(status).toHaveTextContent(unavailablePage ? "Server availability and access to this page are not yet confirmed" : "Server availability is not yet confirmed");
   expect(button).toHaveFocus();
   online = false;
   fireEvent(window, new Event("pageshow"));
   expect(status).toHaveTextContent("Browser offline");
+  expect(status).toHaveAttribute("data-connection-state", "offline");
   online = true;
   fireEvent(document, new Event("visibilitychange"));
   expect(status).toHaveTextContent("Browser back online");

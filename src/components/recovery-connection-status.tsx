@@ -30,7 +30,7 @@ export function RecoveryConnectionStatus({ unavailablePage = false }: { unavaila
     };
   }, []);
 
-  return <div role="status" aria-live="polite" aria-atomic="true">
+  return <div role="status" aria-live="polite" aria-atomic="true" data-connection-state={connection}>
     {connection !== "unknown" && <p className="recovery-guidance">
       <strong>{connection === "offline" ? "Browser offline. " : "Browser back online. "}</strong>
       {unavailablePage ? (connection === "offline"

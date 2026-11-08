@@ -24,6 +24,9 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
       .recovery-label { color: #a4d275; font-size: .75rem; font-weight: 800; letter-spacing: .14em; }
       h1 { font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.15; letter-spacing: -.04em; }
       .recovery-guidance { padding: 16px; border-left: 3px solid #81b64c; border-radius: 8px; background: #262421; }
+      [data-connection-state="offline"] .recovery-guidance { border-left-color: #ffd28a; }
+      [data-connection-state="offline"] .recovery-guidance strong { color: #ffd28a; }
+      [data-connection-state="reconnected"] .recovery-guidance strong { color: #a4d275; }
       nav { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
       nav a, button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 20px; border: 1px solid #575149; border-radius: 8px; font: 800 1rem/1.5 Arial, Helvetica, sans-serif; text-align: center; }
       button { background: #81b64c; color: #18210f; cursor: pointer; }

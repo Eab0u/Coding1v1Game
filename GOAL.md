@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Distinguish offline recovery notices with amber borders and headings and restored connections with green headings across unavailable, route-error and standalone root-error screens, preserving stable announcements and focus with component and phone/desktop browser regression coverage
 - [x] Reject malformed top-level judge requests with consistent validation before network access, preserving adapter reuse with regression coverage
 - [x] Bound expanded judge JSON values across the request before cloning or network access, rejecting exponentially shared graphs while preserving supported large inputs and adapter reuse
 - [x] Reject cyclic and excessively nested judge JSON data before cloning or network access, preserving shared acyclic values and supported nesting with boundary and retry regression coverage

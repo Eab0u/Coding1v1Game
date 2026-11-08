@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Recovery connection color cues
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one visual recovery item. Offline notices now use amber borders and headings; restored connections use green headings. Shared styling covers unavailable and route-error pages, with matching standalone root-error styles that work without the root layout.
+- Added connection-state regression assertions for initial, missed-event, restored and recurring outages. Added Chromium checks at 320px and 1280px for actual border/heading colors, repeated transitions, preserved keyboard focus and page overflow on route and standalone root errors. Existing text guidance and stable polite announcement regions remain intact.
+- Validation: all 1,711 tests across 74 files passed; focused component/browser tests (204 tests), lint, typecheck and production build passed. Browser styling tests use rendered fixtures; component tests exercise actual connection events.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Consistent top-level judge request validation
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge request validation item. Null, missing, primitive, function and array requests now receive the consistent RangeError before field access or network access. Arrays carrying otherwise valid request fields are also rejected. Documented the contract.
