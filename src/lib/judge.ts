@@ -2,6 +2,15 @@ import { isDeepStrictEqual } from "node:util";
 import type { ScoredSubmission } from "./scoring";
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
+/** Copy JSON values only, excluding unrelated array properties and symbol keys. */
+function snapshotJson(value: Json): Json {
+  if (Array.isArray(value)) return value.map(snapshotJson);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, snapshotJson(entry)]));
+  }
+  return value;
+}
 export interface JudgeTest { args: Json[]; expected: Json; benchmark?: boolean }
 export interface JudgeRequest {
   source: string;
@@ -120,7 +129,13 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
     // Own the validated suite before the first await; callers may reuse or mutate it.
     // Snapshot JSON semantics as well as ownership: JSON represents -0 as 0.
     // Keeping JavaScript's signed zero would reject correct Python JSON answers.
-    const tests = structuredClone(request.tests);
+    // Clone only validated fields. Unrelated caller metadata may be uncloneable
+    // or arbitrarily large and must not enter the execution snapshot.
+    const tests = request.tests.map(test => ({
+      args: snapshotJson(test.args) as Json[],
+      expected: snapshotJson(test.expected),
+      benchmark: test.benchmark === true,
+    }));
     for (const test of tests) test.expected = normalizeJsonZeros(test.expected);
     const submittedAtMs = request.submittedAtMs;
     // Expected answers stay on the server. Only arguments are sent to the sandbox.

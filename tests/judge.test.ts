@@ -14,6 +14,37 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it("copies nested JSON arrays without metadata and preserves literal prototype keys", async () => {
+    const array = Object.assign([42], { callback: () => undefined });
+    const expected = { nested: array, ...JSON.parse('{"__proto__":{"safe":true}}') };
+    const output = { nested: [42], ...JSON.parse('{"__proto__":{"safe":true}}') };
+    const fetcher = sandbox([done(output), done(output), done(output)]);
+    const result = await createJudge(config, fetcher)({ ...request, tests: [{ args: [{ nested: array }], expected, benchmark: true }] });
+    expect(result.testsPassed).toBe(1);
+    const sent = JSON.parse(String(fetcher.mock.calls[0][1]?.body));
+    expect(Buffer.from(sent.stdin, "base64").toString()).toBe('[{"nested":[42]}]');
+    expect(array.callback).toBeTypeOf("function");
+    expect(Object.hasOwn(expected, "__proto__")).toBe(true);
+  });
+
+  it("ignores unvalidated suite metadata while snapshotting execution fields", async () => {
+    const metadata = { callback: () => undefined, value: Symbol("metadata") };
+    const tests = Object.assign([
+      { args: Object.assign([42], { metadata, toJSON: () => [999] }), expected: 42, benchmark: false, metadata },
+      { args: [42], expected: 42, benchmark: true, metadata },
+    ], { metadata });
+    const fetcher = sandbox([done(), done(), done(), done()]);
+    const result = await createJudge(config, fetcher)({ ...request, tests });
+    expect(result).toEqual({ testsPassed: 2, testsTotal: 2, largestTestsCpuMs: [12, 12, 12], submittedAtMs: 150 });
+    expect(fetcher).toHaveBeenCalledTimes(8);
+    for (const [, init] of fetcher.mock.calls.filter(([, init]) => init?.method === "POST")) {
+      const sent = JSON.parse(String(init?.body));
+      expect(Buffer.from(sent.stdin, "base64").toString()).toBe("[42]");
+    }
+    expect(tests.metadata).toBe(metadata);
+    expect(tests[0].metadata.callback).toBe(metadata.callback);
+  });
+
   it.each([null, false, 42, {}, [], "secret\r\ninjected: value", "secret\u0000", "secret\u0100"])("rejects malformed credentials before network access (%#)", authToken => {
     const fetcher = vi.fn<typeof fetch>();
     expect(() => createJudge({ ...config, authToken } as JudgeConfig, fetcher)).toThrow(new RangeError("Invalid judge configuration."));

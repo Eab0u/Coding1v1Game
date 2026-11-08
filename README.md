@@ -135,6 +135,9 @@ positional JSON arguments and must return a JSON value; output must contain only
 value. Comparisons are exact, including array order, with object key order ignored.
 Numeric negative zero and zero compare equally, including inside nested answers,
 matching the JSON argument representation sent to Python.
+Execution snapshots copy only validated test fields and JSON values. Unrelated
+suite metadata, symbol keys and custom array properties (including `toJSON`)
+are ignored and cannot change serialized arguments or prevent cloning.
 Sandbox stdout must use canonical base64 containing valid UTF-8 JSON. Malformed
 encoding fails the test with the full CPU penalty; decoding never repairs output
 before comparing it with the expected answer. Valid Unicode replacement characters

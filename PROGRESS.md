@@ -37,6 +37,13 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Judge snapshots exclude unrelated metadata
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item. Execution snapshots now copy only validated suite fields and JSON values, excluding unrelated suite/test metadata, symbol keys and custom array properties. Uncloneable callbacks no longer reject valid suites, and array `toJSON` overrides cannot change sandbox arguments. Documented this contract.
+- Added regression coverage for unrelated function/symbol metadata, custom argument serialization, nested arrays, literal `__proto__` keys, unchanged caller data and benchmark scoring.
+- Validation: all 1,734 tests across 74 files passed on the final full run. All 120 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
 ### 2026-11-07 - Judge credential and diagnostic configuration validation
 - Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
 - Followed the blocker rule and added/completed one judge configuration item. Optional auth tokens must be strings encodable as HTTP header values, and execution diagnostics must be functions. Invalid configuration now fails at adapter creation before network access with a generic, credential-safe RangeError rather than appearing as a sandbox outage or failing after execution.
