@@ -74,6 +74,7 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
   const summaryId = useId();
   const selectAllId = useId();
   const indentationId = useId();
+  const typingId = useId();
   const lineCount = value.split("\n").length;
   function updatePosition() {
     const editor = input.current;
@@ -145,7 +146,8 @@ export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, font
     }}>Select all code</button></div>
     <p id={selectAllId} className="editor-hint">Select all code focuses the code field and selects the whole solution. Then press Ctrl+C or Cmd+C to copy it. Selection alone does not change your clipboard.</p>
     <p id={summaryId} className="editor-position" aria-label="Solution size">{lineCount} {lineCount === 1 ? "line" : "lines"} · {value.length} UTF-16 code {value.length === 1 ? "unit" : "units"}. An empty draft has one line; a trailing newline starts another.</p>
-    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId} ${summaryId}${readOnly ? ` ${readOnlyId}` : ""}`} value={value}
+    {!readOnly && <p id={typingId} className="editor-hint">Enter keeps indentation and adds four spaces after a Python block header. Shift+Enter inserts a plain newline. Backspace in space-only indentation outside strings removes spaces to the previous four-space stop.</p>}
+    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId} ${summaryId}${readOnly ? ` ${readOnlyId}` : ` ${typingId}`}`} value={value}
       onSelect={updatePosition} onFocus={updatePosition} onKeyUp={updatePosition} onPointerUp={updatePosition}
       onCompositionStart={() => { composing.current = true; }}
       onCompositionEnd={() => { composing.current = false; }}

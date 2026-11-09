@@ -8,6 +8,38 @@ function Harness({ initial }: { initial: string }) {
   return <PlainPythonEditor value={value} onChange={setValue} readOnly={false}/>;
 }
 
+it("shows isolated typing guidance and restores it without changing focus or selection after match closure", () => {
+  const change = vi.fn();
+  const editors = (readOnly: boolean) => <><PlainPythonEditor value="    return 42" onChange={change} readOnly={readOnly}/><PlainPythonEditor value="other" onChange={change} readOnly={false}/></>;
+  const { rerender } = render(editors(false));
+  const [input, other] = screen.getAllByRole("textbox") as HTMLTextAreaElement[];
+  const guidance = screen.getAllByText(/^Enter keeps indentation/)[0];
+  const id = guidance.id;
+  expect(guidance).toBeVisible();
+  expect(guidance).toHaveClass("editor-hint");
+  expect(input.getAttribute("aria-describedby")?.split(" ")).toContain(id);
+  expect(other.getAttribute("aria-describedby")?.split(" ")).not.toContain(id);
+  expect(input).toHaveAccessibleDescription(/Shift\+Enter inserts a plain newline.*Backspace in space-only indentation outside strings/);
+  input.focus();
+  input.setSelectionRange(4, 10, "backward");
+  for (const readOnly of [true, false, true, false]) {
+    rerender(editors(readOnly));
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue("    return 42");
+    expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([4, 10, "backward"]);
+    expect(other).toHaveAccessibleDescription(/Shift\+Enter inserts a plain newline/);
+    if (readOnly) {
+      expect(document.getElementById(id)).toBeNull();
+      expect(input.getAttribute("aria-describedby")?.split(" ")).not.toContain(id);
+      expect(input).not.toHaveAccessibleDescription(/Shift\+Enter/);
+    } else {
+      expect(document.getElementById(id)).toBeVisible();
+      expect(input.getAttribute("aria-describedby")?.split(" ")).toContain(id);
+    }
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
 it("exposes isolated indentation shortcuts and restores them after read-only recovery without disturbing drafts", () => {
   const change = vi.fn();
   const editors = (readOnly: boolean) => <><PlainPythonEditor value="    return 42" onChange={change} readOnly={readOnly}/><PlainPythonEditor value="other" onChange={change} readOnly={false}/></>;

@@ -66,6 +66,7 @@ Similar feel to chess.com and other competitive 1v1 sites. Original branding, do
 Never decide the project is finished. When the backlog is empty, look for more to improve: bugs, edge cases, visual polish, how the site feels to use, new problems, tests, performance, and new features. Add the new ideas to the backlog and keep going. There is always something to make better, so every run must end with real progress and an updated PROGRESS.md.
 
 ## Backlog (check off as done)
+- [x] Make plain-editor Enter, Shift+Enter and Backspace indentation behavior visible beside the code field with isolated accessible guidance and focus/selection/read-only recovery regression coverage
 - [x] Preserve starter-reset keyboard focus when a match becomes read-only, with styled unavailable guidance, safe confirmation dismissal and both-mode recovery/isolation regression coverage
 - [x] Explain advanced and plain editor modes with styled visible, isolated accessible guidance, preserving drafts, settings and focus through switching, read-only recovery and preference storage failure with regression coverage
 - [x] Explain text-size reset with styled visible default-size and availability guidance, isolated accessible descriptions and both-mode focus/read-only recovery regression coverage
