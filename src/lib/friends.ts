@@ -16,12 +16,15 @@ export async function changeFriend(db: AuthDatabase, userId: string, action: str
       ON CONFLICT DO NOTHING RETURNING requester_id`, [userId, username]);
     if (!result.rows.length) return "No request sent. Check the username or your existing relationships.";
   } else if (action === "accept") {
-    await db.query(`UPDATE friendships SET status='accepted' WHERE recipient_id=$1 AND status='pending'
-      AND requester_id=(SELECT id FROM users WHERE lower(username)=lower($2))`, [userId, username]);
+    const result = await db.query(`UPDATE friendships SET status='accepted' WHERE recipient_id=$1 AND status='pending'
+      AND requester_id=(SELECT id FROM users WHERE lower(username)=lower($2)) RETURNING requester_id`, [userId, username]);
+    if (!result.rows.length) return "No pending request from that user.";
   } else if (action === "remove") {
-    await db.query(`DELETE FROM friendships WHERE
+    const result = await db.query(`DELETE FROM friendships WHERE
       (requester_id=$1 AND recipient_id=(SELECT id FROM users WHERE lower(username)=lower($2))) OR
-      (recipient_id=$1 AND requester_id=(SELECT id FROM users WHERE lower(username)=lower($2)))`, [userId, username]);
+      (recipient_id=$1 AND requester_id=(SELECT id FROM users WHERE lower(username)=lower($2)))
+      RETURNING requester_id`, [userId, username]);
+    if (!result.rows.length) return "No relationship with that user.";
   } else throw new Error("Invalid action");
   return "Friend list updated.";
 }

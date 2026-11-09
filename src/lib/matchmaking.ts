@@ -17,7 +17,7 @@ type Entry = { peer: QueuePeer; joined: number; reserved: boolean };
 export class MatchmakingQueue {
   private entries = new Map<string, Entry>();
   private running = false;
-  constructor(private createMatch: (one: Account, two: Account, difficulty: Difficulty) => Promise<MatchTicket>, private now = Date.now, private capacity = 1000) {}
+  constructor(private createMatch: (one: Account, two: Account, difficulty: Difficulty) => Promise<MatchTicket>, private now = Date.now, private capacity = 1000, private createMatchTimeoutMs = 15_000) {}
 
   join(peer: QueuePeer) {
     const existing = this.entries.get(peer.user.id);
@@ -69,7 +69,12 @@ export class MatchmakingQueue {
         one.reserved = two.reserved = true;
         this.status(one); this.status(two);
         try {
-          const match = await this.createMatch(one.peer.user, two.peer.user, difficultyFor((one.peer.user.rating + two.peer.user.rating) / 2));
+          // A stalled createMatch must not block pairing every other queued player; an eventual
+          // late success leaves an unnotified pending match, which the lifecycle worker auto-cancels.
+          const match = await Promise.race([
+            this.createMatch(one.peer.user, two.peer.user, difficultyFor((one.peer.user.rating + two.peer.user.rating) / 2)),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error("createMatch timed out")), this.createMatchTimeoutMs)),
+          ]);
           one.peer.send({ type: "matched", match, opponent: two.peer.user });
           two.peer.send({ type: "matched", match, opponent: one.peer.user });
         } catch {

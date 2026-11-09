@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../../../lib/auth-server";
 import { AuthError, SESSION_COOKIE, SESSION_SECONDS } from "../../../../lib/auth";
+import { readBoundedText } from "../../../../lib/http";
 export const runtime = "nodejs";
 export async function POST(request: NextRequest, context: { params: Promise<{ action: string }> }) {
   const { action } = await context.params;
@@ -13,9 +14,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ac
     let token = "";
     if (action === "logout") await auth.logout(oldToken);
     else {
-      if (Number(request.headers.get("content-length")) > 4096) return new NextResponse("Request too large", { status: 413 });
-      const text = await request.text();
-      if (Buffer.byteLength(text) > 4096) return new NextResponse("Request too large", { status: 413 });
+      const text = await readBoundedText(request, 4096);
+      if (text === null) return new NextResponse("Request too large", { status: 413 });
       const form = new URLSearchParams(text);
       token = (await auth.authenticate(action as "signup" | "login", form.get("username"), form.get("password"), oldToken)).token;
     }
