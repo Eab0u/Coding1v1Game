@@ -1,19 +1,15 @@
-import type { Pool, PoolClient } from "pg";
+import type { Pool } from "pg";
 import { createJudge, type JudgeRequest } from "./judge";
 import { scoreMatch, type ScoredSubmission } from "./scoring";
 import { rateMatch } from "./rating";
 import { solutionError } from "./solution-validation";
+import { transaction } from "./db";
+import { MATCH_DURATION_SECONDS, type Difficulty } from "./matchmaking";
 
 export class MatchActionError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
 const uuid = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
-async function transaction<T>(pool: Pool, fn: (db: PoolClient) => Promise<T>): Promise<T> {
-  const db = await pool.connect();
-  try { await db.query("BEGIN"); const value = await fn(db); await db.query("COMMIT"); return value; }
-  catch (error) { await db.query("ROLLBACK"); throw error; }
-  finally { db.release(); }
-}
 /** The match row serializes readiness, admission, and finalization across processes. */
 export async function matchAction(pool: Pool, id: string, actor: string, action: "ready" | "submit", source = "") {
   if (!uuid.test(id)) throw new MatchActionError(404, "Match not found.");
@@ -35,7 +31,7 @@ export async function matchAction(pool: Pool, id: string, actor: string, action:
       }
       const one = m.player_one_ready || actor === m.player_one_id;
       const two = m.player_two_ready || actor === m.player_two_id;
-      const duration = { easy: 300, medium: 900, hard: 1800 }[m.difficulty as "easy" | "medium" | "hard"];
+      const duration = MATCH_DURATION_SECONDS[m.difficulty as Difficulty];
       await db.query(`UPDATE matches SET player_one_ready=$2,player_two_ready=$3,
         status=CASE WHEN $2 AND $3 THEN 'active' ELSE 'pending' END,
         started_at=CASE WHEN $2 AND $3 THEN $4::timestamptz ELSE NULL END,

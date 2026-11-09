@@ -1,5 +1,6 @@
 import { isDeepStrictEqual } from "node:util";
 import type { ScoredSubmission } from "./scoring";
+import { MAX_SOLUTION_LENGTH } from "./solution-validation";
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -148,7 +149,7 @@ export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch
         })
       : [];
     if (!request || typeof request !== "object" || Array.isArray(request) ||
-        typeof request.source !== "string" || !request.source.trim() || request.source.length > 65_536 ||
+        typeof request.source !== "string" || !request.source.trim() || request.source.length > MAX_SOLUTION_LENGTH ||
         typeof request.functionName !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(request.functionName) ||
         !Number.isFinite(request.submittedAtMs) || request.submittedAtMs < 0 ||
         !Array.isArray(request.tests) || !request.tests.length || request.tests.length > 1000 ||

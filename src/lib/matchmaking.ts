@@ -1,6 +1,8 @@
 import type { Account } from "./auth";
 
 export type Difficulty = "easy" | "medium" | "hard";
+export const DIFFICULTIES: readonly Difficulty[] = ["easy", "medium", "hard"];
+export const MATCH_DURATION_SECONDS: Record<Difficulty, number> = { easy: 300, medium: 900, hard: 1800 };
 export const difficultyFor = (rating: number): Difficulty => rating < 1200 ? "easy" : rating < 1600 ? "medium" : "hard";
 export const ratingBand = (waitMs: number) => Math.min(800, 100 + Math.floor(Math.max(0, waitMs) / 10_000) * 50);
 export type MatchTicket = { id: string; difficulty: Difficulty };

@@ -2,7 +2,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "./ui";
 import { DuelFeedback, useDuelFeedback } from "./duel-feedback";
-import type { QueueEvent } from "../lib/matchmaking";
+import { DIFFICULTIES, type QueueEvent } from "../lib/matchmaking";
 import Link from "next/link";
 
 function searchDuration(seconds: number) {
@@ -129,7 +129,7 @@ export function Play({ signedIn }: { signedIn: boolean }) {
           // A parsed frame is still untrusted runtime data. Validate before
           // notifying, moving focus or constructing a navigation destination.
           if (!data.match || typeof data.match.id !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(data.match.id)
-            || !["easy", "medium", "hard"].includes(data.match.difficulty)
+            || !DIFFICULTIES.includes(data.match.difficulty)
             || !data.opponent || typeof data.opponent.username !== "string" || !data.opponent.username.trim()
             || typeof data.opponent.rating !== "number" || !Number.isFinite(data.opponent.rating) || data.opponent.rating < 0) {
             throw new Error("Invalid match confirmation");
@@ -154,10 +154,13 @@ export function Play({ signedIn }: { signedIn: boolean }) {
     </>}
     {signedIn && <DuelFeedback feedback={feedback} />}
     {matchId && <Link ref={arenaLink} aria-describedby={guidanceId} className="button button--primary" href={`/match/${matchId}`}>Open arena</Link>}
-    {phase === "queued" && queueStats && <dl className="queue-stats" aria-label="Current search details" aria-live="off">
-      <div><dt>Time searching</dt><dd><span aria-hidden="true">{searchDuration(queueStats.waitedSeconds).compact} elapsed</span><span className="sr-only">{searchDuration(queueStats.waitedSeconds).spoken} elapsed</span></dd></div>
-      <div><dt>Rating range</dt><dd>±{queueStats.ratingBand} points</dd></div>
-    </dl>}
+    {phase === "queued" && queueStats && (() => {
+      const duration = searchDuration(queueStats.waitedSeconds);
+      return <dl className="queue-stats" aria-label="Current search details" aria-live="off">
+        <div><dt>Time searching</dt><dd><span aria-hidden="true">{duration.compact} elapsed</span><span className="sr-only">{duration.spoken} elapsed</span></dd></div>
+        <div><dt>Rating range</dt><dd>±{queueStats.ratingBand} points</dd></div>
+      </dl>;
+    })()}
     <p id={guidanceId} className="availability" role="status">{message}</p>
   </div>;
 }

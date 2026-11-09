@@ -1,6 +1,7 @@
 import type { Pool } from "pg";
 import { reserveMatch } from "./matchmaking-store";
 import { difficultyFor } from "./matchmaking";
+import { transaction } from "./db";
 
 export class RematchError extends Error {
   constructor(message: string, public status = 409) { super(message); }
@@ -9,9 +10,7 @@ export type RematchState = { status: string; outgoing: boolean; expiresAt: strin
 export async function rematch(db: Pool, id: string, userId: string, action = 'view'): Promise<RematchState> {
   if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) throw new RematchError('Match not found.',404);
   if (!['view','invite','accept','decline','cancel'].includes(action)) throw new RematchError('Invalid action.',400);
-  const c = await db.connect();
-  try {
-    await c.query('BEGIN');
+  return transaction(db, async c => {
     // Serialize every invitation action, including duplicate acceptance.
     const {rows:[m]} = await c.query(`SELECT player_one_id,player_two_id FROM matches WHERE id=$1
       AND $2 IN (player_one_id,player_two_id) AND status='completed' AND completed_at<=now() FOR UPDATE`,[id,userId]);
@@ -47,9 +46,7 @@ export async function rematch(db: Pool, id: string, userId: string, action = 'vi
       }
     }
     const {rows:[clock]} = await c.query('SELECT clock_timestamp() AS now');
-    await c.query('COMMIT');
     return {status:!inv?'none':inv.status==='pending' && inv.expired?'expired':inv.status,
       outgoing:inv?.sender_id===userId,expiresAt:inv?new Date(inv.expires_at).toISOString():null,matchId:inv?.rematch_id??null,serverNow:new Date(clock.now).toISOString()};
-  } catch (error) { await c.query('ROLLBACK'); throw error; }
-  finally { c.release(); }
+  });
 }

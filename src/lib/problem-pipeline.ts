@@ -2,12 +2,13 @@ import { createHash } from "node:crypto";
 import type { Pool } from "pg";
 import type { JudgeRequest, JudgeTest } from "./judge";
 import type { ScoredSubmission } from "./scoring";
+import { DIFFICULTIES, type Difficulty } from "./matchmaking";
 
 type ArgumentGenerator = { kind: "integer"; min: number; max: number } |
   { kind: "integer-array"; min: number; max: number; minLength: number; maxLength: number };
 export interface ProblemDraft {
   slug: string; title: string; statement: string; functionSignature: string; functionName: string;
-  difficulty: "easy" | "medium" | "hard"; topics: string[]; constraints: string;
+  difficulty: Difficulty; topics: string[]; constraints: string;
   examples: { args: JudgeTest["args"]; expected: JudgeTest["expected"]; explanation: string }[];
   referenceSolution: string; bruteForceSolution: string;
   generator: { seed: number; args: ArgumentGenerator[] };
@@ -28,7 +29,7 @@ export function parseProblemDraft(input: unknown): ProblemDraft {
   }
   if (!/^[a-z][a-z0-9-]{1,79}$/.test(draft.slug) || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(draft.functionName) ||
       !draft.functionSignature.startsWith(`def ${draft.functionName}(`) ||
-      !["easy", "medium", "hard"].includes(draft.difficulty) ||
+      !DIFFICULTIES.includes(draft.difficulty) ||
       !Array.isArray(draft.topics) || !draft.topics.length || !draft.topics.every(t => typeof t === "string" && t.length > 0 && t.length <= 80) ||
       !integer(draft.cpuLimitMs, 100, 30_000) || !integer(draft.memoryLimitKb, 16_384, 262_144)) fail();
   if (!draft.generator || !integer(draft.generator.seed, 0, 0xffffffff) || !Array.isArray(draft.generator.args) ||

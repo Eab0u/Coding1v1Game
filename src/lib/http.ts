@@ -1,3 +1,12 @@
+import type { NextRequest } from "next/server";
+
+/** Returns the trusted origin if it matches the request's Origin header, else null. */
+export function requireSameOrigin(request: NextRequest): string | null {
+  const origin = process.env.APP_ORIGIN || (process.env.NODE_ENV !== "production" ? request.nextUrl.origin : "");
+  if (!origin || request.headers.get("origin") !== origin) return null;
+  return origin;
+}
+
 /** Reads a request body while enforcing a byte cap on the stream itself, since Content-Length
  * can be absent (e.g. chunked transfer-encoding) or forged. Returns null if the cap is exceeded. */
 export async function readBoundedText(request: Request, maxBytes: number): Promise<string | null> {

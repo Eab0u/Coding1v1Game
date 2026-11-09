@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../../../lib/auth-server";
 import { AuthError, SESSION_COOKIE, SESSION_SECONDS } from "../../../../lib/auth";
-import { readBoundedText } from "../../../../lib/http";
+import { readBoundedText, requireSameOrigin } from "../../../../lib/http";
 export const runtime = "nodejs";
 export async function POST(request: NextRequest, context: { params: Promise<{ action: string }> }) {
   const { action } = await context.params;
-  const origin = process.env.APP_ORIGIN || (process.env.NODE_ENV !== "production" ? request.nextUrl.origin : "");
-  if (!origin || request.headers.get("origin") !== origin) return new NextResponse("Forbidden", { status: 403 });
+  const origin = requireSameOrigin(request);
+  if (!origin) return new NextResponse("Forbidden", { status: 403 });
   if (!["signup", "login", "logout"].includes(action)) return new NextResponse("Not found", { status: 404 });
   const redirect = (error?: string) => NextResponse.redirect(new URL(`/account${error ? `?error=${encodeURIComponent(error)}` : ""}`, origin), 303);
   try {
