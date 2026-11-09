@@ -16,7 +16,7 @@ Friend requests and accepted friendships are available at /friends, with authent
 
 Mobile layout polish is implemented for the existing home, account, profile and leaderboard pages, with Chromium regression coverage for narrow phones through desktop widths. Arena and results now have responsive browser checks; Monaco interaction still needs a live deployment smoke check.
 
-The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. The original problem catalog is still pending; no real catalog problems have been published.
+The problem pipeline is implemented: deterministic small-input generation, sandbox-only solution validation and immutable publication. Twenty original drafts, Relay Balance Window (medium), Spaced Beacon Pairs (easy), Signal Rise Debt (medium), Channel Budget Windows (medium), Delayed Drop Pairs (medium) Relay Cooldown Score (easy) Buffered Signal Gain (easy) Beacon Horizon Wait (medium) Relay Cycle Intervals (medium) Relay Balanced Cuts (easy) Relay Prefix Diversity (easy) Relay Floor Repair (easy) Relay Parity Streak (easy) Relay Order Conflicts (medium) Relay Load Capacity (medium) Relay Missing Slot (easy) Relay Unique Span (medium) Relay Target Bursts (medium) Relay Channel Chain (medium) and Relay Basin Storage (medium), are in problems/drafts with fixture tests and authoring notes. Their Python solutions and resource limits still need sandbox validation; no real catalog problems have been published.
 
 Public player profiles now show rating graphs, tier badges, full win/loss/draw records and recent match history at /profile/<username>. Public global and weekly leaderboards are available at /leaderboard, linked from the home page. The home dashboard now connects signed-in players to matchmaking, displays current ratings, win streaks, recent completed duels and a published daily challenge (with honest empty states). Authenticated WebSocket matchmaking now pairs players within widening rating bands and persists recoverable pending match tickets. Username/password authentication, database-backed sessions, application foundation, design system, tested match scoring and Glicko-2 rating calculations are in place: Next.js App Router, Postgres schema, reusable UI primitives, dark theme tokens and a responsive entry page. A tested Judge0 sandbox adapter produces scorer-compatible results. Published problems and live sandbox/database deployment verification remain pending.
 
@@ -29,7 +29,7 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 - SQL migrations are transactional and tracked in Postgres. PGlite executes schema tests without an external database.
 
 ## Blockers
-- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace has only .env.example and no configured sandbox. Catalog validation remains blocked.
+- Problems 1-20 passing validation and problems 21-60 require an isolated Judge0 deployment; this workspace now has a .env, but the configured Judge0 sandbox remains unavailable (the Relay Basin Storage validation command returned JudgeUnavailableError again on this run). Catalog validation remains blocked.
 - Docker daemon is not running in this environment, so Docker Postgres startup and the network migration runner were not exercised. The SQL itself passes embedded Postgres tests.
 - npm audit reports 8 moderate development dependency findings through typescript-eslint/minimatch; no production dependency findings. Revisit when upstream tooling updates; no forced major downgrade applied.
 
@@ -37,6 +37,2206 @@ Public player profiles now show rating graphs, tier badges, full win/loss/draw r
 Configure an isolated Judge0 instance and author/validate problems 1?20 to enable pairing. Smoke-test migrations, the lifecycle worker, real Postgres concurrent settlement and sandbox isolation/resource enforcement before public ranked play. Live rematch and concurrent matchmaking smoke checks follow.
 
 ## Log
+### 2026-11-07 - Starter-reset focus after match closure
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still cannot reach the isolated Judge0 sandbox. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one keyboard recovery item.
+- Kept starter Reset visible and keyboard-focusable after match closure with existing unavailable styling and editor-specific read-only copy/download guidance. Closing a focused reset confirmation returns focus to Reset, invalidates replacement consent and clears expanded-state ownership; focus elsewhere remains untouched.
+- Added both-mode tests for each confirmation action, repeated read-only recovery, unchanged drafts/settings, unavailable activation and independent-editor focus. Updated earlier tests for the retained unavailable control.
+- Validation: all 1,849 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused editor tests (106), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Explain editor mode choices
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still cannot reach the isolated Judge0 sandbox. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
+- Added styled visible guidance explaining advanced-mode highlighting/suggestions, plain-mode indentation controls, draft/settings preservation, no submission on switching and continued switching after match end. The mode switch references stable editor-specific guidance alongside any preference-saving recovery notice.
+- Added regression coverage for both starting modes, independent editor descriptions, preserved drafts, text size, wrapping and keyboard focus through repeated read-only recovery, saved mode preferences and storage failure/recovery.
+- Validation: all 1,846 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused editor tests (103), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Explain text-size reset
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still cannot reach the isolated Judge0 sandbox. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
+- Extended styled text-size guidance to explain the default 15px size, why Reset is unavailable at that size, and continued availability after match end. Reset now references the same isolated guidance as the size adjustment controls, retaining storage-recovery descriptions.
+- Added both-mode regression coverage for independent editor descriptions, reset availability, preserved keyboard focus, repeated read-only recovery, unchanged drafts and saved preferences.
+- Validation: all 1,843 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused editor tests (100), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+### 2026-11-07 - Visible solution copy guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one copy usability item.
+- Added styled visible guidance explaining current-draft clipboard replacement without submission, browser permission prompts, manual copy/download recovery and availability after match end. Copy references isolated editor-specific guidance before use and restores it when draft edits clear stale completion notices; pending, success and failure descriptions remain intact.
+- Added both-mode regression coverage for isolated descriptions, repeated read-only transitions, preserved focus, failure/retry recovery, unchanged drafts and saved preferences. Updated existing clipboard tests to expect restored guidance after edits.
+- Validation: all 1,841 tests across 75 files passed with `npm test -- --maxWorkers=2`; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Visible solution download guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one export usability item.
+- Added styled visible guidance explaining current-draft export as solution.py, browser download recovery and availability after match end. Download references isolated editor-specific guidance before use and restores it after stale result notices clear; success and failure descriptions remain intact.
+- Added regression coverage for independent descriptions, both editor modes, repeated read-only recovery, preserved focus, unchanged drafts and saved preferences. Updated existing download tests to expect restored guidance after edits.
+- Validation: all 1,839 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused solution-editor tests (96), lint, typecheck and production build passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Visible line-wrapping guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
+- Added styled wrapping guidance beside its control, explaining horizontal scrolling when wrapping is off and that wrapping preserves code and indentation. Stable editor-specific accessible descriptions retain preference-saving recovery guidance when storage is unavailable.
+- Added regression coverage for independent editor descriptions, both editor modes, read-only recovery, unchanged code, keyboard focus and persisted preferences.
+- Validation: all 1,837 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused solution-editor tests (94), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Visible editor mode preference
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
+- Added a visible preferred-mode badge beside the editor switch and an accent selected state for plain mode. The badge wraps on narrow layouts and describes the preference accurately even when advanced loading falls back to plain text. Existing accessible action names and pressed state remain intact.
+- Added editable/read-only regression coverage for repeated switching, visible styled states, accessible names, keyboard focus, unchanged code and persisted mode preferences.
+- Validation: all 1,835 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused solution-editor tests (92), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Visible indentation shortcuts
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability item.
+- Added styled visible indentation guidance beside the plain editor controls, explaining current-line/selection behavior, four-space indentation, leading-tab removal, keyboard shortcuts and Tab navigation. Both controls reference their own editor's guidance; read-only mode substitutes its existing unavailable explanation.
+- Added regression coverage for independent descriptions, visible styling, repeated read-only recovery, preserved focus, backward selection and unchanged drafts. Updated existing recovery assertions to verify restored shortcut guidance.
+- Validation: all 1,833 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused plain-editor tests (237), lint, typecheck, production build and whitespace checks passed. Corrected two outdated description assertions before the successful full-suite rerun.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Select-all clipboard guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability improvement.
+- Added visible styled guidance beside Select all code explaining that it focuses and selects the whole draft, that Ctrl+C / Cmd+C copies it, and that selection alone does not change the clipboard. Each button references its own editor's guidance.
+- Added regression coverage for stable, independent accessible descriptions, whole-draft selection and focus, unchanged code and independent-editor selection through editable/read-only/recovery transitions.
+- Validation: all 1,832 tests across 75 files passed with `npm test -- --maxWorkers=2`; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Code-field read-only notice association
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility improvement.
+- The plain Python code field now references its own styled visible read-only notice alongside the existing keyboard, cursor and size guidance. Returning to editable mode removes the notice reference without replacing the field.
+- Added regression coverage for repeated read-only/recovery transitions, independent-editor ownership, stale-reference removal, preserved focus and backward selection, unchanged code and no change callback.
+- Validation: all 1,831 tests across 75 files passed with `npm test -- --maxWorkers=2`; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Read-only indentation focus and guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility improvement.
+- Plain-editor Indent and Outdent now remain keyboard-focusable when read-only, using the existing unavailable styling and a stable, editor-specific description linked to the visible read-only notice. Activation cannot edit code or move focus while unavailable; editable behavior returns when read-only ends.
+- Added regressions for both controls covering focus across state transitions, unchanged code and backward selection, independent-editor descriptions, and recovery. Updated existing assertions for the accessible unavailable state and revised visible guidance.
+- Validation: all 1,830 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused plain-editor tests (234), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Advanced editor read-only guidance
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor usability improvement.
+- Added the existing styled read-only notice to the advanced editor and replaced unavailable indentation instructions with keyboard copy and solution copy/download guidance while read-only. Editable guidance returns when editing resumes.
+- Updated keyboard-navigation tests and added state-transition regression coverage for notice appearance/removal, preserved editor identity/focus, unchanged code and text preferences, and no change callback during transitions. Monaco behavior is covered through the component fixture; live Monaco smoke checks remain pending.
+- Validation: all 1,828 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused advanced-editor tests (3), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Editor text-size limit guidance
+- Initial catalog validation remains blocked: `npm run problems -- validate problems/drafts/relay-basin-storage.json` failed because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor improvement.
+- Added styled, visible 12 to 24px range guidance with specific minimum/maximum explanations and recovery instructions. Both size buttons reference stable, editor-specific descriptions while retaining preference-storage recovery guidance.
+- Added regressions for both editor modes covering boundary feedback, recovery after reset, focus preservation, unchanged code and independent editors. Updated storage-error assertions to verify recovery descriptions alongside size guidance.
+- Validation: all 1,827 tests across 75 files passed with `npm test -- --maxWorkers=2`; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Visible editor wrapping state
+- Selected initial catalog validation first; `npm run problems -- validate problems/drafts/relay-basin-storage.json` still fails because the isolated Judge0 sandbox is unavailable. Catalog milestones remain unchecked; no Python solutions ran on the host. Followed the blocker rule and added/completed one visual improvement.
+- Line wrapping now has a visible On/Off badge and an accent border and green badge when enabled. The accessible toggle name stays stable and aria-pressed exposes its state without duplicating the decorative badge.
+- Added editable/read-only regressions for both editor modes, displayed states, actual wrapping, unchanged code and retained focus; restored-preference tests also check the visible On state.
+- Validation: all 1,825 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused editor coverage passed (88 tests). Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Draft-reading retry feedback
+- Retried initial catalog validation with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. Followed the blocker rule and added/completed one draft-recovery feedback item. No draft Python ran on the host.
+- Failed reading retries now update an amber, politely announced message with the attempt number and confirmation that earlier saved code remains protected and automatic saving is paused. Recovery actions include the feedback in their accessible descriptions. Focus stays on Retry while storage remains unavailable.
+- Extended both-editor regressions for repeated failures, unchanged code/storage, leave protection, accessible feedback, focus and successful recovery. Feedback clears after reading/saving recovery and is hidden while editing or after match closure.
+- Validation: all 1,823 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused arena coverage passed (172 tests). Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the initial catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Prominent arena draft storage warnings
+- Retried catalog validation with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one visual and accessibility improvement.
+- Added amber warning headings distinguishing an unsaved current draft from unread earlier code that needs protection. Both recovery actions reference the heading and detailed guidance. Warnings clear after saving or match closure without changing storage or submission behavior.
+- Updated both-editor regressions for heading styles, accessible descriptions, repeated read failures, editing and successful recovery with preserved focus.
+- Validation: all 1,823 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused arena coverage passed (172 tests). Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 and validate the initial catalog; existing infrastructure blockers remain.
+
+### 2026-11-07 - Keyboard draft-save recovery
+- Selected catalog validation first and retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. Followed the blocker rule and added/completed one keyboard draft-recovery item; no draft Python ran on the host.
+- Ctrl+S and Command+S now retry local saving from either arena editor, with visible shortcut and automatic-saving guidance. The shortcut prevents the browser save-page dialog, preserves editor focus, and never submits code.
+- Shared the existing replacement confirmation with the retry button. Cancellation preserves unread code and each shortcut retry requires fresh consent. Repeated keydown events cannot reopen confirmations; unrelated modifiers, IME input and keys outside the editor are ignored. Saved drafts avoid redundant writes and ended matches cannot recreate recovery storage.
+- Added both-editor failure/recovery, cancellation, fresh consent, focus, modifier and no-submission regressions, plus completed/cancelled-match checks.
+- Validation: all 1,821 tests across 75 files passed with `npm test -- --maxWorkers=2`; focused arena coverage passed (170 tests). Lint, typecheck, production build and whitespace checks passed. The initial full-concurrency run suffered a judge-test worker crash; the bounded-concurrency rerun passed without errors.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Confirm unread draft replacement
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one draft-safety item.
+- Retry saving draft now asks for browser confirmation before replacing an unread saved draft, warning that earlier code will be lost and saving does not submit. Visible recovery guidance explains cancellation.
+- Cancelling preserves stored code, current edits, leave protection and keyboard focus. Each replacement attempt requires fresh consent, including after edits or failed saves. Ordinary failed-save recovery needs no confirmation.
+- Added both-editor cancellation, repeated-consent, replacement, focus and no-submission coverage. Updated existing failed-write tests to authorize replacement and verified ordinary save retries avoid confirmation.
+- Validation: all 1,815 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native confirmation presentation follows the browser; existing infrastructure blockers remain.
+
+### 2026-11-07 - Recover unread drafts without replacement
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one draft-recovery item.
+- Added Retry reading draft while the editor still contains starter code after a storage read failure. Successful reads recover earlier code and resume autosaving; an empty slot resumes starter saving. Failed reads preserve unread storage, current code and keyboard focus.
+- Associated styled recovery guidance with the new action. Successful recovery focuses the stable saved confirmation. Editing hides the read action to protect current work; closed matches offer no recovery actions.
+- Added both-editor regression coverage for repeated failure, recovery without destructive writes or submission, accessible guidance, focus and edit protection, plus empty-slot recovery.
+- Validation: all 1,812 tests across 75 files passed. Final focused arena coverage passed (162 tests), including the additional empty-slot test. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Guard unread draft recovery on exit
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog items remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one draft-safety item.
+- Unfinished arenas now register browser leave/reload protection immediately after a failed saved-draft read, even when the editor still contains untouched starter code. Existing amber recovery guidance explains the possible browser confirmation.
+- Failed explicit saves retain protection and focus. Successfully saving the starter clears protection; later edits restore it. Confirmed completed/cancelled matches and unmount remove the listener.
+- Added both-editor regression coverage for untouched starter recovery, failed/successful saves, accessible guidance, focus, subsequent edits and cleanup, plus server-confirmed closure tests.
+- Validation: all 1,808 tests across 75 files passed; focused arena coverage passed (157 tests), including the final guidance text. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Browser-specific confirmation behavior and existing infrastructure blockers remain.
+
+### 2026-11-07 - Protect unread arena drafts
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one draft-safety item.
+- Fixed automatic starter/current-code writes after a failed session-storage read. A failed read now pauses autosaving so an unread earlier draft remains intact through editing. Amber accessible guidance explains the pause and that explicit Retry saving draft replaces the unread slot with current editor code.
+- Failed explicit retries preserve the earlier stored draft, current edits and focus. Successful retries resume autosaving and focus the saved confirmation without submitting code.
+- Added regression coverage in advanced and plain editor modes for failed reads with working writes, editing while paused, failed and successful explicit replacement, accessible guidance, focus and subsequent autosaving.
+- Validation: all 1,804 tests across 75 files passed; focused arena coverage passed (153 tests). Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live browser storage checks and existing infrastructure blockers remain.
+
+### 2026-11-07 - Retry arena draft recovery
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one draft recovery item.
+- Added Retry saving draft after browser storage failures, using the current match/player-scoped code without requiring edits or submitting it. Amber recovery guidance explains keeping the tab open, downloading code and the distinction between saving and submitting.
+- Failed retries preserve code and keyboard focus; successful retries focus the stable saved confirmation when the retry button held focus. Recovery actions disappear when the server closes the match, while code remains available for export.
+- Added regression coverage in both editor modes for repeated failure, exact current-draft storage, accessible guidance, focus, successful recovery without submission and completed/cancelled match cleanup.
+- Validation: all 1,802 tests across 75 files passed; focused arena coverage passed (151 tests). Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live browser storage recovery checks and existing infrastructure blockers remain.
+
+### 2026-11-07 - Explain completion of older clipboard drafts
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one clipboard recovery item.
+- Clipboard requests completing after edits now explain that an earlier draft was copied, with an amber accent and explicit current-solution copy guidance. Failed requests identify their earlier-draft context. Feedback describes the Copy action, preserves focus and code, and clears on further edits or a fresh request.
+- Updated regression coverage for success/failure, edit-and-restore revisions, duplicate prevention, both editor modes, focus, accessible descriptions, styling and fresh-current-draft retries. Existing editor isolation and timer coverage remain passing.
+- Validation: all 1,798 tests across 75 files passed; focused editor coverage passed (86 tests), including final styling assertions. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live clipboard/browser checks and existing infrastructure blockers remain.
+
+### 2026-11-07 - Refresh clipboard recovery after suspension
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor recovery item.
+- Pending clipboard requests now check their elapsed ten-second deadline on window focus and document visibility changes. Resuming a suspended tab immediately restores overdue recovery guidance even when browser timers have not run, preserving the existing amber treatment, accessible description, draft and keyboard focus.
+- Added advanced/plain-editor regression coverage for the exact resume boundary without executing timers, both resume events, duplicate prevention, fresh request deadlines, completion recovery and timer/listener cleanup.
+- Validation: all 1,796 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed. Focused editor coverage passed (84 tests).
+- Next: restore isolated Judge0 availability and validate the original catalog. Live browser clipboard checks and existing infrastructure blockers remain.
+
+### 2026-11-07 - Explain stalled clipboard requests
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one export recovery item.
+- Pending clipboard requests now show prominent amber guidance after ten seconds: check browser permissions, download or manually copy the solution, and understand that a later completion can replace clipboard contents. The request remains pending to prevent overlapping writes; drafts and keyboard focus are preserved.
+- Added advanced/plain-editor regression coverage for the exact delay boundary, stable accessible descriptions, duplicate prevention, changed drafts, fresh requests, completion cleanup and unmount timer cleanup.
+- Validation: all 1,794 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed. Focused editor coverage passed again after final wording refinement.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live clipboard/browser checks and existing infrastructure blockers remain.
+
+### 2026-11-07 - Highlight solution export recovery
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one visual recovery item.
+- Copy and download failures now have prominent danger-colored headings above their recovery guidance. Existing alert announcements and action descriptions retain their full text, and success clears the failure heading.
+- Added advanced/plain-editor regression coverage for heading semantics and styling hooks, accessible descriptions, keyboard focus through failures and successful retries, and preservation of solution contents.
+- Validation: all 1,792 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live browser and screen-reader checks and existing infrastructure blockers remain.
+
+### 2026-11-07 - Clarify pending clipboard drafts
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor feedback improvement.
+- Pending solution copies now use a padded amber notice. Editing during a pending clipboard request adds explicit earlier-draft guidance and explains how to copy the current solution after settlement. Revision tracking keeps that warning accurate even when an earlier draft is restored, and existing stale completion suppression remains intact.
+- Added advanced/plain-editor regression coverage for notice styling, stable accessible descriptions, focus preservation, edit/restore behavior, exact copied contents and fresh-copy recovery.
+- Validation: all 1,790 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live browser/clipboard permission smoke checks and existing infrastructure blockers remain.
+
+### 2026-11-07 - Distinguish destructive starter replacement
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one visual improvement.
+- Starter-reset confirmation now has a visible warning heading, danger-colored border and distinct outlined replacement action. The safe Keep action retains initial focus, and both actions retain their accessible consequence descriptions and existing keyboard recovery.
+- Updated regression coverage for the warning treatment in advanced/plain modes. Fixed a rematch focus test's dependence on real polling time by explicitly advancing fake timers after sending; focused editor/rematch coverage passes (162 tests).
+- Validation: all 1,788 tests across 75 files passed on rerun; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog; browser/screen-reader smoke checks and existing infrastructure blockers remain.
+
+### 2026-11-07 - Expose reset confirmation state and ownership
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python executed on the host. Followed the blocker rule and added/completed one editor accessibility item.
+- Reset to starter code now exposes aria-expanded and references its owning confirmation through an editor-specific stable ID while open. Closing or invalidating the confirmation clears the relationship, avoiding references to removed content. Existing keyboard focus and draft preservation behavior remain intact.
+- Added advanced/plain-editor regression coverage for reopening, cancellation, changed drafts/starters, matching starter code, replacement and independent editor targets.
+- Validation: all 1,788 tests across 75 files passed, including all 76 solution-editor tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native screen-reader smoke checks and existing infrastructure blockers remain.
+
+### 2026-11-07 - Cancel pending resets throughout the editor
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor keyboard recovery item.
+- Escape now dismisses a pending starter-code reset from anywhere in its owning editor, including the code field and toolbar, and restores focus to Reset. Visible confirmation guidance explains the shortcut. Capture handling works before advanced-editor key handlers; composing/key-code-229 events and Escape without a pending reset retain their normal behavior.
+- Added advanced/plain-editor regression coverage for code-field and toolbar cancellation, preserved drafts, restored focus, independent confirmations and IME events.
+- Validation: all 1,785 tests across 75 files passed, including all 73 solution-editor tests; lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native Monaco and screen-reader smoke checks remain useful; existing infrastructure blockers remain.
+
+### 2026-11-07 - Explain unavailable starter reset
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
+- Reset to starter code now remains keyboard-focusable when the current solution matches the starter, with guarded activation, consistent unavailable styling and a padded visible explanation associated only with its owning editor. Editing enables reset and removes stale guidance; replacement starter code restores the same stable description when appropriate. Read-only editors omit both the action and explanation.
+- Updated reset assertions and added advanced/plain-editor regression coverage for focus, no-op activation, changing drafts/starters, description cleanup and multiple-editor isolation.
+- Validation: full suite passed (1,782 tests across 75 files); after adding one isolation regression, all 71 solution-editor tests passed. Lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native keyboard and screen-reader smoke checks remain useful; existing infrastructure blockers remain.
+
+### 2026-11-07 - Keep text-size controls keyboard accessible
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and selected one editor keyboard-accessibility improvement.
+- Text-size decrease, increase and reset controls now remain keyboard-focusable when their action is unavailable. They expose aria-disabled and use the existing dimmed disabled styling while guarding activation, preserving focus at 12px/24px and after resetting to 15px. Repeated activation leaves preferences and storage untouched.
+- Updated boundary tests and added editable/read-only regression coverage for focus, accessible unavailable state, tab order, redundant-write prevention, preserved code and switching editors.
+- Validation: all 1,780 tests across 75 files passed, including all 68 solution-editor tests; lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native keyboard and screen-reader smoke checks remain useful; existing infrastructure blockers remain.
+
+### 2026-11-07 - Retry unchanged editor preferences
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor recovery item.
+- Added a styled Retry saving preferences action associated with the existing editor-specific recovery guidance. Players can save their current settings without changing text size, wrapping or editor mode. Repeated failures preserve the button and keyboard focus; successful recovery clears stale guidance and transfers focus from the removed button to its editor group without interrupting independent navigation.
+- Added editable/read-only regression coverage for repeated failure, successful recovery, exact saved settings, preserved private drafts, independent editors and keyboard focus.
+- Validation: all 1,778 tests across 75 files passed, including all 66 solution-editor tests; lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native browser storage restrictions and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
+### 2026-11-07 - Accessible editor preference storage recovery
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
+- Preference storage failure guidance now uses the padded amber recovery surface and explains that changing text size, wrapping or editor mode retries preference saving while preserving the solution. Each preference control references its own editor's stable, politely announced guidance; successful saving removes stale descriptions.
+- Added editable/read-only regression coverage for independent editors, repeated saving failure, successful recovery, stable descriptions and preserved code and keyboard focus.
+- Validation: all 1,776 tests across 75 files passed, including all 64 solution-editor tests; lint, production build, typecheck and whitespace checks passed. Reran typecheck after the build resolved a generated Next.js file race.
+- Next: restore isolated Judge0 availability and validate the original catalog. Browser storage restrictions and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
+### 2026-11-07 - Accessible advanced editor recovery
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor recovery accessibility and visual polish item.
+- Advanced-editor failure guidance now has a padded surface and amber border. Retry references its editor's stable, politely announced explanation that the current solution and preferences are preserved. Plain-text fallback remains usable while the advanced editor is unavailable.
+- Extended editable/read-only tests for description stability, repeated failure, successful retry, preserved code/preferences and recovery focus. Added multiple-editor isolation and stale-description cleanup when switching to plain text.
+- Validation: all 1,774 tests across 75 files passed, including all 62 solution-editor tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Live Monaco loading failures and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
+### 2026-11-07 - Accessible clipboard completion guidance
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Catalog milestones remain unchecked; no draft Python ran on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
+- Copy completion notices now use padded surfaces with green success or danger failure borders. Each Copy button references its own visible result, replacing pending permission guidance after settlement. Draft changes permanently clear stale result descriptions without moving focus.
+- Added editable/read-only coverage for failure/retry, editor switching, draft replacement/restoration and independent editor descriptions. Updated pending-copy regression expectations to verify completion guidance replaces permission guidance while independent keyboard focus remains intact.
+- Validation: all 1,773 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native clipboard permissions and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
+### 2026-11-07 - Accessible download recovery guidance
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; Judge0 remains unavailable. Catalog milestones stay unchecked; no draft Python executed on the host. Followed the blocker rule and added/completed one editor accessibility and visual polish item.
+- Download actions now reference their visible save or retry guidance with stable, editor-specific accessible descriptions. Notices have a padded surface and green success or danger failure border; stale descriptions clear with draft changes while focus stays on the action.
+- Updated editable/read-only regression coverage for descriptions, styling, editor switching, replacement and failure/retry; added multiple-editor isolation and independent clipboard feedback coverage.
+- Validation: all 1,770 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Browser save prompts and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
+### 2026-11-07 - Solution download request feedback
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor usability item. Successful download requests now show a polite, atomic notice directing players to browser downloads and possible save prompts, without claiming the browser saved a file. Notices track the downloaded draft revision and disappear permanently after draft replacement.
+- Added editable/read-only regression coverage for guidance, keyboard focus, editor switching, draft replacement/restoration and failure/retry recovery. Existing exact-source, resource cleanup and download failure tests remain intact.
+- Validation: all 1,769 tests across 75 files passed, including all 57 solution-editor tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Actual browser save prompts and screen-reader speech remain manual smoke checks; existing infrastructure blockers remain.
+
+### 2026-11-07 - Keyboard access during clipboard permission
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor accessibility item. Copy now uses an accessible disabled state while pending, retaining keyboard focus and tab navigation while its existing synchronous guard prevents duplicate requests. Each pending button references its own visible permission/snapshot guidance; settlement removes that description without moving focus.
+- Updated busy button styling to retain the disabled appearance without hover/press effects. Added success/failure, retry, independent navigation and multiple-editor description/busy-state regression coverage; existing snapshot and stale-feedback tests remain intact.
+- Validation: full suite passed (1,766 tests across 75 files); after adding the final editor-isolation regression, all 55 solution-editor tests passed. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Native browser tab navigation and screen-reader announcements remain manual smoke checks; existing infrastructure blockers remain.
+
+### 2026-11-07 - Pending clipboard copy guidance
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor accessibility item. Pending copies now expose an accessible busy state and a polite, atomic notice explaining possible browser permission prompts, the captured solution snapshot and continued editing.
+- Added success/failure regression coverage for pending guidance stability across edits and editor switches, busy-state cleanup, exact copied source and suppression of stale completion feedback. Existing permission failure/retry and overlapping-copy tests remain intact.
+- Validation: all 1,764 tests across 75 files passed, including all 52 editor tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Actual screen-reader announcements remain a manual smoke check; existing infrastructure blockers remain.
+
+### 2026-11-07 - Accessible solution reset warning
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor accessibility item. The reset confirmation group and both actions now reference the visible replacement warning, so the initially focused Keep my solution action exposes the consequences and download guidance to assistive technology.
+- Added regression coverage for advanced/plain editors, initial focus, stable descriptions across preference changes, Escape cancellation and description removal, and independent IDs for multiple editors. Existing reset acceptance, edit invalidation and completed-match coverage also passes.
+- Validation: all 1,762 tests across 75 files passed; all 50 solution-editor tests, lint, typecheck, production build and whitespace checks passed. Actual screen-reader speech remains a manual smoke check.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Advanced editor keyboard navigation
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one editor accessibility item. Monaco now enables tab focus mode so Tab and Shift+Tab navigate between controls by default. Visible guidance explains Ctrl/Cmd bracket shortcuts for indentation without capturing navigation keys.
+- Added regression coverage for editable and read-only configurations, preservation through wrapping/font/read-only changes, current source propagation and change callbacks. Tests verify the Monaco integration contract; live browser Monaco keyboard interaction remains a deployment smoke check.
+- Validation: all 1,759 tests across 75 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Reject request accessors before judge validation
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one judge validation item. Required top-level request fields now come from own data descriptors before suite traversal, rejecting own and inherited accessors without invoking getters or accessing the network. Frozen requests remain supported and unrelated metadata is ignored.
+- Added regression coverage for all four required fields, inherited getters, consistent validation errors, no-network rejection, successful adapter reuse, frozen requests and accessor-backed metadata.
+- Validation: all 1,757 tests across 74 files passed, including all 140 judge tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Refresh recovery guidance on window focus
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Catalog milestones remain unchecked and no draft Python ran on the host.
+- Followed the blocker rule and added/completed one recovery improvement. Loading, route/root error and unavailable-page connection guidance now refreshes when the window regains focus after missed connection events. Loading also checks its elapsed deadline, preserving existing styling, stable announcements, manual recovery and keyboard focus.
+- Added regression coverage for missed offline/reconnection events, both recovery variants, overdue loading without timer delivery, stable controls/descriptions, listener cleanup and fresh reopening. Corrected a test-edit encoding issue before final validation.
+- Validation: all 1,752 tests across 74 files passed; all 19 focused recovery tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Reject accessor-backed judge suite fields
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item. Suite indices and test execution fields now use own property descriptors, rejecting accessors without invoking getters and excluding inherited fields. Frozen suites and test fields remain supported; unrelated accessor-backed test metadata is ignored. Updated the documented contract.
+- Added six regression cases covering suite-index and args/expected/benchmark accessors, inherited getters, frozen suites, ignored metadata, no-network rejection and successful adapter reuse.
+- Validation: full suite passed all 1,748 tests across 74 files; the final focused run also passed all 135 judge tests, including the subsequently added inherited-field regression. Lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Reject accessor-backed judge JSON
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item. JSON validation now inspects own property descriptors for array indices and enumerable object fields, rejecting accessors without invoking getters. This prevents values from changing between validation and execution snapshots while preserving frozen data properties and ignored non-enumerable object metadata. Updated the documented contract.
+- Added five regression cases covering accessors in nested argument/expected arrays and objects, no getter invocation, no-network rejection, successful adapter reuse, frozen JSON data and exact serialized sandbox arguments.
+- Validation: all 1,743 tests across 74 files passed. All 129 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Indexed judge array validation and snapshots
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item. Suite validation, benchmark selection and execution snapshots now use indexed entries without calling caller-defined iterators or mapping methods. Nested JSON arrays also validate and snapshot by index; sparse arrays are rejected even when custom iterators supply replacement values.
+- Added regression coverage for throwing suite/nested-array hooks, exact sandbox arguments, correct answers and benchmark CPU samples, sparse suites/arguments/expected answers, no-network rejection and successful adapter reuse. Updated the documented snapshot contract.
+- Validation: all 1,738 tests across 74 files passed; all 124 focused judge tests, lint, typecheck, production build and whitespace checks passed. Fixed the new test generator's return type after typecheck identified it, then reran focused tests and checks successfully.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Judge snapshots exclude unrelated metadata
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item. Execution snapshots now copy only validated suite fields and JSON values, excluding unrelated suite/test metadata, symbol keys and custom array properties. Uncloneable callbacks no longer reject valid suites, and array `toJSON` overrides cannot change sandbox arguments. Documented this contract.
+- Added regression coverage for unrelated function/symbol metadata, custom argument serialization, nested arrays, literal `__proto__` keys, unchanged caller data and benchmark scoring.
+- Validation: all 1,734 tests across 74 files passed on the final full run. All 120 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Judge credential and diagnostic configuration validation
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge configuration item. Optional auth tokens must be strings encodable as HTTP header values, and execution diagnostics must be functions. Invalid configuration now fails at adapter creation before network access with a generic, credential-safe RangeError rather than appearing as a sandbox outage or failing after execution.
+- Added regression coverage for malformed token types, header injection, NUL and unsupported header characters, malformed callbacks, omitted/empty/valid tokens and successful diagnostic delivery. Documented the configuration contract.
+- Validation: all 1,732 tests across 74 files passed; all 118 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - JSON signed-zero judge comparisons
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one scoring correctness item. Expected-answer snapshots and parsed sandbox output now normalize numeric negative zero to zero, matching the JSON arguments sent to Python. Nested answers retain exact structural comparison, and the original caller suite remains untouched. Documented the comparison rule.
+- Added regression coverage for positive/negative expected zero against Python-style `-0.0` output, nested answers, caller immutability, serialized arguments and incorrect-answer CPU penalties.
+- Validation: all 1,715 tests across 74 files passed on the final full-suite rerun. All 101 focused judge tests, lint, typecheck, production build and whitespace checks passed. The first full run passed 1,714 tests and failed one unrelated rematch focus assertion; all 86 rematch tests passed in an isolated rerun.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Recovery connection color cues
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one visual recovery item. Offline notices now use amber borders and headings; restored connections use green headings. Shared styling covers unavailable and route-error pages, with matching standalone root-error styles that work without the root layout.
+- Added connection-state regression assertions for initial, missed-event, restored and recurring outages. Added Chromium checks at 320px and 1280px for actual border/heading colors, repeated transitions, preserved keyboard focus and page overflow on route and standalone root errors. Existing text guidance and stable polite announcement regions remain intact.
+- Validation: all 1,711 tests across 74 files passed; focused component/browser tests (204 tests), lint, typecheck and production build passed. Browser styling tests use rendered fixtures; component tests exercise actual connection events.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Consistent top-level judge request validation
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge request validation item. Null, missing, primitive, function and array requests now receive the consistent RangeError before field access or network access. Arrays carrying otherwise valid request fields are also rejected. Documented the contract.
+- Added regression coverage for malformed top-level values, zero network calls on rejection and successful adapter reuse after rejection.
+- Validation: all 1,707 tests across 74 files passed; all 97 focused judge tests, lint, typecheck, production build and whitespace checks passed. Replaced a BigInt literal in the test with the constructor to support the repository's TypeScript target after checks caught it.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Bounded expanded judge JSON values
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge validation item. A request-wide budget of 1,000,000 expanded JSON values bounds traversal before cloning or network access, including repeated references across arguments, answers and suite entries. Array lengths are checked before iteration so enormous sparse arrays cannot force allocation. Documented the limit.
+- Added regression coverage for exponentially shared graphs in arguments and answers, zero network access on rejection, successful adapter reuse, the exact budget boundary, overflow across tests and enormous sparse arrays.
+- Validation: all 1,706 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 96 focused judge tests, lint, typecheck, production build and whitespace checks passed. Restarted the full suite after an overlapping run picked up the new sparse-array test with the earlier validator code.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Bounded judge JSON nesting
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge request validation item. Arguments and expected answers now permit at most 100 nested array/object containers, including the arguments array. Cyclic and excessively nested caller data receives the consistent request validation error before cloning, serialization or network access instead of exhausting the stack. Documented the bound.
+- Added regression coverage for cyclic arrays/objects and 10,000-level nesting in both arguments and expected answers, no network access on rejection, successful adapter reuse, the 100/101-container boundary and valid shared acyclic values.
+- Validation: all 1,702 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 92 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Consistent malformed judge suite rejection
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge validation item. Validate every suite entry before inspecting benchmark selection, so null, undefined and sparse entries produce the intended request validation error instead of an incidental property-access error. Explicitly reject array and primitive entries before network access.
+- Added regression coverage for malformed entries before/after valid benchmarks and alone, sparse suites with/without benchmarks, zero network access on rejection and successful adapter reuse. Updated the documented request contract.
+- Validation: all 1,699 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 89 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Strict judge benchmark metadata
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 service remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge correctness item. Requests now reject non-boolean benchmark flags and non-string function names before network access. Truthy malformed flags can no longer silently add tests to runtime scoring, and coercible function names cannot produce an invalid sandbox function lookup.
+- Added regression coverage for seven malformed benchmark values, five non-string function names and successful scoring with omitted, false and true flags. Documented the strict metadata contract.
+- Validation: all 1,691 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 81 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Stable judge submission snapshots
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 sandbox remains unavailable. Both catalog milestones remain unchecked, and no draft Python ran on the host.
+- Followed the blocker rule and added/completed one judge reliability item. Each execution now owns a deep snapshot of its validated test suite and the submission timestamp before network access. Caller mutations during requests cannot change nested inputs, expected answers, benchmark selection, test totals or submission-time tiebreakers. Documented the execution snapshot contract.
+- Added passing/failing-output regression cases that mutate nested data, replace the suite, append tests, switch benchmark flags and corrupt the timestamp/source/function during execution. Verified original sandbox inputs, all three benchmark runs, correctness and full failed-test CPU penalties.
+- Validation: all 1,678 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 68 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Stable sandbox configuration
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one judge reliability item. The adapter now snapshots trusted settings before validation and uses that snapshot for every request and scoring penalty. Caller mutations can no longer replace credentials, language/resource limits or diagnostic callbacks after validation, including while asynchronous executions are running. Configuration changes require a new adapter.
+- Added regression coverage for mutations before execution and during HTTP requests, repeated adapter use, unchanged request credentials/resource limits, diagnostic callback ownership and finite full-limit penalties for failed benchmarks. Documented the configuration lifecycle.
+- Validation: all 1,676 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 66 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Loading indicator state polish
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; isolated Judge0 remains unavailable. Both catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one loading-screen polish item. Offline feedback now has a stationary amber square/slash mark instead of a spinning progress cue; long waits use an amber spinner. Reconnection restores the indicator appropriate to elapsed loading time. Existing status text supplies the accessible meaning; decorative marks stay hidden from assistive technology.
+- Added component regression coverage for outage, deadline, reconnection, reopening, stable status/mark identity and retained recovery focus. Added real Chromium CSS checks at 320px and 1280px for distinct shapes/colors, animation, overflow and reduced-motion behavior in every visual state.
+- Validation: all 1,674 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 206 focused loading/browser tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Strict sandbox output decoding
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated sandbox remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added one judge correctness item: require canonical base64 and valid UTF-8 before parsing sandbox stdout as JSON. Permissive decoding previously ignored invalid base64 characters or replaced invalid UTF-8, potentially turning malformed output into a matching answer. Malformed output now fails with the full CPU penalty.
+- Added ten regression cases for trailing garbage, invalid characters, whitespace, missing padding, noncanonical padding bits, invalid UTF-8 sequences, valid Unicode including explicit replacement characters, and structured JSON. Tests verify that one failed benchmark run prevents a pass while retaining the other runs' CPU measurements. Documented the output encoding contract.
+- Validation: all 1,671 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 64 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Sandbox timer overflow protection
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the sandbox remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item: request timeouts and polling intervals above 2,147,483,647ms now fail configuration validation before network access. Node reduces larger timer delays to 1ms, which could cause premature request failures or rapid polling. Documented the supported limits.
+- Added three regression cases covering both timer settings above the boundary and at the largest safe integer, no network access on rejection, and successful scoring with the maximum supported settings. Existing zero-poll-interval and default-timeout coverage remains passing.
+- Validation: all 1,661 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 54 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Finite sandbox CPU scoring inputs
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated sandbox remains unavailable. Both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one judge reliability item: reject CPU limits whose millisecond penalties overflow, sandbox timings whose conversion overflows, and accumulated benchmark samples that become infinite. Timing failures raise generic JudgeUnavailableError before scoring; invalid limits fail before network access.
+- Added four regression cases covering correct and wrong-answer output with overflowing timings, individually finite samples whose sum overflows, and configuration rejection without requests. Existing fractional CPU/scorer compatibility tests remain passing. Documented the finite-timing contract.
+- Validation: all 1,658 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 51 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Sandbox redirect protection
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated sandbox remains unavailable. Both catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one judge security item: submission and polling requests now reject redirects, preventing authentication tokens and submission source from being forwarded. Redirect failures remain generic sandbox outages and cannot become scored losses. Documented configuring the final endpoint directly.
+- Added real local HTTP regression tests for submission and polling redirects, verifying no request reaches the redirect target, plus coverage that every successful API request disables redirect following. The HTTP fixture returns canned responses and executes no Python.
+- Validation: all 1,654 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 47 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Credential-safe sandbox URL configuration errors
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the sandbox remains unavailable and both catalog milestones remain unchecked. No draft Python executed on the host.
+- Followed the blocker rule and added/completed one configuration safety item: malformed Judge0 URLs now produce the same generic configuration error as other rejected settings. Native URL parser errors retain raw input, potentially including credentials; the replacement error retains neither that input nor a parser cause. Existing URL restrictions remain enforced before network access.
+- Added seven regression cases covering malformed hosts/ports, empty input and credentials in user information, query strings and fragments. Tests verify generic error text, no retained input/cause or secrets in the stack, and no network calls.
+- Validation: all 1,652 tests across 74 files passed with `npm test -- --maxWorkers=2`; all 45 focused judge tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Catalog command sandbox recovery guidance
+- Retried the highest-value unchecked catalog milestone using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated Judge0 deployment remains unavailable. Both catalog milestones remain unchecked. No draft Python ran on the host.
+- Followed the blocker rule and added/completed one catalog tooling improvement: validate and publish now explain sandbox availability failures, name the environment settings to verify, state that publication did not occur and provide retry guidance. The command retains a failing exit status and closes publication database resources; unrelated validation errors still propagate.
+- Added four CLI regression tests covering both command modes, credential-safe messages, nonzero exit status, database cleanup, unrelated errors and successful output. Manually retried the actual command and verified the new guidance and exit status 1.
+- Validation: all 1,645 tests across 74 files passed with `npm test -- --maxWorkers=2`; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Overdue loading recovery after suspension
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one loading recovery item. Visible-tab and page restoration now check the elapsed fifteen-second deadline independently of suspended timeout delivery, immediately exposing existing styled recovery guidance and the reload control when overdue. Stable announcements, connection feedback and keyboard focus are preserved.
+- Added regression tests for both restoration events, the exact delay boundary, hidden-tab deferral, stable live regions, recovery descriptions, preserved focus, timeout cleanup and a fresh deadline after reopening. Corrected the cleanup assertion to support the test environment's object timer handles.
+- Validation: all 1,641 tests across 73 files passed with `npm test -- --maxWorkers=2`; all ten focused loading tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Loading-page resume recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: loading screens now recheck browser connectivity on visible-tab restoration and page restoration. Missed events no longer leave stale offline or reconnection guidance. Existing styled notices, server-availability uncertainty, explicit recovery controls and keyboard focus remain intact.
+- Added regression coverage for missed offline/online events, hidden-tab deferral, repeated outages, stable announcements and descriptions, preserved focus, listener cleanup and fresh reopening.
+- Validation: all 1,639 tests across 73 files passed with `npm test -- --maxWorkers=2`; all eight focused loading tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Resumed-page connection recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: error and unavailable-page connection notices now recheck browser connectivity on visible-tab restoration and page restoration. Missed connection events no longer leave stale offline guidance after resuming. Existing styled notices, server-availability uncertainty and manual recovery remain intact.
+- Added regression coverage for silent online restoration, hidden-tab deferral, missed offline and online events, recurring outages, stable polite regions, keyboard focus, listener cleanup and fresh reopening for both notice variants.
+- Validation: all 1,638 tests across 73 files passed with `npm test -- --maxWorkers=2`; focused recovery tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Unavailable-page connection recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: unavailable pages now reuse the styled polite connection notice, with page-specific offline and reconnection guidance. The notice explains the continuing server clock and uncertainty about both server availability and page access. Connection changes preserve recovery links and keyboard focus without automatic navigation.
+- Added tests for initial offline state, stable polite announcements, repeated outages, preserved focus, initial online silence, listener cleanup and fresh reopening.
+- Validation: all 1,636 tests across 73 files passed with `npm test -- --maxWorkers=2`; all 11 focused recovery tests, lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Error-screen connection recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: both route and standalone root error screens now show styled browser-offline guidance and a stable polite reconnection notice. Guidance explains the continuing live server clock and retains uncertainty about server availability. Recovery remains explicit; connection changes do not retry, reload or move keyboard focus.
+- Added regression coverage for initially offline browsers, repeated outages, initial online events, stable announcement regions and controls, preserved keyboard focus, listener cleanup, fresh reopening and standalone root-document hydration.
+- Validation: all 1,634 tests across 73 files passed with `npm test -- --maxWorkers=2`; all ten focused recovery tests, lint, production build, typecheck and whitespace checks passed. Corrected a test matcher for elements belonging to a separately parsed document before the successful runs.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Loading reconnection feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one loading improvement: a green reconnection notice appears inside the existing polite status after a browser-reported outage, explicitly retaining uncertainty about server availability. Existing delayed guidance, recovery controls and keyboard focus remain stable. A new outage retires the notice; reopening starts fresh.
+- Added regression coverage for initial online events, early and delayed reconnection, repeated outages, visual styling, preserved focus and reopening.
+- Validation: all 1,631 tests across 72 files passed with `npm test -- --maxWorkers=2`; all seven focused loading tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Error-screen existing-match recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: route and root error screens now explain how home/Play recovers an existing match, remind players that the server clock continues, and qualify availability with server confirmation. Both home recovery links describe the prominent styled guidance.
+- Added regression coverage for visible accessible guidance, stable element associations across failures, distinct guidance IDs, route keyboard-focus preservation and standalone root-document hydration.
+- Validation: all 1,630 tests across 72 files passed with `npm test -- --maxWorkers=2`; all seven focused error-screen tests, lint, production build, typecheck and whitespace checks passed. Corrected a copy-encoding issue; the first full run overlapped that edit and read inconsistent source/test versions, so the full suite was rerun against unchanged final files and passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Offline loading recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one loading improvement: browser-reported offline status immediately exposes the styled reload recovery and unsaved-change/live-clock guidance. Reconnection restores ordinary loading feedback without claiming server availability. Once offered, recovery controls remain mounted to preserve keyboard focus.
+- Added regression tests for initially offline browsers, offline/online transitions before and after the delay, stable polite status and recovery controls, focus preservation and connectivity listener cleanup.
+- Validation: all 1,629 tests across 72 files passed with `npm test -- --maxWorkers=2`; all six focused loading tests, lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Stalled-loading reload recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: after fifteen seconds, loading pages offer an explicit Reload page button with prominent unsaved-change, live-clock and submission guidance. The action reloads the current document only when clicked.
+- Added tests for the delay boundary, actual reload invocation, stable accessible descriptions, retained keyboard focus, independent component instances and absence of automatic reload. Existing timer cleanup and reopening coverage still passes.
+- Validation: all 1,627 tests across 72 files passed with `npm test -- --maxWorkers=2`; focused loading tests (4), lint, production build, typecheck and whitespace checks passed. The initial full run reproduced the previously recorded rematch focus-test failure; all 86 rematch tests passed independently and the full rerun passed without changing rematch code or tests.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Loading-screen match recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: loading pages now explain home/Play recovery of an existing match with server-confirmed availability. Applied the shared prominent recovery-guidance styling and associated the Back to arena link with the visible live-clock and recovery instructions.
+- Updated regression coverage for the accessible description, visible styling, stable guidance and retained keyboard focus when the fifteen-second loading warning appears.
+- Validation: all 1,626 tests across 72 files passed on the full-suite rerun; focused loading tests (3), lint, production build, typecheck and whitespace checks passed. The first full run had a rematch focus-test failure; all 86 rematch tests passed independently and the full rerun passed without changes to rematch code or tests.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Unavailable-page match recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: unavailable pages now explain that live clocks continue and describe original-link or home/Play recovery for existing matches, with server-confirmed availability. Updated the heading and reused the prominent recovery-guidance styling.
+- Associated Back to arena with visible guidance. Added regression coverage for accessible descriptions, retained focus and stable guidance on rerender, plus phone/desktop guidance visibility and containment. Existing generic resource privacy and keyboard recovery remain covered.
+- Validation: all 1,626 tests across 72 files passed; focused recovery tests (195), lint, production build and typecheck passed. Additional browser assertions verified separately.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Full-page error recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: route and root error screens now offer an explicit full-page reload when view retries keep failing, with styled unsaved-change and live-clock guidance attached through independent stable accessible descriptions.
+- Kept reload separate from retry; neither runs on render or error replacement. Regression coverage verifies reload invocation, independent retry behavior, stable descriptions, retained focus and standalone document hydration. Updated browser keyboard expectations for the added control and checked phone/desktop touch sizing and overflow.
+- Validation: focused recovery tests (6), lint, production build, typecheck and whitespace checks passed. All 1,625 tests across 72 files passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Accessible page retry guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one recovery usability item: both route and root error boundaries now visually highlight retry and live-clock guidance and associate it with the retry button through an accessible description.
+- Used stable unique IDs without changing focus or triggering retries. Added coverage for independent boundaries, rerender stability, retained keyboard focus and standalone document hydration; existing explicit retry and private-error safeguards remain covered.
+- Validation: all 1,624 tests across 72 files passed; focused recovery tests (5), lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Delayed page loading recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one usability item: after fifteen seconds, page loading shows explicit delayed feedback and a styled recovery note explaining waiting, browser reload and Back to arena. Guidance explains that reload does not pause a duel or resend a submission.
+- Kept one stable polite status region, retained keyboard focus and avoided per-second updates. Timers clear on navigation and restart when loading reopens.
+- Added regression coverage for the exact delay boundary, persistent guidance, focus preservation, timer cleanup and fresh reopening. All 1,623 tests across 72 files passed; lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Expandable password privacy guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account usability item: moved lengthy password concealment guidance into independent native disclosures for sign-in and sign-up. Password requirements remain visible; input descriptions retain both requirements and privacy guidance. Styled summaries provide clear keyboard focus, a 44px touch target and responsive wrapping.
+- Added phone/desktop browser regression tests for keyboard Enter/Space expansion and collapse, independent panels, retained summary focus, visible requirements and page overflow. Existing password behavior and accessibility tests also pass.
+- Validation: all 1,621 tests across 72 files passed, including browser coverage; focused account/password/browser tests (279), lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Bounded password reveal windows
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account usability item: revealed passwords automatically conceal after 30 seconds. Visible polite reveal feedback and persistent field guidance explain the limit. Each field owns its timer; editing does not extend exposure, and explicitly revealing again starts a fresh window.
+- Added both account-mode regression coverage for independent deadlines, exact timeout boundaries, unchanged credentials, validation and keyboard focus, Caps Lock clearing, explicit hide/reveal recovery and timer cleanup on unmount. Preserved existing tab-departure guidance after an initial wording assertion failure.
+- Validation: all 1,619 tests across 72 files passed, including browser coverage; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Specific username correction guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one usability item: sign-in, sign-up and friend username feedback now identifies missing names, short/long values and unsupported characters. Combined errors explain both corrections, while retaining the existing form-specific rules, danger styling, character budget and server/native validation contract.
+- Added regression coverage for all three modes covering combined failures, non-ASCII input, unchanged values, keyboard focus, independent fields, stable accessible feedback, silent replacement recovery and native reset.
+- Validation: all 1,617 tests across 72 files passed, including browser coverage; focused account/friend/username tests (91), lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Conceal passwords on form focus departure
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account privacy item: revealed passwords now conceal when focus leaves their owning form, including departures without a focus destination. Moving between username, password, reveal and other controls within the form preserves visibility. Updated visible concealment guidance.
+- Added regression coverage for both forms covering internal navigation, departures to the other form or outside controls, absent destinations, explicit reveal recovery, stable notices, retained credentials, validation and destination focus.
+- Validation: all 1,614 tests across 72 files passed, including browser coverage; focused account/password tests (84), lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Form-wide password concealment shortcut
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account usability item: Escape from username or submit controls now conceals the password in the owning form. Updated visible shortcut guidance; field-local Escape continues to work independently.
+- Added regression coverage for both forms covering sibling controls, unrelated keys, outside-form Escape, explicit reveal recovery, stable visibility notices, independent forms, retained focus, values and invalid-password feedback.
+- Validation: all 1,612 tests across 72 files passed, including browser coverage; focused password tests (38), lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Password minimum-length guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one usability item: sign-in and sign-up password budgets now explain exactly how many characters are still needed, then confirm when the minimum length is met. Guidance shares the existing responsive budget layout and accessible input description without per-keystroke live announcements.
+- Added regression tests for both forms covering minimum boundaries, byte overflow remaining independently invalid, correction, silent replacement on focus, reveal, independent state and reset. Fixed a shared selector caught by the existing phone/desktop browser tests.
+- Validation: all 1,610 tests across 72 files passed, including phone/desktop browser coverage; lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Username character budgets
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks the highest-value unchecked catalog milestone. Catalog items remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one interface improvement: responsive username character budgets across sign-in, sign-up and friend invitations. Inputs describe minimum-length guidance, remaining capacity, exact limits and overflow. Overflow has explicit text and a danger-colored border; updates avoid per-keystroke live announcements.
+- Added regression coverage for all three modes: boundaries, invalid characters, independent fields, silent replacements, validation and reset recovery. Chromium checks verify layout and overflow accents at 320px and 1280px.
+- Validation: all 1,606 tests across 72 files passed; after adding browser coverage, all 213 tests in the two affected files passed. Lint, production build, typecheck and diff whitespace checks passed. Fixed accessible spacing caught by focused testing.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Caps Lock warning before typing
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog items remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one account improvement: clicking either password field now reads Caps Lock state, so players can see the existing advisory before typing. Later clicks refresh the warning; existing keyboard and concealment behavior remains in place.
+- Added regression coverage for both forms, independent accessible warnings, stable status regions, warning clearing on click and blur, and preserved password values, concealment and validity.
+- Validation: all 1,603 tests across 72 files passed; focused password tests (34), lint, production build, typecheck and diff whitespace check passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Explicit password visibility notice
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks the highest-value catalog milestone. Catalog items remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one interface improvement: revealed passwords now show a styled notice in a stable polite status region. Reveal controls describe the notice and existing concealment guidance. Empty notices take no layout space.
+- Added regression coverage for both credential forms: reveal, Hide, Escape, window blur, page departure, invalid submission and reset, plus independent notices, stable status identity and accessible button descriptions.
+- Validation: all 1,601 tests across 72 files passed; lint, production build, typecheck and diff whitespace check passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Clear invalid credential field styling
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one form improvement: invalid username and password fields now use danger-colored borders, and their explicit validation messages use matching text and border accents. Shared username styling also applies to friend invitations. Existing validation controls when the cues appear and retire; keyboard focus outlines remain visible.
+- Added Chromium coverage for both credential forms at 320px and 1280px: initial states, invalid borders, visible focus outlines, correction recovery, explicit message styling and clearing, and document overflow. Existing component tests cover actual value and validation transitions; browser fixtures exercise CSS states without React hydration.
+- Validation: all 1,598 tests across 72 files passed; lint, production build and typecheck passed. The concurrent focused run hit the new browser test's five-second timeout; increased its allowance to 15 seconds and reran both new cases successfully. Diff whitespace check passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Password byte capacity guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account improvement: both password fields now explain bytes remaining, the exact byte limit and singular/plural overflow. Over-limit budgets use a danger-colored border and text alongside explicit wording, improving scanability without relying on color alone.
+- Added component regression coverage for both forms, emoji byte boundaries, one-byte and multi-byte overflow, corrected values, silent replacements on reveal and form reset. Added Chromium overflow-color and layout checks at 320px and 1280px.
+- Validation: the full suite passed all 1,594 tests across 72 files; after adding browser coverage, all 216 tests in the two affected test files passed. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Conceal passwords on window focus loss
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one account improvement: revealed sign-in and sign-up passwords conceal when the browser window loses focus, including switching to another application or window. Visible field guidance explains the behavior.
+- Added regression coverage for both forms, repeated blur events, internal field blur, preserved values and validation, cleared Caps Lock warnings, explicit reveal recovery and listener cleanup.
+- Validation: all 1,592 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed. Restored Unicode test fixtures after a PowerShell encoding change caused three failures in the first suite run.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Leaderboard rank and tie guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one improvement: a compact native ranking disclosure explaining shared places, full-precision ordering despite rounded displays, alphabetical tie ordering and the 100-player cutoff. It appears on populated public and friends ladders for both periods and uses responsive accented disclosure cards.
+- Added component coverage for all four filters and empty, unavailable and signed-out states, plus Chromium keyboard, touch-height and overflow checks at 320, 375 and 1280px. Fixed a shared-class collision exposed by existing browser tests by giving the rank guide its own class with shared styles.
+- Validation: all 1,590 tests across 72 files passed. Lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Weekly ladder date window
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one leaderboard improvement: a responsive accented current-week callout with semantic dates, explicit Monday 00:00 UTC boundaries, an exclusive end and refresh guidance. Both public and friends weekly ladders show it, including empty standings; global, unavailable and signed-out states omit it.
+- Added regression coverage for Sunday-to-Monday rollover, year boundaries with a timezone offset, leap days and both scopes. Dates use the application server clock; standings continue using the database clock, so deployment clocks should remain synchronized.
+- Validation: all 1,580 tests across 72 files passed, including existing Chromium layout checks. Lint, typecheck and production build passed. Diff whitespace check passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Weekly leaderboard change cues
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one leaderboard polish item. Weekly changes now pair signed MMR values with green Rounded gain, red Rounded loss or neutral No rounded change labels. Direction follows the displayed rounded value, including negative zero, so small fractional changes do not imply a visible gain or loss. Public and friends ladders share the presentation; global standings retain current ratings only.
+- Added regression coverage for positive/negative values, zero, fractional rounding boundaries and refreshed snapshots in both scopes, including removal when switching to global standings.
+- Validation: all 1,573 tests across 72 files passed, including phone/desktop Chromium coverage for the updated cell labels, green accent and stacked layout. Lint, typecheck, production build and diff whitespace checks passed. Updated three existing browser assertions to include the new visible label after the first full run identified their old exact cell names.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Readable matchmaking wait durations
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking display improvement. Elapsed waits now use compact minute/hour units (for example `2m 20s`) and full singular/plural unit names for screen readers. Server frames remain authoritative; time updates remain outside live announcements.
+- Added ten regression cases covering zero, singular/plural units, minute/hour boundaries, successive server updates and removal at reservation. Updated the existing long-wait retry expectation.
+- Validation: all 1,571 tests across 72 files passed, including 110 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Failed reservation keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one keyboard recovery item. Failed reservations now restore Play focus when reservation removed the focused Cancel search control. Independent navigation is preserved and reservation focus intent is cleared on failure.
+- Added four regression cases covering reservation timeout, server error, disconnect and malformed confirmation, each checking focus recovery, independent navigation, cleared busy state, timer cleanup and successful retry. Updated retry focus expectations because restored Play focus now correctly transfers to the confirmed arena link.
+- Validation: all 1,561 tests across 72 files passed, including 100 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Stalled matchmaking search recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking recovery item. Searches now close after 30 seconds without a valid queue update, explain the interruption and offer explicit retry to recover a reserved match. The worker normally sends queue updates every second. Each valid update renews the deadline; reservation and cancellation retain their bounded confirmation deadlines.
+- Added seven regression cases covering deadline renewal, focused Cancel search recovery, independent navigation, successful ticket recovery, stale connection events, reservation handoff and timer cleanup after departure, failure, disconnect and unmount.
+- Validation: all 1,557 tests across 72 files passed, including 96 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Queue statistics validation
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking recovery item. Queue wait times now require nonnegative safe integers, and rating bands must match the server's supported 100-800 point range in 50-point increments. Invalid frames close the connection and restore actionable retry guidance rather than displaying rounded or impossible statistics.
+- Added 26 regression cases covering malformed statistics, keyboard focus recovery, cleared busy state, timer cleanup, successful retry and all 15 supported rating bands.
+- Validation: all 1,550 tests across 72 files passed, including 89 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Reservation keyboard handoff
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one keyboard navigation item. A reservation that removes the focused Cancel search control now preserves focus intent until the confirmed Open arena link appears. Independent navigation is respected, and new searches clear prior reservation intent.
+- Added four regression cases for confirmed reservations, independent navigation, unfocused background updates and failed reservations followed by direct successful retry.
+- Validation: all 1,524 tests across 72 files passed. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Malformed matchmaking response recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking recovery item. Unknown response types, invalid envelopes and missing, non-text or blank server error guidance now close the connection and restore actionable retry feedback before updating the UI.
+- Added eight regression cases covering malformed envelopes, unknown types and malformed error messages. Each verifies connection cleanup, cleared busy state, keyboard recovery, timer cleanup and successful retry into the arena.
+- Validation: all 1,520 tests across 72 files passed, including 59 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Match confirmation validation and recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking recovery item. Match confirmations now require a bounded route-safe ID, supported difficulty, nonblank opponent name and finite nonnegative numeric rating before match feedback, focus movement or arena navigation. Malformed confirmations close the connection and restore actionable retry feedback.
+- Added 11 regression cases covering missing and malformed match/opponent fields, unsafe and oversized IDs, invalid difficulty and invalid ratings. Each verifies connection cleanup, cleared busy state, keyboard recovery, timer cleanup and a successful retry into the arena.
+- Validation: all 1,512 tests across 72 files passed, including 51 matchmaking component tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Search failure keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one keyboard recovery item. When a search failure removes the focused Cancel search control, Play receives focus so keyboard players can retry immediately. Independent navigation and existing explicit-cancellation and arena focus behavior are preserved.
+- Added seven regression cases covering disconnects, socket errors, server errors, malformed queue responses, confirmation timeouts, successful retry into the arena, independent navigation, established queues and obsolete connection events.
+- Validation: full suite passed (1,500 tests across 72 files); the final additional queued-search/stale-event regression also passed in the focused run (40 matchmaking tests). Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Matchmaking connection setup recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one matchmaking recovery item. Browser WebSocket construction failures now restore enabled Play controls, clear busy feedback and show actionable retry guidance instead of leaving the panel stuck connecting.
+- Added regression coverage for a browser SecurityError, preserved keyboard focus, no stale timeout feedback, and a successful retry through queue confirmation and focused Open arena navigation.
+- Validation: all 1,494 tests across 72 files passed, including all 33 matchmaking component tests. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Matchmaking action guidance and busy feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility improvement. Play, Cancel search and Open arena now reference stable visible matchmaking guidance through a unique per-panel description ID. Play exposes busy feedback while connecting, cancelling or reserving, and clears it on queue confirmation, cancellation, reservation success and failures.
+- Added five regression cases covering lifecycle transitions, timeout/error/disconnect cleanup, stable guidance and unique associations across multiple panels.
+- Validation: all 1,493 tests across 72 files passed, including all 32 matchmaking component tests. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Matchmaking cancellation keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one keyboard-flow improvement. Cancelling from the focused Cancel search button now restores focus to Play after confirmation, timeout, connection loss or server errors. Cancellation before connection also restores focus immediately.
+- Independent navigation retains focus, unfocused cancellations do not move focus, and a confirmed reservation retires cancellation focus intent. Added eight regression cases covering these transitions and retry cleanup.
+- Validation: all 1,488 tests across 72 files passed, including all 27 matchmaking component tests. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Matchmaking keyboard handoff
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one keyboard-flow improvement. A confirmed match focuses Open arena when focus was on the Play/search button or Cancel search control. Players navigating elsewhere retain their focus; no automatic navigation occurs.
+- Focus moves after the link mounts, once per confirmed match. Existing connection identity checks prevent stale or duplicate frames from redirecting focus. Added coverage for both search controls, independent navigation through queue/reservation updates, failed searches, stale frames and successful retry.
+- Validation: all 1,480 tests across 72 files passed; the final 19-test matchmaking suite, lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Readable matchmaking rating range
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one UI polish item. Matchmaking now displays the rating band with a plus/minus symbol instead of a question mark, making the widening range understandable.
+- Updated the queue metric assertion and added a lifecycle regression covering readable connection, search, cancellation, reservation and matched copy, including the initial rating band.
+- Validation: all 1,476 tests across 72 files passed, including all 15 matchmaking component tests. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Accessible rematch deadline urgency
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item. Final-ten-second urgency now enters the existing stable polite invitation summary and action descriptions. The announcement uses constant wording while seconds tick down and retires during actions, extended windows, expiry and terminal outcomes; the visual countdown remains unchanged.
+- Added participant-symmetric regression coverage for stable announcements, unchanged text across countdown and server-clock updates, action descriptions and urgency retirement; extended existing deadline lifecycle assertions.
+- Validation: all 1,475 tests across 72 files passed; all 86 rematch UI tests also passed separately. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Rematch invitation sending keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item. Sending an invitation from the focused Rematch button now focuses the stable visible invitation guidance after direct or polled confirmation removes that button. Independent navigation and background updates preserve focus; failed sends clear focus intent.
+- Added five regression cases covering direct and polled confirmation, independent navigation, background changes and failure followed by authoritative polling recovery.
+- Validation: all 1,473 tests across 72 files passed; lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Rematch manual refresh keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item. Successful keyboard-triggered manual invitation recovery now focuses the updated visible invitation guidance when its retry button disappears, using the existing focus outline. Independent navigation and background refreshes preserve focus; a failed manual retry clears the focus intent.
+- Added regression coverage for available, pending, accepted and expired snapshots, independent navigation, failed manual retries and background recovery.
+- Validation: all 1,468 tests across 72 files passed, including 79 rematch UI tests; lint and typecheck passed.
+- Next: restore isolated Judge0 availability and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Rematch decline and cancellation keyboard recovery
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item. Explicit keyboard decline and cancellation now move focus to Find a new opponent after authoritative confirmation, including confirmation received through polling. Background outcomes and independent navigation retain their focus; failed actions clear the pending focus intent.
+- Added participant-symmetric regression coverage for direct/polled confirmations, independent navigation and background outcomes.
+- Validation: all 1,461 tests across 72 files passed, including 72 rematch UI tests; lint, typecheck and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Rematch recovery button feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery usability item. The rematch recovery button now displays "Refreshing invitation..." and aria-busy during manual and automatic retries, preserving disabled controls and associated snapshot guidance. Failed reads restore the retry label and idle state; successful reads remove recovery controls.
+- Updated regression tests for manual/automatic busy feedback, accessible descriptions, repeated failure reset, successful recovery and request overlap protection.
+- Validation: all 1,457 tests across 72 files passed, including 68 rematch UI tests; lint and typecheck passed.
+- Next: restore the isolated Judge0 service and validate the original catalog. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Rematch action button feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks catalog validation. Both catalog milestones remain unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one usability improvement: rematch action buttons display action-specific sending, accepting, declining or cancelling labels with aria-busy while awaiting confirmation. Other controls retain their labels. Expiry retires busy feedback while preserving disabled controls and server-confirmation guidance; failures, reopened windows and authoritative outcomes restore the appropriate controls.
+- Updated all four action-failure cases and added incoming/outgoing deadline, delayed-failure, reopening, explicit-retry and terminal-outcome regressions. All 1,457 tests across 72 files passed, including all 68 focused rematch tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then perform live deployment smoke checks. Existing infrastructure blockers remain; live browser visual inspection remains pending.
+
+### 2026-11-07 - Rematch invitation countdown urgency
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Both catalog milestones remain unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one visual improvement: the final ten rematch invitation seconds show an amber countdown border and explicit “Invitation closing soon” text. The cue clears during actions, extended invitation windows, expiry and authoritative outcomes. The timer retains aria-live="off" to avoid per-second announcements; existing deadline confirmation guidance remains intact.
+- Added participant-symmetric regression coverage for the ten-second threshold, authoritative window extension, expiry, reopening, pending actions and terminal outcomes.
+- Validation: all 1,454 tests across 72 files passed, including all 65 focused rematch tests. Lint, typecheck, production build and diff whitespace checks passed. Live browser visual inspection remains pending.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then perform live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Rematch invitation direction cues
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks catalog validation. No Python ran outside the sandbox; both catalog milestones remain unchecked.
+- Followed the blocker rule and added/completed one visual improvement: incoming rematches show a green “Your move” badge beside the heading; outgoing invitations show “Invitation sent.” The heading wraps on narrow screens. Cues retire during pending actions, deadline expiry and authoritative outcomes, leaving the existing stable announcement and recovery guidance intact.
+- Added participant-symmetric regression coverage for initial loading, incoming/outgoing styling, expiry, restored invitation windows, pending actions and terminal outcomes.
+- Validation: all 1,452 tests across 72 files passed; all 63 focused rematch tests passed. Lint, typecheck, production build and diff whitespace checks passed. Live browser visual inspection remains pending.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then perform live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Initial invitation lookup recovery guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks both catalog milestones. No Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one improvement: failed initial rematch lookups now replace indefinite checking feedback with explicit unavailable-status, automatic-retry and unconfirmed-rematch guidance. The stable polite summary also describes the retry control and persists during recovery requests.
+- Added automatic/manual retry regression coverage for initial loading, failure, pending recovery and restored invitation actions with stable announcements and accessible descriptions.
+- Validation: all 1,450 tests across 72 files passed; all 61 focused rematch tests passed. Lint, typecheck and production build passed after correcting an unsupported test query option. Diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then perform live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Accessible rematch action context
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks both catalog milestones. No Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one improvement: rematch action buttons, invitation retry and terminal recovery links reference the stable visible invitation summary through unique accessible descriptions. Guidance follows sending, deadline expiry and authoritative outcomes without merging descriptions between independent panels.
+- Added four regression cases covering incoming/outgoing acceptance, unique panel descriptions, terminal recovery and pending-action deadline expiry.
+- Validation: all 1,447 tests across 72 files passed; all 59 focused rematch tests passed including the final deadline case. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain; live assistive-technology checks remain pending.
+
+### 2026-11-07 - Keyboard focus after rematch acceptance
+- Retried the highest-value unchecked catalog milestone using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one improvement: explicit acceptance from the focused Accept rematch control transfers focus to Open rematch arena after authoritative acceptance, including confirmation discovered through polling. Background acceptance and navigation elsewhere preserve the player's focus; failed actions clear the focus intent.
+- Added four regression cases covering direct and polled acceptance and independent focus during both explicit actions and background updates.
+- Validation: all 1,444 tests across 72 files passed; all 55 focused rematch tests passed after the lint fix. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Invitation-scoped rematch action errors
+- Retried `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks the catalog milestones. No Python ran outside the sandbox; both milestones remain unchecked.
+- Followed the blocker rule and added/completed one improvement: failed rematch actions now scope their alerts to the invitation snapshot they concerned. Authoritative invitation changes retire obsolete errors, while unchanged snapshots and server-clock refreshes preserve useful retry feedback.
+- Added four regression cases covering incoming/outgoing invitations discovered after failed sends and both participants' retry errors across clock-only refreshes.
+- Validation: all 1,440 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Rematch update recovery feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one rematch improvement: successful recovery shows a styled, polite, atomic confirmation that invitation updates have resumed with the latest server snapshot. The notice persists through healthy polling, clears during recurring outages, resets for another match and retires for authoritative terminal outcomes.
+- Added eight regression cases covering both participants, automatic and explicit retries, recurring outages, healthy-poll persistence, match changes and all four terminal outcomes.
+- Validation: all 1,434 tests across 72 files passed; after expanding automatic/manual recovery coverage, all 47 focused rematch tests passed. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain; actual assistive-technology announcement testing remains pending.
+
+### 2026-11-07 - Retire obsolete rematch action errors
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still prevents sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one rematch improvement: action error alerts retire at local invitation expiry and authoritative acceptance, decline, cancellation or expiry. Active-window failures remain visible for retry; server-confirmation and recovery guidance remain available.
+- Added eight regression cases covering all four polled outcomes, incoming/outgoing deadlines and both participants' delayed action failures after expiry.
+- Validation: all 1,426 tests across 72 files passed before the last two delayed-failure cases; all 39 focused rematch tests passed with those cases included. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
+
+### 2026-11-07 - Stable rematch outcome announcements
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python solutions ran outside the sandbox.
+- Followed the blocker rule and added/completed one rematch accessibility improvement: one polite, atomic status region now stays mounted from loading through pending invitations, local expiry and authoritative acceptance, decline, cancellation or expiry. Confirmed outcomes retain settled styling and recovery/arena links.
+- Added DOM-identity regression checks for all four terminal outcomes on reopening and polling, plus both participants' delayed acceptance after local expiry. Checks preserve terminal polling shutdown and retire pending accents.
+- Validation: all 1,420 tests across 72 files passed; lint, typecheck and production build passed. Diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Actual assistive-technology announcement smoke checks remain pending; existing infrastructure blockers remain.
+
+### 2026-11-07 - Expired rematch invitation guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one rematch improvement: expired invitation windows replace acceptance/waiting/action prompts with polite, atomic server-confirmation guidance and retire busy styling. An authoritative delayed acceptance still replaces expiry guidance; local expiry does not claim a final outcome.
+- Added incoming/outgoing reopening and countdown regression coverage, including delayed action responses and navigation cleanup.
+- Validation: all 1,415 tests across 72 files passed; after expanding reopening coverage to both participants, all 27 focused rematch tests passed. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Expired submission action feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: submission action feedback now explains closed submissions, outstanding judging and server confirmation at clock expiry. Busy accents end at expiry, while automatic polling and code-export guidance remain available. Late acknowledgements and errors cannot restore obsolete action prompts.
+- Added expired-arena reopening coverage and countdown checks for pending, acknowledged and failed requests, including delayed responses, shortcut duplicate prevention and authoritative completion/cancellation recovery.
+- Validation: All 1,413 tests across 72 files passed, including 147 focused arena UI tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Expired readiness action feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: expired readiness action feedback now explains closed readiness and authoritative activation/cancellation confirmation instead of prompting readiness or retaining obsolete acknowledgement/error messages. Pending action accents and the Ready button busy state end at expiry; automatic polling continues.
+- Added reopening checks for ready/unready players and countdown coverage for pending, acknowledged and failed requests, including delayed responses, duplicate-action prevention and authoritative cancellation recovery.
+- Validation: all 1,409 tests across 72 files passed, including 143 focused arena UI tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Lifecycle-aware submission shortcut guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: submission-shortcut guidance now explains readiness before activation and closed submissions after expiry, completion or cancellation. Closed-state guidance preserves code-export instructions and the submit button's accessible description.
+- Added activation-to-expiry-to-terminal polling coverage for both terminal states and reopening coverage for pending, expired, completed and cancelled arenas, including verification that the terminal keyboard shortcut sends no submission.
+- Validation: all 1,404 tests across 72 files passed, including 138 focused arena UI tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Lifecycle-aware verified best-score guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: both verified best-score descriptions now explain outstanding judging after expiry, direct completed duels to recorded results and explain cancellation without promising future attempts or result confirmation. Exact counts, verdict badges, stable score announcements and the warning about unsent edits remain available.
+- Added participant-symmetric zero/partial/full-score transition and reopening tests, plus arena countdown-to-terminal polling coverage for completion and cancellation.
+- Validation: all 1,398 tests across 72 files passed, including 150 focused progress/arena tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Lifecycle-aware latest attempt feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: latest-attempt feedback now uses the same lifecycle phase as best progress. Zero-pass correction prompts disappear at clock expiry; terminal unavailable attempts no longer promise sandbox retries or automatic updates. Completed attempts direct players to recorded results, and cancelled attempts explain closure and unchanged ratings.
+- Preserved verified score counts, verdict badges and the stable status region. Added status-by-phase regression coverage, reopening coverage and an arena countdown-to-completion polling test.
+- Validation: all 1,392 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the unpublished catalog, then run live deployment smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Lifecycle-aware empty arena progress
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: both empty progress cards now explain readiness, open submissions, pending settlement, completed results or cancellation according to the current phase. Closed matches no longer prompt players to submit; terminal unavailable scores direct players to results or explain cancellation instead of promising automatic updates after polling stops.
+- Added participant-symmetric unavailable-score recovery tests, reopening checks for all five display phases and a polling/countdown transition regression. Existing verified score rendering and stable live announcements are preserved.
+- Validation: all 1,383 tests across 72 files passed, including 143 progress/arena tests. Lint, typecheck, production build and diff whitespace checks passed after correcting a phase-type mismatch.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Stable readiness expiry feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: a persistent polite atomic region announces readiness expiry, automatic checking and pending server confirmation without claiming cancellation or rating changes. The visible readiness panel keeps normal readiness announcements before expiry and stops duplicate live feedback at expiry.
+- Updated countdown, cancellation and activation tests and added reopening/outage and other-state regressions. Coverage checks stable region identity and text, disabled readiness and available code copying.
+- Validation: all 1,375 tests across 72 files passed, including 123 arena UI tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech remains a manual check.
+
+### 2026-11-07 - Stable arena settlement feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: a persistent polite atomic live region announces clock expiry, closed submissions, pending authoritative results and available code export. Removed the nested transient status region from the visible settlement panel to avoid duplicate announcements.
+- Updated expiry and reopening coverage and added silent-state and cancellation polling regressions. Tests verify stable region identity, unchanged feedback during connection failure, completion cleanup and preserved code/export controls.
+- Validation: all 1,370 tests across 72 files passed, including 118 arena UI tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech remains a manual check.
+
+### 2026-11-07 - Retire obsolete arena action feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena correction: action acknowledgements and errors are scoped to their originating match phase. Activation, completion and cancellation replace obsolete readiness/queue messages with current guidance, even when an earlier POST resolves after polling changes the phase. Pending styling and submission busy feedback also follow the current phase; the existing status element stays mounted.
+- Added six regression cases for readiness and submission transitions, cancellation, completion and late acknowledgements. Existing same-phase readiness, submission and error recovery tests remain passing.
+- Validation: all 1,364 tests across 72 files passed, including 112 arena UI tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Stable arena cancellation feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one cancellation improvement: a persistent polite atomic live region announces server-confirmed cancellation, unchanged ratings, matchmaking recovery and code export. Removed the nested transient status region from the visible panel to avoid duplicate announcements. Other match states keep the persistent region empty.
+- Updated reopening and polling regression tests to verify region identity, stable feedback after time advances, preserved code/export actions and silence for pending, active and completed states.
+- Validation: all 1,358 tests across 72 files passed, including 106 targeted arena UI tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech remains a manual check.
+
+### 2026-11-07 - Arena start feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: a green-accented responsive notice confirms authoritative activation, explains that the clock is running and prompts submission of latest edits. A stable polite atomic live region keeps countdown ticks out of the announcement. Pending, expired, missing-deadline and terminal states withhold the notice.
+- Added six regression cases covering pending-to-active polling, stable repeated updates, reopening, expiry, missing deadlines and both terminal states.
+- Validation: all 1,355 tests across 72 files passed, including 103 targeted arena UI tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech and visual inspection of the notice remain manual checks.
+
+### 2026-11-07 - Arena completion feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one arena improvement: completed matches now show a prominent responsive green-accented results panel, an outcome/comparison/rating destination and code-export guidance. A stable polite atomic live region announces authoritative completion; pending, active and cancelled states stay silent.
+- Added five regression cases covering reopening completed arenas, polling from expired-clock settlement into completion, stable announcements, retained editable code contents and export controls, stopped polling and other match states.
+- Validation: all 1,349 tests across 72 files passed; targeted arena tests passed (97 tests). Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech and visual inspection of the new panel remain manual checks.
+
+
+### 2026-11-07 - Arena connection recovery feedback
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one recovery item: a visible green-accented notice and stable polite live region confirm when match status and progress refresh after a connection failure. Healthy initial polling stays silent; repeated successful polls preserve the message without changing it. Another outage clears it until recovery, including recovery into completed/cancelled states.
+- Added four regression cases covering healthy polling, repeated failures, manual retry, automatic recovery, recurring outages and all four match states.
+- Validation: all 1,344 tests across 72 files passed; targeted arena tests passed (92 tests). Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending. Actual screen-reader speech still needs manual verification.
+
+### 2026-11-07 - Live arena best-score announcements
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks isolated sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item: both arena progress cards now have stable, polite, atomic live regions identifying the participant and exact verified hidden-test counts. Missing and invalid scores announce their honest status, and corrected polling restores counts. Announcements omit repeated scoring explanations and win claims.
+- Added participant-symmetric tests for zero/partial/full scores, unavailable/missing transitions, recovery, stable regions during repeated polling and independent participant updates. Updated an existing visible-score assertion to distinguish it from the new announcement.
+- Validation: all 1,340 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed. Actual screen-reader speech behavior still needs manual verification.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Verified arena scoring guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one arena clarity item: missing and invalid progress no longer presents best-score or tiebreak claims. Existing waiting and automatic-update guidance remains visible; valid zero/partial/full scores restore individually associated scoring explanations and unsent-edit guidance.
+- Added participant-symmetric regression tests for repeated missing/invalid/valid transitions and unique description targets. Updated the arena polling test to verify unsent-edit guidance returns with a verified score.
+- Validation: all 1,337 tests across 72 files passed; targeted arena suites passed all 97 tests. Lint, typecheck and production build passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Saved progress scoring guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python executed outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item: each saved-results progress bar now has visible, individually associated guidance explaining best judged submissions, later attempts and CPU/submission-time tiebreaks. Full-pass scores explicitly do not promise a win.
+- Added participant-symmetric tests for zero/partial/full scores, unique description targets, invalid counts and timestamps, missing submission history and corrected-history recovery. Unavailable scores omit the guidance with their bars.
+- Validation: all 1,335 tests across 72 files passed; targeted results suite passed all 74 tests. Lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Player-specific saved progress names
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no player code executed outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item: saved-results progress bars now combine each player heading with the visible progress label, making both scores distinguishable in assistive navigation while retaining exact hidden-test counts.
+- Added participant-symmetric regression coverage for simultaneous zero/partial/full scores, invalid counts and timestamps, missing submission history, corrected history and updated player names. Updated existing accessible-name assertions.
+- Validation: all 1,333 tests across 72 files passed; lint and typecheck passed. Diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog. Catalog expansion and live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Arena empty-progress card polish
+- Selected and completed the actionable arena empty-progress polish item while catalog validation remains blocked on isolated Judge0 access.
+- Gave waiting cards a muted participant label, prominent status, distinct player/opponent next-step guidance, neutral bordered surfaces and compact phone spacing. Unavailable scores retain explicit automatic-update guidance without waiting or verdict cues; valid scores recover their existing bars and labels.
+- Added participant-symmetric component coverage for waiting/unavailable/valid transitions and Chromium checks at 320, 375 and 1280px for readable hierarchy, spacing, overflow and native Tab order past informational cards.
+- Validation: all 1,331 tests across 72 files passed; targeted arena/browser suite passed 277 tests. Lint, typecheck, production build and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 access and validate the initial catalog; catalog expansion and live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Exact accessible arena progress
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule and added/completed one accessibility item: both arena progress bars now expose exact passed/total hidden-test counts through aria-valuetext instead of leaving assistive technology to announce percentages. Existing labels, scoring descriptions and unavailable-state safeguards remain intact.
+- Added participant-symmetric polling tests for zero, partial and full counts, unavailable scores, corrected totals and separate simultaneous player descriptions. Preserved all existing progress regression tests.
+- Validation: full suite passed (1,324 tests across 72 files); final progress test file passed all 5 tests after preserving the existing cases. Lint, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 access and validate the initial catalog. Added a future visual-polish item for empty arena progress cards; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Calendar-safe completion dates
+- Retried the highest-value unchecked catalog milestone using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks validation. No Python ran outside the sandbox and catalog milestones remain unchecked.
+- Followed the blocker rule and added/completed one history-display fix: shared completion dates now reject impossible calendar days and 24:00 normalization instead of showing a different completion instant. Dashboard, profile and results inherit the fix.
+- Added regression tests for month/day bounds, leap-year century rules, invalid clock values, offset conversion across a month boundary and recovery after corrected history.
+- Validation: all 1,323 tests across 72 files passed; lint and typecheck passed. Corrected a test syntax typo found by the initial targeted run.
+- Next: restore isolated Judge0 access and validate the initial catalog. Live infrastructure smoke checks and existing blockers remain pending.
+
+### 2026-11-07 - Unambiguous completion timestamps
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one shared history fix. Dashboard, profile and results completion dates now reject date-only, timezone-free and locale-dependent strings instead of risking different server/browser interpretations. Date objects and ISO timestamps with explicit UTC or numeric offsets retain the existing UTC display; ambiguous history shows Completion date unavailable.
+- Expanded date component tests for ambiguous strings, invalid Date objects, invalid offsets, fractional seconds, non-hour offsets and recovery from unavailable history to a valid timestamp and back.
+- Validation: all 1,310 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Distinct zero-pass arena accents
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one arena visual improvement. Latest zero-pass verdicts and both participants' zero-pass best-progress cards now use the shared failure color, distinct from amber partial passes and green full passes. Explicit text badges and correction guidance remain available.
+- Updated score-transition and unavailable-state regressions for both participants, including removal and recovery of zero-pass accents. Added Chromium checks for badge, verdict-border and progress colors and page overflow at 320px and 1280px.
+- Validation: all 1,304 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Distinct zero-pass results accents
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one visual results improvement. Zero-pass judged submissions now use the shared failure color for their explicit verdict badge and progress accent, separating them from amber partial passes and green full passes. No-submission and unavailable-history cards retain their existing guidance.
+- Updated component and phone/desktop browser assertions and added participant-symmetric transitions between zero, partial and full scores, plus guards for invalid scores, invalid timestamps and fallback no-submission history.
+- Validation: all 1,302 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed. Corrected the outdated zero-pass style assertion found by the first run.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Incomplete saved rating history
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one results-page fix. A saved rating pair with only one value now shows Rating unavailable with explicit guidance instead of Rating not recorded. Fully absent pairs retain the historical empty state; the recorded outcome and independent score metrics remain visible.
+- Added participant-symmetric regression coverage for either missing rating paired with zero or fractional valid values, unaffected opponent ratings, absent history and corrected-history recovery. Updated existing mixed corrupt/missing history tests for the new incomplete state.
+- Validation: all 1,300 tests across 72 files passed; lint, typecheck and production build passed. Diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live infrastructure checks remain pending.
+
+
+### 2026-11-07 - Explicit unavailable benchmark CPU guidance
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; JudgeUnavailableError still blocks sandbox validation. Catalog milestones remain unchecked; no Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one results-page improvement. Invalid saved CPU metrics now include a visible explanation that execution speed cannot be compared using that value, while preserving the recorded outcome and independently valid test progress.
+- Added participant-symmetric regression coverage for negative, nonfinite, missing and nonnumeric corrupt CPU values, plus recovery to valid zero/fractional times and absent historical data. The other player's card remains unaffected.
+- Validation: all 1,298 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate the draft catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Independent saved submission timing
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one saved-results fix: valid submission timestamps now display independently of missing or invalid test counts. Invalid timestamps remain unavailable even when counts are absent. A missing timestamp with incomplete or invalid counts shows Unavailable instead of claiming No submission; fully absent count/timestamp history retains Not recorded.
+- Updated existing missing-count assertions and added participant-symmetric coverage for zero and positive times, invalid numeric and nonnumeric times, absent timestamps, incomplete/invalid counts and corrected-history recovery. The recorded outcome and valid-history verdict recovery remain covered.
+- Validation: all 1,296 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; live infrastructure smoke checks remain pending.
+
+
+### 2026-11-07 - Incomplete saved test-count history
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one saved-results fix: a missing passed count paired with a present or invalid total now shows Test score unavailable and an explicit explanation instead of silently claiming the counts were not recorded. Both-null history retains its legacy Not recorded state; the recorded match outcome remains visible.
+- Added participant-symmetric component regressions for valid, zero, negative, non-finite, unsafe, undefined and string totals paired with missing passes, plus absent-history and corrected-history recovery. Updated the existing missing-total regression to distinguish absent from inconsistent history.
+- Validation: all 1,294 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Results comparison shortcut
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one usability improvement: a native Compare players action in the results banner jumps past scoring guidance to a focusable Player comparison heading. The action has a 44px minimum touch height and fills the available width on phones; empty player history hides both action and heading.
+- Added component coverage for destination semantics and empty-history recovery, plus Chromium keyboard and layout regressions at 320, 375 and 1280px. Updated the existing disclosure regression to verify the new Tab order without removing its checks.
+- Validation: all 1,292 tests across 72 files passed, including 177 mobile browser tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Invalid saved submission history
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one saved-results fix: invalid submission timestamps now show explicit Submission history unavailable guidance and withhold progress/verdict styling. Valid saved counts and the recorded outcome remain visible. Detailed scoring explanations reject invalid timestamps before any tiebreak.
+- Added participant-symmetric component and explanation regressions covering negative, non-finite, undefined and string timestamps, every tiebreak and corrected-history recovery. Updated existing invalid-timing expectations for the new unavailable state.
+- Validation: all 1,288 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate the original catalog before publication and live infrastructure smoke checks.
+
+### 2026-11-07 - Consistent missing-submission history
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one saved-results fix: positive test scores with missing submission timestamps now show Submission history unavailable instead of claiming no judged submission or fallback benchmark CPU. Detailed scoring explanations are withheld for either inconsistent participant while the recorded outcome and valid counts remain visible.
+- Added participant-symmetric unit and component regressions for missing timestamps, both missing timestamps, corrected submissions and genuine zero-pass no-submission history. Updated older inconsistent fixtures to represent valid submissions or genuine no-submission results.
+- Validation: all 1,284 tests across 72 files passed, including 78 targeted tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; existing live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Consistent saved-score explanations
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one results fix: scoring explanations now use the same safe-integer test-count validation as comparison cards. Unsafe saved counts no longer produce a numeric winner explanation beside an unavailable score; the recorded outcome remains visible.
+- Added unit coverage for either participant, unsafe totals and passes, the safe-integer boundary and corrected-history recovery, plus component coverage for consistent unavailable feedback and recovery. Fixed the explanation test factory to clone both players so mutation does not leak between tests.
+- Validation: all 1,280 tests across 72 files passed, including 74 targeted explanation/component tests; lint, typecheck and production build passed.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; existing live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Mixed missing and corrupt saved ratings
+- Retried the highest-value unchecked catalog milestone with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran outside the sandbox.
+- Followed the blocker rule to add and complete one results-page fix: a missing rating no longer masks an invalid counterpart as merely unrecorded history. Mixed corrupt pairs show the styled Rating unavailable notice while preserving the recorded outcome. Valid partial historical pairs still show Rating not recorded.
+- Added regression tests for both field orders, negative/nonfinite/undefined values, suppression of rating deltas and tiers, and recovery to valid partial and complete history.
+- Validation: all 1,276 tests across 72 files passed, including 54 targeted results UI tests; lint, production build, typecheck and whitespace checks passed. Reran typecheck successfully after concurrent build regeneration temporarily removed generated Next.js types.
+- Next: restore isolated Judge0 availability and validate/publish the catalog; existing live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Compact results comparison guide
+- Retried the highest-priority unchecked catalog validation using `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the isolated sandbox returned JudgeUnavailableError. Both catalog items remain blocked and unchecked. No Python ran outside the sandbox.
+- Added and completed one improvement under the blocker rule: the results comparison guide now starts collapsed in a native details/summary disclosure, bringing saved scores closer to the outcome. All best-attempt, CPU, submission-time, rounding and unavailable-history guidance remains available.
+- Styled the disclosure with a 44px touch target, rounded focus treatment and green hover/open accents. Added component coverage for its default state and accessible naming, plus Chromium checks at 320/375/1280px for Enter/Space toggling, hidden/revealed guidance, touch size, layout and subsequent player-link focus.
+- Validation: all 1,274 tests across 72 files passed, including 226 targeted component/browser tests; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 service and validate/publish the catalog; live deployment smoke checks remain pending.
+
+### 2026-11-07 - Final-score verdict polish
+- Retried the highest-priority unchecked catalog validation with `npm run problems -- validate problems/drafts/relay-basin-storage.json`; the configured isolated judge still returned JudgeUnavailableError. Both catalog backlog items remain blocked and unchecked. No Python ran outside the sandbox.
+- Added and completed one results-page improvement under the blocker rule: full, partial and zero-pass judged scores now have explicit text badges, with green full-pass and amber incomplete progress accents. Badges wrap on narrow screens. Unavailable scores and missing submissions retain their existing guidance without verdict styling.
+- Extended component tests for all three verdicts, invalid and missing counts, corrected-score recovery and missing submissions. Added Chromium checks for actual badge/meter colors and overflow at 320px and 1280px. Corrected an initial browser assertion to use the existing success color token.
+- Validation: all 1,274 tests across 72 files passed; lint, typecheck, production build and diff whitespace checks passed.
+- Next: restore the isolated Judge0 deployment and validate the initial catalog; live infrastructure smoke checks remain pending.
+### 2026-11-07 - Validate saved results ratings
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured sandbox returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one results-page fix. Negative, nonfinite or missing invalid rating values now show a styled Rating unavailable notice instead of numeric totals, change badges or misleading tiers. The notice preserves the recorded outcome; historical null ratings retain Rating not recorded.
+- Added regression coverage for invalid before/after values, opponent isolation, outcome preservation and recovery to valid zero/fractional ratings and missing historical ratings.
+- Validation: all 1,271 tests across 72 files passed, including 51 results UI tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Validate saved results timing values
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured sandbox returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one results-page fix. Invalid saved CPU and submission times now show Unavailable instead of negative or nonfinite values, and missing CPU values cannot crash formatting. The comparison guide explains that the recorded outcome still applies. Valid zero/fractional times and historical missing-value labels remain intact.
+- Added five regression cases covering negative, NaN, positive/negative infinity and missing timing values, plus recovery to zero, fractional and absent historical times while preserving correctness and outcome feedback.
+- Validation: all 1,269 tests across 72 files passed, including 49 results UI tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Validate saved results correctness
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured Judge0 service returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one results-page fix. Saved correctness now uses the shared safe-integer score validator before rendering progress bars, numeric test-count comparisons or fallback-score guidance. Invalid counts show a styled unavailable notice explaining that the recorded outcome still applies; absent historical scores retain their Not recorded state.
+- Added nine regression cases covering negative, excessive, fractional, missing-total, zero-total, nonfinite and unsafe-integer counts, invalid no-submission snapshots, and recovery to zero/partial/full valid scores and absent history.
+- Validation: all 1,264 tests across 72 files passed, including 44 results UI tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Explicit zero-pass arena feedback
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena feedback improvement. Latest-attempt and player/opponent best-score badges now distinguish No tests passed from partial success. Valid zero-pass latest attempts suggest checking the function signature and public examples before submitting a correction, without exposing hidden inputs.
+- Updated score regression tests for zero/partial/full transitions in both best-score panels and added latest-attempt coverage for correction guidance cleanup and recovery across partial, full, invalid and queued states.
+- Validation: all 1,255 tests across 72 files passed; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Recover unavailable verdicts after reopening
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. Judge0 returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena feedback fix. Only valid initial judged scores are treated as already announced history. An unavailable initial score can now recover its sound and visual verdict once when polling returns a valid score for the same attempt. Reopening valid history remains silent.
+- Added nine regression cases covering missing, zero-total, negative, excessive, fractional and nonfinite initial counts, silent invalid polling, zero-pass recovery and duplicate suppression after further invalid/full-score transitions.
+- Validation: all 1,254 tests across 72 files passed, including 88 arena UI tests; lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Clear best-score milestones
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. Judge0 returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. No Python executed on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena usability item. Both best-progress panels now distinguish partial scores with amber bars and Tests remaining badges from full scores with green bars and All tests passed badges. Wrapping badges support narrow layouts. Full scores explain that passing every test does not confirm a win and the server confirms the result after the duel ends.
+- Extended player/opponent polling regression coverage across invalid, zero, partial, full and removed scores. Checks cover badge and accent cleanup, accessible full-score guidance and preservation of current-edit submission guidance.
+- Validation: all 1,245 tests across 72 files passed; lint, typecheck, production build and whitespace checks passed. Existing browser fixture tests passed; live deployment visual verification remains pending.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Reliable best-progress bars
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python executed on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena correctness item. Both best-progress panels now share score validation with submission verdicts. Invalid counts show explicit unavailable-score and automatic-update guidance without a misleading bar. Missing submissions show a distinct empty state; valid zero-pass scores retain a determinate bar.
+- Added player/opponent regression coverage for negative, excessive, zero-total, fractional, nonfinite and unsafe-integer scores, repeated recovery to zero/partial/full scores, accessible names/descriptions and removal. Updated three arena integration expectations for the explicit empty state without deleting tests.
+- Validation: full suite passed 1,244 tests with one outdated assertion remaining; corrected its stale region reference and all 81 focused arena/progress tests passed. The other 71 test files passed in the full run. Lint, typecheck, production build and whitespace checks passed. Browser fixture tests passed; live deployment verification remains pending.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Consistent judged-score feedback
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena feedback fix. Sound and visual verdict cues now require the same valid integer test counts as submission status. Invalid attempts do not consume their event ID, so a corrected score can announce once on a later poll; existing judged history remains silent when reopening an arena.
+- Added nine polling regression cases for missing, zero-total, negative, excessive, fractional and nonfinite counts, checking silent invalid feedback, zero-pass recovery and duplicate suppression. Existing full-pass and history tests remain intact.
+- Validation: all 1,243 tests across 71 files passed; lint, typecheck, production build and whitespace checks passed. Browser visual inspection was not performed for this feedback guard change.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Unavailable submission score feedback
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena feedback fix. Judged attempts with missing or invalid counts now explain that their test score is unavailable and to wait for the next automatic update, instead of rendering null counts. Verdict badges and green/amber accents require safe integer counts within a positive test total.
+- Added regression coverage for missing counts, zero totals, negative, excessive, fractional and nonfinite values, plus polling transitions from unavailable to full-pass and back. Preserved valid zero-pass verdicts and the atomic live status.
+- Validation: all 1,234 tests across 71 files passed; lint, typecheck, production build and whitespace checks passed. Browser visual inspection was not performed for this feedback-only change.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Distinct submission verdicts
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one arena usability item. Judged attempts now show explicit All tests passed / Some tests failed badges with green/amber accents and wrapping text. Fully passing attempts explain that runtime and submission time still break ties and the result waits for the duel to end.
+- Preserved the atomic live status, latest-attempt counts and separate best-score guidance. Queued, running, retrying, unknown and unavailable-score states do not receive verdict badges; a new queued attempt clears the previous verdict.
+- Added ten regression cases for full, partial and zero-pass results, worker-state counts, unavailable scores and attempt transitions/removal. Validation: all 1,225 tests across 71 files passed; focused verdict/arena coverage (80 tests), lint, typecheck, production build and whitespace checks passed. Browser visual inspection was not performed for this item.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Public example shortcuts
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one usability item. Multiple public examples now have a named native shortcut navigation with unique per-instance heading targets. Heading focus lets keyboard users continue directly to the selected example input; single, missing and legacy examples omit unnecessary navigation.
+- Added styled 44px controls that fill the available phone width, with hover and existing keyboard focus feedback. Added component coverage for unique destinations and fallback safeguards, plus Chromium checks at 320/375/1280px for keyboard activation, heading focus, subsequent Tab navigation, touch height and overflow.
+- Validation: all 1,215 tests across 70 files passed; focused component/browser coverage (187 tests), lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+### 2026-11-07 - Compact arena judging guidance
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one usability item. Arena judging guidance now starts collapsed in a native details/summary disclosure, bringing examples closer while retaining hidden-test, scoring-order, best-submission and deadline guidance in every match state.
+- Added a styled 44px summary with hover/open accents. Replaced the fixed guide-title ID with a direct accessible name to avoid duplicate IDs across instances. Updated component coverage and browser checks for collapsed content, Enter/Space toggling, focus retention and touch height across existing arena viewport/state fixtures.
+- Validation: all 1,207 tests across 70 files passed; lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Discoverable example scrolling
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one usability item. Public examples now show styled keyboard scrolling guidance, associated with each input/output region through unique per-instance accessible descriptions. Legacy examples receive equivalent guidance; unavailable examples retain their existing notice.
+- Kept long code lines within horizontally scrollable regions. Added component coverage for description associations and multiple instances, plus Chromium coverage at 320/375/1280px for actual arrow-key scrolling, focus retention, visible guidance and no document overflow.
+- Validation: all 1,207 tests across 70 files passed; focused component/browser coverage (179 tests), lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+### 2026-11-07 - Compact example-format guidance
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. The configured isolated Judge0 returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one usability item. Repeated example-format guidance now starts collapsed in a native details/summary disclosure so players reach example inputs faster. Preserved JSON/Python notation and function-contract explanations, visible example data, unavailable notices and legacy rendering.
+- Added styled 44px touch controls with hover/open accents. Component coverage checks collapsed markup and retained content; Chromium coverage at 320/375/1280px verifies Enter/Space toggling, keyboard focus, visible examples, touch height and no overflow. Scoped daily-statement summary styles and existing test selectors to direct children so nested disclosures remain independent.
+- Validation: all 1,203 tests across 70 files passed; focused browser coverage (166 tests), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Compact weekly standings guidance
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. The configured isolated Judge0 service returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one usability item: weekly scoring guidance now starts collapsed in a native details/summary disclosure, bringing standings closer on phones. Preserved all scoring explanations and the existing public/friends, empty, unavailable and sign-in safeguards.
+- Styled the summary with a 44px minimum touch height, a visible expanded accent and a pointer cursor. Updated component coverage for native collapsed markup and retained guide content; browser coverage at 320, 375 and 1280px verifies Enter/Space expansion, focus retention, touch height and readable layouts.
+- Validation: all 1,200 tests across 70 files passed; focused leaderboard/browser coverage (221 tests), lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run the documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Clear unavailable public examples
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; the configured isolated Judge0 service returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python ran on the host and nothing was published.
+- Followed the blocker rule to add and complete one usability item. Empty arrays, null and missing public examples now show a named, styled notice instead of raw storage values. The notice directs players to the statement, constraints and signature, explains that hidden tests determine correctness and repeats the return-value function contract. Existing populated and legacy examples retain their rendering.
+- Added regression coverage for each unavailable value and transitions from unavailable to populated examples and back. Reused the existing responsive example guide styling and accessible aside pattern.
+- Validation: all 1,200 tests across 70 files passed; focused example coverage (9 tests), lint, production build and typecheck passed. Whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Grouped dashboard section navigation
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation; the configured isolated Judge0 service returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. No Python executed on the host and nothing was published.
+- Followed the blocker rule to add and complete one dashboard usability item. Daily-challenge and recent-duel shortcuts now share a named native Dashboard sections navigation landmark with an On this page label, consistent gaps and full-width controls on phones. Empty and unavailable dashboards omit the landmark; guests see only the published daily destination when available.
+- Added component checks for destination eligibility, link order, focusable headings and empty/error safeguards. Chromium coverage at 320/375/1280px verifies separation between controls, phone widths, 44px touch heights, Tab order, native fragment focus at both headings and no document overflow.
+- Validation: all 1,199 tests across 70 files passed; focused dashboard/mobile coverage (244 tests), lint, production build, typecheck and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then run documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Compact dashboard scoring guide
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; the configured isolated Judge0 service returned JudgeUnavailableError. Both catalog milestones remain unchecked and blocked. No Python executed on the host and nothing was published.
+- Followed the blocker rule to add and complete one bounded dashboard polish item. Scoring guidance now starts collapsed in a native details/summary disclosure, reducing phone-page length while keeping the section heading visible and retaining best-attempt selection, correctness, median CPU timing, submission-time tiebreaks and draw rules.
+- Styled the disclosure with existing dark-theme tokens, rounded borders, a 44px touch target and hover/open accents. Updated guest and signed-in component coverage and Chromium checks at 320/375/1280px for initial collapse, Enter/Space toggling, focus retention, readable expanded cards and overflow.
+- Validation: all 1,190 tests across 70 files passed; focused dashboard/mobile coverage (235 tests), lint, typecheck, production build and whitespace checks passed.
+- Next: restore isolated Judge0 availability and validate/publish the initial catalog, then complete documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Compact first-duel guidance
+- Retried the highest-value catalog validation item with Relay Basin Storage; the configured isolated Judge0 service still returned JudgeUnavailableError. Problems 1-20 and 21-60 remain unchecked and blocked; no Python ran on the host and nothing was published.
+- Added and completed one independent usability item: the dashboard first-duel guide now starts collapsed in a native details/summary disclosure. Returning players see a shorter introduction; readiness, catalog eligibility and all three difficulty timers remain available on demand.
+- Styled the summary with a 44px minimum touch target, hover accent and existing keyboard focus styling. Added component coverage for the initially closed disclosure for guests and signed-in players; updated Chromium tests at 320/375/1280px for Enter/Space toggling, retained focus, expanded guidance and overflow.
+- Validation: all 1,190 tests across 70 files passed; lint, typecheck and production build passed.
+- Next: restore isolated Judge0 availability and validate the original catalog, then run the documented live database, worker and sandbox smoke checks. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Direct keyboard access to the daily challenge
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Left catalog milestones unchecked and followed the blocker rule to add and complete one bounded dashboard usability item.
+- Added a styled native Jump to daily challenge action for guests and signed-in players with a published preview. Its heading accepts fragment focus without an extra Tab stop; subsequent Tab navigation reaches the function signature and statement disclosure. Empty and unavailable dashboards omit the action.
+- Added component safeguards and Chromium regression checks at 320, 375 and 1280 pixels for keyboard activation, heading focus, subsequent navigation, opening the statement, touch height and page overflow.
+- Validation: all 1,190 tests across 70 files passed; focused dashboard/mobile tests (235 tests), lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
+### 2026-11-07 - Dashboard rating-tier guide
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Left both catalog milestones unchecked and followed the blocker rule to add and complete one bounded dashboard usability item.
+- Added a native expandable tier guide beside signed-in dashboard MMR, using shared thresholds and existing responsive styling. Highlights exactly one current tier at full precision and explains rounded boundary values, starting MMR and refreshing after completed duels. Guest and unavailable dashboards omit the personal guide.
+- Added component regression coverage around every tier boundary, guest/error safeguards and Chromium checks for Enter/Space disclosure controls, focus retention, subsequent Tab navigation, touch height and overflow at 320, 375 and 1280 pixels.
+- Validation: all 1,183 tests across 70 files passed; focused dashboard/mobile tests (228 tests), lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
+### 2026-11-07 - Direct keyboard access to dashboard duels
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Left both catalog milestones unchecked and followed the blocker rule to add and complete one bounded dashboard usability item.
+- Added a visible native Jump to recent duels action after dashboard refresh and before the introduction when a signed-in player has completed history. Its heading accepts fragment focus without adding a Tab stop; the next Tab reaches the first results link. Guest, empty and unavailable dashboards omit the shortcut.
+- Reused secondary button styling with a 44px minimum height and added component safeguards plus Chromium keyboard, touch-height and overflow checks at 320, 375 and 1280 pixels.
+- Validation: all 1,168 tests across 70 files passed; focused dashboard/mobile tests (213 tests), lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
+### 2026-11-07 - Direct keyboard access to recent profile duels
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks validation. Left both catalog milestones unchecked and followed the blocker rule to add and complete one bounded profile usability item.
+- Added a visible native Jump to recent duels action before profile refresh and rating details when completed history exists. Its heading accepts fragment focus without adding a Tab stop; subsequent Tabs reach the scrollable history region and opponent links. Empty and unavailable profiles omit the action.
+- Reused the secondary button styling and added component safeguards plus Chromium keyboard, touch-height and page-overflow checks at 320, 375 and 1280 pixels. Updated existing refresh keyboard checks for the new preceding shortcut.
+- Validation: all 1,161 tests across 70 files passed; focused profile/mobile tests (199 tests), lint, typecheck, production build and whitespace checks passed. An initial focused run also encountered an arena scrolling timing failure; subsequent focused and full runs passed without changing that test. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
+### 2026-11-07 - Direct keyboard access to standings
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded leaderboard usability item.
+- Added a visible native Jump to standings action ahead of filters and ranking guides on populated global, weekly and friends ladders. Its heading destination accepts fragment focus without adding a Tab stop; the next Tab reaches the keyboard-scrollable standings region and then player links. Empty, unavailable and signed-out friends views omit the shortcut.
+- Added component coverage for all period/scope combinations and missing destinations, plus Chromium keyboard, touch-height and overflow checks at 320, 375 and 1280 pixels for both friends ladder periods. Reused the existing secondary button styling.
+- Validation: all 1,157 tests across 70 files passed; focused leaderboard/mobile tests (206 tests), lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
+### 2026-11-07 - Consistent profile rating changes
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation; JudgeUnavailableError still blocks it. Both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded profile correctness improvement.
+- Rating journey totals and individual disclosed changes now round full-precision differences, matching recent duels and results instead of subtracting rounded endpoints. Added guidance explaining independent rounding and small gains/losses displayed as zero.
+- Added fractional gain/loss boundary, negative-zero, cross-view consistency and cumulative-window regression coverage. The window change rounds once rather than summing individually rounded changes.
+- Validation: the full suite passed (1,143 tests across 70 files); after adding the cumulative-window regression, all 47 profile component tests passed. Lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure verification remains pending.
+
+### 2026-11-07 - Public leaderboard rating tier guide
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still prevents sandbox validation. Both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded leaderboard improvement.
+- Added a native expandable tier guide to public and friends standings in both periods, including empty, signed-out and unavailable states. Reused the bordered responsive guide styling and shared six-tier thresholds. Explained full-precision boundaries with a rounding example and distinguished weekly rank from current-rating tiers.
+- Added component checks for shared thresholds, both periods, empty and unavailable states; added Chromium checks at 320, 375 and 1280px for Enter/Space disclosure, touch height, overflow and Tab recovery to Refresh standings. Updated existing badge selectors and keyboard-order assertions for the new guide.
+- Validation: all 1,136 tests across 70 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host. Browser checks use rendered fixtures; live deployment checks remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
+### 2026-11-07 - Account rating tier guide
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Followed the blocker rule and added and completed one bounded account improvement.
+- Added a native expandable rating-tier guide beside the signed-in account standing. It lists all six shared thresholds, highlights the current tier at full precision, explains rounding and rating changes, and reuses the bordered responsive guide styling. Guest and unavailable-session views do not show it.
+- Added component coverage for all tiers, fractional boundary ratings, threshold values and guest/error states. Added Chromium checks at 320, 375 and 1280px for Enter/Space disclosure controls, touch height, overflow and Tab recovery to Play. Updated an existing badge assertion to distinguish the badge from tier names in the guide.
+- Validation: all 1,130 tests across 70 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host. Browser tests use rendered fixture markup; deployed navigation and live infrastructure remain unverified.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
+### 2026-11-07 - Account snapshot refresh
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation. JudgeUnavailableError still blocks sandbox validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded account improvement.
+- Added a native Refresh account action for signed-in players and a responsive bordered snapshot guide explaining that MMR, tier and session identity reflect page load. Refresh makes a document request to recheck the session after a completed duel or an account change in another tab. Guest forms and service-failure recovery retain their existing behavior.
+- Added component tests for full-precision tier changes, refreshed guest state, accessible guidance and unavailable sessions. Chromium checks at 320, 375 and 1280px cover styling, native Tab focus, 44px action height and page overflow. Corrected the new browser test's brand selector after initial timeouts.
+- Validation: all 1,119 tests across 70 files passed; targeted tests (172), lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host. Browser checks use rendered fixture markup; deployed navigation and live database checks remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
+### 2026-11-07 - Account rating tier clarity
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation. JudgeUnavailableError still blocks sandbox validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded account improvement.
+- Added the signed-in account tier badge beside explicitly labeled MMR, using full-precision rating thresholds and visible, accessible rounding guidance. Responsive wrapping keeps the rating and badge contained on phones. Guests and unavailable sessions show no rating summary.
+- Added component regressions at every tier boundary, including ratings that round into the next tier, and guest/error coverage. Chromium checks cover styled badge containment and guidance at 320, 375 and 1280px.
+- Validation: targeted tests passed (167 tests); lint, typecheck, production build and whitespace checks passed. All 1,114 tests across 70 files passed. No authored or player Python executed on the host. Browser checks use rendered fixture markup.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
+### 2026-11-07 - Dashboard snapshot refresh
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks isolated sandbox validation. Following the blocker rule, added and completed one bounded dashboard improvement. Catalog milestones remain unchecked.
+- Added a visible native Refresh dashboard action for successful guest and signed-in dashboards. A responsive bordered guide explains that ratings, streaks, recent duels and the daily preview reflect page load, and recommends refreshing after a completed duel or a new UTC day. A document request reloads the session and dashboard; failed reads retain only the existing recovery flow.
+- Added component coverage for guest and signed-in snapshots, accessible descriptions, fresh data reads and failure states. Chromium checks at 320, 375 and 1280px verify keyboard focus, overflow and 44px action height.
+- Validation: all 1,100 tests across 70 files passed; targeted component/browser tests, lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host. Browser checks use rendered fixture markup; deployed navigation and live database smoke checks remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
+### 2026-11-07 - Profile snapshot refresh
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded profile improvement. Catalog milestones remain unchecked.
+- Added a visible native Refresh profile action on empty and populated player profiles, targeting the loaded player's canonical username. A responsive bordered guide explains that rating, tier, record and history reflect page load and recommends refreshing after completed duels. Failed reads retain their existing retry flow.
+- Added component tests for empty/populated profiles, canonical destinations, accessible descriptions and failure states. Chromium checks at 320, 375 and 1280px verify keyboard focus, page overflow and 44px action height.
+- Validation: all 1,094 tests across 70 files passed; lint, typecheck, production build and whitespace checks passed. Fixed an unescaped apostrophe caught by lint. No authored or player Python executed on the host. Browser checks use rendered fixture markup; live database and deployed navigation smoke checks remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
+### 2026-11-07 - Standings snapshot refresh
+- Retried the highest-value unchecked catalog milestone with Relay Basin Storage validation; JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded standings improvement. Catalog milestones remain unchecked.
+- Added a visible native Refresh standings link on successful populated and empty ladders. The action preserves normalized global/weekly and everyone/friends filters and makes a fresh document request. Styled snapshot guidance explains when ratings and gains were loaded and how to see completed duels or friendship changes. Failed reads retain their existing retry action; signed-out friends views retain sign-in guidance.
+- Added component coverage for every filter combination, invalid-filter normalization, accessible guidance and unavailable/signed-out states. Chromium checks at 320, 375 and 1280px verify overflow, native keyboard focus, filter preservation and 44px action height.
+- Validation: all 1,088 tests across 70 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host. Browser checks use rendered fixture markup; live database and deployed navigation smoke checks remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; existing infrastructure blockers remain.
+
+### 2026-11-07 - Route loading feedback
+- Retried the highest-value unchecked catalog milestone using Relay Basin Storage validation; JudgeUnavailableError still prevents sandbox validation. Following the blocker rule, added and completed one bounded loading-feedback item. Both catalog milestones remain unchecked.
+- Added the root App Router loading boundary with a styled dark card, restrained green loading indicator, polite atomic status announcement and reduced-motion support. It explains automatic page arrival and continuing live-duel server clocks without inventing progress or wait estimates. Native arena links permit a fresh document request during stalled navigation; skip navigation focuses the loading content.
+- Added component coverage for status semantics, honest clock guidance and recovery destinations, plus Chromium checks at 320, 375 and 1280px for overflow, reduced motion, skip focus, keyboard recovery and touch sizes.
+- Validation: all 1,078 tests across 70 files passed; lint, typecheck and production build passed. No authored or player Python executed on the host. Browser checks render fixture markup; deployed streaming/navigation behavior still needs a live smoke check.
+- Next: restore isolated Judge0 availability and validate/publish the first twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Root-layout failure recovery
+- Retried problems 1-20 validation with Relay Basin Storage; JudgeUnavailableError still blocks the catalog milestones. Following the blocker rule, added and completed one bounded recovery item; catalog milestones remain unchecked.
+- Added global-error.tsx to recover from root-layout failures outside the existing route boundary. It owns its HTML document, language, title and responsive dark styling, so recovery does not depend on the failed layout or global stylesheet. Native full-page links reload public arena and standings destinations; explicit retry invokes Next.js reset. Private errors and digests remain hidden, and live-match clock guidance remains visible.
+- Added standalone-document semantics and hydration tests for private-detail exclusion and explicit/repeated retry. Chromium checks at 320, 375 and 1280px verify styling without app CSS, document overflow, native skip navigation, focus order and action touch sizes.
+- Validation: all 1,074 tests across 69 files passed; lint, typecheck and production build passed. No authored or player Python executed on the host. Browser coverage renders the standalone boundary; a deployed root-layout failure smoke check remains pending.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Unexpected-page error recovery
+- Retried problems 1-20 validation using Relay Basin Storage; JudgeUnavailableError still blocks the catalog milestones. Following the blocker rule, added and completed one bounded recovery item.
+- Added the root route error boundary with a branded responsive recovery card, explicit Next.js reset action, public arena/standings links and native skip navigation. Internal exception messages and digests are never rendered. Guidance explains that retrying the view does not submit code and an active match clock may continue running.
+- Added component tests for explicit/repeated retry, private-detail exclusion, recovery destinations and clock guidance. Extended Chromium checks at 320, 375 and 1280px for native skip navigation, retry focus, touch targets and overflow.
+- Validation: full suite passed (1,066 tests across 68 files) before the additional three browser cases; updated recovery/browser checks also passed. Lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Unavailable-page recovery
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded recovery improvement; catalog milestones remain unchecked.
+- Replaced the default missing-page screen with a branded CodeDuel recovery card, clear address guidance and public arena and standings links. Generic wording preserves unavailable-resource privacy. Added responsive green-accented styling and native skip navigation to a focusable main destination.
+- Added component coverage for recovery semantics and destinations, plus Chromium checks at 320, 375 and 1280px for page overflow, 44px action targets, skip-link activation and subsequent keyboard focus.
+- Validation: all 1,064 tests across 67 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Direct Friends invitation navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks validation. Following the blocker rule, added and completed one bounded navigation improvement; catalog milestones remain unchecked.
+- Added a green-accented Invite a player shortcut before the counted Friends section links. The native anchor focuses the existing invitation heading, and Tab reaches the username field without traversing the explanatory guide.
+- Updated component coverage for populated/empty navigation and added Chromium checks at 320, 375 and 1280px for touch size, width, heading focus, subsequent input focus and the revised page tab order.
+- Validation: all 1,060 tests across 66 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Contextual friends standings comparisons
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded usability item; catalog milestones remain unchecked.
+- Added a styled, wrapping comparison panel beside accepted friends with direct global and weekly friends standings links. Guidance explains current MMR ranking, weekly rating gains since Monday 00:00 UTC and weekly participation requirements. Pending-only and empty circles do not show the panel.
+- Added component coverage for accepted/pending/empty transitions, scoped destinations and accessible descriptions. Updated Chromium coverage at 320, 375 and 1280px for comparison touch targets, overflow and keyboard order after section jumps.
+- Validation: all 1,060 tests across 66 files passed; lint, production build and typecheck passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Actionable Friends empty sections
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends usability item; catalog milestones remain unchecked.
+- Empty accepted-friend sections now direct players to waiting incoming requests when available, otherwise to the invitation form. Empty sent-request sections link to invitations, and empty incoming sections explain refresh behavior. Styled native actions wrap on phones; the invitation heading receives anchor focus and highlights the destination.
+- Added component tests for empty/populated transitions and context-aware destinations, plus Chromium checks at 320, 375 and 1280px for 44px actions, Enter navigation, subsequent Tab focus on the username field and no page overflow.
+- Validation: all 1,059 tests across 66 files passed; targeted Friends/browser tests (130), lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Friends refresh and snapshot guidance
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends usability item; catalog milestones remain unchecked.
+- Added a wrapping, styled Check for updates panel explaining that invitations, friendships and ratings reflect page load. Refresh friends uses a native /friends link for a fresh server read and clears stale action-query feedback. Guests and unavailable lists retain their existing recovery flows.
+- Added component coverage for accessible guidance, native refresh destination, refreshed relationship data, cleared feedback and guest/error suppression. Chromium checks at 320, 375 and 1280px verify keyboard order, a 44px refresh target and no page overflow. Corrected an overly broad status assertion that also matched username validation.
+- Validation: all 1,055 tests across 66 files passed; lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Friends player ratings and tiers
+- Retried problems 1-20 passing validation with Relay Basin Storage; JudgeUnavailableError still blocks that milestone. Following the blocker rule, added and completed one bounded Friends improvement; catalog milestones remain unchecked.
+- Incoming, accepted and outgoing player cards now show current rounded MMR and shared rating-tier badges in a wrapping row. Accessible guidance explains whole-number display and full-precision tier thresholds. The database query adds only public rating data.
+- Added database coverage for fractional, refreshed ratings and the exact public projection; component coverage for zero ratings, all relationship states, tier boundaries, refreshed tiers and guest suppression; and Chromium checks for styled rating rows without overflow at 320, 375 and 1280px.
+- Validation: all 1,054 tests across 66 files passed; targeted Friends/browser tests (126), lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Player-specific Friends action names
+- Retried problems 1-20 passing validation with Relay Basin Storage; JudgeUnavailableError still blocks the catalog milestone. Following the blocker rule, added and completed one bounded Friends accessibility item. Catalog milestones remain unchecked.
+- Accept, Decline, Cancel request and Remove friend buttons now include the target username in their accessible names, making repeated actions distinguishable when navigating buttons with assistive technology. Visible labels and native POST controls are preserved.
+- Updated native form submission coverage and added regression tests for multiple players sharing actions and refreshed accessible names after acceptance/removal.
+- Validation: all 1,053 tests across 66 files passed; lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Friends consent and management guide
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends-page usability item; catalog milestones remain unchecked.
+- Added a styled semantic guide before invitation controls explaining explicit acceptance (including reciprocal requests), declining versus cancelling, removal for both players, reconnecting by consent and accepted-only friends standings. The guide is hidden for guests and unavailable data and uses a single column on narrow phones.
+- Added component regression coverage for the management rules, semantic definitions, placement and guest/error suppression. Extended Chromium coverage at 320, 375 and 1280px for visibility, accent styling, responsive columns and overflow. Corrected a browser test assertion to ignore collapsed CSS grid tracks.
+- Validation: all 1,052 tests across 66 files passed; the subsequently extended three browser cases passed after the assertion fix. Lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Friends section jump navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded Friends-page usability item; catalog milestones remain unchecked.
+- Added styled native links to incoming requests, accepted friends and sent requests, with current counts and an accent when replies are waiting. Section destinations receive native fragment focus and a visible target outline. Navigation wraps on phones and is hidden for guests and unavailable data.
+- Added component coverage for counts, destination IDs, focusability, empty states, accent recovery and private-state suppression. Chromium checks at 320, 375 and 1280px verify touch sizes, focus visibility, Enter activation, destination focus, subsequent Tab navigation and overflow. Updated the existing skip-link regression to follow the new navigation order; corrected missing accessible-name spacing caught by tests.
+- Validation: all 1,051 tests across 66 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Wrapped plain-editor navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability fix.
+- Line wrapping now preserves native textarea Home/End and Shift selection behavior instead of jumping across whole logical Python lines. Turning wrapping off restores indentation-aware Home and trailing-space-aware End. The keyboard guide explains both modes for editable and read-only solutions.
+- Added regression coverage for native event handling, backward selections, focus, draft preservation and repeated wrap-mode changes in editable and read-only editors. Tests verify event delegation; platform-specific visual caret placement remains the browser's responsibility.
+- Validation: all 1,047 tests across 66 files passed; lint, production build, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the initial twenty drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Plain-editor End navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Basin Storage. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor navigation item; catalog milestones remain unchecked.
+- End toggles between the position after the last non-space/tab character and the physical line end. Shift+End retains the selection anchor through direction changes. Editable and read-only drafts share navigation and updated keyboard guidance without changing code or focus.
+- Added 16 regression cases covering trailing spaces/tabs, backward-to-forward selection reversal, blank and trailing lines, CRLF/CR offsets, native modified keys, IME flags and composition-end/blur recovery. Corrected the test's synthetic blur dispatch to use React's focus event helper.
+- Validation: all 1,045 tests across 66 files passed; lint, typecheck, production build and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the twenty initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Expandable plain-editor keyboard guide
+- Retried problems 1-20 validation with Relay Basin Storage; JudgeUnavailableError still blocks the highest-value milestone. Following the blocker rule, added and completed one bounded editor usability item; catalog milestones remain unchecked.
+- Moved long plain-editor keyboard guidance into a styled native disclosure, collapsed initially, with a 44px minimum summary and expanded accent. Retained the textarea description and editable/read-only instructions. Native disclosure state survives mode changes without replacing code, focus or selection.
+- Added Chromium phone coverage for Enter/Space activation, visible focus, guide visibility, touch sizing, draft preservation and page overflow in both modes. Added component coverage for open-state and backward-selection preservation through mode changes.
+- Validation: full suite passed 1,028 tests across 66 files; the subsequently added mode-change regression passed with all 214 plain-editor tests (1,029 total covered). Lint, typecheck and whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability and validate/publish the twenty initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Relay Basin Storage draft
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Channel Chain. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded catalog-authoring item; validation and publication milestones remain unchecked.
+- Added the twentieth original draft, Relay Basin Storage (medium two pointers), with a coolant-depth contract, Python constant-space linear reference and quadratic baseline, examples, edge cases, 2,000 seeded inputs and three 100,000-column benchmarks. Documented correctness, 64-bit answers and pending resource calibration.
+- Added data-only tests comparing prefix/suffix maxima with independent horizontal layer enumeration, reversal, vertical translation, scaling and zero padding. Certified enclosed, alternating and monotone benchmark answers and 10,000,100,000 baseline visits each. No authored or player Python executed on the host.
+- Validation: all 1,026 tests across 66 files passed; lint, typecheck and diff whitespace checks passed. New-draft sandbox validation returned JudgeUnavailableError; Python agreement, resource enforcement, baseline timeouts and publication remain pending.
+- Next: restore isolated Judge0 availability and validate/publish the twenty initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Relay Channel Chain draft
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Target Bursts. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded catalog-authoring item; catalog validation and publication remain unchecked.
+- Added the nineteenth original draft, Relay Channel Chain (medium hash sets), with an order-independent consecutive-label contract, Python reference and quadratic baseline, examples, constraints, 2,000 seeded cases and three 100,000-entry benchmarks. Documented the chain-start correctness argument and pending resource calibration.
+- Added data-only tests comparing sorted adjacency and independent chain enumeration, checking duplicates, negative labels, empty logs, reversal, duplication, translation and sign symmetry. Certified large answers and more than two billion baseline iterations per benchmark. Fixed a negative-zero expectation caught by tests. No authored or player Python executed on the host.
+- Validation: all 1,023 tests across 65 files passed; lint, typecheck and diff whitespace checks passed. Isolated validation of the new draft returned JudgeUnavailableError; Python correctness, resource calibration, baseline timeouts and publication remain pending.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author the one remaining initial draft; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Plain-editor Home navigation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Target Bursts. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor navigation item; catalog milestones remain unchecked.
+- Home now toggles between leading indentation and the line start. Shift+Home preserves the selection anchor through direction changes; cursor feedback updates immediately. Editable and read-only solutions share navigation and visible keyboard guidance without changing drafts or focus.
+- Added 14 regression cases covering tabs/spaces, forward/backward selection transitions, empty/whitespace/trailing lines, CRLF offsets, native Ctrl/Command/Alt combinations and IME flags and composition recovery.
+- Validation: all 1,020 tests across 64 files passed, including 213 plain-editor tests; lint, typecheck, production build and diff whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author the two remaining initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Relay Target Bursts draft
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Unique Span. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded catalog-authoring item; validation and publication milestones remain unchecked.
+- Added the eighteenth original draft, Relay Target Bursts (medium prefix sums/hash maps), with a signed contiguous-span counting contract, examples, constraints, expected-linear reference, quadratic baseline, 2,000 seeded cases and three 100,000-entry benchmarks. Documented correctness, empty-span exclusion, 64-bit count requirements and pending sandbox calibration.
+- Added data-only tests comparing direct span enumeration with ordered prefix-position pairs, reversal and sign symmetry. Certified benchmark answers with closed forms; each baseline enumerates 5,000,050,000 spans. No authored or player Python executed on the host.
+- Validation: all 1,006 tests across 64 files passed; lint and typecheck passed. Isolated validation of the new draft returned JudgeUnavailableError, so Python correctness, resource calibration, baseline timeouts and publication remain pending.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author the two remaining initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Relay Unique Span draft
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Missing Slot. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded catalog-authoring item; validation and publication milestones remain unchecked.
+- Added the seventeenth original draft, Relay Unique Span (medium sliding window/hash maps), with a function contract, examples, constraints, linear expected-time reference, quadratic baseline, 2,000 seeded cases and three 100,000-entry benchmarks. Documented correctness, complexity and sandbox approval requirements.
+- Added data-only tests comparing independent contiguous-span enumeration and shrinking-queue oracles, including empty logs, negative/zero labels, stale duplicate positions, reversal, label renaming and extension properties. Certified large benchmark answers with matching distinct-label bounds and contiguous witnesses; every baseline requires over a billion inner iterations. No authored or player Python executed on the host.
+- Validation: all 1,003 tests across 63 files passed; lint and typecheck passed. Isolated validation of the new draft also returned JudgeUnavailableError, so Python correctness, resource calibration, baseline timeouts and publication remain pending.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author the three remaining initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Relay Missing Slot draft
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation. Relay Load Capacity still returned JudgeUnavailableError. Following the blocker rule, added and completed one bounded catalog-authoring item; validation and publication milestones remain unchecked.
+- Added the sixteenth original draft, Relay Missing Slot (easy arrays/hash sets), with a function contract, examples, constraints, linear expected-time reference, quadratic baseline, 2,000 seeded small cases and three 100,000-entry benchmarks. Documented correctness, complexity and sandbox approval requirements.
+- Added data-only tests checking every fixture against an independent sorted-gap oracle, small-case agreement with linear scans, empty logs, diagnostic labels, duplicates, reversal invariance, duplicate invariance, gap filling and benchmark structure/work bounds. No authored or player Python executed on the host.
+- Validation: all 1,000 tests across 62 files passed; lint, typecheck and diff whitespace checks passed. The new draft also returned JudgeUnavailableError during isolated validation, so Python correctness, resource calibration, baseline timeouts and publication remain pending.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author the four remaining initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Plain-editor Windows line endings
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Load Capacity. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
+- Normalized CRLF and standalone CR to LF within the plain editor to match native textarea offsets. Enter, indent-stop Backspace and block indentation now preserve the correct text and selections for Windows/imported drafts. Size feedback counts displayed text consistently; mounting and selecting read-only or editable drafts does not invoke onChange or rewrite external storage.
+- Added nine regression cases for LF/CRLF/CR Enter selection replacement, Backspace caret placement, backward block indentation/outdent recovery and editable/read-only normalized size and select-all behavior.
+- Validation: all 997 tests across 61 files passed; the final targeted rerun passed all 199 plain-editor tests. Lint, production build and typecheck passed after correcting a test query typing error. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author remaining initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Preserve string content during Backspace
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Load Capacity. The configured sandbox returned JudgeUnavailableError. Following the blocker rule, added and completed one bounded editor correctness item; catalog validation milestones remain unchecked.
+- Indent-stop Backspace now shares Enter's lexical context tracking and leaves deletion native inside triple-quoted and backslash-continued strings. Ordinary indentation still removes spaces to the previous four-space stop after strings close or incomplete ordinary strings end at a newline. Updated visible editing guidance.
+- Added 11 regression cases covering both quote styles, raw triple strings, literal comment/header text, continued strings, closed strings, incomplete ordinary strings and ignored comment quotes, including suffix, caret and focus preservation.
+- Validation: all 988 tests across 61 files passed; lint, production build, typecheck and diff whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author remaining initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Plain-editor indent-stop Backspace
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Load Capacity. The configured service returned JudgeUnavailableError; validation and publication remain blocked. Following the blocker rule, added and checked off one bounded editor usability item.
+- Backspace in space-only leading indentation now removes spaces to the previous four-space stop, preserving the rest of the line, focus and caret. Added discoverable editing guidance. Selections, tabs, text deletion, modified Backspace, read-only solutions and active IME composition retain native handling.
+- Added 21 regression cases covering aligned and partial indent stops, nested lines, suffix preservation, selections, tabs, modifier keys, read-only mode, both IME keyboard guards and composition-end recovery with repeated outdents.
+- Validation: all 977 tests across 61 files passed; lint, production build, typecheck and diff whitespace checks passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author remaining initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Multiline Python block indentation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Load Capacity. The configured Judge0 service returned JudgeUnavailableError; validation and publication remain blocked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Plain-editor Enter now derives block indentation from the opening logical header line rather than the closing physical line. Parenthesized and explicit-backslash headers enter their body at the correct depth, preserving tabs and nested indentation. Updated the visible editing guidance.
+- Added seven regression cases for multiline conditionals, function signatures, tabbed context managers, nested loops, unfinished brackets and nonheaders, including backward selection replacement, suffix preservation, focus and caret position. Updated three continuation expectations to reflect the corrected behavior.
+- Validation: all 956 tests across 61 files passed; lint, production build and typecheck passed. No authored or player Python executed on the host.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author remaining initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Relay Load Capacity catalog draft
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks isolated sandbox validation. Following the blocker rule, added and completed one bounded catalog-authoring item; validation milestones remain unchecked.
+- Added original medium Relay Load Capacity: minimize processing capacity across at most a given number of contiguous rounds. Includes precise constraints/examples, binary-search/greedy Python reference, capacity-enumeration baseline, 2,000 seeded small cases and three 100,000-entry benchmarks with answers beyond 32-bit range. Documented correctness, complexity and sandbox calibration requirements.
+- Added data-only fixture tests using independent partition DP, checking greedy feasibility at the exact optimum and one below, reversal/scaling invariants, extra-round monotonicity, endpoint formulas, generator bounds/determinism and full-size benchmark shapes/answers. No authored Python executed on the host.
+- Validation: all 949 tests across 61 files passed; lint, production build, typecheck and diff whitespace checks passed.
+- Limits: draft remains private, unpublished and unapproved. Proposed 2-second CPU and 64-MiB limits, Python agreement and three baseline timeouts per benchmark require isolated Judge0 validation.
+- Next: restore isolated Judge0 availability, validate/publish the catalog and author the remaining initial drafts; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Recover indentation after unfinished ordinary strings
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks isolated sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
+- Plain-editor Enter now ends ordinary single/double-quoted string context at an unescaped physical newline, so an incomplete earlier string no longer suppresses indentation on subsequent block headers. Escaped newlines, triple-quoted strings, unfinished brackets and current-line string guards retain their behavior. This is a lexical editing convenience rather than Python syntax validation.
+- Added ten regression cases covering both quote styles, quoted comment/bracket punctuation, even and odd backslashes, recovery after a continued string, triple quotes, bracket context, current-line guards, backward selection replacement, suffix preservation, focus and caret placement.
+- Validation: all 946 tests across 60 files passed, including 151 plain-editor tests; lint, production build, typecheck and diff whitespace checks passed. The initial typecheck found a missing generated Next.js route type; building regenerated it and the rerun passed. No Python solution code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Recover indentation after earlier delimiter errors
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
+- Plain-editor Enter now tracks delimiter mismatches through the current logical line and clears them at an ordinary newline once the bracket stack is empty. An earlier completed malformed line no longer disables indentation for every subsequent block header. Unfinished bracket context and explicit continuations retain the mismatch guard. This is a lexical editing convenience rather than Python syntax validation.
+- Added eight regression cases covering recovery, nested unfinished delimiters, malformed current headers, comments, quoted punctuation, explicit continuations, backward selection replacement, suffix preservation, focus and caret placement.
+- Validation: all 936 tests across 60 files passed, including 141 plain-editor tests; lint, typecheck, production build and diff whitespace checks passed. No Python solution code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Explicit Python line continuations
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation. Following the blocker rule, added and completed one bounded editor correctness item; catalog milestones remain unchecked.
+- Plain-editor Enter now joins explicit backslash-newline continuations outside strings and comments when recognizing block headers. Repeated continuations retain the header context; ordinary newlines still reset it. Updated visible keyboard guidance. This remains a lexical convenience rather than Python syntax validation.
+- Added ten regression cases covering continued and async headers, repeated joins, assignments, subsequent statements, quoted/comment backslashes and a backslash followed by whitespace. All cases check backward selection replacement, suffix preservation, focus and caret placement.
+- Validation: all 928 tests across 60 files passed, including 133 plain-editor tests; lint, typecheck, production build and diff whitespace checks passed. No Python solution code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Document-context plain-editor indentation
+- Retried problems 1-20 validation with Relay Order Conflicts; JudgeUnavailableError still blocks catalog validation. Following the blocker rule, added and completed one editor correctness item; catalog milestones remain unchecked.
+- Enter now scans the draft before the caret, retaining earlier-line string and bracket context. Multiline string content cannot masquerade as a block header, comments skip only their own line, and closed multiline bracket headers can receive block indentation. Updated visible keyboard guidance.
+- Added 13 regression cases for both triple quote styles, escaped closers, comment punctuation, closing-string recovery, unfinished and closed brackets, backward selection replacement, suffix preservation, focus and caret placement. This remains a lexical convenience rather than full Python syntax validation.
+- Validation: all 918 tests across 60 files passed, including 123 editor tests; lint, typecheck, production build and diff whitespace checks passed. No Python solution code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Triple-quote-aware plain-editor indentation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Plain-editor Enter now recognizes single- and double-quoted triple delimiters on the current line. Unfinished triple strings retain the existing indentation; closed strings allow normal block indentation. Updated visible keyboard guidance. Multiline string context remains outside this current-line convenience.
+- Added ten regression cases covering both quote styles, partial closers, embedded quotes, comment/bracket punctuation and escaped closers, with backward selection replacement, suffix preservation, focus and caret checks.
+- Validation: all 905 tests across 60 files passed; lint, typecheck and production build passed. No Python solution code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Delimiter-aware block indentation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Plain-editor Enter now requires balanced current-line delimiters before adding block indentation. Unfinished slice/dictionary colons and mismatched brackets retain the existing indentation; balanced headers still indent. Quoted delimiters and trailing comments do not affect the delimiter stack. Updated visible keyboard guidance.
+- Added ten regression cases covering unfinished and mismatched delimiters, nested balanced expressions, quoted/comment punctuation, backward selection replacement, suffix preservation, focus and caret placement. This remains a current-line convenience; multiline Python parsing is outside its scope.
+- Validation: all 895 tests across 60 files passed; lint, typecheck and production build passed. No Python solution code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+
+### 2026-11-07 - Python block-header indentation
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Plain-editor Enter now adds four spaces only after a recognized Python block header ending in a code colon. Dictionary entries, slices and ordinary identifiers retain their existing indentation. Updated the visible keyboard guidance; async headers, match/case and except* remain supported.
+- Added 23 regression cases covering block keywords, keyword-like identifiers, dictionary/slice punctuation and selection replacement with suffix, focus and caret preservation. This remains a current-line convenience rather than a full Python parser; multiline context is outside its scope.
+- Validation: all 884 tests across 60 files passed, followed by all 90 editor tests after adding the final selection regression. Lint, typecheck and production build passed. No Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+### 2026-11-07 - Comment-aware plain-editor Enter
+- Retried the highest-value unchecked milestone, problems 1-20 passing validation, with Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and checked off one bounded editor correctness item.
+- Enter now scans the current line for comments outside quoted text. Comment-only colons keep the existing indentation, while block headers followed by comments receive four additional spaces. Updated the visible keyboard guidance.
+- Added ten regression cases covering comments, quoted hash characters, escaped quotes, incomplete strings, tabs, selection replacement, suffix preservation, focus and caret placement. This is a current-line convenience, not a full Python parser; multiline string context remains outside its scope.
+- Validation: all 862 tests across 60 files passed; lint, typecheck and production build passed. No Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure smoke checks remain pending.
+### 2026-11-07 - Preserve IME focus during indentation clicks
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. The validation command still returns JudgeUnavailableError; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Prevented Indent and Outdent mousedown defaults during active composition. This keeps the textarea focused so its blur handler cannot clear the composition guard before the click and inadvertently alter a composing draft.
+- Updated regression tests to simulate browser focus transfer when mousedown is allowed, cover repeated actions and backward selection/cursor preservation, and verify normal mouse defaults and indentation recovery after composition-end or blur.
+- Validation: all 852 tests across 60 files passed; lint, typecheck and production build passed. No Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - IME-safe whole-solution selection
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Protected Select all code during active IME composition and prevented mouse activation from blurring the textarea before the selection guard. Drafts, backward selections and cursor feedback remain intact, including through read-only mode changes.
+- Added regression coverage for repeated actions, cancelled mouse defaults, mode changes and normal whole-solution selection recovery after composition-end or blur.
+- Validation: all 852 tests across 60 files passed; after the final pointer adjustment, all 57 editor tests passed again. Lint, typecheck and production build passed. No Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - IME-safe toolbar indentation
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correctness item.
+- Guarded shared plain-editor indentation against active IME composition so toolbar actions preserve the draft, selection direction, focus and cursor feedback, matching existing keyboard protection.
+- Added regression coverage for repeated Indent/Outdent actions during composition and successful indentation/outdent recovery after composition-end or blur, preserving backward selections.
+- Validation: all 850 tests across 60 files passed; lint, typecheck and production build passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Plain editor draft size summary
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Added a styled visible solution-size summary connected to the editor's accessible description. It shows total lines and explicitly labeled UTF-16 code units, explains empty drafts and trailing newlines, and updates with typing, indentation and replacement drafts.
+- Added regression coverage for Unicode surrogate pairs and combining marks, empty text, trailing newlines, multiple lines, editable/read-only transitions, preferences, focus and backward selection preservation.
+- Validation: all 848 tests across 60 files passed; lint, typecheck and production build passed after removing unsupported test query options. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Plain editor selected line scope
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Extended visible, accessible cursor feedback with singular/plural selected line counts, matching the indentation rule that excludes a following line when the selection ends at its start. Forward/backward selections, read-only copying and active cursor positions are preserved.
+- Added regression tests for partial lines, newline-only selections, trailing newlines, select-all copying, collapsed selections, indentation/outdent recovery and replacement drafts in editable/read-only views.
+- Validation: all 845 tests across 60 files passed; typecheck and production build passed after correcting an unsupported test query option. Lint passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Plain solution selection for manual copying
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Added a styled Select all code button and visible copying guidance to the plain editor. The action focuses the editor, selects the current entire solution and refreshes cursor feedback, including read-only and empty solutions, without modifying the draft.
+- Added regression tests for editable/read-only views, replacement drafts, Unicode, empty text, repeated selection, focus, cursor feedback, button submission protection and native Ctrl/Cmd+C and Tab handling.
+- Validation: all 842 tests across 60 files passed, including 94 focused editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Read-only plain solution guidance
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks sandbox validation; both catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Added a styled accessible read-only notice and replaced editing instructions with selection, copying and Tab guidance while editing is disabled. The persistent note remains separate from copy and editor-recovery status feedback.
+- Added regression coverage for repeated editable/read-only transitions, draft preservation, backward selections, focus, disabled indentation actions and native copy, Tab and editing-key handling. Existing solution-editor tests cover copy and fallback recovery alongside the notice.
+- Validation: all 840 tests across 60 files passed, including 92 focused editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Plain editor keyboard indentation
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor usability item.
+- Added Ctrl+] / Cmd+] to indent and Ctrl+[ / Cmd+[ to outdent the current line or selected lines, using the existing indentation behavior. Visible accessible guidance explains the shortcuts; Tab continues native focus navigation.
+- Added regression tests for both platforms, repeated backward-selection round trips, focus, next-line exclusion, native bracket and modified keys, composition flags and lifecycle recovery, and read-only protection.
+- Validation: all 839 tests across 60 files passed, including 44 focused plain-editor tests. Lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Refresh autofilled passwords through visibility controls
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account-form correction.
+- Show/Hide now synchronizes the password byte budget and native/accessibility validation from the current input value. Silent password-manager replacements no longer leave stale feedback when players use the visibility control without focusing the input.
+- Added regression tests for both account modes covering Unicode overflow, valid replacements, short and empty values, repeated reveal/conceal, button focus, independent fields and prevention of accidental submission.
+- Validation: all 829 tests across 60 files passed; all 25 focused password-field tests passed after the final assertion cleanup. Lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Track plain-editor composition lifecycle
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor correction.
+- Track composition start/end independently of keyboard flags so IME confirmation Enter cannot replace selected code or insert an unintended indented newline during an active composition. Blur clears interrupted composition state so returning to the editor restores ordinary indentation.
+- Added editable/read-only tests for repeated unflagged Enter, backward selection and focus preservation, plus composition-end, blur/refocus and subsequent-composition recovery.
+- Validation: all 827 tests across 60 files passed, including 34 focused plain-editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Preserve IME confirmation in the plain editor
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor input correction.
+- Plain-editor automatic indentation now leaves Enter events with IME key code 229 to native input handling, including when isComposing has already cleared. This prevents confirming composed text from inserting a Python newline or replacing a selection.
+- Added editable/read-only regression cases preserving text, backward selections and focus, plus recovery coverage proving the next ordinary Enter still indents normally.
+- Validation: all 823 tests across 60 files passed, including 30 focused plain-editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Preserve indentation selection direction
+- Retried the highest-value unchecked item, problems 1-20 passing validation, using Relay Order Conflicts. JudgeUnavailableError still blocks catalog validation; catalog milestones remain unchecked. Following the blocker rule, added and completed one bounded editor correction.
+- Plain-editor block indentation now preserves selection direction, keeping the active cursor at the correct end of backward selections and the cursor-position display accurate through repeated edits. Existing focus recovery and selected-line boundaries are preserved.
+- Added three regression cases for forward/backward repeated indentation and outdent recovery, exact solution restoration, cursor feedback, focus and unchanged-text outdent behavior.
+- Validation: all 820 tests across 60 files passed, including 27 focused plain-editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Dismiss stale download failures
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Order Conflicts returned JudgeUnavailableError; catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor feedback item.
+- Download errors now belong to the current draft revision and disappear permanently when code changes, including when earlier code is restored. Preference changes preserve relevant errors, and download retries remain available without changing solution text.
+- Added four regression cases covering both editor modes, external editable/read-only draft replacement, restored drafts, preserved preferences, retry recovery and object URL cleanup.
+- Validation: all 817 tests across 60 files passed, including 47 focused editor tests; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Direct advanced editor recovery
+- Retried the highest-value unchecked catalog validation item with Relay Order Conflicts; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor recovery item.
+- Added a styled Retry advanced editor action beside the automatic plain-text fallback. Retrying remounts the failed editor boundary without changing solution text or saved preferences. Repeated failures retain the editable fallback; focus returns to the solution group so recovery does not strand keyboard users when the retry button disappears.
+- Added editable and read-only regression cases covering repeated failure, successful recovery, fallback edits, text size, line wrapping, saved preferences and focus preservation.
+- Validation: all 813 tests across 60 files passed, including 43 focused editor tests; lint, typecheck and production build passed. Fixed an unsupported test-query typing option caught by typecheck. No player or author Python code executed on the host.
+- Limits: recovery covers rendering failures; persistent asset or infrastructure failures can still require a page reload. Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Expire stale solution clipboard feedback
+- Retried the highest-value unchecked catalog validation item using Relay Order Conflicts; the configured sandbox returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded editor feedback item.
+- Clipboard success and failure messages now belong to a draft revision. Editing permanently expires them, even if the previous code returns. Pending copy completions cannot revive stale feedback after an edit-and-restore sequence; fresh copy attempts still report their own outcome and code remains preserved.
+- Added four regression cases for successful and rejected completed/pending copies, draft restoration, retry availability and preserved solution text.
+- Validation: all 811 tests across 60 files passed; the final editor implementation also passed its 41 focused tests. Lint, typecheck and production build passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Expire stale solution reset confirmations
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded solution-editor recovery item.
+- Reset confirmation now applies only to the draft and starter code present when requested. Edits, external draft replacement, starter changes or removal, and read-only transitions permanently dismiss it. Returning to previous values requires a fresh request, protecting newer work from stale reset actions. Visible confirmation guidance explains edit dismissal.
+- Added six regression cases covering both editor modes, preserved code and editing focus, prop changes, return to earlier values and successful reset after renewed confirmation.
+- Validation: all 807 tests across 60 files passed; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Conceal passwords on submission
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account password improvement.
+- Revealed passwords now hide when their own form submits or any field in that form fails native validation. Capture listeners cover non-bubbling username validation failures, clear stale Caps Lock guidance and preserve credentials, byte budgets and correction feedback. Adjacent account forms remain independent; inline guidance explains the behavior.
+- Added five regression cases covering both form modes, password and username validation failures, correction and reveal recovery, prevented submissions and listener cleanup.
+- Validation: all 801 tests across 60 files passed; lint, typecheck, production build and git diff --check passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Username autofill validation recovery
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded username recovery item.
+- Sign-in, sign-up and friend username fields now synchronize native custom validity and accessible feedback from the current value on focus, change and invalid events. Silent autofill corrections clear stale errors without editing credentials; empty focus clears custom feedback while preserving native required validation.
+- Added parameterized regression tests for silent valid, invalid and empty replacements, invalid-event correction, submitted values and independent adjacent forms across all three modes.
+- Validation: all 796 tests across 60 files passed; lint, typecheck and production build passed. No player or author Python code executed on the host.
+- Next: restore isolated Judge0 availability and validate the catalog; live infrastructure checks remain pending.
+
+### 2026-11-07 - Password-manager focus recovery
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded password-field recovery item.
+- Password fields now refresh byte budgets and native validation from the current input value on focus, recovering stale custom errors after a password manager silently replaces a value. Invalid events also refresh byte counts. Empty focus clears stale feedback while native required validation remains active. Reveal state, credentials and the adjacent form remain independent.
+- Added sign-in and sign-up regressions for silent correction, Unicode overflow, empty recovery, reveal preservation, independent fields and invalid-event byte synchronization. Tests simulate silent native value replacement; live password-manager integration remains unverified.
+- Validation: all 793 tests across 60 files passed; lint, typecheck and production build passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Recognized account action feedback
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account feedback improvement.
+- Account alerts now accept only the six recognized authentication errors, with specific recovery guidance for credentials, username rules and availability, password byte limits, throttling and uncertain infrastructure outcomes. Arbitrary URL text cannot appear as an official account message. Existing styled alert presentation and credential navigation remain available.
+- Updated account regressions for all six errors, misleading text, markup, near matches, oversized messages and inherited object names. Updated Chromium keyboard and overflow coverage at 320, 375 and 1280px to verify recognized credential recovery. The first full run exposed three browser fixtures using an obsolete arbitrary message; corrected those fixtures to exercise the intended behavior.
+- Validation: all 790 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Keyboard password concealment
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account usability improvement.
+- Escape in a revealed password input or its Hide button now conceals that password without moving focus, submitting the form, changing credentials or clearing validation and byte-budget feedback. The adjacent form remains independent. Inline guidance explains the shortcut; Escape remains available to enclosing controls when the password is already concealed.
+- Added regression coverage for input and button focus, independent controls, unrelated keys, handled versus repeated Escape, preserved credentials and validation, re-reveal and correction recovery.
+- Validation: all 780 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Conceal passwords on page departure
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account lifecycle fix.
+- Revealed sign-in and sign-up passwords now conceal on page departure, including back/forward cache navigation when visibility remains visible. Credentials, byte budgets and validation errors remain intact; stale Caps Lock feedback clears. Returning leaves passwords concealed until the user selects Show again. Inline guidance explains this behavior.
+- Added regression coverage for ordinary and cached departures, repeated events, restoration, independent reveal controls, preserved invalid credentials and feedback, and exact listener cleanup.
+- Validation: all 778 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally. Cache lifecycle coverage uses dispatched page-transition events; live browser cache behavior remains a deployment smoke check.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Silence audio on page departure
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded audio lifecycle item.
+- Page departure now disposes active and scheduled duel audio even when visibility remains visible and React does not unmount, including browser back/forward cache preservation. Returning preserves sound consent and visual feedback but requires a fresh local gesture to unlock audio. Repeated departure is safe and the pagehide listener is removed on unmount.
+- Added regression coverage for ordinary and cached departures, repeated events, silent restoration, preserved preference and visual feedback, fresh audio unlock and cleanup.
+- Validation: all 775 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally. Browser cache lifecycle is tested with dispatched page-transition events; live browser cache behavior remains a deployment smoke check.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Silence audio on tab hide
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded sound lifecycle fix.
+- Hiding a tab now immediately disposes active duel audio, including already scheduled notes. Sound consent and visual feedback are preserved. Returning to the tab does not autoplay; a visible local user gesture must unlock a fresh audio context. Hidden-tab unlock attempts are ignored, repeated hiding is safe and the visibility listener is removed on unmount.
+- Added regression coverage for immediate disposal, preserved preference and visual cues, hidden unlock prevention, silent return, fresh visible unlock, repeated hide events and listener cleanup.
+- Validation: all 773 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Sound preferences across tabs
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded sound usability item.
+- Sound controls now follow localStorage preference changes from other tabs. Remote mute, removal, invalid values and storage clear dispose active audio immediately while visual duel feedback remains available. Remote enablement updates the pressed state without autoplay or writing the preference back; audio still requires a local user gesture. Unrelated keys and sessionStorage events are ignored, and listeners are removed on unmount.
+- Added regression tests for remote mute variants, remote enablement and local unlock, no write-back, storage clear, unrelated storage events and listener cleanup.
+- Validation: all 772 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Account credential reset recovery
+- Selected problems 1-20 passing validation as the highest-value unchecked item; retrying Relay Order Conflicts returned JudgeUnavailableError. Both catalog milestones remain blocked and unchecked. Following the blocker rule, added and completed one bounded account usability item.
+- Added styled Clear form actions to sign-in and registration. Native reset now clears username/password custom validity and stale accessible errors, conceals revealed passwords, clears Caps Lock feedback and restores the byte budget. Each form remains independent. The shared field reset hook waits for native value restoration, respects cancelled resets and removes listeners on unmount; friend username fields also recover on native reset.
+- Added regression tests for both password forms, all three username modes, independent form state, cancelled resets, valid corrections and the account Clear form action without submission.
+- Validation: full suite passed (766 tests across 60 files); the subsequently added account integration test passed with all 13 account tests. Lint, typecheck, production build and diff whitespace checks passed. Existing browser layout tests passed in the full suite; new reset interactions were tested in jsdom. No player or authored Python code executed locally.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Relay Order Conflicts catalog draft
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Relay Parity Streak returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Followed the blocker rule by adding and completing one bounded catalog-authoring item.
+- Added original medium Relay Order Conflicts: count strictly decreasing pairs in a signed priority log. Includes an O(n log n) merge-count Python reference, quadratic baseline, 2,000 seeded small cases, duplicate and signed edge fixtures, and descending, ascending and constant 100,000-entry benchmarks. Documented the counting proof and pending sandbox calibration.
+- Added data-only tests comparing pair enumeration with insertion ranks, increasing relabeling, append/prepend boundaries, reversal and negation identities, generator bounds and full-size formulas above signed 32-bit range. No authored Python executed locally.
+- Validation: all 761 tests across 60 files passed; lint, typecheck, production build and diff whitespace checks passed. New-draft sandbox validation returned JudgeUnavailableError; it remains private, unpublished and unapproved for ranked play.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the fourteen authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Relay Floor Repair catalog draft
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Buffered Signal Gain returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Followed the blocker rule by adding and completing one bounded catalog-authoring item.
+- Added original easy Relay Floor Repair: minimize unit increments needed to make signed signal levels nondecreasing. Includes a linear-time, constant-space prefix-maximum Python reference, quadratic baseline, 2,000 seeded cases, signed and equality edge fixtures, and three 100,000-entry benchmarks. Documented the lower-bound proof and pending resource calibration in problems/README.md.
+- Added data-only tests comparing prefix enumeration with unit-by-unit repairs, translation and positive scaling invariants, sorted-input and append properties, generator bounds and full-size formulas including totals above signed 32-bit range. No authored Python executed locally.
+- Validation: all 755 tests across 58 files passed; targeted draft tests (3), lint, typecheck, production build and diff whitespace checks passed. New-draft sandbox validation returned JudgeUnavailableError; it remains private, unpublished and unapproved for ranked play.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the twelve authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Relay Prefix Diversity catalog draft
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Buffered Signal Gain returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Followed the blocker rule by adding and completing one bounded catalog-authoring item.
+- Added original easy Relay Prefix Diversity: sum distinct-channel counts across nonempty log prefixes. Includes an expected-linear-time hash-set Python reference, quadratic baseline, 2,000 seeded cases, duplicate/negative/zero edge fixtures and three 100,000-entry benchmarks. Documented the contribution identity and pending sandbox calibration in problems/README.md.
+- Added data-only tests comparing prefix enumeration with independent first-occurrence contributions, injective renaming and append invariants, deterministic generator bounds, benchmark formulas and answers exceeding signed 32-bit range. Neither Python solution executed locally.
+- Validation: all 752 tests across 57 files passed; targeted draft tests (3), lint, typecheck, production build and diff whitespace checks passed. New-draft sandbox validation returned JudgeUnavailableError; it remains private, unpublished and unapproved for ranked play.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the eleven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Relay Balanced Cuts catalog draft
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Buffered Signal Gain returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Followed the blocker rule by adding and completing one bounded catalog-authoring item.
+- Added original easy Relay Balanced Cuts: count internal gaps with equal signed sums on their nonempty sides. Includes a linear-time, constant-space Python reference, quadratic baseline, 2,000 seeded small cases, singleton/zero/negative edge fixtures and three 100,000-entry benchmarks. Documented reasoning, complexity and pending resource calibration in problems/README.md.
+- Added data-only tests comparing explicit side sums with an independent signed-balance walk, reversal and nonzero scaling invariants, generator determinism/bounds, benchmark formulas and intermediate sums exceeding signed 32-bit range. No draft Python executed locally.
+- Validation: all 749 tests across 56 files passed; targeted draft tests (3), lint, typecheck, production build and diff whitespace checks passed. New-draft sandbox validation returned JudgeUnavailableError; the draft remains private, unpublished and unapproved for ranked play.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the ten authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Relay Cycle Intervals catalog draft
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Buffered Signal Gain returned JudgeUnavailableError; both catalog milestones remain blocked and unchecked. Followed the blocker rule by adding and completing one bounded catalog-authoring item.
+- Added the original medium Relay Cycle Intervals draft: count contiguous signed-sum intervals divisible by a positive cycle. Includes a linear expected-time prefix-remainder Python reference, quadratic baseline, 2,000 seeded small cases, examples, edge fixtures and three 100,000-entry benchmarks. Documented reasoning, complexity and pending resource calibration in problems/README.md.
+- Added data-only tests comparing enumeration against a sorted prefix-residue pairing identity, reversal/negation/cycle-shift invariants, generator determinism and bounds, benchmark formulas and answers exceeding signed 32-bit range. No draft Python executed locally.
+- Validation: all 746 tests across 55 files passed; targeted draft tests (3), lint, typecheck, production build and diff whitespace checks passed. New-draft sandbox validation also returned JudgeUnavailableError; the draft remains private, unpublished and unapproved for ranked play.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the nine authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Password byte budgets
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent account improvement.
+- Sign-in and sign-up now show independent UTF-8 byte counts against the 256-byte limit, with styled guidance explaining emoji and multibyte letters. Counts are associated with their password fields without announcing every keystroke through a live region. Overflow retains existing validation feedback and clears after correction; visibility controls preserve the count.
+- Added component tests for ASCII, multibyte letters, emoji, the exact limit, overflow, correction, clearing and independent fields. Extended the Chromium phone layout check to verify contained, styled byte guidance at 320px.
+- Validation: all 743 tests across 54 files passed; targeted account/password tests (20), lint, typecheck, production build and diff whitespace checks passed. No Python solution executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the eight authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Password concealment on tab switches
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Retrying Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent account improvement.
+- Sign-in and sign-up now conceal revealed passwords when the document becomes hidden. Returning to the tab leaves passwords concealed, preserves entered credentials and validation, and allows either field to be revealed independently again. Clears stale Caps Lock feedback and explains concealment in the existing accessible password hint. Visibility listeners are removed on unmount.
+- Added tests for both forms, visible versus hidden document events, preserved values and validity, accessible toggle state, return-to-tab behavior, independent reveal and listener cleanup.
+- Validation: all 740 tests across 54 files passed; targeted password tests (5), lint, typecheck and production build passed. No Python solution executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the eight authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Recent home duel rating changes
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent home-dashboard improvement.
+- Recent home duels now display the signed-in player's MMR change from persisted rating history. A player-scoped left join preserves older duels without rating snapshots, which explicitly say "Rating change unavailable". Styled labels include units and signed gains, normalize rounded negative zero, and explain that a displayed zero may include a small gain or loss.
+- Extended embedded Postgres tests for separate participant deltas, missing history and unchanged preview limits; added component cases for gains, losses, zero, fractional rounding and absent data. Added Chromium containment and styling checks at 320, 375 and 1280px.
+- Validation: all 738 tests across 54 files passed; lint, typecheck, production build and diff whitespace checks passed. An initial concurrent targeted run hit an existing arena keyboard-scroll timing failure; the full suite and isolated 101-test Chromium rerun passed that check. No Python solution executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the eight authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Home win-streak clarity
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent home-dashboard improvement.
+- Replaced the plain streak line with a styled semantic statistic and an associated explanation: completed wins extend the streak, a loss or draw resets it, and cancelled reservations do not count. Added correct singular wording and an encouraging zero-streak state. Guests retain the starting-rating invitation without invented streak data; failed dashboard reads still suppress statistics.
+- Added component tests for zero, one and multiple wins, semantic labels/descriptions and guest absence. Extended Chromium checks at 320, 375 and 1280px to verify visible, styled and contained streak guidance.
+- Validation: all 726 tests across 53 files passed; targeted component/browser tests (144), lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Daily challenge study topics
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent daily-preview improvement.
+- Added public topics to the daily database projection and displayed them as a named semantic list of styled study tags. Tags wrap on phones, including long unbroken text; absent topics omit the section and markup remains safely escaped.
+- Updated embedded database projection/privacy assertions, component coverage for topic text, safe rendering and missing data, and Chromium layout checks at 320, 375 and 1280px.
+- Validation: all 722 tests across 53 files passed; targeted tests (141), lint, typecheck, production build and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Public daily challenge examples
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent daily-preview improvement.
+- Added only public examples to the daily database projection and displayed them within the statement disclosure using the shared styled input/output cards. Included Python/JSON notation and function-return guidance, explained separate hidden scoring tests, preserved safe text rendering and omitted the section when examples are absent.
+- Added embedded database projection/privacy assertions and component coverage for exact input/output text, escaped markup and absent examples. Extended Chromium coverage at 320, 375 and 1280px for visible examples, keyboard horizontal scrolling and document containment.
+- Validation: all 718 tests across 53 files passed; targeted tests (137), lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Daily challenge input constraints
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent daily-preview improvement.
+- Extended the public daily projection with input constraints. Added a named, bordered panel within the statement disclosure, solution-planning guidance, preserved line breaks and wrapping for long limits. Missing or blank constraints do not create a misleading empty panel. Practice availability guidance remains visible.
+- Added embedded database projection/privacy assertions and component tests for exact multiline text, escaped markup and absent limits. Extended Chromium keyboard disclosure coverage at 320, 375 and 1280px for styled constraint containment and preserved formatting.
+- Validation: all 714 tests across 53 files passed; targeted tests, lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Arena function signature guidance
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent arena improvement.
+- Added visible function-name/parameter guidance and described keyboard and touch scrolling. Styled the signature with a border, preserved whitespace and semantic code markup, and connected the focusable code region to its guidance with aria-describedby.
+- Added component tests preserving multiline signatures across pending, active, completed and cancelled matches. Extended existing Chromium phone-to-desktop checks for visible guidance, preserved formatting and border styling; existing checks exercise focus and horizontal arrow-key scrolling.
+- Validation: all 710 tests across 53 files passed; targeted arena/browser tests, lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Arena constraints and solution planning
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Buffered Signal Gain validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Followed the blocker rule by adding and completing one independent arena improvement.
+- Made constraints a named, bordered panel with preserved multiline formatting and monospace text. Added a collapsed native disclosure explaining largest-input planning with a concrete pairwise-versus-single-pass comparison and honest guidance that suggested techniques do not guarantee passing CPU limits.
+- Added component coverage for pending, active, completed and cancelled arenas, preserving exact constraint text. Extended Chromium coverage at 320, 375, 768 and 1280px for keyboard expansion/collapse, 44px disclosure targets, styled containment and long-text overflow.
+- Validation: all 706 tests across 53 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-07 - Buffered Signal Gain catalog draft
+- Selected problems 1-20 passing validation as the highest-value unchecked item. Both the existing Relay Cooldown Score and new draft validation commands returned JudgeUnavailableError. Catalog validation and problems 21-60 remain blocked and unchecked; followed the blocker rule by adding and completing one catalog-authoring item.
+- Authored the original easy Buffered Signal Gain problem: maximize the signed difference between ordered readings separated by at least one tick, with mandatory pair selection. Included examples, constraints, O(n) constant-space Python reference, O(n^2) baseline, 2,000 seeded small cases, signed edge fixtures and three 100,000-reading benchmarks. Documented authoring rationale and pending sandbox limits in problems/README.md.
+- Added data-only fixture tests comparing exhaustive pair enumeration with an independent reverse suffix oracle, translation/scaling/reverse-negation invariants, deterministic generation and closed-form benchmark answers. No authored Python executed locally; no problem was published or approved.
+- Validation: all 702 tests across 53 files passed; lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 connectivity, validate and calibrate the seven authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Arena hidden-test and scoring guide
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Following the blocker rule, added and completed one independent arena improvement.
+- Added a styled, named arena guide explaining why examples alone do not establish correctness, the ordered hidden-test/median CPU/submission-time rules, best judged submission selection and the need to submit editor changes.
+- Added component coverage for pending, active, completed and cancelled matches. Extended Chromium checks at 320, 375, 768 and 1280px for guide visibility, ordered rules, containment and styling.
+- Validation: all 699 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Arena section navigation
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; both catalog items remain blocked and unchecked. Following the blocker rule, added and completed one independent arena improvement.
+- Added visible Read problem and Your solution navigation, a return action after examples and a visible-on-focus Skip to duel link. Native anchors focus their main/heading destinations without changing editor contents; links have 44px minimum touch heights.
+- Added component coverage for completed-match navigation and focusable destinations. Extended Chromium tests across pending, active, completed and cancelled matches at 320, 375, 768 and 1280px to exercise keyboard activation, destination focus and touch targets.
+- Validation: all 695 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Python example format guidance
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent arena improvement.
+- Added a styled, named example guide mapping JSON true/false/null to Python True/False/None, explaining argument order and the return-value contract. Preserved example data and omitted the guide for legacy/unavailable example formats.
+- Added regression tests for boolean/null inputs and outputs, guidance and legacy fallback. Extended Chromium coverage across pending, active, completed and cancelled arenas at 320, 375, 768 and 1280px to verify guide visibility, containment and styling.
+- Validation: all 694 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Honest no-submission results
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Added a styled no-judged-submission notice explaining zero passed tests and full CPU-limit benchmark fallback scores. Labeled fallback CPU values explicitly and suppressed misleading execution progress meters for these players. Actual zero-pass attempts retain their meters; unavailable historical scores retain their existing fallback.
+- Added UI regression coverage distinguishing no attempt, a zero-pass attempt submitted at time zero and unavailable history. Added Chromium containment and styling checks at 320, 375 and 1280px. Updated the existing two-meter fixture to represent two judged submissions.
+- Validation: all 693 tests across 52 files passed; lint, production build and typecheck passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Completed problem review from results
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Added a styled, named review panel linking saved results to the same completed arena's problem statement and examples. Explicitly explained closed submissions and that reopening does not restore submitted code. Omitted the panel when no match identifier is available and encoded the destination identifier.
+- Added UI coverage for navigation, availability guidance and missing identifiers, plus Chromium checks at 320, 375 and 1280px for containment, styling, keyboard focus and touch-target height.
+- Validation: all 689 tests across 52 files passed; lint, production build and typecheck passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Results hidden-test pass meters
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Added styled native progress meters for both players' saved hidden-test counts, with distinct associated labels, accessible exact counts and visible all/some/none summaries. Missing historical counts and zero totals do not produce misleading meters.
+- Added six UI cases for zero, partial and full passes, missing totals and distinct player labels. Extended Chromium coverage at 320, 375 and 1280px to check meter size, accessible values and viewport containment.
+- Validation: all 684 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate the authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Results comparison metric guide
+- Selected problems 1-20 as the highest-value unchecked item. Relay Cooldown Score validation returned JudgeUnavailableError again; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Added a named, styled comparison guide explaining best judged attempt selection, median-of-three largest-test CPU milliseconds, elapsed submission seconds and tiebreak order. Clarified that displayed times are rounded while scoring uses saved precision, with explicit historical missing-metric guidance.
+- Added semantic UI coverage for the guide and extended Chromium checks at 320, 375 and 1280px to verify metric card containment and styling.
+- Validation: all 678 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity and validate the authored drafts, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Results rating change direction
+- Selected problems 1-20 as the highest-value unchecked item. Real Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Fixed rating losses appearing green: gains use the shared success color, losses use danger, and unchanged displayed totals use a neutral color. Visible MMR gained/lost/unchanged labels supplement the signed accessible change. Explained that changes compare rounded MMR totals; fractional movements within the same displayed total remain neutral.
+- Added seven direction/rounding cases and Chromium checks for distinct colors, visible labels and containment at 320, 375 and 1280px. Historical missing-rating behavior remains covered.
+- Validation: all 677 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Saved results completion timestamps
+- Selected problems 1-20 as the highest-value unchecked item. Real Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Projected the saved match completion time through the participant-only results loader and displayed it in the outcome banner using shared semantic UTC date styling. Missing or invalid historical dates show an explicit fallback.
+- Added embedded database coverage for the saved instant, UI coverage for UTC day boundaries and historical fallbacks, and Chromium timestamp containment checks at 320, 375 and 1280px.
+- Validation: all 667 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Rating journey window guidance
+- Selected problems 1-20 as the highest-value unchecked item. Real Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent profile improvement.
+- Added a styled explanation of the graph's 50-rated-duel window and displayed count, distinguished it from the all-time completed record (which includes unrated duels), and connected the explanation to the graph's accessible description. Clarified that the timeline begins before the first duel in this window.
+- Added count/boundary coverage for 1, 49 and 50 rated duels against a larger all-time record; extended Chromium phone/desktop containment coverage to the new guidance. Updated four existing assertions for the more precise timeline label.
+- Validation: all 663 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Profile duel completion timestamps
+- Selected problems 1-20 as the highest-value unchecked item. Real Relay Cooldown Score validation returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent profile history improvement.
+- Profile duel history now shows full completion dates and times in explicit UTC using the shared semantic date component. Missing or invalid historical dates show an honest fallback instead of throwing during rendering. Added readable muted timestamp styling within the existing keyboard-scrollable table.
+- Added profile tests for UTC timestamps, offset day boundaries and missing/invalid dates, plus Chromium containment checks at 320, 375 and 1280px.
+- Validation: all 660 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Recent duel completion dates
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent home history improvement.
+- Recent home duels now show saved completion dates and times in explicit UTC, with semantic time elements and stable locale formatting. Missing or invalid historical dates show an honest fallback. Added muted, wrapping date styling without adding focus stops.
+- Added date component tests for Date and offset-string inputs, UTC day boundaries and absent/invalid values, home integration coverage and Chromium layout checks at 320, 375 and 1280px.
+- Validation: all 653 tests across 52 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Home duel history navigation
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent home navigation improvement.
+- Added a full-width styled personal history action to the recent-duels card, including the signed-in empty state. Explained that home previews five completed duels while the profile shows up to 20, plus the record and rating journey. Guest and unavailable dashboards do not show the personal action or guidance; destinations encode usernames.
+- Added component coverage for populated, empty, guest and unavailable states and encoded destinations. Chromium checks at 320, 375 and 1280px verify keyboard focus, visible focus styling, 44px touch height and containment without page overflow.
+- Validation: all 643 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Home dashboard rating tier
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent home dashboard improvement.
+- Added a themed current-tier badge to the signed-in ladder card using shared full-precision thresholds. Explained display rounding; guests receive no personal tier, and unavailable dashboards continue to suppress account statistics.
+- Added regression coverage at every tier boundary and immediately below each threshold, guest/error states, and Chromium badge visibility, containment and page overflow at 320, 375 and 1280px.
+- Validation: all 637 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Post-duel tier transitions
+- Selected problems 1-20 as the most valuable unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError; catalog validation remains blocked and unchecked. Following the blocker rule, added and completed one independent results improvement.
+- Added themed saved post-duel tier badges and explicit transitions for both players, including downward changes and unchanged tiers. Reused full-precision shared thresholds and explained display rounding and the historical snapshot. Missing rating history does not invent a tier.
+- Added regression tests for upward and downward transitions at every tier threshold, fractional boundary ratings, unchanged tiers and missing historical data. Extended Chromium results checks at 320, 375 and 1280px for visible tier transitions, themed panels and containment.
+- Validation: all 623 tests across 51 files passed; lint, production build and typecheck passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Rating tiers in standings
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError. Following the blocker rule, added and completed one independent standings improvement; catalog validation remains unchecked.
+- Added themed current-tier badges beside MMR in global, weekly and friends standings. Used the shared profile tier thresholds at full precision and explained why rounded display values can appear at the next tier boundary. Stacked rating and badge within the existing cell to preserve the table layout on phones.
+- Added tests for all tier transitions, fractional values just below boundaries, global and friends-weekly standings, and Chromium layout checks at 320, 375 and 1280px.
+- Validation: all 617 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Clear weekly standings guide
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError. Following the blocker rule, added and completed one independent weekly standings improvement; catalog validation remains unchecked.
+- Added a named semantic guide explaining net rating changes with a worked example, eligibility of wins/losses/draws and zero/negative gains, and the distinction between current MMR and weekly ranking. Themed cards stack on phones and form columns on desktop. Guidance appears for populated and empty public/friends weekly standings, and stays out of global, unavailable and signed-out friends states.
+- Added component coverage for these states and Chromium checks at 320, 375 and 1280px for content, card styling, stacking and document overflow. Updated an existing ambiguous text assertion to target the ranking rules directly.
+- Validation: all 603 tests across 51 files passed; lint, production build and typecheck passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Clear ordered home scoring guide
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command returned JudgeUnavailableError. Following the blocker rule, added and completed one independent scoring-guide improvement; catalog validation remains unchecked.
+- Explained that the best judged attempt counts, weaker later attempts do not replace it, CPU timing uses the middle of three runs, and the selected attempt's submission time breaks remaining ties. Converted the themed scoring cards to an accessible named ordered list with associated guidance, preserving three-column desktop and stacked phone layouts.
+- Added signed-in/guest component coverage for the rule order, associated explanation and tie handling. Added Chromium checks at 320, 375 and 1280px for themed cards, stacking, desktop columns and document overflow.
+- Validation: all 594 tests across 51 files passed; lint, production build and typecheck passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Pre-queue duel length guide
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent home guidance item; catalog validation remains unchecked.
+- Added a styled semantic definition list explaining Easy, Medium and Hard duel lengths (5, 15 and 30 minutes) and their average-player-rating bands. Explained that these clocks begin after both players are ready. The guide is available to guests and signed-in players before queueing.
+- Updated component tests for the accessible name, associated explanation, difficulty labels, time limits and exact rating boundaries in both session states. Extended Chromium coverage at 320, 375 and 1280px to verify all three time limits, themed row styling and containment without overflow.
+- Validation: all 589 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed. Fixed JSX apostrophe escaping caught by lint. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Clear friend action feedback
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent friend-action feedback item; catalog validation remains unchecked.
+- Replaced the raw URL-message paragraph with themed feedback cards for the three supported action outcomes. Added contextual guidance to review relationships before retrying an unconfirmed action or correcting a request. Arbitrary URL text is ignored, and results are hidden for guests and unavailable reads. URL feedback is informational; current relationship data remains authoritative.
+- Added component checks for all supported outcomes, arbitrary messages, guests and unavailable reads. Chromium coverage at 320, 375 and 1280px verifies card styling, visible recovery guidance, document overflow and keyboard access to the invitation field.
+- Validation: all 589 tests across 51 files passed; lint, production build and typecheck passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Discoverable home friends navigation
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent navigation item; both catalog validation items remain unchecked.
+- Added a direct Friends link to the signed-in home header using the existing theme and 44px touch target styling. The link remains available if dashboard data fails after successful authentication, and is absent for guests or failed session reads.
+- Updated component tests for these session states. Added Chromium coverage at 320, 375 and 1280px for the destination, touch target, visible keyboard focus, sequential navigation from profile through friends to account and document overflow.
+- Validation: all 582 tests across 51 files passed; the 13 home component tests passed again after correction. Lint, production build, typecheck and diff whitespace checks passed. Fixed an unsupported component-test query option caught by build type checking. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Profile rating tier guide
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command again failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent profile usability item; both catalog validation items remain unchecked.
+- Added a styled, collapsed-by-default rating tier guide with all six minimum MMR thresholds, a text-labeled current tier, starting-rating guidance and an explanation that tier boundaries use unrounded ratings. Shared the threshold definitions with badge assignment to prevent drift.
+- Added component coverage across exact and fractional tier boundaries, the top tier, a zero rating and unavailable profiles. Chromium checks at 320, 375 and 1280px verify Enter/Space disclosure controls, onward Tab navigation, touch target height and expanded layout without document overflow. Corrected an ambiguous existing text query exposed by the first test run.
+- Validation: all 579 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+### 2026-11-06 - Readable daily challenge signatures
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent daily-preview usability item; both catalog items remain unchecked.
+- Preserved Python signature whitespace and indentation without splitting long lines. Added a named, focusable horizontal scroll region with associated visible keyboard guidance and existing theme focus styling.
+- Added component checks for the accessible name, focusability, guidance association, exact code text and absent-challenge state. Chromium coverage at 320, 375 and 1280px checks actual arrow-key scrolling, visible focus, onward Tab navigation and document overflow. Lengthened the fixture after the initial desktop test correctly showed that the original line fit without scrolling.
+- Validation: all 564 tests across 51 files passed; lint, production build and typecheck passed. No catalog Python executed locally and no problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Clear populated leaderboard context
+- Selected problems 1-20 as the highest-value unchecked item. The real Relay Cooldown Score validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one independent leaderboard improvement; both validated catalog items remain unchecked.
+- Added a styled, named summary above populated standings showing the selected period, everyone/friends scope and singular/plural displayed-player count. Explained that a full 100-row ladder may have more qualifying players, and that friends standings include the viewer and accepted friends.
+- Kept summaries out of empty, unavailable and signed-out states. Added component tests for both periods, scope, counts, the limit and unavailable states, plus Chromium checks at 320, 375 and 1280px for readability and page overflow.
+- Validation: all 559 tests across 51 files passed; lint, production build and typecheck passed. No player code executed locally and no catalog problem was published.
+- Next: restore isolated Judge0 connectivity, validate the six authored drafts and measure resource limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Relay Cooldown Score catalog draft
+- Selected problems 1-20 as the highest-value unchecked item. The real validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one catalog prerequisite; both validated catalog items remain unchecked.
+- Authored an original easy dynamic-programming problem maximizing nonneighboring signed scores, allowing empty selection. Added explained examples, an O(n)-time/O(1)-space Python reference, O(n^2) predecessor-scanning baseline, 2,000 seeded cases and boundary fixtures.
+- Added three 100,000-tick benchmarks with closed-form answers and 4,999,850,001 baseline predecessor comparisons each. Two answers exceed signed 32-bit range.
+- Added data-only exhaustive-choice versus idle/active oracle comparisons, reversal/scaling properties, bounds and benchmark checks. Documented algorithms and proposed limits. No catalog Python ran locally; sandbox correctness, CPU-timeout approval and publication remain pending.
+- Validation: all 549 tests across 51 files passed; lint, production build, typecheck and diff whitespace checks passed.
+- Next: restore isolated Judge0 connectivity, validate all six drafts and measure limits, then continue problems 1-20. Existing infrastructure blockers remain.
+
+### 2026-11-06 - Delayed Drop Pairs catalog draft
+- Selected problems 1-20 as the highest-value unchecked item. The real validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one catalog prerequisite item; both validated catalog items remain unchecked.
+- Authored an original medium problem counting ordered signal pairs whose drop strictly exceeds a tolerance. Added explained examples, constraints, an O(n log n) merge-sort Python reference, O(n^2) brute force and 2,000 seeded small inputs.
+- Added strict-threshold, tie, signed-boundary and shared-endpoint fixtures, plus three 100,000-tick benchmarks with closed-form answers. Each benchmark requires 4,999,950,000 brute-force comparisons; two answers exceed signed 32-bit range.
+- Added data-only tests for small fixtures, independent ordered-prefix versus enumeration checks on generated inputs, translation invariance, tolerance monotonicity and benchmark formulas. Documented algorithms and proposed limits. No catalog Python executed locally and no problem was published.
+- Validation: all 546 tests across 50 files passed; lint, production build and typecheck passed. Sandbox correctness and CPU-timeout approval remain blocked by Judge0 availability.
+- Next: restore isolated Judge0 connectivity, validate all five drafts and measure resource limits, then continue problems 1-20. Existing live infrastructure blockers remain.
+
+### 2026-11-06 - Channel Budget Windows catalog draft
+- Selected problems 1-20 as the highest-value unchecked item. A bounded Judge0 probe returned ECONNREFUSED; the real draft validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one catalog prerequisite item. Both validated catalog items remain unchecked.
+- Authored an original medium problem counting contiguous windows within a distinct-channel budget, with explained examples, an O(n) sliding-window Python reference and O(n^2) brute force. Added 2,000 seeded small inputs and fixtures covering duplicates, boundary channels, repeated shrinking and budgets larger than the number of channels.
+- Added three 100,000-element benchmarks with closed-form answers: equal channels, unique channels and a three-channel cycle. Each requires 5,000,050,000 window visits in the supplied brute force; the dense answer exceeds signed 32-bit range.
+- Added independent data-only interval enumeration, generator coverage, reversal/budget properties and benchmark formula tests. Documented algorithms, proposed limits and pending sandbox approval. No catalog Python executed locally and no problem was published.
+- Validation: all 543 tests across 49 files passed; lint, production build and typecheck passed. Sandbox correctness and CPU-timeout validation remain blocked by Judge0 connectivity.
+- Next: restore isolated Judge0 connectivity, validate all four drafts and measure resource limits, then continue problems 1-20. Existing live infrastructure blockers remain.
+
+### 2026-11-06 - Signal Rise Debt catalog draft
+- Selected problems 1-20 as the highest-value unchecked item. A bounded Judge0 probe returned ECONNREFUSED and the real draft validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one catalog prerequisite item. Both validated catalog items remain unchecked.
+- Authored Signal Rise Debt, an original medium first-greater-signal problem, with explained examples, constraints, an O(n) monotonic-stack Python reference and an O(n^2) brute force. Added 2,000 seeded small-case comparisons and edge fixtures covering equal levels, first-greater selection, unresolved ticks and signed boundaries.
+- Added three 100,000-tick benchmarks: descending, equal and descending-prefix/final-maximum records. Each requires 4,999,950,000 brute-force comparisons; the late-resolution answer exceeds signed 32-bit range. Documented algorithm choices and pending resource-limit measurement.
+- Added data-only parser, independent fixture-answer, generator-coverage and benchmark tests. Fixed two authored totals caught by the oracle and a fixture-union TypeScript error caught by the build. No catalog Python executed locally; these tests do not establish sandbox correctness or CPU timeout approval.
+- Validation: all 540 tests across 48 files passed; lint, production build and typecheck passed. The focused draft tests passed again after the TypeScript fix. No problem was published.
+- Next: restore isolated Judge0 connectivity, validate the three drafts and measure limits, then continue problems 1-20. Existing live infrastructure blockers remain.
+
+### 2026-11-06 - Clear profile record summaries
+- Selected problems 1-20 as the highest-value unchecked item and made a bounded request to the configured Judge0 endpoint; it returned ECONNREFUSED. Following the blocker rule, added and completed one independent profile improvement. Both catalog items remain unchecked.
+- Added an all-time completed-duel total and win rate calculated across the full stored record, including draws. Empty records explain when the rate will appear; singular totals and zero-win records display correctly. Explained the denominator and excluded match states alongside the statistics.
+- Grouped the record in a named section with a semantic definition list for wins, losses and draws. Added a wrapping summary panel and readable, tabular numeric values using existing theme colors.
+- Added component coverage for empty, single-win, mixed and draws-only records. Chromium checks at 320, 375 and 1280px verify large totals, labeled statistics, readable cards and absence of document overflow.
+- Validation: all 537 tests across 47 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity, validate the authored drafts and continue problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - First original catalog draft
+- Selected problems 1-20 as the highest-value unchecked item. A bounded endpoint probe returned ECONNREFUSED, and the real draft validation command failed with JudgeUnavailableError. Following the blocker rule, added and completed one prerequisite item: authoring an original draft. Both validated catalog backlog items remain unchecked.
+- Added Relay Balance Window, a medium signed-array problem, with a full statement, constraints, explained examples, O(n) prefix-sum reference and O(n^2) brute force, seeded small-case generation and authored edge cases. Three 100,000-element benchmarks cover absent windows, repeated prefixes and sums exceeding 32-bit range.
+- Added private-draft documentation explaining algorithm choices, proposed resource limits and the validate/publish commands. Added data-only tests that parse the real draft, independently enumerate small-fixture answers, check generator coverage and derive benchmark answers. No catalog Python executed locally; fixture tests do not claim sandbox correctness or timeout approval.
+- Validation: all 527 tests across 46 files passed; lint, typecheck and production build passed. Actual sandbox validation remains blocked by connectivity; no problem was published.
+- Next: restore isolated Judge0 connectivity, validate this draft and measure its resource limits, then continue authoring and validating problems 1-20. Existing live infrastructure blockers remain.
+
+### 2026-11-06 - Discoverable friend profile links
+- Reviewed both unchecked catalog items and made a bounded request to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent friends usability item. Catalog items remain unchecked.
+- Applied the shared underlined player-link styling and 44px minimum touch height to incoming, accepted and outgoing friend cards. Added explicit profile-link accessible names and encoded profile destinations.
+- Added component coverage across all relationship groups and Chromium checks at 320, 375 and 1280px for destinations, accessible names, underlines, touch heights, keyboard access to subsequent action buttons and document overflow. Updated existing name assertions to preserve their relationship/action coverage.
+- Validation: all 524 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Accurate home duel readiness guidance
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent home usability item. Catalog items remain unchecked.
+- Replaced outdated claims that match activation is still in development with a named, bordered guidance panel explaining published problem eligibility, the 60-second Ready window, when the duel clock starts and rating protection for expired reservations. Corrected broken question-mark separators in account and starting-rating copy.
+- Added component coverage for signed-in and guest guidance and account naming. Chromium checks at 320, 375 and 1280px verify visible guidance, readable line spacing, panel borders and absence of text or document overflow.
+- Validation: all 520 tests across 45 files passed; lint and production build passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Accurate home duel outcome badges
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent home usability item. Catalog items remain unchecked.
+- Fixed recent home losses and draws inheriting green win styling. Reused the profile history badges for green WIN, red LOSS and neutral DRAW outcomes, with explicit text, borders and consistent spacing. Preserved result and opponent links.
+- Added component tests for all three authoritative outcomes and Chromium checks at 320, 375 and 1280px for distinct computed colors, visible labels and borders, keyboard navigation, 44px link targets and document overflow.
+- Validation: all 515 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Empty public profile guidance
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
+- Corrected empty public profiles to describe the viewed player rather than implying the visitor owns the profile. Added a bordered guidance panel explaining completed-history eligibility, with styled duel and public standings actions. Reused the responsive action layout and avoided duplicate duel links.
+- Added component coverage for public copy, destinations, empty-table suppression and a single duel action. Chromium checks at 320, 375 and 1280px verify keyboard order, 44px action heights and document overflow.
+- Validation: all 509 tests across 45 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Readable expanded rating history
+- Reviewed both unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
+- Replaced compact rating-history text with bordered, wrapping entries showing machine-readable UTC dates, before/after MMR and signed changes. Explained chronological order and display rounding. Changes use rounded endpoints consistently with the journey summary and avoid signed zero. Preserved native keyboard disclosure and added an open-state accent.
+- Added component coverage for chronology, dates, gains, losses, fractional rounding and zero changes. Extended Chromium checks at 320, 375 and 1280px for expanded data, focus retention and overflow. Fixed an arrow encoding issue caught by existing tests.
+- Validation: all 505 tests across 45 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Empty public leaderboard guidance
+- Reviewed both unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent public leaderboard usability item. Catalog items remain unchecked.
+- Replaced the public empty-state dead end with a named guidance section, styled duel and account actions, and entry rules for global and weekly standings. Explained the 800 MMR starting rating and that weekly eligibility includes completed rated wins, losses and draws. Reused the responsive action layout for full-width phone buttons.
+- Added component tests for both periods, destinations, guidance, empty-table suppression and absence of private account reads. Chromium checks at 320, 375 and 1280px verify keyboard action order, 44px touch heights and document overflow for both periods.
+- Validation: all 504 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Accessible account entry and recovery
+- Reviewed both unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent account accessibility item. Catalog items remain unchecked.
+- Added a visible-on-focus account skip link and focusable main destination in guest, signed-in and unavailable states. Guests can jump directly to sign-in or registration headings; the next Tab reaches the chosen username field. Named both credential forms for assistive navigation and added wrapping, phone-friendly jump buttons.
+- Presented bounded, escaped account errors in a bordered panel with a clear heading and retry guidance. Service outages continue to suppress stale action errors and credential forms.
+- Added component tests for all navigation states, form names, destinations and bounded error rendering. Chromium checks at 320, 375 and 1280px verify skip focus, both form jumps, subsequent input focus, touch heights and document overflow with long errors.
+- Validation: all 499 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Friends guest guidance and navigation
+- Reviewed both unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent friends usability item. Catalog items remain unchecked.
+- Replaced the guest friends-page link with a styled invitation panel explaining accounts, requests, friends standings and acceptance. Added prominent sign-in and public standings actions that expand on phones, plus a visible-on-focus skip link and predictable main-content focus for all friends page states.
+- Added component checks for guest guidance, destinations, skip navigation and suppression of private queries and controls. Chromium checks at 320, 375 and 1280px verify skip-link focus, Enter navigation, subsequent action order, touch heights and document overflow.
+- Validation: all 491 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Readable populated leaderboard standings
+- Reviewed the two unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent leaderboard usability item. Catalog items remain unchecked.
+- Added explicit MMR units to ratings and weekly changes, rounding before selecting the change sign so fractional zero values do not display +0 or -0. Player profile links now have visible underlines and 44px minimum touch heights. Added visible sideways-scroll and arrow-key guidance associated with the focusable standings region, shown only for populated tables.
+- Added component coverage for positive, negative and fractional-zero changes and guidance suppression in empty standings. Chromium checks at 320, 375 and 1280px verify guidance, weekly values, keyboard scrolling, player-link focus and touch height, underline styling and document overflow.
+- Validation: all 487 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Readable profile duel history
+- Reviewed the two unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
+- Added bordered, text-labeled WIN / LOSS / DRAW badges with distinct colors, underlined opponent links and explicit MMR units. Rating changes now round before choosing a sign, avoiding misleading +0 or -0 values. Unrated history remains explicit.
+- Added visible horizontal-scroll and arrow-key guidance associated with the focusable history region. Component tests cover all outcomes, gains, losses, fractional zero changes and empty-history guidance suppression. Chromium checks at 320, 375 and 1280px cover badges, guidance, keyboard scrolling, opponent focus and touch height, and page overflow.
+- Validation: all 478 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Accessible results navigation
+- Reviewed the two unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent results usability item. Catalog items remain unchecked.
+- Added a visible-on-focus Skip to results link and a programmatically focusable main destination. Player profile links now have explicit underlines, rounded hover styling and 44px minimum touch targets.
+- Added component coverage for the skip destination and encoded player URLs. Chromium checks at 320, 375 and 1280px verify initial skip-link focus, Enter moving focus to main, subsequent player-link tab order, touch heights, underline styling and document overflow.
+- Validation: all 474 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Readable daily challenge previews
+- Reviewed both unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent daily challenge usability item. Catalog items remain unchecked.
+- Daily previews now use a native keyboard-accessible statement disclosure with a 44px target and visible focus styling. Preserved statement line breaks and indentation, styled the Python signature as a wrapping code block, and explicitly explained that practice submissions are not yet available. Empty catalog and dashboard recovery states remain covered.
+- Added component checks for collapsed initial state, intact text/signature formatting, escaped markup and practice availability. Chromium checks open and close statements with Enter and Space at 320, 375 and 1280px and verify target size and document overflow.
+- Validation: all 470 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Friends standings guidance
+- Reviewed both unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent leaderboard usability item. Catalog items remain unchecked.
+- Empty friends standings now use circle-specific guidance instead of asking signed-in players to create accounts. Weekly guidance explains that completed rated wins, losses and draws qualify. Added Find a duel and Invite friends actions without assuming the player has no friends. Signed-out friends standings now have a styled sign-in panel and a public standings link preserving the selected period.
+- Added component tests for both periods, guest query suppression and period preservation. Chromium checks cover guest and signed-in empty states at 320px, action target sizes, document overflow and keyboard order. Actions wrap into full-width buttons on phones.
+- Validation: all 466 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Readable profile rating journeys
+- Reviewed both unchecked catalog items and made a bounded probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent profile usability item. Catalog items remain unchecked.
+- Added visible rounded MMR scale labels and gridlines, a zero-bounded scale, a latest-duel UTC date and a history-window net change summary. Kept exact chronological rating history available through a keyboard-accessible disclosure with a 44px target. The summary distinguishes one duel from multiple duels and uses displayed endpoint ratings consistently for net change.
+- Added component coverage for gains, losses, flat zero ratings, fractional endpoints and intermediate peaks. Chromium coverage checks populated graphs, labels and summaries at 320, 375 and 1280px and opens the history data using the keyboard.
+- Validation: all 461 tests across 45 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Recent duel navigation
+- Reviewed the two unchecked catalog items and made a bounded connectivity probe to the configured Judge0 endpoint; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent dashboard usability item. Catalog items remain unchecked.
+- Recent duel titles now open their saved results, and opponent names open public profiles. Added explicit results link names, encoded route segments, visible underlines and 44px touch targets with wrapping for long titles and names.
+- Added component coverage for win, loss and draw navigation and encoded destinations. Chromium coverage verifies the populated dashboard at 320px, touch target heights, overflow and keyboard order from results to opponent.
+- Validation: all 455 tests across 45 files passed; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Friend invitation username guidance
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent friend invitation usability item. Catalog items remain unchecked.
+- Reused shared username validation for friend invitations with visible player-specific rules, styled accessible inline errors and correction recovery. Disabled automatic capitalization, spellcheck and account autofill for the rival's username while preserving native POST actions and exact typed names.
+- Added page interaction coverage for required and invalid names, accessible feedback, recovery and request payloads. Added Chromium coverage for populated feedback at 320px, keyboard submission access and the 44px action target. Fixed fixture authentication state leakage exposed by the new browser check; static browser fixtures cover layout while component tests cover events.
+- Validation: all 453 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Password entry feedback
+- Reviewed both unchecked catalog items and probed the configured Judge0 endpoint with a bounded request; it still returns ECONNREFUSED. Following the blocker rule, added and completed one independent password-entry usability item. Catalog items remain unchecked.
+- Added styled, accessible Caps Lock status to each password field, updated from keydown and keyup and cleared on blur to avoid stale guidance. Warnings remain advisory, work with visible passwords and preserve credentials and native submission. Required-password validation now exposes inline feedback and clears after correction.
+- Added component coverage for independent warnings, key transitions, blur cleanup, accessible descriptions, unchanged values, advisory submission and required-field recovery. Added Chromium coverage for populated guidance at 320px and keyboard access to the visibility control; browser checks use static fixtures, with event behavior covered by component tests.
+- Validation: all 451 tests across 45 files passed; lint, production build, typecheck and diff whitespace checks passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and author/validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Username guidance and validation
+- Reviewed both unchecked catalog items and made a bounded Judge0 connectivity probe; the configured endpoint still returns ECONNREFUSED. Following the blocker rule, added and completed one independent account usability item. Catalog items remain unchecked.
+- Added visible username rules to sign-in and sign-up, styled inline errors, accessible field descriptions, invalid-state feedback and correction recovery. Disabled automatic capitalization and spellcheck to preserve names on phone keyboards. Each form maintains its own feedback.
+- Shared username validation between browser and server, including exact string matching that rejects trailing newlines previously accepted by the server regex. Existing name lengths and allowed characters remain the same.
+- Added 13 tests for valid boundaries, invalid characters and lengths, trailing newlines, server agreement, independent form feedback, required input and recovery. All 447 tests across 44 files passed, including existing Chromium phone layout checks; lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
+### 2026-11-06 - Arena page read recovery
+- Reviewed the two unchecked catalog items. A .env now exists, but a bounded connectivity probe to the configured Judge0 endpoint returned ECONNREFUSED. Following the blocker rule, added and completed one independent arena recovery item; catalog items remain unchecked.
+- Added the shared styled accessible recovery panel for arena session and match read failures, with a full-document Retry duel link preserving the encoded match ID and Back to arena navigation. Retry rechecks the current session; missing/nonparticipant matches keep the generic 404, and expired sessions redirect to account.
+- Added page coverage for private error containment, session-failure query suppression, successful recovery with a fresh session, expired sessions, generic 404s and encoded retry destinations. Chromium checks verify 320px layout, a 44px retry target and keyboard focus order.
+- Validation: all 434 tests across 43 files passed. Lint, production build and typecheck passed. No player code executed.
+- Next: restore isolated Judge0 connectivity and validate problems 1-20. Existing live infrastructure smoke-check blockers remain.
+
 ### 2026-11-06 - Account read recovery
 - Reviewed both unchecked catalog items; isolated Judge0 remains unavailable (only .env.example is present). Following the blocker rule, added and completed one independent account recovery item. Catalog items remain unchecked.
 - Replaced the account service error dead end with the shared styled accessible recovery card, a full-document Retry account action and Back to arena navigation. Credential forms and stale authentication errors stay hidden while session state is unknown. Retry rechecks the current session.

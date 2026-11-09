@@ -1,11 +1,31 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE } from "../../lib/auth";
-import { Card } from "../../components/ui";
+import { RATING_TIERS, ratingTier } from "../../lib/profile";
+import { Badge, Card } from "../../components/ui";
 import { auth, database } from "../../lib/auth-server";
 import { loadLeaderboard, type LeaderboardEntry } from "../../lib/leaderboard";
 
 export const dynamic = "force-dynamic";
+
+function WeeklyWindow() {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setUTCDate(start.getUTCDate() - (start.getUTCDay() + 6) % 7);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 7);
+  const label = (date: Date) => date.toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" });
+  return <p className="weekly-window"><strong>Current UTC week</strong><span>From <time dateTime={start.toISOString()}>{label(start)}</time> at 00:00 UTC until <time dateTime={end.toISOString()}>{label(end)}</time> at 00:00 UTC (exclusive). Refresh after the boundary to see the new week.</span></p>;
+}
+
+function WeeklyChange({ score }: { score: number }) {
+  const rounded = Math.round(score) || 0;
+  const direction = rounded > 0 ? "gain" : rounded < 0 ? "loss" : "unchanged";
+  return <td className={`standings-change standings-change--${direction}`}>
+    <span>{rounded > 0 ? "+" : ""}{rounded} MMR</span>
+    <small>{rounded > 0 ? "Rounded gain" : rounded < 0 ? "Rounded loss" : "No rounded change"}</small>
+  </td>;
+}
 
 export default async function Leaderboard({ searchParams }: { searchParams: Promise<{ period?: string; scope?: string }> }) {
   const scope = (await searchParams).scope === "friends";
@@ -28,27 +48,74 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
       <p className="eyebrow">THE CLIMB STARTS AT 800</p>
       <h1>The ladder.</h1>
       <p className="intro">Every duel is a chance to climb. Meet the top 100.</p>
+      {!unavailable && !needsLogin && entries.length > 0 && <p><a className="button button--secondary" href="#standings-summary-title">Jump to standings</a></p>}
       <nav className="ladder-filters" aria-label="Leaderboard period">
         <a href={scope ? "/leaderboard?scope=friends" : "/leaderboard"} aria-current={period === "global" ? "page" : undefined}>Global rating</a>
         <a href={scope ? "/leaderboard?period=weekly&scope=friends" : "/leaderboard?period=weekly"} aria-current={period === "weekly" ? "page" : undefined}>Weekly climb</a>
       </nav>
       <nav className="ladder-filters" aria-label="Leaderboard players"><Link href={`/leaderboard?period=${period}`} aria-current={!scope ? "page" : undefined}>Everyone</Link><Link href={`/leaderboard?period=${period}&scope=friends`} aria-current={scope ? "page" : undefined}>Friends</Link><Link href="/friends">Manage friends</Link></nav>
       {scope && <p>You and your accepted friends, ranked within your circle.</p>}
-      <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
+      <p id="ranking-rules" className="availability">{period === "weekly" ? "Ranked by net rating gained in completed duels since Monday 00:00 UTC. Players with no completed rated duels this week are excluded." : "Ranked by current rating, including new players. Equal ratings share a rank."} Tier badges follow current MMR, using full precision even when the displayed rating rounds up. Rankings use full precision; displayed values are rounded. Ties share a rank.</p>
+      {period === "weekly" && !unavailable && !needsLogin && <WeeklyWindow />}
+      <details className="tier-guide">
+        <summary>Explore leaderboard rating tiers</summary>
+        <p>Badges show current rating tiers on both ladders. Weekly gains determine weekly rank, but do not determine your tier.</p>
+        <ul aria-label="Leaderboard rating tier thresholds">{RATING_TIERS.map(tier => <li key={tier.name}><strong>{tier.name}</strong><span>{tier.minimum}+ MMR</span></li>)}</ul>
+        <p>Each tier starts at its listed minimum and ends where the next begins. Master has no upper limit. Boundaries use full precision: 999.75 MMR is Bronze even though it displays as 1000 MMR.</p>
+      </details>
       <Card className="ladder-card">
-        {needsLogin ? <p><Link href="/account">Sign in to see friends standings</Link></p> : unavailable ? <div className="ladder-recovery">
+        {!unavailable && !needsLogin && <section className="standings-refresh" aria-labelledby="standings-refresh-title">
+          <div><h2 id="standings-refresh-title">Check the latest standings</h2><p id="standings-refresh-note">Rankings, ratings and weekly gains reflect when this page loaded. Refresh to see completed duels and changes to your friends circle. Your selected filters stay in place.</p></div>
+          <a className="button button--secondary" href={retryHref} aria-describedby="standings-refresh-note">Refresh standings</a>
+        </section>}
+        {!unavailable && !needsLogin && entries.length > 0 && <details className="rank-guide">
+          <summary>How ranks and ties work</summary>
+          <dl>
+            <div><dt>Shared places</dt><dd>Equal scores share a rank. Two players tied at #1 are followed by #3 because two players are ahead.</dd></div>
+            <div><dt>Full precision</dt><dd>{period === "weekly" ? "Weekly gains" : "Current ratings"} determine rank before rounding. Matching displayed numbers can still have different ranks.</dd></div>
+            <div><dt>The 100-player limit</dt><dd>At most 100 players appear. Tied players are ordered alphabetically by username, including at the cutoff; a shared rank does not guarantee a place in the displayed standings.</dd></div>
+          </dl>
+        </details>}
+        {period === "weekly" && !unavailable && !needsLogin && <details className="weekly-guide">
+          <summary>How the weekly climb works</summary>
+          <dl>
+            <div><dt>Weekly gain</dt><dd>Your rating changes from completed rated duels since Monday 00:00 UTC, added together. For example, +12 and -7 give a weekly gain of +5 MMR.</dd></div>
+            <div><dt>Every rated result counts</dt><dd>Wins, losses and draws all qualify. Zero or negative weekly gains stay on the ladder; higher gains rank first.</dd></div>
+            <div><dt>Current rating</dt><dd>The Rating column shows your current MMR. Weekly rank uses Weekly gain, so the highest current rating may not lead this ladder.</dd></div>
+          </dl>
+        </details>}
+        {needsLogin ? <section className="ladder-empty" aria-labelledby="friends-login-title">
+          <p className="eyebrow">YOUR CIRCLE</p><h2 id="friends-login-title">Climb with familiar rivals.</h2>
+          <p>Sign in to compare your rating with accepted friends. Pending invitations stay out of the standings.</p>
+          <div className="ladder-empty-actions"><Link className="button button--primary" href="/account">Sign in to see friends standings</Link><Link className="button button--secondary" href={`/leaderboard?period=${period}`}>See everyone</Link></div>
+        </section> : unavailable ? <div className="ladder-recovery">
           <div role="alert"><h2>Standings unavailable</h2><p>We couldn’t load this ladder. Try again to refresh your selected standings.</p></div>
           <a className="button button--primary" href={retryHref}>Retry standings</a>
           <Link className="button button--secondary" href="/">Back to arena</Link>
         </div> : entries.length ?
-          <div className="ladder-scroll" role="region" aria-label="Leaderboard standings" tabIndex={0}><table className="ladder-table" aria-describedby="ranking-rules">
+          <><section className="standings-summary" aria-labelledby="standings-summary-title">
+            <div><p className="eyebrow">{scope ? "YOUR CIRCLE" : "EVERYONE"}</p><h2 id="standings-summary-title" tabIndex={-1}>{period === "weekly" ? "Weekly climb" : "Global rating"}</h2></div>
+            <p className="standings-count">{entries.length} {entries.length === 1 ? "player shown" : "players shown"}</p>
+            <p className="standings-summary-note">{entries.length === 100 ? "Showing the top 100 players. More players may qualify for this ladder." : "Showing all qualifying players in this ladder."} {scope ? "Includes you and your accepted friends." : "Includes players across CodeDuel."}</p>
+          </section><p id="standings-scroll-hint" className="standings-scroll-hint">On smaller screens, scroll sideways to see all standings. Keyboard: focus the standings and use the left and right arrow keys.</p>
+          <div className="ladder-scroll" role="region" aria-label="Leaderboard standings" aria-describedby="standings-scroll-hint" tabIndex={0}><table className="ladder-table" aria-describedby="ranking-rules">
             <caption>{period === "weekly" ? "Weekly climb" : "Global rating"} standings</caption>
             <thead><tr><th scope="col">Rank</th><th scope="col">Player</th><th scope="col">Rating</th>{period === "weekly" && <th scope="col">Weekly gain</th>}</tr></thead>
             <tbody>{entries.map(entry => <tr key={entry.username} className={entry.rank <= 3 ? "ladder-podium" : undefined}>
-              <td><span className="ladder-rank">#{entry.rank}</span></td><th scope="row"><Link href={`/profile/${entry.username}`}>{entry.username}</Link></th><td>{Math.round(entry.rating)}</td>
-              {period === "weekly" && <td>{entry.score > 0 ? "+" : ""}{Math.round(entry.score)}</td>}
+              <td><span className="ladder-rank">#{entry.rank}</span></td><th scope="row"><Link className="standings-player" href={`/profile/${encodeURIComponent(entry.username)}`}>{entry.username}</Link></th><td><div className="standings-rating"><span>{Math.round(entry.rating)} MMR</span><Badge tone="accent">{ratingTier(entry.rating)}</Badge></div></td>
+              {period === "weekly" && <WeeklyChange score={entry.score} />}
             </tr>)}</tbody>
-          </table></div> : <div className="ladder-empty"><h2>{period === "weekly" ? "A new week. An open ladder." : "The first rivals are on their way."}</h2><p>{period === "weekly" ? "Completed rated duels will put this week’s climbers here." : "Create an account to join the standings."}</p><Link className="button button--primary" href="/">Back to arena</Link></div>}
+          </table></div></> : scope ? <section className="ladder-empty" aria-labelledby="friends-empty-title">
+            <p className="eyebrow">YOUR CIRCLE</p><h2 id="friends-empty-title">{period === "weekly" ? "Your circle’s next climb starts here." : "Bring your rivals to the ladder."}</h2>
+            <p>{period === "weekly" ? "Neither you nor your accepted friends have completed a rated duel this week. Finish a rated duel to join the weekly climb; wins, losses and draws all count." : "No standings are available for your circle yet. Invite a rival or return to the arena to start a duel."}</p>
+            <div className="ladder-empty-actions"><Link className="button button--primary" href="/">Find a duel</Link><Link className="button button--secondary" href="/friends">Invite friends</Link></div>
+          </section> : <section className="ladder-empty" aria-labelledby="public-empty-title">
+            <p className="eyebrow">YOUR NEXT CLIMB</p>
+            <h2 id="public-empty-title">{period === "weekly" ? "A new week. An open ladder." : "The first rivals are on their way."}</h2>
+            <p>{period === "weekly" ? "Complete a rated duel this week to enter the weekly climb. Wins, losses and draws all count; standings compare net rating gained since Monday 00:00 UTC." : "New accounts start at 800 MMR and appear in the global standings. Complete rated duels to build your rating and climb the ladder."}</p>
+            <p>Already have an account? Head to the arena to find your next duel.</p>
+            <div className="ladder-empty-actions"><Link className="button button--primary" href="/">Find a duel</Link><Link className="button button--secondary" href="/account">Sign in or create an account</Link></div>
+          </section>}
       </Card>
     </main>
   </div>;

@@ -1,12 +1,14 @@
 import type { Pool } from "pg";
 
 export async function loadHome(db: Pick<Pool, "query">, userId?: string) {
-  const daily = await db.query(`SELECT title, difficulty, statement, function_signature FROM problems
+  const daily = await db.query(`SELECT title, difficulty, statement, function_signature, constraints, examples, topics FROM problems
     WHERE published_at <= now() ORDER BY md5(slug || (now() AT TIME ZONE 'UTC')::date::text), id LIMIT 1`);
   if (!userId) return { daily: daily.rows[0] ?? null, recent: [], streak: 0 };
-  const recent = await db.query(`SELECT m.id, p.title, m.winner_id, m.completed_at, u.username AS opponent
+  const recent = await db.query(`SELECT m.id, p.title, m.winner_id, m.completed_at, u.username AS opponent,
+    h.rating_after-h.rating_before AS delta
     FROM matches m JOIN problems p ON p.id=m.problem_id
     JOIN users u ON u.id=CASE WHEN m.player_one_id=$1 THEN m.player_two_id ELSE m.player_one_id END
+    LEFT JOIN rating_history h ON h.match_id=m.id AND h.user_id=$1
     WHERE (m.player_one_id=$1 OR m.player_two_id=$1) AND m.status='completed'
     ORDER BY m.completed_at DESC, m.id DESC LIMIT 5`, [userId]);
   const streak = await db.query(`WITH history AS (

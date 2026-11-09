@@ -18,13 +18,14 @@ it("restricts completed results to participants and returns final scores without
     await db.exec(await readFile(new URL('../db/migrations/004_match_results.sql',import.meta.url),'utf8'));
     expect(await loadResult(store,m.id,users[0].id)).toBeNull();
     expect(await loadResult(store,"invalid",users[0].id)).toBeNull();
-    await db.query("UPDATE matches SET status='completed',completed_at=now(),winner_id=$2 WHERE id=$1",[m.id,users[0].id]);
+    await db.query("UPDATE matches SET status='completed',completed_at='2026-01-02T03:04:00Z',winner_id=$2 WHERE id=$1",[m.id,users[0].id]);
     expect(await loadResult(store,m.id,users[2].id)).toBeNull();
     expect(await loadResult(store,m.id,users[0].id)).toMatchObject({outcome:'WIN',players:[{username:'Ada',passed:null,before:null},{username:'Bob'}]});
     await db.query(`INSERT INTO match_results VALUES ($1,$2,8,8,12.5,1500),($1,$3,4,8,90,NULL)`,[m.id,users[0].id,users[1].id]);
     await db.query(`INSERT INTO rating_history(user_id,match_id,rating_before,rating_after) VALUES ($2,$1,800,808),($3,$1,800,792)`,[m.id,users[0].id,users[1].id]);
     const result=await loadResult(store,m.id,users[1].id);
     expect(result).toMatchObject({outcome:'LOSS',players:[{username:'Bob',before:800,after:792,passed:4,submitted:null},{username:'Ada',cpu:12.5,submitted:1500}]});
+    expect(new Date(result!.completedAt!).toISOString()).toBe('2026-01-02T03:04:00.000Z');
     expect(JSON.stringify(result)).not.toContain('SECRET');
     await db.query("UPDATE matches SET winner_id=NULL WHERE id=$1",[m.id]);
     expect((await loadResult(store,m.id,users[0].id))?.outcome).toBe('DRAW');

@@ -5,6 +5,7 @@ const current = vi.hoisted(() => vi.fn());
 vi.mock("../src/lib/auth-server", () => ({ auth: { current } }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 import AccountPage from "../src/app/account/page";
+import { USERNAME_HINT } from "../src/lib/username-validation";
 beforeEach(() => { current.mockReset(); });
 afterEach(() => { vi.unstubAllGlobals(); });
 it("starts matchmaking from the account and exposes the reserved arena", async () => {
@@ -134,3 +135,138 @@ it("blocks over-limit Unicode passwords locally and recovers independently in ea
   expect(screen.queryByText("Use at least 12 characters.")).not.toBeInTheDocument();
 });
 
+
+it.each(['guest', 'player', 'unavailable'])('offers account skip navigation for %s state', async state => {
+  if (state === 'unavailable') current.mockRejectedValue(new Error('private'));
+  else current.mockResolvedValue(state === 'player' ? { id: '1', username: 'Duelist', rating: 800 } : null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByRole('link', { name: 'Skip to account' })).toHaveAttribute('href', '#account-main');
+  expect(screen.getByRole('main')).toHaveAttribute('id', 'account-main');
+  expect(screen.getByRole('main')).toHaveAttribute('tabindex', '-1');
+  expect(screen.queryByRole('navigation', { name: 'Account options' }) !== null).toBe(state === 'guest');
+});
+
+it('names credential forms and provides focusable direct entry destinations', async () => {
+  current.mockResolvedValue(null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  for (const [mode, heading, link] of [['login', 'Welcome back', 'Go to sign in'], ['signup', 'Create your player', 'Go to create account']]) {
+    expect(screen.getByRole('form', { name: heading })).toHaveAttribute('action', `/api/auth/${mode}`);
+    expect(screen.getByRole('link', { name: link })).toHaveAttribute('href', `#account-${mode}`);
+    expect(screen.getByRole('heading', { name: heading })).toHaveAttribute('tabindex', '-1');
+  }
+});
+
+it.each([
+  [USERNAME_HINT, "Check the username"],
+  ["Incorrect username or password.", "Check both credentials"],
+  ["That username is unavailable.", "Choose another username"],
+  ["Too many attempts. Try again in 15 minutes.", "Wait 15 minutes"],
+  ["Use a password of at least 12 characters and at most 256 bytes.", "Check your password length and byte budget"],
+  ["Account service unavailable. Please try again later.", "Your action could not be confirmed"],
+])("shows recognized account error %s with specific recovery", async (error, guidance) => {
+  current.mockResolvedValue(null);
+  render(await AccountPage({ searchParams: Promise.resolve({ error }) }));
+  expect(screen.getByRole("alert")).toHaveClass("account-error");
+  expect(screen.getByRole("alert")).toHaveTextContent(error);
+  expect(screen.getByRole("alert")).toHaveTextContent(guidance);
+  expect(screen.getByRole("form", { name: "Welcome back" })).toBeVisible();
+});
+
+it.each(["<script>private()</script>", "Contact fake support", "Incorrect username or password. ", "toString", "x".repeat(500)])("ignores arbitrary account URL messages: %s", async error => {
+  current.mockResolvedValue(null);
+  render(await AccountPage({ searchParams: Promise.resolve({ error }) }));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("form", { name: "Welcome back" })).toBeVisible();
+});
+
+it("clears the chosen credential form without submitting or clearing its neighbor", async () => {
+  current.mockResolvedValue(null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  const [login, signup] = screen.getAllByLabelText<HTMLInputElement>("Username");
+  const [password] = screen.getAllByLabelText<HTMLInputElement>("Password");
+  fireEvent.change(login, { target: { value: "invalid name" } });
+  fireEvent.change(password, { target: { value: "short" } });
+  fireEvent.change(signup, { target: { value: "Other_Player" } });
+  const submit = vi.fn();
+  login.form!.addEventListener("submit", submit);
+  await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: "Clear form" })[0]); });
+  expect(login).toHaveValue("");
+  expect(password).toHaveValue("");
+  expect(login).not.toHaveAttribute("aria-invalid");
+  expect(password).not.toHaveAttribute("aria-invalid");
+  expect(signup).toHaveValue("Other_Player");
+  expect(submit).not.toHaveBeenCalled();
+});
+
+it.each([
+  [999.75, "1000", "Bronze"], [1000, "1000", "Silver"],
+  [1199.75, "1200", "Silver"], [1200, "1200", "Gold"],
+  [1599.75, "1600", "Gold"], [1600, "1600", "Platinum"],
+  [1999.75, "2000", "Platinum"], [2000, "2000", "Diamond"],
+  [2399.75, "2400", "Diamond"], [2400, "2400", "Master"],
+])("shows the full-precision account tier for %s MMR", async (rating, displayed, tier) => {
+  current.mockResolvedValue({ id: "1", username: "Duelist", rating });
+  const { container } = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  const standing = container.querySelector(".account-standing")!;
+  expect(standing).toHaveTextContent(`${displayed} MMR${tier}`);
+  expect(standing).toHaveAccessibleDescription("Your tier follows your current MMR at full precision. Displayed ratings are rounded.");
+});
+it("hides account rating tiers for guests and unavailable sessions", async () => {
+  current.mockResolvedValue(null);
+  const guest = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(guest.container.querySelector(".account-standing")).toBeNull();
+  guest.unmount();
+  current.mockRejectedValue(new Error("unavailable"));
+  const failed = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(failed.container.querySelector(".account-standing")).toBeNull();
+});
+
+it("offers a described native account refresh and reloads current rating and session state", async () => {
+  current.mockResolvedValueOnce({ id: "1", username: "Duelist", rating: 999.75 });
+  const first = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  const refresh = screen.getByRole("link", { name: "Refresh account" });
+  expect(refresh).toHaveAttribute("href", "/account");
+  expect(refresh).toHaveAccessibleDescription(/reflect when this page loaded/);
+  expect(refresh).toHaveAccessibleDescription(/account change in another tab/);
+  expect(screen.getByText("Bronze", { selector: ".badge" })).toBeInTheDocument();
+  first.unmount();
+  current.mockResolvedValueOnce({ id: "1", username: "Duelist", rating: 1000 });
+  const second = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.getByText("Silver", { selector: ".badge" })).toBeInTheDocument();
+  second.unmount();
+  current.mockResolvedValueOnce(null);
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.queryByRole("link", { name: "Refresh account" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
+  expect(current).toHaveBeenCalledTimes(3);
+});
+
+it("preserves account retry without snapshot guidance when session lookup fails", async () => {
+  current.mockRejectedValue(new Error("private"));
+  render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.queryByRole("link", { name: "Refresh account" })).not.toBeInTheDocument();
+  expect(screen.queryByText("Your account at a glance")).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Retry account" })).toHaveAttribute("href", "/account");
+});
+
+it.each([[999.75, "Bronze"], [1000, "Silver"], [1199.75, "Silver"], [1200, "Gold"], [1600, "Platinum"], [2000, "Diamond"], [2400, "Master"]])("explains account tier thresholds at %s MMR", async (rating, tier) => {
+  current.mockResolvedValue({ id: "1", username: "Duelist", rating });
+  const { container } = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  const guide = container.querySelector(".tier-guide")!;
+  expect(guide).not.toHaveAttribute("open");
+  expect(guide.querySelector("summary")).toHaveTextContent("Explore rating tiers");
+  expect(guide).toHaveTextContent("full rating");
+  const rows = guide.querySelectorAll("li");
+  expect(rows).toHaveLength(6);
+  expect(Array.from(rows, row => row.querySelector("span")?.textContent)).toEqual(["0+ MMR", "1000+ MMR", "1200+ MMR", "1600+ MMR", "2000+ MMR", "2400+ MMR"]);
+  expect(guide.querySelectorAll(".tier-guide-current")).toHaveLength(1);
+  expect(guide.querySelector(".tier-guide-current strong")).toHaveTextContent(tier);
+});
+it("keeps account tier guidance out of guest and unavailable views", async () => {
+  current.mockResolvedValue(null);
+  const view = render(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.queryByText("Explore rating tiers")).not.toBeInTheDocument();
+  current.mockRejectedValue(new Error("offline"));
+  view.rerender(await AccountPage({ searchParams: Promise.resolve({}) }));
+  expect(screen.queryByText("Explore rating tiers")).not.toBeInTheDocument();
+});

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const editor = vi.hoisted(() => ({ fails: false }));
@@ -13,6 +13,33 @@ function Harness({ readOnly = false }: { readOnly?: boolean }) {
   const [value, setValue] = useState("def solve():\n    pass");
   return <SolutionEditor value={value} onChange={setValue} readOnly={readOnly} starter={"def solve():\n    pass"}/>;
 }
+it.each([false, true])("explains text-size reset and preserves focus through read-only recovery in plain mode %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 16 }));
+  const onChange = vi.fn();
+  const content = (readOnly: boolean) => <><SolutionEditor value="first draft" onChange={onChange} readOnly={readOnly}/><SolutionEditor value="second draft" onChange={onChange} readOnly={readOnly}/></>;
+  const view = render(content(false));
+  const [first, second] = screen.getAllByRole("group", { name: "Solution editor" }).map(group => within(group));
+  const reset = first.getByRole("button", { name: "Reset text size" });
+  expect(reset).toHaveAccessibleDescription(/Reset text size restores the default 15px size.*code stays unchanged/);
+  expect(reset.getAttribute("aria-describedby")).not.toBe(second.getByRole("button", { name: "Reset text size" }).getAttribute("aria-describedby"));
+  expect(document.getElementById(reset.getAttribute("aria-describedby")!)).toHaveClass("solution-text-size-guide");
+  for (const readOnly of [true, false, true]) {
+    view.rerender(content(readOnly));
+    reset.focus();
+    fireEvent.click(reset);
+    expect(reset).toHaveFocus();
+    expect(reset).toHaveAttribute("aria-disabled", "true");
+    expect(reset).toHaveAccessibleDescription(/Default 15px size is already selected.*Reset becomes available/);
+    expect(first.getByLabelText("Python solution")).toHaveValue("first draft");
+    expect(first.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
+    expect(second.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
+    fireEvent.click(first.getByRole("button", { name: "Increase solution text size" }));
+    expect(reset).toHaveAttribute("aria-disabled", "false");
+    expect(reset).toHaveAccessibleDescription(/Reset text size restores the default 15px size/);
+  }
+  expect(onChange).not.toHaveBeenCalled();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain, wordWrap: true, fontSize: 16 });
+});
 it("restores preferences across visits without persisting code", () => {
   const first = render(<Harness/>);
   fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
@@ -24,6 +51,7 @@ it("restores preferences across visits without persisting code", () => {
   render(<Harness readOnly/>);
   expect(screen.getByRole("button", { name: "Use advanced editor" })).toHaveAttribute("aria-pressed", "true");
   expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveTextContent("On");
   expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
   expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
 });
@@ -39,6 +67,7 @@ it("keeps valid fields when another stored preference is invalid", () => {
   render(<Harness/>);
   expect(screen.getByRole("button", { name: "Use advanced editor" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveTextContent("On");
   expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
 });
 it("keeps editing and controls usable when storage fails, then retries on a preference change", () => {
@@ -82,26 +111,27 @@ it("reports unavailable clipboard and denied access, and allows retry", async ()
   expect(screen.getByRole("status")).toHaveTextContent("Solution copied");
 });
 
-it("prevents overlapping copies and hides feedback for code edited during copying", async () => {
+it("prevents overlapping copies and explains completed copies of earlier drafts", async () => {
   let finish!: () => void;
   const writeText = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
   vi.stubGlobal("navigator", { clipboard: { writeText } });
   render(<Harness/>);
   fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
   const pending = screen.getByRole("button", { name: "Copying solution…" });
-  expect(pending).toBeDisabled();
+  expect(pending).toHaveAttribute("aria-disabled", "true");
   fireEvent.click(pending);
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
   await act(async () => { finish(); });
   expect(writeText).toHaveBeenCalledExactlyOnceWith("def solve():\n    pass");
-  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Earlier draft copied");
+  expect(screen.getByRole("status")).toHaveClass("solution-copy-notice--earlier");
   expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
 });
 it.each([false, true])("requires confirmation to reset in plain mode %s and supports cancellation", plain => {
   render(<Harness/>);
   if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
   const reset = screen.getByRole("button", { name: "Reset to starter code" });
-  expect(reset).toBeDisabled();
+  expect(reset).toHaveAttribute("aria-disabled", "true");
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "my draft" } });
   fireEvent.click(reset);
   expect(screen.getByLabelText("Python solution")).toHaveValue("my draft");
@@ -111,15 +141,15 @@ it.each([false, true])("requires confirmation to reset in plain mode %s and supp
   fireEvent.click(reset);
   fireEvent.click(screen.getByRole("button", { name: "Replace with starter code" }));
   expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
-  expect(reset).toBeDisabled();
+  expect(reset).toHaveAttribute("aria-disabled", "true");
   expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
 });
-it("removes reset controls and confirmation when the match ends", () => {
+it("disables reset and removes confirmation when the match ends", () => {
   const view = render(<Harness/>);
   fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "keep final code" } });
   fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
   view.rerender(<Harness readOnly/>);
-  expect(screen.queryByRole("button", { name: "Reset to starter code" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Reset to starter code" })).toHaveAttribute("aria-disabled", "true");
   expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
   expect(screen.getByLabelText("Python solution")).toHaveValue("keep final code");
 });
@@ -154,7 +184,7 @@ it.each([false, true])("returns focus to the solution editor after confirming a 
   fireEvent.click(screen.getByRole("button", { name: "Replace with starter code" }));
   expect(screen.getByRole("group", { name: "Solution editor" })).toHaveFocus();
   expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
-  expect(screen.getByRole("button", { name: "Reset to starter code" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Reset to starter code" })).toHaveAttribute("aria-disabled", "true");
   expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
 });
 it("preserves edits in both directions when switching editor modes", () => {
@@ -250,14 +280,14 @@ it.each([false, true])("adjusts and bounds text size without editing code in pla
   const decrease = screen.getByRole("button", { name: "Decrease solution text size" });
   const reset = screen.getByRole("button", { name: "Reset text size" });
   expect(solution).toHaveStyle({ fontSize: "15px" });
-  expect(reset).toBeDisabled();
+  expect(reset).toHaveAttribute("aria-disabled", "true");
   for (let i = 0; i < 15; i++) fireEvent.click(increase);
   expect(solution).toHaveStyle({ fontSize: "24px" });
-  expect(increase).toBeDisabled();
+  expect(increase).toHaveAttribute("aria-disabled", "true");
   expect(screen.getByText("24px")).toHaveAttribute("aria-live", "polite");
   for (let i = 0; i < 20; i++) fireEvent.click(decrease);
   expect(solution).toHaveStyle({ fontSize: "12px" });
-  expect(decrease).toBeDisabled();
+  expect(decrease).toHaveAttribute("aria-disabled", "true");
   fireEvent.click(reset);
   expect(solution).toHaveStyle({ fontSize: "15px" });
   expect(solution).toHaveValue("def solve():\n    pass");
@@ -314,4 +344,1021 @@ it("preserves wrapping on automatic advanced editor failure", () => {
   expect(screen.getByLabelText("Python solution")).toHaveAttribute("readonly");
   fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
   expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "off");
+});
+it.each([false, true])("expires reset confirmation on edits without reviving it when code returns, plain mode %s", plain => {
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const input = screen.getByLabelText("Python solution");
+  fireEvent.change(input, { target: { value: "first draft" } });
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  input.focus();
+  fireEvent.change(input, { target: { value: "new work" } });
+  expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
+  expect(input).toHaveFocus();
+  expect(input).toHaveValue("new work");
+  fireEvent.change(input, { target: { value: "first draft" } });
+  expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  fireEvent.click(screen.getByRole("button", { name: "Replace with starter code" }));
+  expect(input).toHaveValue("def solve():\n    pass");
+});
+
+it.each(["starter", "readOnly", "value", "missing starter"])("requires a fresh reset request after %s changes and returns", change => {
+  const onChange = vi.fn();
+  const props = { value: "valuable code", starter: "original starter", readOnly: false, onChange };
+  const view = render(<SolutionEditor {...props}/>);
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  const changed = change === "starter" ? { starter: "new starter" }
+    : change === "readOnly" ? { readOnly: true }
+    : change === "missing starter" ? { starter: undefined } : { value: "external draft" };
+  view.rerender(<SolutionEditor {...props} {...changed}/>);
+  expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
+  expect(onChange).not.toHaveBeenCalled();
+  view.rerender(<SolutionEditor {...props}/>);
+  expect(screen.queryByRole("button", { name: "Replace with starter code" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  fireEvent.click(screen.getByRole("button", { name: "Replace with starter code" }));
+  expect(onChange).toHaveBeenCalledExactlyOnceWith("original starter");
+});
+
+
+it.each([true, false])("expires completed clipboard feedback permanently after edits (success %s)", async ok => {
+  vi.stubGlobal("navigator", { clipboard: { writeText: ok ? vi.fn().mockResolvedValue(undefined) : vi.fn().mockRejectedValue(new Error("Denied")) } });
+  render(<Harness/>);
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Copy solution" })); });
+  expect(screen.getByRole(ok ? "status" : "alert")).toHaveTextContent(ok ? "Solution copied" : "Unable to copy");
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "def solve():\n    pass" } });
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Copy solution" })); });
+  expect(screen.getByRole(ok ? "status" : "alert")).toBeInTheDocument();
+});
+
+it.each([true, false])("identifies older clipboard completion after editing and restoring the draft (success %s)", async ok => {
+  let resolve!: () => void;
+  let reject!: (error: Error) => void;
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn(() => new Promise<void>((yes, no) => { resolve = yes; reject = no; })) } });
+  render(<Harness/>);
+  fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "def solve():\n    pass" } });
+  await act(async () => { if (ok) resolve(); else reject(new Error("Denied")); });
+  expect(screen.getByRole(ok ? "status" : "alert")).toHaveTextContent(/earlier draft/i);
+  expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+});
+
+it.each([false, true])("retries advanced editor failures while preserving fallback work and settings, readOnly %s", readOnly => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  editor.fails = true;
+  render(<Harness readOnly={readOnly}/>);
+  fireEvent.click(screen.getByRole("button", { name: "Increase solution text size" }));
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  const code = readOnly ? "def solve():\n    pass" : "def solve():\n    return 'fallback work'";
+  if (!readOnly) fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: code } });
+  const preferences = localStorage.getItem("codeduel:editor-preferences:v1");
+  const guidanceId = screen.getByRole("status").id;
+  expect(screen.getByRole("status")).toHaveClass("solution-editor-recovery");
+  expect(screen.getByRole("status")).toHaveAttribute("aria-atomic", "true");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    expect(screen.getByRole("button", { name: "Retry advanced editor" })).toHaveAttribute("aria-describedby", guidanceId);
+    expect(screen.getByRole("button", { name: "Retry advanced editor" })).toHaveAccessibleDescription(/your code is preserved.*current solution and preferences/);
+    fireEvent.click(screen.getByRole("button", { name: "Retry advanced editor" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Advanced editor unavailable");
+    expect(screen.getByRole("status")).toHaveAttribute("id", guidanceId);
+    expect(screen.getByRole("group", { name: "Solution editor" })).toHaveFocus();
+    expect(screen.getByLabelText("Python solution")).toHaveValue(code);
+  }
+  editor.fails = false;
+  fireEvent.click(screen.getByRole("button", { name: "Retry advanced editor" }));
+  expect(screen.queryByRole("button", { name: "Retry advanced editor" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Python solution")).toHaveValue(code);
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
+  expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "soft");
+  expect(screen.getByLabelText("Python solution").hasAttribute("readonly")).toBe(readOnly);
+  expect(localStorage.getItem("codeduel:editor-preferences:v1")).toBe(preferences);
+  expect(screen.getByRole("group", { name: "Solution editor" })).toHaveFocus();
+});
+
+it("isolates advanced editor recovery descriptions and clears them when switching to plain text", () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  editor.fails = true;
+  render(<><Harness/><Harness readOnly/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const ids = groups.map(group => within(group).getByRole("status").id);
+  expect(new Set(ids).size).toBe(2);
+  groups.forEach((group, index) => {
+    expect(within(group).getByRole("button", { name: "Retry advanced editor" })).toHaveAttribute("aria-describedby", ids[index]);
+  });
+  fireEvent.click(within(groups[0]).getByRole("button", { name: "Use plain text editor" }));
+  expect(document.getElementById(ids[0])).toBeNull();
+  expect(within(groups[0]).queryByRole("button", { name: "Retry advanced editor" })).not.toBeInTheDocument();
+  expect(document.getElementById(ids[1])).toBeInTheDocument();
+});
+
+
+it.each([false, true])("expires download errors after editing and restoring code in plain mode %s", plain => {
+  vi.stubGlobal("URL", Object.assign(class extends URL {}, {
+    createObjectURL: vi.fn(() => { throw new Error("Unavailable"); }),
+  }));
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const button = screen.getByRole("button", { name: "Download solution (.py)" });
+  fireEvent.click(button);
+  expect(screen.getByRole("alert")).toHaveTextContent("Unable to download");
+  fireEvent.click(screen.getByRole("button", { name: "Increase solution text size" }));
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  expect(screen.getByRole("alert")).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new solution" } });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "def solve():\n    pass" } });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "16px" });
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("button", { name: "Wrap long lines" })).toHaveTextContent("On");
+  fireEvent.click(button);
+  expect(screen.getByRole("alert")).toHaveTextContent("Unable to download");
+});
+
+it.each([false, true])("expires download errors after external draft replacement with readOnly %s", readOnly => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  const create = vi.fn().mockImplementationOnce(() => { throw new Error("Unavailable"); }).mockReturnValue("blob:recovered");
+  const revoke = vi.fn();
+  vi.stubGlobal("URL", Object.assign(class extends URL {}, { createObjectURL: create, revokeObjectURL: revoke }));
+  const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  const onChange = vi.fn();
+  const view = render(<SolutionEditor value="original" onChange={onChange} readOnly={readOnly}/>);
+  fireEvent.click(screen.getByRole("button", { name: "Download solution (.py)" }));
+  expect(screen.getByRole("alert")).toBeInTheDocument();
+  view.rerender(<SolutionEditor value="replacement" onChange={onChange} readOnly={readOnly}/>);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  view.rerender(<SolutionEditor value="original" onChange={onChange} readOnly={readOnly}/>);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Download solution (.py)" }));
+  expect(click).toHaveBeenCalledOnce();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("original");
+  expect(onChange).not.toHaveBeenCalled();
+  vi.advanceTimersByTime(1000);
+  expect(revoke).toHaveBeenCalledWith("blob:recovered");
+});
+
+
+it.each([false, true])("describes reset consequences on the focused action and preserves the description across preferences (plain=%s)", plain => {
+  render(<SolutionEditor value="edited" onChange={vi.fn()} readOnly={false} starter="pass"/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  fireEvent.click(screen.getByRole("button", { name: "Reset to starter code" }));
+  const group = screen.getByRole("group", { name: "Confirm solution reset" });
+  const keep = within(group).getByRole("button", { name: "Keep my solution" });
+  const replace = within(group).getByRole("button", { name: "Replace with starter code" });
+  const warning = "Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Press Escape anywhere in this editor to keep your solution. Download your solution first if you want to keep it.";
+  expect(group).toHaveClass("solution-reset-confirmation");
+  expect(within(group).getByRole("heading", { name: "Replace your solution?", level: 3 })).toBeVisible();
+  expect(replace).toHaveClass("solution-reset-replace");
+  expect(replace).not.toHaveClass("button--primary");
+  expect(keep).toHaveFocus();
+  for (const control of [group, keep, replace]) expect(control).toHaveAccessibleDescription(warning);
+  const id = keep.getAttribute("aria-describedby");
+  fireEvent.click(screen.getByRole("button", { name: "Wrap long lines" }));
+  expect(keep).toHaveAttribute("aria-describedby", id);
+  replace.focus();
+  fireEvent.keyDown(replace, { key: "Escape" });
+  expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  expect(document.getElementById(id!)).toBeNull();
+  expect(screen.getByRole("button", { name: "Reset to starter code" })).toHaveFocus();
+});
+
+it("isolates reset descriptions between editors", () => {
+  render(<><SolutionEditor value="one" onChange={vi.fn()} readOnly={false} starter="pass"/>
+    <SolutionEditor value="two" onChange={vi.fn()} readOnly={false} starter="pass"/></>);
+  for (const reset of screen.getAllByRole("button", { name: "Reset to starter code" })) fireEvent.click(reset);
+  const groups = screen.getAllByRole("group", { name: "Confirm solution reset" });
+  const ids = groups.map(group => group.getAttribute("aria-describedby"));
+  expect(new Set(ids).size).toBe(2);
+  groups.forEach((group, index) => {
+    expect(group.querySelector("p")).toHaveAttribute("id", ids[index]);
+    for (const button of within(group).getAllByRole("button")) expect(button).toHaveAttribute("aria-describedby", ids[index]);
+  });
+});
+
+it.each([true, false])("announces pending clipboard permission and clears busy state after settlement (success %s)", async ok => {
+  let resolve!: () => void;
+  let reject!: (reason: Error) => void;
+  const writeText = vi.fn(() => new Promise<void>((yes, no) => { resolve = yes; reject = no; }));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<Harness/>);
+  fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
+  const pending = screen.getByRole("button", { name: /^Copying solution/ });
+  expect(pending).toHaveAttribute("aria-disabled", "true");
+  expect(pending).toHaveAttribute("aria-busy", "true");
+  const notice = screen.getByRole("status");
+  expect(notice).toHaveAttribute("aria-atomic", "true");
+  expect(notice).toHaveTextContent("browser may ask for clipboard permission");
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "changed while waiting" } });
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(screen.getByRole("status")).toBe(notice);
+  expect(notice).toHaveTextContent("solution captured when you clicked Copy");
+  expect(screen.getByLabelText("Python solution")).toHaveValue("changed while waiting");
+  await act(async () => { if (ok) resolve(); else reject(new Error("Denied")); });
+  expect(screen.getByRole(ok ? "status" : "alert")).toHaveTextContent(/earlier draft/i);
+  expect(screen.getByRole("button", { name: "Copy solution" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Copy solution" })).toHaveAttribute("aria-busy", "false");
+  expect(writeText).toHaveBeenCalledExactlyOnceWith("def solve():\n    pass");
+});
+
+it.each([true, false])("keeps pending Copy in keyboard navigation without stealing focus on settlement (success %s)", async ok => {
+  let settle!: () => void;
+  const writeText = vi.fn(() => new Promise<void>((resolve, reject) => {
+    settle = () => ok ? resolve() : reject(new Error("Denied"));
+  }));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<Harness/>);
+  const copy = screen.getByRole("button", { name: "Copy solution" });
+  copy.focus();
+  fireEvent.click(copy);
+  expect(copy).toHaveFocus();
+  expect(copy).not.toBeDisabled();
+  expect(copy.tabIndex).toBe(0);
+  expect(copy).toHaveAccessibleDescription(/browser may ask for clipboard permission/);
+  const description = copy.getAttribute("aria-describedby");
+  fireEvent.click(copy);
+  expect(writeText).toHaveBeenCalledTimes(1);
+  const download = screen.getByRole("button", { name: "Download solution (.py)" });
+  download.focus();
+  expect(download).toHaveFocus();
+  copy.focus();
+  expect(copy).toHaveFocus();
+  expect(copy).toHaveAttribute("aria-describedby", description);
+  download.focus();
+  await act(async () => { settle(); });
+  expect(download).toHaveFocus();
+  expect(copy).toHaveAttribute("aria-disabled", "false");
+  expect(copy).toHaveAccessibleDescription(ok ? "Solution copied to clipboard." : "Unable to copy your solution. Try again, download it or select and copy the code manually.");
+  expect(copy.getAttribute("aria-describedby")).not.toBe(description);
+  expect(document.getElementById(description!)).toBeNull();
+  await act(async () => { fireEvent.click(copy); settle(); });
+  expect(writeText).toHaveBeenCalledTimes(2);
+});
+
+it("isolates pending copy descriptions and busy states between editors", async () => {
+  const completions: (() => void)[] = [];
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn(() => new Promise<void>(resolve => completions.push(resolve))) } });
+  render(<><Harness/><Harness readOnly/></>);
+  const copies = screen.getAllByRole("button", { name: "Copy solution" });
+  fireEvent.click(copies[0]);
+  expect(copies[1]).toHaveAttribute("aria-disabled", "false");
+  expect(copies[1]).toHaveAccessibleDescription(/Copy captures your current draft/);
+  fireEvent.click(copies[1]);
+  const ids = copies.map(copy => copy.getAttribute("aria-describedby"));
+  expect(new Set(ids).size).toBe(2);
+  for (const copy of copies) expect(copy).toHaveAccessibleDescription(/You can keep editing/);
+  await act(async () => { completions[0](); });
+  expect(document.getElementById(ids[0]!)).toBeNull();
+  expect(copies[1]).toHaveAttribute("aria-describedby", ids[1]);
+  expect(copies[1]).toHaveAttribute("aria-busy", "true");
+  await act(async () => { completions[1](); });
+});
+
+
+it.each([false, true])("shows draft-scoped download guidance without moving focus with readOnly %s", readOnly => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  vi.stubGlobal("URL", Object.assign(class extends URL {}, {
+    createObjectURL: vi.fn(() => "blob:download"), revokeObjectURL: vi.fn(),
+  }));
+  const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  const view = render(<SolutionEditor value="original" onChange={vi.fn()} readOnly={readOnly}/>);
+  const button = screen.getByRole("button", { name: "Download solution (.py)" });
+  button.focus();
+  fireEvent.click(button);
+  const notice = screen.getByRole("status");
+  expect(button).toHaveAccessibleDescription(notice.textContent!);
+  expect(notice).toHaveClass("solution-download-notice");
+  const descriptionId = notice.id;
+  expect(notice).toHaveTextContent("Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.");
+  expect(notice).toHaveAttribute("aria-atomic", "true");
+  expect(button).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(screen.getByRole("status")).toBe(notice);
+  expect(button).toHaveAttribute("aria-describedby", descriptionId);
+  view.rerender(<SolutionEditor value="replacement" onChange={vi.fn()} readOnly={readOnly}/>);
+  expect(button).toHaveAccessibleDescription(/Download saves your current draft/);
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  view.rerender(<SolutionEditor value="original" onChange={vi.fn()} readOnly={readOnly}/>);
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  click.mockImplementationOnce(() => { throw new Error("Blocked"); });
+  fireEvent.click(button);
+  expect(screen.getByRole("alert")).toHaveTextContent("Unable to download");
+  expect(button).toHaveAccessibleDescription(screen.getByRole("alert").textContent!);
+  expect(screen.getByRole("alert")).toHaveClass("solution-download-notice--error");
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  fireEvent.click(button);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("Download requested");
+  expect(button).toHaveFocus();
+  act(() => vi.advanceTimersByTime(1000));
+});
+
+it("isolates download descriptions between editors and unrelated copy feedback", async () => {
+  vi.stubGlobal("URL", Object.assign(class extends URL {}, {
+    createObjectURL: vi.fn(() => "blob:download"), revokeObjectURL: vi.fn(),
+  }));
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+  render(<><SolutionEditor value="first" onChange={vi.fn()} readOnly={false}/><SolutionEditor value="second" onChange={vi.fn()} readOnly/></>);
+  const buttons = screen.getAllByRole("button", { name: "Download solution (.py)" });
+  expect(buttons[0]).toHaveAccessibleDescription(/Download saves your current draft/);
+  fireEvent.click(buttons[0]);
+  expect(buttons[1]).toHaveAccessibleDescription(/Download saves your current draft/);
+  fireEvent.click(buttons[1]);
+  expect(buttons[0].getAttribute("aria-describedby")).not.toBe(buttons[1].getAttribute("aria-describedby"));
+  await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: "Copy solution" })[0]); });
+  for (const button of buttons) expect(button).toHaveAccessibleDescription(/Download requested/);
+});
+it.each([false, true])("associates styled copy results and clears stale descriptions with readOnly %s", async readOnly => {
+  const writeText = vi.fn().mockRejectedValueOnce(new Error("Denied")).mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  const view = render(<SolutionEditor value="draft" onChange={vi.fn()} readOnly={readOnly}/>);
+  const copy = screen.getByRole("button", { name: "Copy solution" });
+  copy.focus();
+  await act(async () => { fireEvent.click(copy); });
+  const error = screen.getByRole("alert");
+  expect(copy).toHaveAttribute("aria-describedby", error.id);
+  expect(error).toHaveClass("solution-copy-notice", "solution-copy-notice--error");
+  expect(copy).toHaveFocus();
+  await act(async () => { fireEvent.click(copy); });
+  const success = screen.getByText("Solution copied to clipboard.");
+  expect(copy).toHaveAttribute("aria-describedby", success.id);
+  expect(success).toHaveClass("solution-copy-notice");
+  expect(success).not.toHaveClass("solution-copy-notice--error");
+  expect(success).toHaveAttribute("aria-atomic", "true");
+  expect(copy).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(copy).toHaveAttribute("aria-describedby", success.id);
+  view.rerender(<SolutionEditor value="changed" onChange={vi.fn()} readOnly={readOnly}/>);
+  expect(copy).toHaveAccessibleDescription(/Copy captures your current draft/);
+  view.rerender(<SolutionEditor value="draft" onChange={vi.fn()} readOnly={readOnly}/>);
+  expect(copy).toHaveAccessibleDescription(/Copy captures your current draft/);
+  expect(screen.queryByText("Solution copied to clipboard.")).not.toBeInTheDocument();
+});
+
+it("isolates clipboard completion descriptions between editors", async () => {
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+  render(<><SolutionEditor value="one" onChange={vi.fn()} readOnly={false}/><SolutionEditor value="two" onChange={vi.fn()} readOnly/></>);
+  const copies = screen.getAllByRole("button", { name: "Copy solution" });
+  await act(async () => { fireEvent.click(copies[0]); });
+  expect(copies[1]).toHaveAccessibleDescription(/Copy captures your current draft/);
+  await act(async () => { fireEvent.click(copies[1]); });
+  const notices = screen.getAllByText("Solution copied to clipboard.");
+  expect(copies[0]).toHaveAttribute("aria-describedby", notices[0].id);
+  expect(copies[1]).toHaveAttribute("aria-describedby", notices[1].id);
+  expect(notices[0].id).not.toBe(notices[1].id);
+});
+it.each([false, true])("associates preference storage recovery guidance with each editor's controls, readOnly %s", readOnly => {
+  const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+  render(<><SolutionEditor value="first draft" onChange={vi.fn()} readOnly={readOnly}/><SolutionEditor value="second draft" onChange={vi.fn()} readOnly={readOnly}/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const ids = groups.map(group => {
+    const notice = within(group).getByRole("status");
+    expect(notice).toHaveClass("solution-editor-recovery");
+    expect(notice).toHaveAttribute("aria-atomic", "true");
+    expect(notice).toHaveTextContent("retries saving your preferences; your solution stays in the editor");
+    for (const name of ["Decrease solution text size", "Increase solution text size", "Reset text size", "Wrap long lines", "Use plain text editor"]) {
+      expect(within(group).getByRole("button", { name }).getAttribute("aria-describedby")?.split(" ")).toContain(notice.id);
+    }
+    return notice.id;
+  });
+  expect(ids[0]).not.toBe(ids[1]);
+  const wrap = within(groups[0]).getByRole("button", { name: "Wrap long lines" });
+  wrap.focus();
+  fireEvent.click(wrap);
+  expect(wrap).toHaveFocus();
+  expect(within(groups[0]).getByRole("status")).toHaveAttribute("id", ids[0]);
+  write.mockRestore();
+  fireEvent.click(wrap);
+  expect(wrap).toHaveFocus();
+  expect(within(groups[0]).queryByRole("status")).not.toBeInTheDocument();
+  for (const name of ["Decrease solution text size", "Increase solution text size", "Reset text size", "Wrap long lines", "Use plain text editor"]) {
+    expect(within(groups[0]).getByRole("button", { name }).getAttribute("aria-describedby")?.split(" ") ?? []).not.toContain(ids[0]);
+  }
+  expect(within(groups[1]).getByRole("status")).toHaveAttribute("id", ids[1]);
+  expect(within(groups[0]).getByLabelText("Python solution")).toHaveValue("first draft");
+  expect(within(groups[1]).getByLabelText("Python solution")).toHaveValue("second draft");
+});
+
+it.each([false, true])("retries saving unchanged preferences with isolated recovery and focus, readOnly %s", readOnly => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain: true, wordWrap: true, fontSize: 24 }));
+  const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+  const change = vi.fn();
+  render(<><SolutionEditor value="private first draft" onChange={change} readOnly={readOnly}/><SolutionEditor value="private second draft" onChange={change} readOnly={readOnly}/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const retry = within(groups[0]).getByRole("button", { name: "Retry saving preferences" });
+  const notice = within(groups[0]).getByRole("status");
+  expect(retry).toHaveAttribute("aria-describedby", notice.id);
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(within(groups[0]).getByRole("status")).toBe(notice);
+  write.mockRestore();
+  fireEvent.click(retry);
+  expect(groups[0]).toHaveFocus();
+  expect(within(groups[0]).queryByRole("status")).not.toBeInTheDocument();
+  expect(within(groups[0]).queryByRole("button", { name: "Retry saving preferences" })).not.toBeInTheDocument();
+  expect(within(groups[1]).getByRole("button", { name: "Retry saving preferences" })).toBeInTheDocument();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: true, wordWrap: true, fontSize: 24 });
+  expect(within(groups[0]).getByLabelText("Python solution")).toHaveValue("private first draft");
+  expect(within(groups[1]).getByLabelText("Python solution")).toHaveValue("private second draft");
+  expect(change).not.toHaveBeenCalled();
+  const otherRetry = within(groups[1]).getByRole("button", { name: "Retry saving preferences" });
+  fireEvent.click(otherRetry);
+  expect(groups[0]).toHaveFocus();
+  expect(within(groups[1]).queryByRole("status")).not.toBeInTheDocument();
+});
+
+
+it.each([false, true])("preserves text-size boundary focus and avoids redundant storage writes with readOnly %s", readOnly => {
+  render(<Harness readOnly={readOnly}/>);
+  const write = vi.spyOn(Storage.prototype, "setItem");
+  const increase = screen.getByRole("button", { name: "Increase solution text size" });
+  const decrease = screen.getByRole("button", { name: "Decrease solution text size" });
+  const reset = screen.getByRole("button", { name: "Reset text size" });
+  for (const [control, steps, size] of [[increase, 9, 24], [decrease, 12, 12], [reset, 1, 15]] as const) {
+    control.focus();
+    for (let i = 0; i < steps; i++) fireEvent.click(control);
+    expect(control).toHaveFocus();
+    expect(control).toBeEnabled();
+    expect(control).toHaveAttribute("aria-disabled", "true");
+    expect(control.tabIndex).toBe(0);
+    expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: `${size}px` });
+    write.mockClear();
+    fireEvent.click(control);
+    fireEvent.click(control);
+    expect(write).not.toHaveBeenCalled();
+    expect(control).toHaveFocus();
+    expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
+});
+
+it.each([false, true])("explains unavailable starter reset and preserves focus through draft replacement in plain mode %s", plain => {
+  const change = vi.fn();
+  const view = render(<SolutionEditor value="starter" starter="starter" readOnly={false} onChange={change}/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const reset = screen.getByRole("button", { name: "Reset to starter code" });
+  reset.focus();
+  expect(reset).not.toBeDisabled();
+  expect(reset).toHaveAccessibleDescription("Your solution already matches the starter code. Reset becomes available after you edit it.");
+  const description = reset.getAttribute("aria-describedby");
+  fireEvent.click(reset);
+  expect(reset).toHaveFocus();
+  expect(change).not.toHaveBeenCalled();
+  expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  view.rerender(<SolutionEditor value="draft" starter="starter" readOnly={false} onChange={change}/>);
+  expect(reset).toHaveFocus();
+  expect(reset).toHaveAttribute("aria-disabled", "false");
+  expect(reset).not.toHaveAttribute("aria-describedby");
+  expect(document.getElementById(description!)).not.toBeInTheDocument();
+  view.rerender(<SolutionEditor value="draft" starter="draft" readOnly={false} onChange={change}/>);
+  expect(reset).toHaveFocus();
+  expect(reset).toHaveAttribute("aria-describedby", description);
+  fireEvent.click(reset);
+  expect(change).not.toHaveBeenCalled();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("draft");
+  view.rerender(<SolutionEditor value="draft" starter="draft" readOnly onChange={change}/>);
+  expect(screen.getByRole("button", { name: "Reset to starter code" })).toHaveAttribute("aria-disabled", "true");
+  expect(document.getElementById(description!)).toHaveTextContent("Your solution is read-only");
+});
+
+it("isolates unavailable reset descriptions between editors", () => {
+  render(<><SolutionEditor value="first" starter="first" readOnly={false} onChange={vi.fn()}/><SolutionEditor value="second" starter="second" readOnly={false} onChange={vi.fn()}/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const ids = groups.map(group => {
+    const reset = within(group).getByRole("button", { name: "Reset to starter code" });
+    const id = reset.getAttribute("aria-describedby")!;
+    expect(group).toContainElement(document.getElementById(id));
+    return id;
+  });
+  expect(ids[0]).not.toBe(ids[1]);
+});
+
+
+it.each([false, true])("cancels reset with Escape anywhere in its owning editor (plain=%s)", plain => {
+  const change = vi.fn();
+  render(<><SolutionEditor value="private draft" onChange={change} readOnly={false} starter="pass"/>
+    <SolutionEditor value="other draft" onChange={change} readOnly={false} starter="pass"/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const first = within(groups[0]);
+  const second = within(groups[1]);
+  if (plain) fireEvent.click(first.getByRole("button", { name: "Use plain text editor" }));
+  const reset = first.getByRole("button", { name: "Reset to starter code" });
+  fireEvent.click(reset);
+  fireEvent.click(second.getByRole("button", { name: "Reset to starter code" }));
+  const input = first.getByRole("textbox");
+  input.focus();
+  for (const flags of [{ isComposing: true }, { keyCode: 229 }]) {
+    expect(fireEvent.keyDown(input, { key: "Escape", ...flags })).toBe(true);
+    expect(first.getByRole("group", { name: "Confirm solution reset" })).toBeInTheDocument();
+    expect(input).toHaveFocus();
+  }
+  expect(fireEvent.keyDown(input, { key: "Escape" })).toBe(false);
+  expect(reset).toHaveFocus();
+  expect(first.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  expect(second.getByRole("group", { name: "Confirm solution reset" })).toBeInTheDocument();
+  expect(input).toHaveValue("private draft");
+  expect(change).not.toHaveBeenCalled();
+  // Without a pending confirmation, Escape keeps its normal editor behavior.
+  expect(fireEvent.keyDown(input, { key: "Escape" })).toBe(true);
+  fireEvent.click(reset);
+  const wrap = first.getByRole("button", { name: "Wrap long lines" });
+  wrap.focus();
+  expect(fireEvent.keyDown(wrap, { key: "Escape" })).toBe(false);
+  expect(reset).toHaveFocus();
+  expect(first.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  expect(second.getByRole("group", { name: "Confirm solution reset" })).toBeInTheDocument();
+  expect(change).not.toHaveBeenCalled();
+});
+it.each([false, true])("exposes stable owned reset confirmation state across cancellation and invalidation (plain=%s)", plain => {
+  const change = vi.fn();
+  const props = { value: "draft", starter: "pass", readOnly: false, onChange: change };
+  const view = render(<SolutionEditor {...props}/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const reset = screen.getByRole("button", { name: "Reset to starter code" });
+  expect(reset).toHaveAttribute("aria-expanded", "false");
+  expect(reset).not.toHaveAttribute("aria-controls");
+  fireEvent.click(reset);
+  const id = screen.getByRole("group", { name: "Confirm solution reset" }).id;
+  expect(id).not.toBe("");
+  expect(reset).toHaveAttribute("aria-expanded", "true");
+  expect(reset).toHaveAttribute("aria-controls", id);
+  fireEvent.click(screen.getByRole("button", { name: "Keep my solution" }));
+  expect(reset).toHaveFocus();
+  expect(reset).toHaveAttribute("aria-expanded", "false");
+  expect(reset).not.toHaveAttribute("aria-controls");
+  expect(document.getElementById(id)).toBeNull();
+  for (const update of [{ value: "edited" }, { starter: "new starter" }, { value: "pass" }]) {
+    view.rerender(<SolutionEditor {...props}/>);
+    fireEvent.click(reset);
+    expect(reset).toHaveAttribute("aria-controls", id);
+    view.rerender(<SolutionEditor {...props} {...update}/>);
+    expect(reset).toHaveAttribute("aria-expanded", "false");
+    expect(reset).not.toHaveAttribute("aria-controls");
+    expect(document.getElementById(id)).toBeNull();
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+
+it("keeps reset disclosure targets isolated and clears state after replacement", () => {
+  render(<><Harness/><Harness/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const ids = groups.map(group => {
+    const ui = within(group);
+    fireEvent.change(ui.getByRole("textbox"), { target: { value: "draft" } });
+    const reset = ui.getByRole("button", { name: "Reset to starter code" });
+    fireEvent.click(reset);
+    const id = reset.getAttribute("aria-controls")!;
+    expect(group).toContainElement(document.getElementById(id));
+    return id;
+  });
+  expect(ids[0]).not.toBe(ids[1]);
+  fireEvent.click(within(groups[0]).getByRole("button", { name: "Replace with starter code" }));
+  const reset = within(groups[0]).getByRole("button", { name: "Reset to starter code" });
+  expect(reset).toHaveAttribute("aria-expanded", "false");
+  expect(reset).not.toHaveAttribute("aria-controls");
+  expect(reset).toHaveAttribute("aria-disabled", "true");
+  expect(document.getElementById(ids[0])).toBeNull();
+  expect(document.getElementById(ids[1])).toBeInTheDocument();
+});
+
+it.each([false, true])("explains older pending clipboard drafts in plain mode %s and permits a fresh copy", async plain => {
+  const completions: (() => void)[] = [];
+  const writeText = vi.fn(() => new Promise<void>(resolve => completions.push(resolve)));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
+  const notice = screen.getByRole("status");
+  const noticeId = notice.id;
+  expect(notice).toHaveClass("solution-copy-notice", "solution-copy-notice--pending");
+  expect(notice).not.toHaveTextContent("earlier draft");
+  const input = screen.getByLabelText("Python solution");
+  input.focus();
+  fireEvent.change(input, { target: { value: "new draft" } });
+  expect(input).toHaveFocus();
+  expect(notice).toHaveTextContent("This request contains the earlier draft");
+  expect(screen.getByRole("button", { name: /^Copying solution/ })).toHaveAccessibleDescription(/Copy again after it finishes/);
+  fireEvent.change(input, { target: { value: "def solve():\n    pass" } });
+  expect(screen.getByRole("status")).toHaveAttribute("id", noticeId);
+  expect(notice).toHaveTextContent("earlier draft");
+  await act(async () => completions[0]());
+  expect(screen.getByRole("status")).toHaveTextContent("Earlier draft copied");
+  expect(screen.getByRole("status")).toHaveClass("solution-copy-notice--earlier");
+  expect(input).toHaveFocus();
+  fireEvent.change(input, { target: { value: "latest draft" } });
+  fireEvent.click(screen.getByRole("button", { name: "Copy solution" }));
+  expect(screen.getByRole("status")).not.toHaveTextContent("earlier draft");
+  expect(writeText.mock.calls).toEqual([["def solve():\n    pass"], ["latest draft"]]);
+  await act(async () => completions[1]());
+  expect(screen.getByRole("status")).toHaveTextContent("Solution copied to clipboard");
+});
+it.each([false, true])("highlights export failure headings and preserves focused retry in plain mode %s", async plain => {
+  const writeText = vi.fn().mockRejectedValueOnce(new Error("Denied")).mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  const createObjectURL = vi.fn().mockImplementationOnce(() => { throw new Error("Unavailable"); }).mockReturnValue("blob:solution");
+  vi.stubGlobal("URL", { createObjectURL, revokeObjectURL: vi.fn() });
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const copy = screen.getByRole("button", { name: "Copy solution" });
+  copy.focus();
+  await act(async () => { fireEvent.click(copy); });
+  const copyHeading = screen.getByRole("heading", { name: "Unable to copy your solution.", level: 3 });
+  expect(copyHeading).toHaveClass("solution-export-error-heading");
+  expect(screen.getByRole("alert")).toContainElement(copyHeading);
+  expect(copy).toHaveAccessibleDescription("Unable to copy your solution. Try again, download it or select and copy the code manually.");
+  expect(copy).toHaveFocus();
+  await act(async () => { fireEvent.click(copy); });
+  expect(screen.queryByRole("heading", { name: /Unable to copy/ })).not.toBeInTheDocument();
+  expect(copy).toHaveFocus();
+  const download = screen.getByRole("button", { name: "Download solution (.py)" });
+  download.focus();
+  fireEvent.click(download);
+  const downloadHeading = screen.getByRole("heading", { name: "Unable to download your solution.", level: 3 });
+  expect(downloadHeading).toHaveClass("solution-export-error-heading");
+  expect(screen.getByRole("alert")).toContainElement(downloadHeading);
+  expect(download).toHaveAccessibleDescription("Unable to download your solution. Try again or copy your code to a local file.");
+  expect(download).toHaveFocus();
+  fireEvent.click(download);
+  expect(screen.queryByRole("heading", { name: /Unable to download/ })).not.toBeInTheDocument();
+  expect(download).toHaveAccessibleDescription(/Download requested/);
+  expect(download).toHaveFocus();
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+});
+it.each([false, true])("explains stalled clipboard requests at ten seconds in plain mode %s", async plain => {
+  vi.useFakeTimers();
+  const completions: (() => void)[] = [];
+  const writeText = vi.fn(() => new Promise<void>(resolve => completions.push(resolve)));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  const view = render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const copy = screen.getByRole("button", { name: "Copy solution" });
+  copy.focus();
+  fireEvent.click(copy);
+  const description = copy.getAttribute("aria-describedby");
+  act(() => vi.advanceTimersByTime(9999));
+  expect(screen.queryByText("Clipboard request still waiting.")).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(1));
+  expect(screen.getByText("Clipboard request still waiting.")).toHaveClass("solution-copy-delay-heading");
+  expect(copy).toHaveAccessibleDescription(/download your solution or select and copy/);
+  expect(copy).toHaveAttribute("aria-describedby", description);
+  expect(copy).toHaveFocus();
+  fireEvent.click(copy);
+  expect(writeText).toHaveBeenCalledTimes(1);
+  fireEvent.change(screen.getByLabelText("Python solution"), { target: { value: "new draft" } });
+  expect(screen.getByRole("status")).toHaveTextContent("earlier draft");
+  await act(async () => completions[0]());
+  expect(screen.getByRole("status")).toHaveTextContent("Earlier draft copied");
+  expect(screen.getByRole("status")).toHaveClass("solution-copy-notice--earlier");
+  fireEvent.click(copy);
+  expect(screen.queryByText("Clipboard request still waiting.")).not.toBeInTheDocument();
+  await act(async () => completions[1]());
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("status")).toHaveTextContent("Solution copied to clipboard.");
+  expect(screen.queryByText("Clipboard request still waiting.")).not.toBeInTheDocument();
+  fireEvent.click(copy);
+  view.unmount();
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it.each([false, true])("refreshes overdue clipboard guidance after suspension in plain mode %s", async plain => {
+  vi.useFakeTimers();
+  vi.setSystemTime(100_000);
+  const completions: (() => void)[] = [];
+  const writeText = vi.fn(() => new Promise<void>(resolve => completions.push(resolve)));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  const view = render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const copy = screen.getByRole("button", { name: "Copy solution" });
+  copy.focus();
+  fireEvent.click(copy);
+  const description = copy.getAttribute("aria-describedby");
+  // Move the clock without executing timers, as when a browser suspends a tab.
+  vi.setSystemTime(109_999);
+  fireEvent.focus(window);
+  fireEvent(document, new Event("visibilitychange"));
+  expect(screen.queryByText("Clipboard request still waiting.")).not.toBeInTheDocument();
+  vi.setSystemTime(110_000);
+  fireEvent.focus(window);
+  expect(screen.getByText("Clipboard request still waiting.")).toBeInTheDocument();
+  expect(copy).toHaveAttribute("aria-describedby", description);
+  expect(copy).toHaveFocus();
+  fireEvent.click(copy);
+  expect(writeText).toHaveBeenCalledTimes(1);
+  await act(async () => completions[0]());
+  fireEvent.click(copy);
+  expect(screen.queryByText("Clipboard request still waiting.")).not.toBeInTheDocument();
+  vi.setSystemTime(120_000);
+  fireEvent(document, new Event("visibilitychange"));
+  expect(screen.getByText("Clipboard request still waiting.")).toBeInTheDocument();
+  expect(copy).toHaveFocus();
+  await act(async () => completions[1]());
+  fireEvent.focus(window);
+  fireEvent(document, new Event("visibilitychange"));
+  expect(screen.getByRole("status")).toHaveTextContent("Solution copied to clipboard.");
+  expect(screen.queryByText("Clipboard request still waiting.")).not.toBeInTheDocument();
+  fireEvent.click(copy);
+  const clearTimer = vi.spyOn(window, 'clearTimeout');
+  const removeWindow = vi.spyOn(window, 'removeEventListener');
+  const removeDocument = vi.spyOn(document, 'removeEventListener');
+  view.unmount();
+  expect(clearTimer).toHaveBeenCalled();
+  expect(removeWindow).toHaveBeenCalledWith('focus', expect.any(Function));
+  expect(removeDocument).toHaveBeenCalledWith('visibilitychange', expect.any(Function));
+  fireEvent.focus(window);
+  fireEvent(document, new Event("visibilitychange"));
+});
+
+ it.each([false, true])("explains failed older copies and clears recovery on editing in plain mode %s", async plain => {
+  let fail!: () => void;
+  const writeText = vi.fn().mockImplementationOnce(() => new Promise<void>((_, reject) => { fail = () => reject(new Error("Denied")); })).mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(<Harness/>);
+  if (plain) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  const copy = screen.getByRole("button", { name: "Copy solution" });
+  fireEvent.click(copy);
+  const input = screen.getByLabelText("Python solution");
+  fireEvent.change(input, { target: { value: "current draft" } });
+  copy.focus();
+  await act(async () => fail());
+  expect(screen.getByRole("alert")).toHaveTextContent("The request contained an earlier draft.");
+  expect(copy).toHaveAccessibleDescription(/earlier draft/);
+  expect(copy).toHaveFocus();
+  expect(input).toHaveValue("current draft");
+  fireEvent.change(input, { target: { value: "latest draft" } });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(copy).toHaveAccessibleDescription(/Copy captures your current draft/);
+  await act(async () => { fireEvent.click(copy); });
+  expect(writeText).toHaveBeenLastCalledWith("latest draft");
+  expect(copy).toHaveAccessibleDescription("Solution copied to clipboard.");
+ });
+
+it.each([false, true])("shows wrapping state and preserves focus and code in readOnly %s", readOnly => {
+  render(<Harness readOnly={readOnly}/>);
+  for (let mode = 0; mode < 2; mode++) {
+    const toggle = screen.getByRole("button", { name: "Wrap long lines" });
+    expect(toggle).toHaveClass("solution-wrap-toggle");
+    expect(toggle).toHaveTextContent("Off");
+    toggle.focus();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    expect(toggle).toHaveTextContent("On");
+    expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "soft");
+    expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(toggle).toHaveTextContent("Off");
+    expect(screen.getByLabelText("Python solution")).toHaveAttribute("wrap", "off");
+    if (mode === 0) fireEvent.click(screen.getByRole("button", { name: "Use plain text editor" }));
+  }
+});
+
+
+it.each([false, true])("explains text-size boundaries and recovery with isolated descriptions in plain mode %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, fontSize: 15 }));
+  render(<><Harness/><Harness readOnly/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const first = within(groups[0]);
+  const second = within(groups[1]);
+  const increase = first.getByRole("button", { name: "Increase solution text size" });
+  const decrease = first.getByRole("button", { name: "Decrease solution text size" });
+  expect(increase).toHaveAccessibleDescription(/12 to 24px.*Adjust the code size/);
+  expect(increase.getAttribute("aria-describedby")).not.toBe(second.getByRole("button", { name: "Increase solution text size" }).getAttribute("aria-describedby"));
+  increase.focus();
+  for (let i = 0; i < 9; i++) fireEvent.click(increase);
+  expect(increase).toHaveFocus();
+  expect(increase).toHaveAccessibleDescription(/Maximum size reached.*Decrease text size/);
+  fireEvent.click(increase);
+  expect(first.getByLabelText("Python solution")).toHaveStyle({ fontSize: "24px" });
+  decrease.focus();
+  for (let i = 0; i < 12; i++) fireEvent.click(decrease);
+  expect(decrease).toHaveFocus();
+  expect(decrease).toHaveAccessibleDescription(/Minimum size reached.*Increase text size/);
+  fireEvent.click(first.getByRole("button", { name: "Reset text size" }));
+  expect(decrease).toHaveAccessibleDescription(/Adjust the code size/);
+  expect(first.queryByText(/Minimum size reached/)).not.toBeInTheDocument();
+  expect(second.getByLabelText("Python solution")).toHaveStyle({ fontSize: "15px" });
+  for (const group of groups) expect(within(group).getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+});
+
+
+it.each([false, true])("shows the preferred editor mode while preserving switch focus and code (readOnly %s)", readOnly => {
+  const change = vi.fn();
+  render(<SolutionEditor value="private draft" onChange={change} readOnly={readOnly}/>);
+  const toggle = screen.getByRole("button", { name: "Use plain text editor" });
+  toggle.focus();
+  for (const plain of [true, false, true, false]) {
+    fireEvent.click(toggle);
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveClass("solution-mode-toggle");
+    expect(toggle).toHaveAttribute("aria-pressed", String(plain));
+    expect(toggle).toHaveAccessibleName(plain ? "Use advanced editor" : "Use plain text editor");
+    const state = within(toggle).getByText(plain ? "Plain preferred" : "Advanced preferred");
+    expect(state).toBeVisible();
+    expect(state).toHaveClass("solution-mode-state");
+    expect(state).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByLabelText("Python solution")).toHaveValue("private draft");
+    expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!).plain).toBe(plain);
+  }
+  expect(change).not.toHaveBeenCalled();
+});
+it.each([false, true])("explains wrapping independently across modes and read-only recovery, plain %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: false }));
+  const view = render(<><Harness/><Harness readOnly/></>);
+  const groups = screen.getAllByRole("group", { name: "Solution editor" });
+  const first = within(groups[0]);
+  const second = within(groups[1]);
+  const toggle = first.getByRole("button", { name: "Wrap long lines" });
+  const other = second.getByRole("button", { name: "Wrap long lines" });
+  expect(toggle).toHaveAccessibleDescription(/Scroll horizontally.*code and indentation stay unchanged/);
+  expect(toggle.getAttribute("aria-describedby")).not.toBe(other.getAttribute("aria-describedby"));
+  expect(document.getElementById(toggle.getAttribute("aria-describedby")!)).toHaveClass("solution-wrap-guide");
+  toggle.focus();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAccessibleDescription(/Long lines wrap to fit the editor/);
+  expect(other).toHaveAccessibleDescription(/Scroll horizontally/);
+  view.rerender(<><Harness readOnly/><Harness readOnly/></>);
+  expect(toggle).toHaveFocus();
+  expect(first.getByLabelText("Python solution")).toHaveAttribute("readonly");
+  fireEvent.click(first.getByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" }));
+  expect(toggle).toHaveAccessibleDescription(/Long lines wrap to fit the editor/);
+  view.rerender(<><Harness/><Harness readOnly/></>);
+  toggle.focus();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAccessibleDescription(/Scroll horizontally/);
+  expect(first.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toMatchObject({ wordWrap: false, plain: !plain });
+});
+
+
+it.each([false, true])("keeps isolated visible download help through mode and read-only recovery with plain %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 18 }));
+  const change = vi.fn();
+  const content = (readOnly: boolean) => <><SolutionEditor value="private draft" onChange={change} readOnly={readOnly}/><SolutionEditor value="other draft" onChange={vi.fn()} readOnly/></>;
+  const view = render(content(false));
+  const buttons = screen.getAllByRole("button", { name: "Download solution (.py)" });
+  const ids = buttons.map(button => button.getAttribute("aria-describedby")!);
+  expect(ids[0]).not.toBe(ids[1]);
+  for (const id of ids) {
+    const help = document.getElementById(id)!;
+    expect(help).toBeVisible();
+    expect(help).toHaveClass("solution-download-guide");
+    expect(help).toHaveTextContent("without submitting it");
+    expect(help).toHaveTextContent("Check your browser downloads if no save prompt appears");
+    expect(help).toHaveTextContent("after the match ends");
+  }
+  buttons[0].focus();
+  for (const readOnly of [true, false, true, false]) {
+    view.rerender(content(readOnly));
+    expect(buttons[0]).toHaveFocus();
+    expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+    expect(screen.getAllByLabelText("Python solution")[0]).toHaveValue("private draft");
+  }
+  fireEvent.click(screen.getAllByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" })[0]);
+  expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+  expect(screen.getAllByLabelText("Python solution")[0]).toHaveValue("private draft");
+  expect(change).not.toHaveBeenCalled();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: !plain, wordWrap: true, fontSize: 18 });
+});
+
+it.each([false, true])("keeps copy help isolated and restores it after draft changes with plain %s", async plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 18 }));
+  vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockRejectedValueOnce(new Error("Denied")).mockResolvedValue(undefined) } });
+  const content = (readOnly: boolean, value = "private draft") => <><SolutionEditor value={value} onChange={vi.fn()} readOnly={readOnly}/><SolutionEditor value="other draft" onChange={vi.fn()} readOnly/></>;
+  const view = render(content(false));
+  const buttons = screen.getAllByRole("button", { name: "Copy solution" });
+  const ids = buttons.map(button => button.getAttribute("aria-describedby")!);
+  expect(ids[0]).not.toBe(ids[1]);
+  for (const id of ids) {
+    expect(document.getElementById(id)).toBeVisible();
+    expect(document.getElementById(id)).toHaveClass("solution-copy-guide");
+    expect(document.getElementById(id)).toHaveTextContent("replaces the text on your clipboard");
+    expect(document.getElementById(id)).toHaveTextContent("clipboard permission");
+    expect(document.getElementById(id)).toHaveTextContent("after the match ends");
+  }
+  buttons[0].focus();
+  for (const readOnly of [true, false, true, false]) {
+    view.rerender(content(readOnly));
+    expect(buttons[0]).toHaveFocus();
+    expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+  }
+  await act(async () => { fireEvent.click(buttons[0]); });
+  expect(buttons[0]).toHaveAccessibleDescription(/Unable to copy/);
+  expect(buttons[0]).toHaveFocus();
+  await act(async () => { fireEvent.click(buttons[0]); });
+  expect(buttons[0]).toHaveAccessibleDescription("Solution copied to clipboard.");
+  view.rerender(content(false, "new draft"));
+  expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+  expect(buttons[1]).toHaveAttribute("aria-describedby", ids[1]);
+  fireEvent.click(screen.getAllByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" })[0]);
+  expect(buttons[0]).toHaveAttribute("aria-describedby", ids[0]);
+  expect(screen.getAllByLabelText("Python solution")[0]).toHaveValue("new draft");
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: !plain, wordWrap: true, fontSize: 18 });
+});
+
+it.each([false, true])("explains mode switching with isolated guidance and preserves drafts through recovery from plain %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 17 }));
+  const onChange = vi.fn();
+  const content = (readOnly: boolean) => <><SolutionEditor value="first draft" onChange={onChange} readOnly={readOnly}/><SolutionEditor value="second draft" onChange={onChange} readOnly={readOnly}/></>;
+  const view = render(content(false));
+  const [first, second] = screen.getAllByRole("group", { name: "Solution editor" }).map(group => within(group));
+  const toggle = first.getByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" });
+  const description = toggle.getAttribute("aria-describedby")!;
+  expect(description).not.toBe(second.getByRole("button", { name: plain ? "Use advanced editor" : "Use plain text editor" }).getAttribute("aria-describedby"));
+  expect(document.getElementById(description)).toHaveClass("solution-mode-guide");
+  expect(toggle).toHaveAccessibleDescription(/Python syntax highlighting.*visible indentation controls.*Switching keeps your current draft.*without submitting code.*after the match ends/);
+  for (const readOnly of [true, false, true]) {
+    view.rerender(content(readOnly));
+    toggle.focus();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveFocus();
+    expect(toggle).toHaveAttribute("aria-describedby", description);
+    expect(first.getByLabelText("Python solution")).toHaveValue("first draft");
+    expect(first.getByLabelText("Python solution")).toHaveStyle({ fontSize: "17px" });
+    expect(first.getByLabelText("Python solution")).toHaveAttribute("wrap", "soft");
+    expect(first.getByLabelText("Python solution")).toHaveProperty("readOnly", readOnly);
+    expect(second.getByLabelText("Python solution")).toHaveValue("second draft");
+  }
+  expect(onChange).not.toHaveBeenCalled();
+  expect(JSON.parse(localStorage.getItem("codeduel:editor-preferences:v1")!)).toEqual({ plain: !plain, wordWrap: true, fontSize: 17 });
+});
+
+it("combines mode help with storage recovery guidance until saving succeeds", () => {
+  const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+  render(<Harness/>);
+  const toggle = screen.getByRole("button", { name: "Use plain text editor" });
+  toggle.focus();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAccessibleDescription(/Switching keeps your current draft.*Browser storage is unavailable/);
+  expect(toggle.getAttribute("aria-describedby")!.split(" ")).toHaveLength(2);
+  write.mockRestore();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAccessibleDescription(/Switching keeps your current draft/);
+  expect(toggle).not.toHaveAccessibleDescription(/Browser storage is unavailable/);
+  expect(toggle.getAttribute("aria-describedby")!.split(" ")).toHaveLength(1);
+  expect(screen.getByLabelText("Python solution")).toHaveValue("def solve():\n    pass");
+});
+
+ it.each([false, true])("recovers focused reset confirmation after match closure in plain mode %s", plain => {
+  localStorage.setItem("codeduel:editor-preferences:v1", JSON.stringify({ plain, wordWrap: true, fontSize: 17 }));
+  const change = vi.fn();
+  const content = (readOnly: boolean) => <SolutionEditor value="final draft" starter="starter" onChange={change} readOnly={readOnly}/>;
+  const view = render(content(false));
+  const reset = screen.getByRole("button", { name: "Reset to starter code" });
+  for (const action of ["Keep my solution", "Replace with starter code"]) {
+    fireEvent.click(reset);
+    screen.getByRole("button", { name: action }).focus();
+    view.rerender(content(true));
+    expect(reset).toHaveFocus();
+    expect(reset).toHaveAttribute("aria-disabled", "true");
+    expect(reset).toHaveAttribute("aria-expanded", "false");
+    expect(reset).not.toHaveAttribute("aria-controls");
+    expect(reset).toHaveAccessibleDescription(/read-only.*copy or download/);
+    expect(document.getElementById(reset.getAttribute("aria-describedby")!)).toHaveClass("solution-reset-notice");
+    fireEvent.click(reset);
+    expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+    view.rerender(content(false));
+    expect(reset).toHaveFocus();
+    expect(reset).toHaveAttribute("aria-disabled", "false");
+    expect(screen.queryByRole("group", { name: "Confirm solution reset" })).not.toBeInTheDocument();
+  }
+  expect(screen.getByLabelText("Python solution")).toHaveValue("final draft");
+  expect(screen.getByLabelText("Python solution")).toHaveStyle({ fontSize: "17px" });
+  expect(change).not.toHaveBeenCalled();
+ });
+
+it("does not steal focus from another editor when reset confirmation closes", () => {
+  const change = vi.fn();
+  const content = (readOnly: boolean) => <><SolutionEditor value="draft" starter="starter" onChange={change} readOnly={readOnly}/><SolutionEditor value="other" starter="starter" onChange={change} readOnly={false}/></>;
+  const view = render(content(false));
+  const [first, second] = screen.getAllByRole("group", { name: "Solution editor" }).map(group => within(group));
+  fireEvent.click(first.getByRole("button", { name: "Reset to starter code" }));
+  const copy = second.getByRole("button", { name: "Copy solution" });
+  copy.focus();
+  view.rerender(content(true));
+  expect(copy).toHaveFocus();
+  const reset = first.getByRole("button", { name: "Reset to starter code" });
+  reset.focus();
+  view.rerender(content(false));
+  view.rerender(content(true));
+  expect(reset).toHaveFocus();
+  expect(reset.getAttribute("aria-describedby")).not.toBe(second.getByRole("button", { name: "Reset to starter code" }).getAttribute("aria-describedby"));
+  expect(change).not.toHaveBeenCalled();
 });

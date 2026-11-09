@@ -16,10 +16,32 @@ export function useDuelFeedback() {
   useEffect(() => {
     try { enabledRef.current = localStorage.getItem(preferenceKey) === "on"; } catch { /* Storage is optional. */ }
     setEnabled(enabledRef.current);
-    return () => { sound.current?.dispose(); sound.current = null; };
+    function syncPreference(event: StorageEvent) {
+      try {
+        if (event.storageArea !== localStorage || (event.key !== preferenceKey && event.key !== null)) return;
+      } catch { return; }
+      enabledRef.current = event.key === preferenceKey && event.newValue === "on";
+      setEnabled(enabledRef.current);
+      // Remote consent updates the control, but audio still needs a local gesture.
+      if (!enabledRef.current) { sound.current?.dispose(); sound.current = null; }
+    }
+    function silence() { sound.current?.dispose(); sound.current = null; }
+    function silenceHiddenTab() {
+      if (document.visibilityState === "hidden") silence();
+    }
+    document.addEventListener("visibilitychange", silenceHiddenTab);
+    // Cached pages may leave without unmounting or first becoming hidden.
+    window.addEventListener("pagehide", silence);
+    window.addEventListener("storage", syncPreference);
+    return () => {
+      window.removeEventListener("storage", syncPreference);
+      window.removeEventListener("pagehide", silence);
+      document.removeEventListener("visibilitychange", silenceHiddenTab);
+      sound.current?.dispose(); sound.current = null;
+    };
   }, []);
   function unlock() {
-    if (enabledRef.current) { sound.current ??= new DuelSound(); sound.current.unlock(); }
+    if (enabledRef.current && document.visibilityState !== "hidden") { sound.current ??= new DuelSound(); sound.current.unlock(); }
   }
   const notify = useCallback((cue: DuelCue) => {
     if (enabledRef.current && document.visibilityState !== "hidden") sound.current?.play(cue);

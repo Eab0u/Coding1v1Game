@@ -1,4 +1,5 @@
 import type { DuelResult } from "./results";
+import { hasSubmissionScore } from "./submission-score";
 
 /** Explain persisted metrics only when they agree with the authoritative outcome. */
 export function explainResult(result: DuelResult): string {
@@ -6,7 +7,8 @@ export function explainResult(result: DuelResult): string {
   if (result.players.length !== 2) return unavailable;
   const [you, opponent] = result.players;
   const valid = (n: number | null): n is number => n !== null && Number.isFinite(n) && n >= 0;
-  if (![you, opponent].every(p => valid(p.passed) && Number.isInteger(p.passed) && valid(p.total) && Number.isInteger(p.total) && p.total > 0 && p.passed! <= p.total && valid(p.cpu)) || you.total !== opponent.total) return unavailable;
+  if (![you, opponent].every(p => hasSubmissionScore(p) && valid(p.cpu)) || you.total !== opponent.total) return unavailable;
+  if ([you, opponent].some(p => p.submitted === null ? p.passed !== 0 : !valid(p.submitted))) return unavailable;
   let comparison: number;
   let reason: string;
   if (you.passed !== opponent.passed) {

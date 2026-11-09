@@ -2,6 +2,183 @@ import {act,render,screen,fireEvent,waitFor} from '@testing-library/react';
 import {it,expect,vi,afterEach} from 'vitest';
 import {Rematch} from '../src/components/rematch';
 afterEach(()=>vi.unstubAllGlobals());
+it.each([
+ ['accept',false,'Accept rematch','Accepting rematch?'],
+ ['decline',false,'Decline','Declining invitation?'],
+ ['cancel',true,'Cancel invitation','Cancelling invitation?'],
+] as const)('retires %s button feedback at expiry and restores it only for an active retry',async(action,outgoing,label,pendingLabel)=>{
+ vi.useFakeTimers();
+ try {
+  const snapshot={status:'pending',outgoing,matchId:null,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:00:01Z'};
+  const pending=deferred<{ok:boolean;json:()=>Promise<{error:string}>}>();
+  const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>snapshot}).mockReturnValueOnce(pending.promise).mockResolvedValue({ok:true,json:async()=>({...snapshot,expiresAt:'2026-11-07T12:01:00Z'})});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const button=screen.getByRole('button',{name:label});
+  fireEvent.click(button);
+  expect(button).toHaveAccessibleName(pendingLabel);
+  expect(button).toHaveAttribute('aria-busy','true');
+  for (const other of screen.getAllByRole('button').filter(control=>control!==button)) expect(other).toHaveAttribute('aria-busy','false');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAccessibleName(label);
+  expect(button).toHaveAttribute('aria-busy','false');
+  expect(button).toBeDisabled();
+  await act(async()=>{pending.resolve({ok:false,json:async()=>({error:'Retry the action.'})});});
+  expect(button).toBeEnabled();
+  expect(button).toHaveAccessibleName(label);
+  expect(button).toHaveAttribute('aria-busy','false');
+  const retry=deferred<ReturnType<typeof response>>();
+  fetcher.mockReturnValueOnce(retry.promise);
+  fireEvent.click(button);
+  expect(button).toHaveAccessibleName(pendingLabel);
+  await act(async()=>{retry.resolve(response(action==='accept'?'accepted':action==='decline'?'declined':'cancelled'));});
+  expect(button).not.toBeInTheDocument();
+  expect(screen.queryByRole('button',{busy:true})).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
+it.each([true,false])('highlights the final ten invitation seconds and retires urgency across lifecycle changes (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const snapshot={status:'pending',outgoing,matchId:null,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:00:11Z'};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>snapshot});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+  expect(screen.getAllByRole('status')[0]).not.toHaveTextContent('ten seconds or less');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  const timer=screen.getByRole('timer');
+  expect(timer).toHaveTextContent('10s remaining');
+  expect(timer).toHaveAttribute('aria-live','off');
+  expect(timer.parentElement).toHaveClass('rematch-deadline--soon');
+  expect(screen.getByText('Invitation closing soon')).toBeInTheDocument();
+  // An authoritative extended window clears the local warning.
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...snapshot,expiresAt:'2026-11-07T12:01:00Z'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+  expect(screen.getAllByRole('status')[0]).not.toHaveTextContent('ten seconds or less');
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...snapshot,expiresAt:'2026-11-07T12:00:01Z'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByText('Invitation closing soon')).toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+  expect(screen.getAllByRole('status')[0]).not.toHaveTextContent('ten seconds or less');
+  expect(timer.parentElement).toHaveClass('rematch-deadline--elapsed');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  const pending=deferred<ReturnType<typeof response>>();
+  fetcher.mockReturnValueOnce(pending.promise);
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Decline'}));
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+  expect(screen.getAllByRole('status')[0]).not.toHaveTextContent('ten seconds or less');
+  await act(async()=>{pending.resolve(response(outgoing?'cancelled':'declined'));});
+  expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+  expect(screen.queryByText('Invitation closing soon')).not.toBeInTheDocument();
+  expect(screen.getAllByRole('status')[0]).not.toHaveTextContent('ten seconds or less');
+ } finally {vi.useRealTimers();}
+});
+it.each([true,false])('announces invitation urgency through stable guidance without countdown chatter (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const snapshot={status:'pending',outgoing,matchId:null,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:00:11Z'};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>snapshot});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  const summary=screen.getByRole('status');
+  await act(async()=>{});
+  expect(summary).not.toHaveTextContent('ten seconds or less');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.getByRole('status')).toBe(summary);
+  expect(summary).toHaveAttribute('aria-live','polite');
+  expect(summary).toHaveAttribute('aria-atomic','true');
+  expect(summary).toHaveTextContent('Invitation closing soon: ten seconds or less remain.');
+  expect(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'})).toHaveAccessibleDescription(/Invitation closing soon: ten seconds or less remain\./);
+  const urgentText=summary.textContent;
+  // Keep the same deadline while the server clock advances on a poll.
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...snapshot,serverNow:'2026-11-07T12:00:02Z'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.getByRole('timer')).toHaveTextContent('9s remaining');
+  expect(summary.textContent).toBe(urgentText);
+  const pending=deferred<ReturnType<typeof response>>();
+  fetcher.mockReturnValueOnce(pending.promise);
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Decline'}));
+  expect(summary).not.toHaveTextContent('ten seconds or less');
+  await act(async()=>{pending.resolve(response(outgoing?'cancelled':'declined'));});
+  expect(screen.getByRole('status')).toBe(summary);
+  expect(summary).not.toHaveTextContent('ten seconds or less');
+ } finally {vi.useRealTimers();}
+});
+it.each([true,false])('shows invitation direction only while actionable (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const snapshot={status:'pending',outgoing,matchId:null,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:00:01Z'};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>snapshot});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  expect(screen.queryByText('Your move')).not.toBeInTheDocument();
+  expect(screen.queryByText('Invitation sent')).not.toBeInTheDocument();
+  await act(async()=>{});
+  const cue=screen.getByText(outgoing?'Invitation sent':'Your move');
+  expect(cue).toHaveClass('rematch-cue');
+  expect(cue.classList.contains('rematch-cue--incoming')).toBe(!outgoing);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(cue).not.toBeInTheDocument();
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...snapshot,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:01:00Z'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.getByText(outgoing?'Invitation sent':'Your move')).toBeInTheDocument();
+  const pending=deferred<ReturnType<typeof response>>();
+  fetcher.mockReturnValueOnce(pending.promise);
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Decline'}));
+  expect(screen.queryByText(outgoing?'Invitation sent':'Your move')).not.toBeInTheDocument();
+  await act(async()=>{pending.resolve(response(outgoing?'cancelled':'declined'));});
+  expect(screen.queryByText(outgoing?'Invitation sent':'Your move')).not.toBeInTheDocument();
+  expect(screen.getByRole('link',{name:'Find a new opponent'})).toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
+it.each([[true,true],[true,false],[false,true],[false,false]])('announces recovery across recurring invitation outages (outgoing=%s, manual=%s)',async(outgoing,manual)=>{
+ vi.useFakeTimers();
+ try {
+  const snapshot={ok:true,json:async()=>({status:'pending',outgoing,matchId:null})};
+  const fetcher=vi.fn().mockResolvedValue(snapshot);
+  vi.stubGlobal('fetch',fetcher);
+  const view=render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.queryByText(/Invitation updates restored/)).not.toBeInTheDocument();
+  for (let outage=0;outage<2;outage++) {
+   fetcher.mockRejectedValueOnce(new Error('offline'));
+   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+   expect(screen.getByRole('alert')).toHaveTextContent('Unable to refresh invitation');
+   expect(screen.queryByText(/Invitation updates restored/)).not.toBeInTheDocument();
+   if (manual) {
+    fireEvent.click(screen.getByRole('button',{name:'Retry invitation update'}));
+    await act(async()=>{});
+   } else {
+    await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+   }
+   const notice=screen.getByText(/Invitation updates restored/);
+   expect(notice.parentElement).toHaveAttribute('aria-live','polite');
+   expect(notice.parentElement).toHaveAttribute('aria-atomic','true');
+   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+   expect(screen.getByText(/Invitation updates restored/)).toBe(notice);
+  }
+  view.rerender(<Rematch id="another"/>);
+  await act(async()=>{});
+  expect(screen.queryByText(/Invitation updates restored/)).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
+it.each(['accepted','declined','cancelled','expired'])('prioritizes authoritative %s over outage recovery',async(status)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue({ok:true,json:async()=>({status,outgoing:false,matchId:status==='accepted'?'next':null})});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  expect(screen.getByRole('alert')).toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.queryByText(/Invitation updates restored/)).not.toBeInTheDocument();
+  expect(screen.getByRole('link')).toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
+  expect(fetcher).toHaveBeenCalledTimes(2);
+ } finally {vi.useRealTimers();}
+});
 it('offers consent controls and links both players to the accepted arena',async()=>{
  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({status:'pending',outgoing:false,matchId:null})});
  vi.stubGlobal('fetch',fetcher);
@@ -84,7 +261,11 @@ it.each(['accepted','declined','cancelled','expired'])('stops polling an authori
   const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({status,outgoing:false,matchId:status==='accepted'?'next':null})});
   vi.stubGlobal('fetch',fetcher);
   render(<Rematch id="old"/>);
+  const announcement=screen.getByRole('status');
   await act(async()=>{});
+  expect(screen.getByRole('status')).toBe(announcement);
+  expect(announcement).toHaveAttribute('aria-live','polite');
+  expect(announcement).toHaveAttribute('aria-atomic','true');
   expect(screen.getByRole('status')).toHaveTextContent(status==='accepted'?'Rematch accepted':status==='declined'?'rematch was declined':status==='cancelled'?'invitation was cancelled':'invitation expired');
   const link=screen.getByRole('link',{name:status==='accepted'?'Open rematch arena':'Find a new opponent'});
   expect(link).toHaveAttribute('href',status==='accepted'?'/match/next':'/');
@@ -144,6 +325,8 @@ it.each([
  render(<Rematch id="old"/>);
  const button=await screen.findByRole('button',{name:label});
  fireEvent.click(button);
+ expect(button).toHaveTextContent(`${message}?`);
+ expect(button).toHaveAttribute('aria-busy','true');
  expect(screen.getByRole('status')).toHaveTextContent(message);
  expect(screen.getByRole('status')).toHaveClass('rematch-pending');
  for (const control of screen.getAllByRole('button')) expect(control).toBeDisabled();
@@ -155,6 +338,7 @@ it.each([
  expect(screen.getByRole('status')).not.toHaveTextContent(message);
  expect(screen.getByRole('status')).not.toHaveClass('rematch-pending');
  expect(screen.getByRole('button',{name:label})).toBeEnabled();
+ expect(button).toHaveAttribute('aria-busy','false');
 });
 
 it('replaces sending feedback with the confirmed invitation state',async()=>{
@@ -182,7 +366,9 @@ it('retries failed invitation reads immediately without overlapping requests and
   const retry=screen.getByRole('button',{name:'Retry invitation update'});
   fireEvent.click(retry);
   expect(retry).toBeDisabled();
-  expect(screen.getByText('Refreshing invitation...')).toHaveAttribute('role','status');
+  expect(retry).toHaveAccessibleName('Refreshing invitation...');
+  expect(retry).toHaveAttribute('aria-busy','true');
+  expect(screen.getByText('Refreshing invitation...',{selector:'p'})).toHaveAttribute('role','status');
   fireEvent.click(retry);
   await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
   expect(fetcher).toHaveBeenCalledTimes(2);
@@ -202,6 +388,7 @@ it('keeps recovery available after another failed read and aborts a retry on nav
  const view=render(<Rematch id="old"/>);
  fireEvent.click(await screen.findByRole('button',{name:'Retry invitation update'}));
  await waitFor(()=>expect(screen.getByRole('button',{name:'Retry invitation update'})).toBeEnabled());
+ expect(screen.getByRole('button',{name:'Retry invitation update'})).toHaveAttribute('aria-busy','false');
  fireEvent.click(screen.getByRole('button',{name:'Retry invitation update'}));
  const signal=fetcher.mock.calls[2][1].signal as AbortSignal;
  view.rerender(<Rematch id="new"/>);
@@ -309,15 +496,16 @@ it('omits countdown for unavailable server timestamps',async()=>{
  expect(await screen.findByRole('button',{name:'Cancel invitation'})).toBeEnabled();
  expect(screen.queryByRole('timer')).not.toBeInTheDocument();
 });
-it('disables elapsed outgoing invitations and cleans up the countdown on navigation',async()=>{
+it.each([true,false])('disables elapsed invitations on reopening and cleans up on navigation (outgoing=%s)',async(outgoing)=>{
  vi.useFakeTimers();
  try {
-  const pending={status:'pending',outgoing:true,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T11:59:59Z'};
+  const pending={status:'pending',outgoing,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T11:59:59Z'};
   const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>pending}).mockResolvedValue(response('none'));
   vi.stubGlobal('fetch',fetcher);
   const view=render(<Rematch id="old"/>);
   await act(async()=>{});
-  expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeDisabled();
+  expect(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'})).toBeDisabled();
+  expect(screen.getByText(/The invitation window has ended/)).toBeInTheDocument();
   view.rerender(<Rematch id="new"/>);
   await act(async()=>{});
   expect(screen.queryByRole('timer')).not.toBeInTheDocument();
@@ -325,5 +513,370 @@ it('disables elapsed outgoing invitations and cleans up the countdown on navigat
   view.unmount();
   await act(async()=>{await vi.advanceTimersByTimeAsync(10000);});
   expect(fetcher).toHaveBeenCalledTimes(2);
+ } finally {vi.useRealTimers();}
+});
+
+it.each([true,false])('retires expired invitation prompts for outgoing=%s, including delayed actions',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const pending={status:'pending',outgoing,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T12:00:01Z'};
+  const delayed=deferred<ReturnType<typeof response>>();
+  const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>pending}).mockReturnValueOnce(delayed.promise).mockResolvedValue(response('expired'));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const message=screen.getByText(outgoing?'Waiting for your opponent. Invitation expires after 60 seconds.':'Your opponent invited you to a fresh ranked duel. Accept within 60 seconds.');
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'}));
+  expect(message).toHaveClass('rematch-pending');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(message).toHaveTextContent('The invitation window has ended.');
+  expect(message).toHaveTextContent('no rematch is confirmed yet');
+  expect(message).toHaveAttribute('aria-live','polite');
+  expect(message).not.toHaveClass('rematch-pending');
+  await act(async()=>{delayed.resolve(response('accepted'));});
+  expect(screen.getByRole('status')).toBe(message);
+  expect(message).toHaveTextContent('Rematch accepted. Your next arena is ready.');
+  expect(message).toHaveAttribute('aria-atomic','true');
+  expect(message).toHaveClass('rematch-summary');
+  expect(screen.queryByText(/The invitation window has ended/)).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
+it.each(['accepted','declined','cancelled','expired'])('preserves the polite announcement region from loading through polled %s confirmation',async(status)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockResolvedValueOnce(response('pending')).mockResolvedValue({ok:true,json:async()=>({status,outgoing:false,matchId:status==='accepted'?'next':null})});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  const announcement=screen.getByRole('status');
+  expect(announcement).toHaveTextContent('Checking invitation');
+  await act(async()=>{});
+  expect(screen.getByRole('status')).toBe(announcement);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('status')).toBe(announcement);
+  expect(announcement).toHaveAttribute('aria-live','polite');
+  expect(announcement).toHaveAttribute('aria-atomic','true');
+  expect(announcement).toHaveClass('rematch-summary');
+  expect(announcement).not.toHaveClass('rematch-pending');
+  expect(announcement).toHaveTextContent(status==='accepted'?'Rematch accepted':status==='declined'?'rematch was declined':status==='cancelled'?'invitation was cancelled':'invitation expired');
+  const settledText=announcement.textContent;
+  await act(async()=>{await vi.advanceTimersByTimeAsync(10000);});
+  expect(announcement.textContent).toBe(settledText);
+  expect(fetcher).toHaveBeenCalledTimes(2);
+ } finally {vi.useRealTimers();}
+});
+
+it.each(['accepted','declined','cancelled','expired'])('retires failed action feedback after authoritative %s confirmation',async(status)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockResolvedValueOnce(response('pending'))
+   .mockResolvedValueOnce({ok:false,json:async()=>({error:'Try accepting again.'})})
+   .mockResolvedValueOnce(response('pending'))
+   .mockResolvedValue({ok:true,json:async()=>({status,matchId:status==='accepted'?'next':null})});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  fireEvent.click(screen.getByRole('button',{name:'Cancel invitation'}));
+  await act(async()=>{});
+  expect(screen.getByRole('alert')).toHaveTextContent('Try accepting again.');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveClass('rematch-summary');
+  expect(screen.getByRole('link',{name:status==='accepted'?'Open rematch arena':'Find a new opponent'})).toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
+it.each([true,false])('retires failed invitation actions at the local deadline (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const pending={status:'pending',outgoing,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T12:00:01Z'};
+  const snapshot={ok:true,json:async()=>pending};
+  const failure={ok:false,json:async()=>({error:'Try that action again.'})};
+  const fetcher=vi.fn().mockResolvedValueOnce(snapshot).mockResolvedValueOnce(failure).mockResolvedValueOnce(snapshot).mockResolvedValue(response('expired'));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const button=screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'});
+  fireEvent.click(button);
+  await act(async()=>{});
+  expect(screen.getByRole('alert')).toHaveTextContent('Try that action again.');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByText(/The invitation window has ended/)).toBeInTheDocument();
+  expect(button).toBeDisabled();
+ } finally {vi.useRealTimers();}
+});
+it.each([true,false])('withholds a delayed action failure after expiry (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const pending={status:'pending',outgoing,serverNow:'2026-11-06T12:00:00Z',expiresAt:'2026-11-06T12:00:01Z'};
+  const delayed=deferred<{ok:boolean;json:()=>Promise<{error:string}>}>();
+  const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>pending}).mockReturnValueOnce(delayed.promise).mockResolvedValue(response('expired'));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'}));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(screen.getByText(/The invitation window has ended/)).toBeInTheDocument();
+  await act(async()=>{delayed.resolve({ok:false,json:async()=>({error:'Try again.'})});});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('invitation expired');
+ } finally {vi.useRealTimers();}
+});
+
+it.each([true,false])('retires failed invite feedback when polling discovers an invitation (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const empty={status:'none',outgoing:false,expiresAt:null,matchId:null};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>empty});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  fetcher.mockResolvedValueOnce({ok:false,json:async()=>({error:'Unable to send invitation.'})});
+  fireEvent.click(screen.getByRole('button',{name:'Rematch'}));
+  await act(async()=>{});
+  expect(screen.getByRole('alert')).toHaveTextContent('Unable to send invitation.');
+  // A healthy read of the same invitation retains useful retry feedback.
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('alert')).toBeInTheDocument();
+  fetcher.mockResolvedValue({ok:true,json:async()=>({status:'pending',outgoing,expiresAt:null,matchId:null})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'})).toBeEnabled();
+ } finally {vi.useRealTimers();}
+});
+
+it.each([true,false])('preserves retry errors across clock-only invitation refreshes (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const pending={status:'pending',outgoing,expiresAt:'2026-11-07T12:01:00Z',serverNow:'2026-11-07T12:00:00Z',matchId:null};
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>pending});
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  fetcher.mockResolvedValueOnce({ok:false,json:async()=>({error:'Please retry.'})});
+  fireEvent.click(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'}));
+  await act(async()=>{});
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...pending,serverNow:'2026-11-07T12:00:02Z'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('alert')).toHaveTextContent('Please retry.');
+  expect(screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'})).toBeEnabled();
+ } finally {vi.useRealTimers();}
+});
+it.each([false,true])('focuses the arena after keyboard acceptance (poll confirmation=%s)',async(pollConfirmation)=>{
+ vi.useFakeTimers();
+ try {
+  const pending={ok:true,json:async()=>({status:'pending',outgoing:false,matchId:null})};
+  const accepted={ok:true,json:async()=>({status:'accepted',outgoing:false,matchId:'next'})};
+  const fetcher=vi.fn().mockResolvedValueOnce(pending).mockResolvedValueOnce(pollConfirmation?pending:accepted).mockResolvedValue(accepted);
+  vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const button=screen.getByRole('button',{name:'Accept rematch'});
+  button.focus();fireEvent.click(button);
+  await act(async()=>{});
+  expect(screen.getByRole('link',{name:'Open rematch arena'})).toHaveFocus();
+ } finally {vi.useRealTimers();}
+});
+it.each([false,true])('preserves independent focus on acceptance (explicit action=%s)',async(explicit)=>{
+ vi.useFakeTimers();
+ try {
+  const action=deferred<{ok:boolean;json:()=>Promise<{status:string;outgoing:boolean;matchId:string}>}>();
+  const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>({status:'pending',outgoing:false,matchId:null})}).mockReturnValueOnce(action.promise);
+  vi.stubGlobal('fetch',fetcher);render(<><button>Other navigation</button><Rematch id="old"/></>);
+  await act(async()=>{});
+  if (explicit) {
+   const button=screen.getByRole('button',{name:'Accept rematch'});button.focus();fireEvent.click(button);
+  } else {await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});}
+  const other=screen.getByRole('button',{name:'Other navigation'});other.focus();
+  await act(async()=>{action.resolve({ok:true,json:async()=>({status:'accepted',outgoing:false,matchId:'next'})});});
+  expect(screen.getByRole('link',{name:'Open rematch arena'})).toBeInTheDocument();
+  expect(other).toHaveFocus();
+ } finally {vi.useRealTimers();}
+});
+it.each([true,false])('describes rematch controls with stable lifecycle guidance (outgoing=%s)',async(outgoing)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>({status:'pending',outgoing,matchId:null})});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const control=screen.getByRole('button',{name:outgoing?'Cancel invitation':'Accept rematch'});
+  const descriptionId=control.getAttribute('aria-describedby');
+  const summary=document.getElementById(descriptionId!);
+  expect(summary).toHaveAttribute('role','status');
+  expect(control).toHaveAccessibleDescription(outgoing?/Waiting for your opponent/:/Your opponent invited you/);
+  if (!outgoing) expect(screen.getByRole('button',{name:'Decline'})).toHaveAttribute('aria-describedby',descriptionId);
+  fetcher.mockResolvedValue({ok:true,json:async()=>({status:'accepted',outgoing,matchId:'next'})});
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  const link=screen.getByRole('link',{name:'Open rematch arena'});
+  expect(link).toHaveAttribute('aria-describedby',descriptionId);
+  expect(document.getElementById(descriptionId!)).toBe(summary);
+  expect(link).toHaveAccessibleDescription('Rematch accepted. Your next arena is ready.');
+ } finally {vi.useRealTimers();}
+});
+it('uses distinct invitation descriptions for independent panels and terminal recovery',async()=>{
+ vi.stubGlobal('fetch',vi.fn().mockImplementation(async(url:string)=>({ok:true,json:async()=>({status:url.includes('/first/')?'none':'expired'})})));
+ render(<><Rematch id="first"/><Rematch id="second"/></>);
+ const invite=await screen.findByRole('button',{name:'Rematch'});
+ const recovery=await screen.findByRole('link',{name:'Find a new opponent'});
+ expect(invite).toHaveAccessibleDescription('Invite your opponent to a fresh ranked duel. They have 60 seconds to accept.');
+ expect(recovery).toHaveAccessibleDescription('The invitation expired without acceptance. Find a new rival when you are ready.');
+ expect(invite.getAttribute('aria-describedby')).not.toBe(recovery.getAttribute('aria-describedby'));
+});
+it('keeps invitation action descriptions current through sending and deadline expiry',async()=>{
+ vi.useFakeTimers();
+ try {
+  const pending=deferred<ReturnType<typeof response>>();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValueOnce({ok:true,json:async()=>({status:'pending',outgoing:true,serverNow:'2026-11-07T12:00:00Z',expiresAt:'2026-11-07T12:00:01Z',matchId:null})}).mockReturnValue(pending.promise));
+  render(<Rematch id="old"/>);
+  await act(async()=>{});
+  const cancel=screen.getByRole('button',{name:'Cancel invitation'});
+  fireEvent.click(cancel);
+  expect(cancel).toHaveAccessibleDescription('Cancelling invitation. Waiting for server confirmation.');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(cancel).toBeDisabled();
+  expect(cancel).toHaveTextContent('Cancel invitation');
+  expect(cancel).toHaveAttribute('aria-busy','false');
+  expect(cancel).toHaveAccessibleDescription('The invitation window has ended. Acceptance and invitation changes are closed. Waiting for server confirmation; no rematch is confirmed yet.');
+ } finally {vi.useRealTimers();}
+});
+it.each([true,false])('explains unavailable initial invitations and recovers (manual=%s)',async(manual)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline'));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Rematch id="old"/>);
+  const summary=screen.getByRole('status');
+  expect(summary).toHaveTextContent('Checking invitation');
+  await act(async()=>{});
+  expect(summary).toHaveTextContent('Invitation status is unavailable. Automatic retries continue; no rematch is confirmed yet.');
+  expect(summary).toHaveAttribute('aria-live','polite');
+  expect(screen.getByRole('button',{name:'Retry invitation update'})).toHaveAccessibleDescription(summary.textContent!);
+  expect(screen.queryByRole('button',{name:'Rematch'})).not.toBeInTheDocument();
+  const retry=deferred<ReturnType<typeof response>>();
+  fetcher.mockReturnValueOnce(retry.promise).mockResolvedValue(response('none'));
+  if (manual) fireEvent.click(screen.getByRole('button',{name:'Retry invitation update'}));
+  else await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(summary).toHaveTextContent('Invitation status is unavailable');
+  const refreshingButton=screen.getByRole('button',{name:'Refreshing invitation...'});
+  expect(refreshingButton).toBeDisabled();
+  expect(refreshingButton).toHaveAttribute('aria-busy','true');
+  expect(refreshingButton).toHaveAccessibleDescription(summary.textContent!);
+  await act(async()=>{retry.resolve(response('none'));});
+  expect(screen.getByRole('status')).toBe(summary);
+  expect(summary).toHaveTextContent('Invite your opponent to a fresh ranked duel.');
+  expect(screen.getByRole('button',{name:'Rematch'})).toHaveAccessibleDescription(summary.textContent!);
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+ } finally {vi.useRealTimers();}
+});
+
+it.each(['decline','cancel'] as const)('restores keyboard focus after %s with direct and polled confirmation',async(action)=>{
+ vi.useFakeTimers();
+ try {
+  for (const polled of [false,true]) {
+   const pending={ok:true,json:async()=>({status:'pending',outgoing:action==='cancel',matchId:null})};
+   const ended={ok:true,json:async()=>({status:action==='cancel'?'cancelled':'declined',matchId:null})};
+   const fetcher=vi.fn().mockResolvedValueOnce(pending).mockResolvedValueOnce(polled?pending:ended).mockResolvedValue(ended);
+   vi.stubGlobal('fetch',fetcher);const view=render(<Rematch id="old"/>);
+   await act(async()=>{});
+   const button=screen.getByRole('button',{name:action==='cancel'?'Cancel invitation':'Decline'});
+   button.focus();fireEvent.click(button);await act(async()=>{});
+   expect(screen.getByRole('link',{name:'Find a new opponent'})).toHaveFocus();
+   view.unmount();
+  }
+ } finally {vi.useRealTimers();}
+});
+it.each(['decline','cancel'] as const)('preserves independent focus on %s and background outcomes',async(action)=>{
+ vi.useFakeTimers();
+ try {
+  for (const explicit of [false,true]) {
+   const result=deferred<{ok:boolean;json:()=>Promise<{status:string;matchId:null}>}>();
+   const fetcher=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>({status:'pending',outgoing:action==='cancel',matchId:null})}).mockReturnValueOnce(result.promise);
+   vi.stubGlobal('fetch',fetcher);const view=render(<><button>Other navigation</button><Rematch id="old"/></>);
+   await act(async()=>{});
+   if (explicit) {
+    const button=screen.getByRole('button',{name:action==='cancel'?'Cancel invitation':'Decline'});
+    button.focus();fireEvent.click(button);
+   } else {await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});}
+   const other=screen.getByRole('button',{name:'Other navigation'});other.focus();
+   await act(async()=>{result.resolve({ok:true,json:async()=>({status:action==='cancel'?'cancelled':'declined',matchId:null})});});
+   expect(screen.getByRole('link',{name:'Find a new opponent'})).toBeInTheDocument();
+   expect(other).toHaveFocus();view.unmount();
+  }
+ } finally {vi.useRealTimers();}
+});
+it.each(['none','pending','accepted','expired'] as const)('restores keyboard focus to refreshed %s invitation guidance',async(status)=>{
+ const pending=deferred<ReturnType<typeof response>>();
+ const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline')).mockReturnValueOnce(pending.promise);
+ vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+ const retry=await screen.findByRole('button',{name:'Retry invitation update'});
+ retry.focus();fireEvent.click(retry);
+ await act(async()=>{pending.resolve(response(status));});
+ expect(screen.queryByRole('button',{name:'Retry invitation update'})).not.toBeInTheDocument();
+ expect(document.activeElement).toHaveAttribute('role','status');
+ expect(document.activeElement).toHaveAttribute('tabindex','-1');
+ expect(document.activeElement).toHaveTextContent(status==='none'?'Invite your opponent':status==='pending'?'opponent':status==='accepted'?'Rematch accepted':'invitation expired');
+});
+it('preserves independent keyboard focus during manual invitation recovery',async()=>{
+ const pending=deferred<ReturnType<typeof response>>();
+ vi.stubGlobal('fetch',vi.fn().mockRejectedValueOnce(new Error('offline')).mockReturnValueOnce(pending.promise));
+ render(<><button>Other navigation</button><Rematch id="old"/></>);
+ const retry=await screen.findByRole('button',{name:'Retry invitation update'});
+ retry.focus();fireEvent.click(retry);
+ const other=screen.getByRole('button',{name:'Other navigation'});other.focus();
+ await act(async()=>{pending.resolve(response('none'));});
+ expect(other).toHaveFocus();
+});
+it.each([true,false])('does not move focus after background recovery or a failed manual retry (manual=%s)',async(manual)=>{
+ vi.useFakeTimers();
+ try {
+  const fetcher=vi.fn().mockRejectedValueOnce(new Error('offline'));
+  vi.stubGlobal('fetch',fetcher);render(<><button>Other navigation</button><Rematch id="old"/></>);
+  await act(async()=>{});
+  const other=screen.getByRole('button',{name:'Other navigation'});other.focus();
+  if (manual) {
+   fetcher.mockRejectedValueOnce(new Error('offline'));
+   const retry=screen.getByRole('button',{name:'Retry invitation update'});retry.focus();fireEvent.click(retry);
+   await act(async()=>{});
+   expect(retry).toHaveFocus();expect(retry).toBeEnabled();
+   retry.blur();
+  }
+  fetcher.mockResolvedValue(response('none'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('status')).not.toHaveFocus();
+  if (!manual) expect(other).toHaveFocus();
+ } finally {vi.useRealTimers();}
+});
+it.each([false,true])('focuses invitation guidance after keyboard sending (polled=%s)',async(polled)=>{
+ vi.useFakeTimers();
+ try {
+ const fetcher=vi.fn().mockResolvedValueOnce(response('none')).mockResolvedValueOnce(response(polled?'none':'pending')).mockResolvedValue(response('pending'));
+ vi.stubGlobal('fetch',fetcher);render(<Rematch id="old"/>);
+ await act(async()=>{});
+ const button=screen.getByRole('button',{name:'Rematch'});
+ button.focus();
+ await act(async()=>{fireEvent.click(button);});
+ if (polled) await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+ expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeInTheDocument();
+ expect(screen.getByRole('status')).toHaveFocus();
+ expect(screen.getByRole('status')).toHaveAttribute('tabindex','-1');
+ } finally {vi.useRealTimers();}
+});
+it.each(['navigation','background','failure'] as const)('preserves focus during invitation sending: %s',async(mode)=>{
+ vi.useFakeTimers();
+ try {
+  const pending=deferred<ReturnType<typeof response>>();
+  const fetcher=vi.fn().mockResolvedValueOnce(response('none')).mockReturnValueOnce(pending.promise).mockResolvedValue(response('pending'));
+  vi.stubGlobal('fetch',fetcher);render(<><button>Other navigation</button><Rematch id="old"/></>);
+  await act(async()=>{});
+  const button=screen.getByRole('button',{name:'Rematch'});
+  if (mode!=='background') {button.focus();fireEvent.click(button);}
+  else await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  const other=screen.getByRole('button',{name:'Other navigation'});
+  if (mode!=='failure') other.focus();
+  await act(async()=>{
+   if (mode==='failure') pending.resolve({ok:false,json:async()=>({error:'offline'})} as unknown as ReturnType<typeof response>);
+   else pending.resolve(response('pending'));
+  });
+  if (mode==='failure') {
+   expect(screen.getByRole('button',{name:'Cancel invitation'})).toBeInTheDocument();
+   expect(screen.getByRole('status')).not.toHaveFocus();
+  } else expect(other).toHaveFocus();
  } finally {vi.useRealTimers();}
 });

@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Component, useRef, useState, type ReactNode } from "react";
+import { Component, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { PlainPythonEditor } from "./plain-python-editor";
 import { useEditorPreferences } from "./use-editor-preferences";
 
@@ -18,39 +18,93 @@ class EditorBoundary extends Component<{ children: ReactNode; fallback: ReactNod
 export function SolutionEditor({ value, onChange, readOnly, starter }: {
   value: string; onChange: (value: string) => void; readOnly: boolean; starter?: string;
 }) {
-  const { preferences: { plain, wordWrap, fontSize }, setPreferences, unavailable } = useEditorPreferences();
+  const { preferences: { plain, wordWrap, fontSize }, setPreferences, unavailable, retrySaving } = useEditorPreferences();
   const setPlain = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, plain: update(current.plain) }));
   const setWordWrap = (update: (value: boolean) => boolean) => setPreferences(current => ({ ...current, wordWrap: update(current.wordWrap) }));
   const setFontSize = (update: number | ((value: number) => number)) => setPreferences(current => ({ ...current, fontSize: typeof update === "number" ? update : update(current.fontSize) }));
-  const [downloadError, setDownloadError] = useState(false);
+  const [downloadResult, setDownloadResult] = useState<{ revision: number; ok: boolean } | null>(null);
+  const [editorAttempt, setEditorAttempt] = useState(0);
   const copying = useRef(false);
-  const [copyPending, setCopyPending] = useState(false);
-  const [copyResult, setCopyResult] = useState<{ value: string; ok: boolean } | null>(null);
-  const [confirmReset, setConfirmReset] = useState(false);
+  const [draftVersion, setDraftVersion] = useState({ value, revision: 0 });
+  if (draftVersion.value !== value) {
+    setDraftVersion({ value, revision: draftVersion.revision + 1 });
+  }
+  const [copyRevision, setCopyRevision] = useState<number | null>(null);
+  const copyPending = copyRevision !== null;
+  const [copyDelayed, setCopyDelayed] = useState(false);
+  const copyStartedAt = useRef(0);
+  useEffect(() => {
+    if (!copyPending) return;
+    const refresh = () => {
+      if (Date.now() - copyStartedAt.current >= 10_000) setCopyDelayed(true);
+    };
+    const timer = window.setTimeout(() => setCopyDelayed(true), 10_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [copyPending]);
+  const currentRevision = useRef(draftVersion.revision);
+  useEffect(() => { currentRevision.current = draftVersion.revision; }, [draftVersion.revision]);
+  const [copyResult, setCopyResult] = useState<{ revision: number; ok: boolean; earlierDraft: boolean } | null>(null);
+  const [resetRequest, setResetRequest] = useState<{ value: string; starter: string } | null>(null);
+  const modeGuidanceId = useId();
+  const wrapGuidanceId = useId();
+  const textSizeGuidanceId = useId();
+  const preferenceGuidanceId = useId();
+  const preferenceDescription = unavailable ? preferenceGuidanceId : undefined;
+  const textSizeDescription = [textSizeGuidanceId, preferenceDescription].filter(Boolean).join(" ");
+  const resetGuidanceId = useId();
+  const resetConfirmationId = useId();
+  const resetAvailabilityId = useId();
+  const recoveryGuidanceId = useId();
+  const copyGuidanceId = useId();
+  const copyHelpId = useId();
+  const downloadGuidanceId = useId();
+  const downloadHelpId = useId();
+  const copyResultId = useId();
+  const hasCopyResult = copyResult?.revision === draftVersion.revision;
+  const hasDownloadResult = downloadResult?.revision === draftVersion.revision;
   const resetButton = useRef<HTMLButtonElement>(null);
   const editorGroup = useRef<HTMLDivElement>(null);
   function cancelReset() {
-    setConfirmReset(false);
+    setResetRequest(null);
     resetButton.current?.focus();
   }
   const canReset = !readOnly && starter !== undefined && value !== starter;
+  const confirmReset = resetRequest !== null && canReset && resetRequest.value === value && resetRequest.starter === starter;
+  const resetPanelFocused = useRef(false);
+  useLayoutEffect(() => {
+    if (!confirmReset && resetPanelFocused.current) {
+      resetPanelFocused.current = false;
+      resetButton.current?.focus();
+    }
+  }, [confirmReset]);
+  // Invalidate the request permanently, even if the previous draft later returns.
+  if (resetRequest !== null && !confirmReset) setResetRequest(null);
   async function copySolution() {
     if (copying.current) return;
+    const revision = draftVersion.revision;
     copying.current = true;
-    setCopyPending(true);
+    copyStartedAt.current = Date.now();
+    setCopyDelayed(false);
+    setCopyRevision(revision);
     setCopyResult(null);
     try {
       await navigator.clipboard.writeText(value);
-      setCopyResult({ value, ok: true });
+      setCopyResult({ revision: currentRevision.current, ok: true, earlierDraft: revision !== currentRevision.current });
     } catch {
-      setCopyResult({ value, ok: false });
+      setCopyResult({ revision: currentRevision.current, ok: false, earlierDraft: revision !== currentRevision.current });
     } finally {
       copying.current = false;
-      setCopyPending(false);
+      setCopyRevision(null);
     }
   }
   function downloadSolution() {
-    setDownloadError(false);
+    setDownloadResult(null);
     let url: string | undefined;
     const link = document.createElement("a");
     try {
@@ -59,8 +113,9 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
       link.download = "solution.py";
       document.body.appendChild(link);
       link.click();
+      setDownloadResult({ revision: draftVersion.revision, ok: true });
     } catch {
-      setDownloadError(true);
+      setDownloadResult({ revision: draftVersion.revision, ok: false });
     } finally {
       link.remove();
       // Give the browser time to begin reading the download before releasing it.
@@ -71,39 +126,53 @@ export function SolutionEditor({ value, onChange, readOnly, starter }: {
     }
   }
   const textEditor = <PlainPythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>;
-  return <div ref={editorGroup} className="solution-editor" role="group" aria-label="Solution editor" tabIndex={-1}>
-    {unavailable && <p role="status">Editor preferences apply for this visit. Browser storage is unavailable, so they may reset next time.</p>}
+  return <div ref={editorGroup} className="solution-editor" role="group" aria-label="Solution editor" tabIndex={-1} onKeyDownCapture={event => {
+    if (!confirmReset || event.key !== "Escape" || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+    event.preventDefault();
+    event.stopPropagation();
+    cancelReset();
+  }}>
+    {unavailable && <p id={preferenceGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Editor preferences apply for this visit. Browser storage is unavailable, so they may reset next time. Changing text size, line wrapping or editor mode retries saving your preferences; your solution stays in the editor. Retry saving preferences keeps your current settings.</p>}
+    {unavailable && <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={preferenceGuidanceId} onClick={event => {
+      const focused = document.activeElement === event.currentTarget;
+      if (retrySaving() && focused) editorGroup.current?.focus();
+    }}>Retry saving preferences</button></div>}
     <div className="solution-editor-actions" role="group" aria-label="Solution text size">
-      <button type="button" className="button button--secondary" aria-label="Decrease solution text size" disabled={fontSize <= 12} onClick={() => setFontSize(size => Math.max(12, size - 1))}>A-</button>
+      <button type="button" className="button button--secondary" aria-describedby={textSizeDescription} aria-label="Decrease solution text size" aria-disabled={fontSize <= 12} onClick={() => { if (fontSize > 12) setFontSize(size => Math.max(12, size - 1)); }}>A-</button>
       <span aria-live="polite" aria-atomic="true">{fontSize}px</span>
-      <button type="button" className="button button--secondary" aria-label="Increase solution text size" disabled={fontSize >= 24} onClick={() => setFontSize(size => Math.min(24, size + 1))}>A+</button>
-      <button type="button" className="button button--secondary" disabled={fontSize === 15} onClick={() => setFontSize(15)}>Reset text size</button>
+      <button type="button" className="button button--secondary" aria-describedby={textSizeDescription} aria-label="Increase solution text size" aria-disabled={fontSize >= 24} onClick={() => { if (fontSize < 24) setFontSize(size => Math.min(24, size + 1)); }}>A+</button>
+      <button type="button" className="button button--secondary" aria-describedby={textSizeDescription} aria-disabled={fontSize === 15} onClick={() => { if (fontSize !== 15) setFontSize(15); }}>Reset text size</button>
     </div>
-    <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines</button></div>
-    {plain ? textEditor : <EditorBoundary fallback={<><p role="status">Advanced editor unavailable. Continue in plain text; your code is preserved.</p>{textEditor}</>}>
+    <p id={textSizeGuidanceId} className="solution-text-size-guide">Text size: 12 to 24px. {fontSize === 12 ? "Minimum size reached. Increase text size for larger code." : fontSize === 24 ? "Maximum size reached. Decrease text size for smaller code." : "Adjust the code size to read comfortably."} {fontSize === 15 ? "Default 15px size is already selected. Reset becomes available after changing the text size." : "Reset text size restores the default 15px size."} Text size changes only the display; your code stays unchanged, including after the match ends.</p>
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary solution-wrap-toggle" aria-label="Wrap long lines" aria-describedby={[wrapGuidanceId, preferenceDescription].filter(Boolean).join(" ")} aria-pressed={wordWrap} onClick={() => setWordWrap(current => !current)}>Wrap long lines <span className="solution-wrap-state" aria-hidden="true">{wordWrap ? "On" : "Off"}</span></button></div>
+    <p id={wrapGuidanceId} className="solution-wrap-guide">{wordWrap ? "Long lines wrap to fit the editor." : "Long lines stay on one visual line. Scroll horizontally to read them, or turn wrapping on."} Wrapping changes only the display; your code and indentation stay unchanged.</p>
+    {plain ? textEditor : <EditorBoundary key={editorAttempt} fallback={<><p id={recoveryGuidanceId} className="solution-editor-recovery" role="status" aria-atomic="true">Advanced editor unavailable. Continue in plain text; your code is preserved. Retry loads the advanced editor again using your current solution and preferences.</p>{textEditor}<div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={recoveryGuidanceId} onClick={() => { editorGroup.current?.focus(); setEditorAttempt(attempt => attempt + 1); }}>Retry advanced editor</button></div></>}>
       <PythonEditor value={value} onChange={onChange} readOnly={readOnly} fontSize={fontSize} wordWrap={wordWrap}/>
     </EditorBoundary>}
-    <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-pressed={plain} onClick={() => setPlain(current => !current)}>
-      {plain ? "Use advanced editor" : "Use plain text editor"}
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary solution-mode-toggle" aria-label={plain ? "Use advanced editor" : "Use plain text editor"} aria-describedby={[modeGuidanceId, preferenceDescription].filter(Boolean).join(" ")} aria-pressed={plain} onClick={() => setPlain(current => !current)}>
+      {plain ? "Use advanced editor" : "Use plain text editor"} <span className="solution-mode-state" aria-hidden="true">{plain ? "Plain preferred" : "Advanced preferred"}</span>
     </button>
-    <button type="button" className="button button--secondary" onClick={downloadSolution}>Download solution (.py)</button>
-    <button type="button" className="button button--secondary" disabled={copyPending} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
-    {starter !== undefined && !readOnly && <button ref={resetButton} type="button" className="button button--secondary" disabled={!canReset} onClick={() => setConfirmReset(true)}>Reset to starter code</button>}</div>
-    {confirmReset && canReset && <div className="card" role="group" aria-label="Confirm solution reset" onKeyDown={event => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopPropagation();
-      cancelReset();
-    }}>
-      <p>Replace your current solution with the starter code? Download your solution first if you want to keep it.</p>
+    <button type="button" className="button button--secondary" aria-describedby={hasDownloadResult ? downloadGuidanceId : downloadHelpId} onClick={downloadSolution}>Download solution (.py)</button>
+    <button type="button" className="button button--secondary" aria-disabled={copyPending} aria-busy={copyPending} aria-describedby={copyPending ? copyGuidanceId : hasCopyResult ? copyResultId : copyHelpId} onClick={copySolution}>{copyPending ? "Copying solution…" : "Copy solution"}</button>
+    {starter !== undefined && <button ref={resetButton} aria-expanded={confirmReset} aria-controls={confirmReset ? resetConfirmationId : undefined} type="button" className="button button--secondary" aria-disabled={!canReset} aria-describedby={!canReset ? resetAvailabilityId : undefined} onClick={() => { if (canReset) setResetRequest({ value, starter }); }}>Reset to starter code</button>}</div>
+    <p id={modeGuidanceId} className="solution-mode-guide">Advanced mode offers Python syntax highlighting and code suggestions. Plain text offers a simpler editor with visible indentation controls. Switching keeps your current draft, text size and wrapping settings without submitting code. You can switch after the match ends to read or copy your solution.</p>
+    <p id={downloadHelpId} className="solution-download-guide">Download saves your current draft as solution.py without submitting it. Check your browser downloads if no save prompt appears. You can also download after the match ends.</p>
+    <p id={copyHelpId} className="solution-copy-guide">Copy captures your current draft without submitting it and replaces the text on your clipboard. Your browser may ask for clipboard permission. If copying is unavailable, download your solution or select and copy the code manually. You can also copy after the match ends.</p>
+    {starter !== undefined && !canReset && <p id={resetAvailabilityId} className="solution-reset-notice">{readOnly ? "Your solution is read-only. Starter replacement is unavailable; you can still copy or download your code." : "Your solution already matches the starter code. Reset becomes available after you edit it."}</p>}
+    {confirmReset && canReset && <div onFocusCapture={() => { resetPanelFocused.current = true; }} onBlurCapture={event => { resetPanelFocused.current = event.currentTarget.contains(event.relatedTarget); }} id={resetConfirmationId} className="card solution-reset-confirmation" role="group" aria-label="Confirm solution reset" aria-describedby={resetGuidanceId}>
+      <h3>Replace your solution?</h3>
+      <p id={resetGuidanceId}>Replace your current solution with the starter code? Editing your solution dismisses this confirmation. Press Escape anywhere in this editor to keep your solution. Download your solution first if you want to keep it.</p>
       <div className="solution-editor-actions">
-        <button autoFocus type="button" className="button button--secondary" onClick={cancelReset}>Keep my solution</button>
-        <button type="button" className="button button--primary" onClick={() => { if (canReset) onChange(starter); setConfirmReset(false); editorGroup.current?.focus(); }}>Replace with starter code</button>
+        <button autoFocus aria-describedby={resetGuidanceId} type="button" className="button button--secondary" onClick={cancelReset}>Keep my solution</button>
+        <button type="button" className="button solution-reset-replace" aria-describedby={resetGuidanceId} onClick={() => { if (canReset) onChange(starter); setResetRequest(null); editorGroup.current?.focus(); }}>Replace with starter code</button>
       </div>
     </div>}
-    {downloadError && <p role="alert">Unable to download your solution. Try again or copy your code to a local file.</p>}
-    {copyResult?.value === value && (copyResult.ok
-      ? <p role="status">Solution copied to clipboard.</p>
-      : <p role="alert">Unable to copy your solution. Try again, download it or select and copy the code manually.</p>)}
+    {copyPending && <p id={copyGuidanceId} className="solution-copy-notice solution-copy-notice--pending" role="status" aria-atomic="true">Copying the solution captured when you clicked Copy. Your browser may ask for clipboard permission. You can keep editing.{copyDelayed && <><strong className="solution-copy-delay-heading">Clipboard request still waiting.</strong> Check your browser for a clipboard permission prompt. You can download your solution or select and copy the code manually while waiting. Completing this request later can replace other text on your clipboard.</>}{copyRevision !== draftVersion.revision && " Your solution has changed since this copy started. This request contains the earlier draft. Copy again after it finishes to copy your current solution."}</p>}
+    {hasDownloadResult && (downloadResult.ok
+      ? <p id={downloadGuidanceId} className="solution-download-notice" role="status" aria-atomic="true">Download requested. Check your browser downloads for solution.py; your browser may ask where to save it.</p>
+      : <p id={downloadGuidanceId} className="solution-download-notice solution-download-notice--error" role="alert"><strong className="solution-export-error-heading" role="heading" aria-level={3}>Unable to download your solution.</strong>{" "}Try again or copy your code to a local file.</p>)}
+    {hasCopyResult && (copyResult.ok
+      ? <p id={copyResultId} className={`solution-copy-notice${copyResult.earlierDraft ? " solution-copy-notice--earlier" : ""}`} role="status" aria-atomic="true">{copyResult.earlierDraft ? "Earlier draft copied to clipboard. Your solution changed during the request. Copy again to copy your current solution." : "Solution copied to clipboard."}</p>
+      : <p id={copyResultId} className="solution-copy-notice solution-copy-notice--error" role="alert"><strong className="solution-export-error-heading" role="heading" aria-level={3}>Unable to copy your solution.</strong>{" "}{copyResult.earlierDraft && "The request contained an earlier draft. "}Try again, download it or select and copy the code manually.</p>)}
   </div>;
 }

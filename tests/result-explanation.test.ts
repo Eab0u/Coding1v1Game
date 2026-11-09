@@ -4,7 +4,7 @@ import type { DuelResult } from "../src/lib/results";
 
 const player = { username: "Ada", before: 800, after: 808, passed: 8, total: 8, cpu: 10, submitted: 1000 };
 function result(overrides: Partial<typeof player> = {}, outcome: DuelResult["outcome"] = "WIN"): DuelResult {
-  return { title: "Sample", outcome, players: [player, { ...player, username: "Bob", ...overrides }] };
+  return { title: "Sample", outcome, players: [{ ...player }, { ...player, username: "Bob", ...overrides }] };
 }
 it("explains correctness before faster runtime and earlier submission", () => {
   expect(explainResult(result({ passed: 7, cpu: 1, submitted: 1 }))).toMatch(/^You passed more hidden tests/);
@@ -42,4 +42,46 @@ it("does not contradict authoritative results or invent absent players", () => {
   const duel = result();
   duel.players.pop();
   expect(explainResult(duel)).toContain("unavailable");
+});
+
+it.each([0, 1])("rejects unsafe saved test counts for player %s before explaining any tiebreak", index => {
+  for (const passed of [0, Number.MAX_SAFE_INTEGER + 1]) {
+    const duel = result({ cpu: 11 });
+    duel.players.forEach(p => { p.total = Number.MAX_SAFE_INTEGER + 1; });
+    duel.players[index].passed = passed;
+    expect(explainResult(duel)).toContain("unavailable");
+  }
+});
+
+it("preserves the safe integer boundary and recovers a corrected explanation", () => {
+  const duel = result({ cpu: 11 });
+  duel.players.forEach(p => { p.total = Number.MAX_SAFE_INTEGER + 1; });
+  expect(explainResult(duel)).toContain("unavailable");
+  duel.players.forEach(p => { p.total = Number.MAX_SAFE_INTEGER; p.passed = Number.MAX_SAFE_INTEGER; });
+  expect(explainResult(duel)).toMatch(/^You had the lower median/);
+});
+
+it.each([0, 1])("withholds inconsistent missing submission explanations for player %s and recovers", index => {
+  const duel = result({}, "DRAW");
+  duel.players[index].submitted = null;
+  expect(explainResult(duel)).toContain("unavailable");
+  duel.players.forEach(p => { p.submitted = null; });
+  expect(explainResult(duel)).toContain("unavailable");
+  duel.players.forEach(p => { p.passed = 0; });
+  expect(explainResult(duel)).toContain("Neither player had a judged submission");
+  duel.players.forEach(p => { p.passed = 8; p.submitted = 1000; });
+  expect(explainResult(duel)).toContain("were all tied");
+});
+
+it.each([0,1])("rejects invalid submission times before every tiebreak for player %s", index=>{
+ for (const overrides of [{passed:7},{cpu:11},{submitted:1001}]) {
+  const duel=result(overrides);
+  const saved=duel.players[index].submitted;
+  for (const submitted of [-1,NaN,Infinity,-Infinity,undefined,'1000']) {
+   Object.assign(duel.players[index],{submitted});
+   expect(explainResult(duel)).toContain('unavailable');
+  }
+  duel.players[index].submitted=saved;
+  expect(explainResult(duel)).toMatch(/^You /);
+ }
 });

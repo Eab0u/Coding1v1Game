@@ -11,6 +11,215 @@ function leaveIsGuarded() {
   window.dispatchEvent(event);
   return event.defaultPrevented;
 }
+it('explains closed submissions when reopening an expired active duel',()=>{
+  render(<Arena initial={{...initial,status:'active',deadline:initial.serverTime}}/>);
+  expect(screen.getByRole('button',{name:'Submit solution'})).toHaveAccessibleDescription(/Submissions are closed.*confirm results/);
+});
+it.each(['pending','acknowledged','failed'] as const)('retires %s submission action feedback at expiry, including late responses',async response=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z'};
+  let resolvePost!:(value:unknown)=>void;
+  const post=new Promise(resolve=>{resolvePost=resolve;});
+  const fetcher=vi.fn().mockImplementation((_url,options)=>options?.method==='POST' ? post : Promise.resolve({ok:true,json:async()=>snapshot}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={snapshot}/>);
+  const feedback=document.getElementById('submission-status')!;
+  const button=screen.getByRole('button',{name:'Submit solution'});
+  fireEvent.click(button);
+  expect(feedback).toHaveTextContent('Sending your solution');
+  const respond=async()=>{await act(async()=>{resolvePost({ok:response!=='failed',json:async()=>({status:'queued',error:'Try submitting again.'})});});};
+  if(response==='acknowledged') await respond();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAttribute('aria-busy','false');
+  expect(button).toBeDisabled();
+  expect(feedback).not.toHaveClass('arena-action-pending');
+  if(response!=='acknowledged') await respond();
+  expect(button).toHaveAccessibleDescription(/Submissions are closed.*confirm results/);
+  expect(feedback).not.toHaveTextContent(/Sending your solution|Solution queued|Try submitting again|Results settle after/);
+  fireEvent.keyDown(screen.getByRole('textbox',{name:'Python solution'}),{key:'Enter',ctrlKey:true});
+  expect(fetcher.mock.calls.filter(call=>call[1]?.method==='POST')).toHaveLength(1);
+  snapshot={...snapshot,status:response==='failed' ? 'cancelled' : 'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(document.getElementById('submission-status')).toBe(feedback);
+  expect(feedback).toHaveTextContent(response==='failed' ? 'No ratings changed' : 'Results are ready');
+  expect(feedback).not.toHaveTextContent('keeps checking automatically');
+});
+it.each([false,true])('replaces expired readiness action feedback on reopening (ready %s)',ready=>{
+  render(<Arena initial={{...initial,player:{...initial.player,ready},reservationExpiresAt:initial.serverTime}}/>);
+  const button=screen.getByRole('button',{name:ready ? 'Ready confirmed' : 'Ready to duel'});
+  expect(button).toBeDisabled();
+  expect(button).toHaveAccessibleDescription(/Readiness is closed.*server confirmation/);
+  expect(button).not.toHaveAccessibleDescription(/Mark yourself ready|Waiting for the server to start/);
+});
+it.each(['pending','acknowledged','failed'] as const)('retires %s readiness feedback at expiry and ignores delayed responses',async response=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,reservationExpiresAt:'2026-11-06T12:00:01Z'};
+  let resolvePost!:(value:unknown)=>void;
+  const post=new Promise(resolve=>{resolvePost=resolve;});
+  const fetcher=vi.fn().mockImplementation((_url,options)=>options?.method==='POST' ? post : Promise.resolve({ok:true,json:async()=>snapshot}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={snapshot}/>);
+  const feedback=document.getElementById('submission-status')!;
+  const button=screen.getByRole('button',{name:'Ready to duel'});
+  fireEvent.click(button);
+  expect(feedback).toHaveTextContent('Confirming readiness');
+  const respond=async()=>{await act(async()=>{resolvePost({ok:response!=='failed',json:async()=>({status:'pending',error:'Please try readiness again.'})});});};
+  if(response==='acknowledged') await respond();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAttribute('aria-busy','false');
+  expect(button).toBeDisabled();
+  expect(feedback).not.toHaveClass('arena-action-pending');
+  if(response!=='acknowledged') await respond();
+  expect(feedback).toHaveTextContent('Readiness is closed. Waiting for server confirmation');
+  expect(feedback).not.toHaveTextContent(/Mark yourself ready|Waiting for both players|Please try readiness again/);
+  fireEvent.click(button);
+  expect(fetcher.mock.calls.filter(call=>call[1]?.method==='POST')).toHaveLength(1);
+  snapshot={...snapshot,status:'cancelled'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(document.getElementById('submission-status')).toBe(feedback);
+  expect(feedback).toHaveTextContent('No ratings changed');
+  expect(feedback).not.toHaveTextContent('Readiness is closed');
+});
+it.each(['completed','cancelled'] as const)('keeps shortcut guidance aligned with activation, expiry and %s polling',async status=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot=initial;
+  const fetcher=vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot}));
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={initial}/>);
+  const button=screen.getByRole('button',{name:'Submit solution'});
+  expect(button).toHaveAccessibleDescription(/shortcut becomes available when the duel starts/);
+  snapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(button).toHaveAccessibleDescription(/Ctrl\+Enter or Command\+Enter/);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAccessibleDescription(/Submissions are closed while the server confirms results/);
+  snapshot={...snapshot,status};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(button).toHaveAccessibleDescription(/Submissions are closed. You can still copy or download/);
+  expect(button).not.toHaveAccessibleDescription(/press Ctrl/);
+  fireEvent.keyDown(screen.getByRole('textbox',{name:'Python solution'}),{key:'Enter',ctrlKey:true});
+  expect(fetcher.mock.calls.every(call=>call[1]?.method!=='POST')).toBe(true);
+});
+it.each(['pending','active','completed','cancelled'] as const)('shows phase-aware shortcut guidance when reopening %s',status=>{
+  render(<Arena initial={{...initial,status,deadline:status==='active' ? initial.serverTime : null}}/>);
+  const button=screen.getByRole('button',{name:'Submit solution'});
+  expect(button).toBeDisabled();
+  expect(button).toHaveAccessibleDescription(status==='pending' ? /shortcut becomes available/ : /Submissions are closed/);
+  expect(button).not.toHaveAccessibleDescription(/press Ctrl/);
+});
+it.each(['completed','cancelled'] as const)('updates both verified best-score descriptions after expiry and %s polling',async status=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z',bestProgress:{passed:8,total:8},progress:{passed:3,total:8}};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={snapshot}/>);
+  const bars=screen.getAllByRole('progressbar');
+  for(const bar of bars) expect(bar).toHaveAccessibleDescription(/Later attempts cannot lower it/);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  for(const bar of bars) expect(bar).toHaveAccessibleDescription(/Submissions are closed.*Already submitted attempts/);
+  snapshot={...snapshot,status};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getAllByRole('progressbar')).toHaveLength(2);
+  for(const bar of bars) {
+    expect(bar).toHaveAccessibleDescription(status==='completed' ? /View results for the recorded outcome/ : /no ratings changed/);
+    expect(bar).not.toHaveAccessibleDescription(/Later attempts|confirms the result after/);
+  }
+  expect(bars[0]).toHaveAttribute('value','3');
+  expect(bars[1]).toHaveAttribute('value','8');
+});
+it('announces server activation in a stable region without repeating the countdown and clears it at expiry',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot=initial;
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={initial}/>);
+  const notice=screen.getByRole('status',{name:'Duel start'});
+  expect(notice).toBeEmptyDOMElement();
+  expect(notice).toHaveAttribute('aria-live','polite');
+  expect(notice).toHaveAttribute('aria-atomic','true');
+  snapshot={...initial,status:'active',deadline:'2026-11-06T12:05:00Z'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByRole('status',{name:'Duel start'})).toBe(notice);
+  expect(notice).toHaveClass('arena-started');
+  expect(notice).toHaveTextContent('Duel started. The clock is running. You can now submit');
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeEnabled();
+  const message=notice.textContent;
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(notice.textContent).toBe(message);
+  snapshot={...snapshot,serverTime:snapshot.deadline!};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(notice).toBeEmptyDOMElement();
+  expect(notice).toHaveClass('sr-only');
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+});
+it('shows start guidance when reopening a running duel',()=>{
+  render(<Arena initial={{...initial,status:'active',deadline:'2026-11-06T12:05:00Z'}}/>);
+  expect(screen.getByRole('status',{name:'Duel start'})).toHaveTextContent('submit your latest edits before time expires');
+});
+it.each(['completed','cancelled'] as const)('clears start guidance after polling a %s state',async status=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status})}));
+  render(<Arena initial={{...initial,status:'active',deadline:'2026-11-06T12:05:00Z'}}/>);
+  const notice=screen.getByRole('status',{name:'Duel start'});
+  expect(notice).not.toBeEmptyDOMElement();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(notice).toBeEmptyDOMElement();
+});
+it.each([null,initial.serverTime])('withholds running-clock claims for deadline %s',deadline=>{
+  render(<Arena initial={{...initial,status:'active',deadline}}/>);
+  expect(screen.getByRole('status',{name:'Duel start'})).toBeEmptyDOMElement();
+});
+it('shows completed-arena guidance and an accessible results destination on reopening',()=>{
+  render(<Arena initial={{...initial,status:'completed'}}/>);
+  const panel=screen.getByRole('region',{name:'Duel complete. Results are ready.'});
+  expect(panel).toHaveClass('arena-completed');
+  expect(panel).toHaveTextContent('recorded rating changes');
+  expect(panel).toHaveTextContent('copy or download');
+  expect(screen.getByRole('link',{name:'View results'})).toHaveAttribute('href','/match/match/results');
+  expect(screen.getByRole('status',{name:'Duel completion'})).toHaveTextContent('Duel complete. Results are ready.');
+  expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+});
+it('announces authoritative completion once while retaining code and removing pending-results guidance',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:initial.serverTime};
+  const fetchMock=vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot}));
+  vi.stubGlobal('fetch',fetchMock);
+  render(<Arena initial={snapshot}/>);
+  const announcement=screen.getByRole('status',{name:'Duel completion'});
+  expect(announcement).toBeEmptyDOMElement();
+  expect(announcement).toHaveAttribute('aria-live','polite');
+  expect(announcement).toHaveAttribute('aria-atomic','true');
+  expect(screen.getByRole('region',{name:'Time is up. Waiting for results.'})).toBeVisible();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my final code'}});
+  snapshot={...snapshot,status:'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByRole('status',{name:'Duel completion'})).toBe(announcement);
+  expect(announcement).toHaveTextContent('View results for the outcome and recorded rating changes.');
+  expect(screen.queryByRole('region',{name:'Time is up. Waiting for results.'})).not.toBeInTheDocument();
+  expect(screen.getByRole('region',{name:'Duel complete. Results are ready.'})).toBeVisible();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('my final code');
+  expect(screen.getByRole('button',{name:'Copy solution'})).toBeEnabled();
+  expect(screen.getByRole('button',{name:/Download solution/})).toBeEnabled();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+it.each(['pending','active','cancelled'] as const)('keeps completion feedback silent in a %s arena',status=>{
+  render(<Arena initial={{...initial,status}}/>);
+  expect(screen.getByRole('status',{name:'Duel completion'})).toBeEmptyDOMElement();
+  expect(screen.queryByRole('region',{name:'Duel complete. Results are ready.'})).not.toBeInTheDocument();
+});
+it.each(['pending','active','completed','cancelled'] as const)('explains hidden tests and ordered scoring in the %s arena',status=>{
+  render(<Arena initial={{...initial,status}}/>);
+  const guide=screen.getByRole('complementary',{name:'How your solution is judged'});
+  expect(guide.querySelector('details')).not.toHaveAttribute('open');
+  expect(guide.querySelector('summary')).toHaveTextContent('How your solution is judged');
+  expect(guide).toHaveTextContent('Matching the examples alone does not guarantee a correct solution');
+  expect(Array.from(guide.querySelectorAll('ol li'),el=>el.textContent)).toEqual([
+    'Most hidden tests passed.',
+    'Lower median CPU time across three runs on the largest tests.',
+    'Earlier submission time if correctness and CPU time tie.',
+  ]);
+  expect(guide).toHaveTextContent('A weaker later attempt does not replace it');
+  expect(guide).toHaveTextContent('Editor changes count only after you submit them');
+});
 it('follows authoritative judging stages without presenting partial worker counts as a verdict',async()=>{
   vi.useFakeTimers();
   let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:05:00Z',bestProgress:{passed:4,total:8},submission:{id:'latest',status:'queued',passed:0,total:8}};
@@ -50,15 +259,18 @@ it('shows authoritative best progress separately from weaker latest attempts and
   let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:05:00Z',bestProgress:null};
   vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
   render(<Arena initial={snapshot}/>);
-  const progress=screen.getByRole('progressbar',{name:'Your best tests passed: No judged submission yet'});
-  expect(progress).toHaveAttribute('value','0');
-  expect(progress).toHaveAccessibleDescription(/does not confirm that your current edits were submitted/);
+  const progress=screen.getByRole('region',{name:'Your best progress'});
+  expect(progress).toHaveTextContent('No judged submission yet');
+  expect(progress.querySelector('progress')).toBeNull();
+  expect(progress).toHaveTextContent('Submit your solution when ready');
+  expect(progress).not.toHaveTextContent('Best judged test count');
   snapshot={...snapshot,bestProgress:{passed:5,total:8},submission:{id:'latest',status:'judged',passed:1,total:8}};
   await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
   expect(screen.getByRole('progressbar',{name:'Your best tests passed: 5 / 8'})).toHaveAttribute('max','8');
+  expect(progress).toHaveTextContent('does not confirm that your current edits were submitted');
   expect(screen.getByText('Latest solution: 1 / 8 tests passed.')).toBeVisible();
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'unsent edits'}});
-  expect(progress).toHaveAttribute('value','5');
+  expect(screen.getByRole('progressbar',{name:'Your best tests passed: 5 / 8'})).toHaveAttribute('value','5');
   snapshot={...snapshot,status:'completed',bestProgress:{passed:8,total:8}};
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
   expect(screen.getByRole('progressbar',{name:'Your best tests passed: 8 / 8'})).toHaveAttribute('value','8');
@@ -128,7 +340,8 @@ it('keeps unsent edit guidance honest at expiry and removes it when the match en
 it('explains an already cancelled reservation and links back to matchmaking',()=>{
   render(<Arena initial={{...initial,status:'cancelled'}}/>);
   expect(screen.getByRole('region',{name:'Duel cancelled'})).toBeVisible();
-  expect(screen.getByText(/No ratings changed/)).toBeVisible();
+  expect(screen.getByRole('region',{name:'Duel cancelled'})).toHaveTextContent('No ratings changed');
+  expect(screen.getByRole('status',{name:'Duel cancellation'})).toHaveTextContent('Duel cancelled. No ratings changed.');
   expect(screen.getByRole('link',{name:'Back to matchmaking'})).toHaveAttribute('href','/');
   expect(screen.queryByRole('button',{name:'Ready to duel'})).not.toBeInTheDocument();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
@@ -138,15 +351,28 @@ it('announces cancellation discovered by polling and retains code for export',as
   vi.useFakeTimers();
   vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status:'cancelled'})}));
   render(<Arena initial={initial}/>);
+  const announcement=screen.getByRole('status',{name:'Duel cancellation'});
+  expect(announcement).toBeEmptyDOMElement();
+  expect(announcement).toHaveAttribute('aria-live','polite');
+  expect(announcement).toHaveAttribute('aria-atomic','true');
   expect(screen.queryByRole('region',{name:'Duel cancelled'})).not.toBeInTheDocument();
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'def solve():\n    return 42'}});
   await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
   const panel=screen.getByRole('region',{name:'Duel cancelled'});
-  expect(panel.querySelector('[role="status"]')).toHaveTextContent('No ratings changed');
+  expect(panel.querySelector('[role="status"]')).toBeNull();
+  expect(screen.getByRole('status',{name:'Duel cancellation'})).toBe(announcement);
+  expect(announcement).toHaveTextContent('No ratings changed. Return home to find a new opponent.');
   expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    return 42');
   expect(screen.getByRole('button',{name:/Copy solution/})).toBeEnabled();
   expect(screen.getByRole('button',{name:/Download/})).toBeEnabled();
   expect(screen.queryByRole('region',{name:'Duel readiness'})).not.toBeInTheDocument();
+  const message=announcement.textContent;
+  await act(async()=>{await vi.advanceTimersByTimeAsync(6000);});
+  expect(announcement.textContent).toBe(message);
+});
+it.each(['pending','active','completed'] as const)('keeps cancellation announcements silent for %s matches',status=>{
+  render(<Arena initial={{...initial,status}}/>);
+  expect(screen.getByRole('status',{name:'Duel cancellation'})).toBeEmptyDOMElement();
 });
 it('resets a recovered draft to the full starter, persists it and clears the exit warning',()=>{
   vi.stubGlobal('fetch',vi.fn());
@@ -291,8 +517,8 @@ it('shows pending state and editable drafts without implying submission works',(
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my draft'}});
   expect(screen.getByLabelText('Python solution')).toHaveValue('my draft');
-  expect(screen.getByRole('progressbar',{name:'Opponent best tests passed: No judged submission yet'})).toBeInTheDocument();
-  expect(screen.getByRole('progressbar',{name:'Your best tests passed: No judged submission yet'})).toBeInTheDocument();
+  expect(screen.getByRole('region',{name:'Opponent progress'})).toHaveTextContent('No judged submission yet');
+  expect(screen.getByRole('region',{name:'Your best progress'})).toHaveTextContent('No judged submission yet');
 });
 it('refreshes authoritative progress without overwriting code and reports stale updates',async()=>{
   vi.useFakeTimers();
@@ -417,6 +643,62 @@ it('keeps editing and submission working when browser storage is unavailable',as
   expect(fetcher).toHaveBeenCalledWith('/api/matches/match',expect.objectContaining({body:JSON.stringify({action:'submit',source:'still editable'})}));
 });
 
+it.each([
+  {passed:null,total:8}, {passed:0,total:null}, {passed:0,total:0},
+  {passed:-1,total:8}, {passed:9,total:8}, {passed:1.5,total:8},
+  {passed:1,total:8.5}, {passed:NaN,total:8}, {passed:1,total:Infinity},
+])('withholds sound and visual verdicts for invalid scores and announces a corrected attempt once: %j',async(score)=>{
+  vi.useFakeTimers();
+  const play=vi.spyOn(DuelSound.prototype,'play').mockImplementation(()=>{});
+  vi.spyOn(DuelSound.prototype,'unlock').mockImplementation(()=>{});
+  let submission:ArenaSnapshot['submission']={id:'new',status:'judged',...score};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(async()=>({ok:true,json:async()=>({...initial,submission})})));
+  render(<Arena initial={initial}/>);
+  fireEvent.click(screen.getByRole('button',{name:'Sound off'}));
+  const preview=screen.getByText('Test passed');
+  play.mockClear();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(play).not.toHaveBeenCalled();
+  expect(screen.getByText('Test passed')).toBe(preview);
+  expect(screen.queryByText('Test failed')).not.toBeInTheDocument();
+  expect(screen.getByRole('status',{name:'Latest submission'})).toHaveTextContent('score is unavailable');
+  submission={id:'new',status:'judged',passed:0,total:8};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledExactlyOnceWith('failed');
+  expect(screen.getByText('Test failed')).toBeVisible();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledTimes(1);
+});
+
+it.each([
+  {passed:null,total:8}, {passed:0,total:null}, {passed:0,total:0},
+  {passed:-1,total:8}, {passed:9,total:8}, {passed:1.5,total:8},
+  {passed:1,total:8.5}, {passed:NaN,total:8}, {passed:1,total:Infinity},
+])('recovers an unavailable initial verdict once after reopening: %j',async(score)=>{
+  vi.useFakeTimers();
+  const play=vi.spyOn(DuelSound.prototype,'play').mockImplementation(()=>{});
+  vi.spyOn(DuelSound.prototype,'unlock').mockImplementation(()=>{});
+  let submission:ArenaSnapshot['submission']={id:'reopened',status:'judged',...score};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(async()=>({ok:true,json:async()=>({...initial,submission})})));
+  render(<Arena initial={{...initial,submission}}/>);
+  expect(screen.getByRole('status',{name:'Latest submission'})).toHaveTextContent('score is unavailable');
+  expect(screen.queryByText('Test failed')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Sound off'}));
+  play.mockClear();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(play).not.toHaveBeenCalled();
+  submission={id:'reopened',status:'judged',passed:0,total:8};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledExactlyOnceWith('failed');
+  expect(screen.getByText('Test failed')).toBeVisible();
+  submission={id:'reopened',status:'judged',...score};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  submission={id:'reopened',status:'judged',passed:8,total:8};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(play).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('status',{name:'Latest submission'})).toHaveTextContent('All tests passed');
+});
+
 it('announces each newly judged submission once, including identical scores, without replaying history',async()=>{
   vi.useFakeTimers();
   const play=vi.spyOn(DuelSound.prototype,'play').mockImplementation(()=>{});
@@ -502,11 +784,19 @@ it('announces local clock expiry, preserves export and waits for authoritative c
   const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>active});
   vi.stubGlobal('fetch',fetcher);
   render(<Arena initial={active}/>);
+  const settlement=screen.getByRole('status',{name:'Duel settlement'});
+  expect(settlement).toBeEmptyDOMElement();
+  expect(settlement).toHaveAttribute('aria-live','polite');
+  expect(settlement).toHaveAttribute('aria-atomic','true');
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'my solution'}});
   expect(screen.queryByRole('region',{name:'Time is up. Waiting for results.'})).not.toBeInTheDocument();
   await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
   const panel=screen.getByRole('region',{name:'Time is up. Waiting for results.'});
-  expect(panel.querySelector('[role="status"]')).toHaveTextContent('before confirming the result and rating changes');
+  expect(panel.querySelector('[role="status"]')).toBeNull();
+  expect(screen.getByRole('status',{name:'Duel settlement'})).toBe(settlement);
+  expect(settlement).toHaveTextContent('Submissions are closed. Waiting for the server');
+  expect(settlement).toHaveTextContent('copy or download your code');
+  const announcement=settlement.textContent;
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
   expect(screen.getByRole('button',{name:'Copy solution'})).toBeEnabled();
   expect(screen.getByRole('button',{name:/Download solution/})).toBeEnabled();
@@ -515,11 +805,13 @@ it('announces local clock expiry, preserves export and waits for authoritative c
   fetcher.mockRejectedValueOnce(new Error('offline'));
   await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
   expect(panel).toBeVisible();
+  expect(settlement.textContent).toBe(announcement);
   expect(screen.getByRole('button',{name:'Retry live updates'})).toBeEnabled();
   fetcher.mockResolvedValue({ok:true,json:async()=>({...active,status:'completed'})});
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
   expect(screen.queryByRole('region',{name:'Time is up. Waiting for results.'})).not.toBeInTheDocument();
   expect(screen.getByRole('link',{name:'View results'})).toBeVisible();
+  expect(settlement).toBeEmptyDOMElement();
 });
 
 it('shows settlement guidance when reopening an expired active match',()=>{
@@ -528,6 +820,48 @@ it('shows settlement guidance when reopening an expired active match',()=>{
   render(<Arena initial={{...initial,status:'active',deadline:initial.serverTime}}/>);
   expect(screen.getByRole('region',{name:'Time is up. Waiting for results.'})).toBeVisible();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeDisabled();
+  expect(screen.getByRole('status',{name:'Duel settlement'})).toHaveTextContent('Time is up. Submissions are closed.');
+});
+
+it.each([
+  {...initial},
+  {...initial,status:'active' as const,deadline:null},
+  {...initial,status:'active' as const,deadline:'2026-11-06T12:05:00Z'},
+  {...initial,status:'completed' as const,deadline:initial.serverTime},
+  {...initial,status:'cancelled' as const,deadline:initial.serverTime},
+])('keeps settlement announcements silent outside expired active matches: %j',snapshot=>{
+  render(<Arena initial={snapshot}/>);
+  expect(screen.getByRole('status',{name:'Duel settlement'})).toBeEmptyDOMElement();
+});
+
+it('clears settlement feedback when polling confirms cancellation',async()=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status:'cancelled'})}));
+  render(<Arena initial={{...initial,status:'active',deadline:initial.serverTime}}/>);
+  const notice=screen.getByRole('status',{name:'Duel settlement'});
+  expect(notice).not.toBeEmptyDOMElement();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(screen.getByRole('status',{name:'Duel settlement'})).toBe(notice);
+  expect(notice).toBeEmptyDOMElement();
+});
+
+it.each(['pending','active','completed','cancelled'] as const)('withholds readiness-expiry announcements without an expired pending reservation (%s)',status=>{
+  render(<Arena initial={{...initial,status,reservationExpiresAt:status==='pending' ? null : initial.serverTime}}/>);
+  expect(screen.getByRole('status',{name:'Readiness expiry'})).toBeEmptyDOMElement();
+});
+
+it('keeps reopened readiness-expiry feedback stable during polling outages',async()=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockRejectedValue(new Error('offline')));
+  render(<Arena initial={{...initial,reservationExpiresAt:initial.serverTime}}/>);
+  const notice=screen.getByRole('status',{name:'Readiness expiry'});
+  const message=notice.firstChild;
+  expect(notice).toHaveTextContent('no result or rating change is confirmed');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(4000);});
+  expect(screen.getByRole('status',{name:'Readiness expiry'})).toBe(notice);
+  expect(notice.firstChild).toBe(message);
+  expect(screen.getByRole('button',{name:'Ready to duel'})).toBeDisabled();
+  expect(screen.getByRole('button',{name:'Copy solution'})).toBeEnabled();
 });
 
 it('counts down the server reservation window and awaits authoritative cancellation at zero',async()=>{
@@ -536,6 +870,10 @@ it('counts down the server reservation window and awaits authoritative cancellat
   vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
   render(<Arena initial={snapshot}/>);
   expect(screen.getByRole('timer')).toHaveTextContent('Ready in 2s');
+  const expiry=screen.getByRole('status',{name:'Readiness expiry'});
+  expect(expiry).toBeEmptyDOMElement();
+  expect(expiry).toHaveAttribute('aria-live','polite');
+  expect(expiry).toHaveAttribute('aria-atomic','true');
   fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'preserved code'}});
   await act(async()=>{await vi.advanceTimersByTimeAsync(1750);});
   expect(screen.getByRole('timer')).toHaveTextContent('Ready in 1s');
@@ -544,12 +882,16 @@ it('counts down the server reservation window and awaits authoritative cancellat
   await act(async()=>{await vi.advanceTimersByTimeAsync(500);});
   expect(screen.getByRole('timer')).toHaveTextContent('Confirming status');
   expect(screen.getByText(/The readiness window has ended/)).toBeVisible();
+  expect(screen.getByRole('status',{name:'Readiness expiry'})).toBe(expiry);
+  expect(expiry).toHaveTextContent('Waiting for server confirmation of activation or cancellation');
+  expect(screen.getByRole('status',{name:'Duel readiness'})).toHaveAttribute('aria-live','off');
   expect(screen.getByRole('button',{name:'Ready to duel'})).toBeDisabled();
   expect(screen.queryByRole('region',{name:'Duel cancelled'})).not.toBeInTheDocument();
   expect(screen.getByLabelText('Python solution')).toHaveValue('preserved code');
   snapshot={...snapshot,status:'cancelled'};
   await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
   expect(screen.getByRole('region',{name:'Duel cancelled'})).toBeVisible();
+  expect(expiry).toBeEmptyDOMElement();
   expect(screen.queryByText(/The readiness window has ended/)).not.toBeInTheDocument();
 });
 
@@ -558,8 +900,12 @@ it('replaces the reservation clock with the active match clock after server acti
   vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status:'active',deadline:'2026-11-06T12:05:00Z',reservationExpiresAt:null})}));
   render(<Arena initial={{...initial,reservationExpiresAt:'2026-11-06T11:59:59Z'}}/>);
   expect(screen.getByRole('timer')).toHaveTextContent('Confirming status');
+  const expiry=screen.getByRole('status',{name:'Readiness expiry'});
+  expect(expiry).toHaveTextContent('Time to mark ready has expired');
   await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
   expect(screen.getByRole('timer')).toHaveTextContent('5:00');
+  expect(screen.getByRole('status',{name:'Readiness expiry'})).toBe(expiry);
+  expect(expiry).toBeEmptyDOMElement();
   expect(screen.queryByRole('region',{name:'Duel readiness'})).not.toBeInTheDocument();
   expect(screen.getByRole('button',{name:'Submit solution'})).toBeEnabled();
 });
@@ -567,7 +913,8 @@ it('replaces the reservation clock with the active match clock after server acti
 it('labels opponent progress as best judged correctness and explains scoring ties',()=>{
   vi.stubGlobal('fetch',vi.fn().mockReturnValue(new Promise(()=>{})));
   const view=render(<Arena initial={initial}/>);
-  expect(screen.getByRole('progressbar',{name:'Opponent best tests passed: No judged submission yet'})).toHaveAttribute('value','0');
+  expect(screen.getByRole('region',{name:'Opponent progress'})).toHaveTextContent('No judged submission yet');
+  expect(screen.queryByRole('progressbar')).toBeNull();
   view.rerender(<Arena initial={{...initial,id:'scored',progress:{passed:5,total:8}}}/>);
   const progress=screen.getByRole('progressbar',{name:'Opponent best tests passed: 5 / 8'});
   expect(progress).toHaveAttribute('value','5');
@@ -696,4 +1043,453 @@ it.each(['ready','submit'] as const)('shows pending %s acknowledgement, preserve
   expect(status).toHaveTextContent(action==='ready' ? 'Ready. Waiting for both players' : 'Solution queued.');
   expect(button).toHaveAttribute('aria-busy','false');
   expect(status).not.toHaveClass('arena-action-pending');
+});
+
+it('provides named arena navigation and focusable jump destinations after match end',()=>{
+  render(<Arena initial={{...initial,status:'completed'}}/>);
+  expect(screen.getByRole('link',{name:'Skip to duel'})).toHaveAttribute('href','#main-content');
+  expect(screen.getByRole('main')).toHaveAttribute('tabindex','-1');
+  const navigation=screen.getByRole('navigation',{name:'Arena sections'});
+  expect(navigation).toHaveTextContent('Read problem');
+  expect(screen.getByRole('link',{name:'Read problem'})).toHaveAttribute('href','#arena-problem-title');
+  expect(screen.getByRole('link',{name:'Back to your solution'})).toHaveAttribute('href','#arena-solution-title');
+  expect(screen.getByRole('heading',{name:'Sample'})).toHaveAttribute('tabindex','-1');
+  expect(screen.getByRole('heading',{name:'Your solution'})).toHaveAttribute('tabindex','-1');
+});
+
+it.each(['pending','active','completed','cancelled'] as const)('preserves constraints and offers optional complexity guidance in the %s arena',status=>{
+  render(<Arena initial={{...initial,status,problem:{...initial.problem,constraints:'1 <= n <= 100,000\nValues may be negative.'}}}/>);
+  const constraints=screen.getByRole('region',{name:'Constraints'});
+  expect(constraints.querySelector('.arena-text')?.textContent).toBe('1 <= n <= 100,000\nValues may be negative.');
+  const details=constraints.querySelector('details')!;
+  expect(details).not.toHaveAttribute('open');
+  expect(details.querySelector('summary')).toHaveTextContent('Use input limits to plan your solution');
+  expect(details).toHaveTextContent('about 5 billion comparisons');
+  expect(details).toHaveTextContent('not a required approach or a guarantee');
+});
+
+it.each(['pending','active','completed','cancelled'] as const)('preserves the function contract and explains signature scrolling in the %s arena',status=>{
+  const signature='def solve(\n    values: list[int],\n) -> int:';
+  render(<Arena initial={{...initial,status,problem:{...initial.problem,signature}}}/>);
+  const region=screen.getByRole('region',{name:'Function signature'});
+  expect(region).toHaveAttribute('tabindex','0');
+  expect(region).toHaveAccessibleDescription('Keep this function name and parameters in your solution. Long signatures scroll sideways; focus the code and use the arrow keys, or swipe.');
+  expect(region.querySelector('code')?.textContent).toBe(signature);
+});
+
+it.each(['pending','active','completed','cancelled'] as const)('announces recovery into %s only after a failed update',async(status)=>{
+  vi.useFakeTimers();
+  const fetcher=vi.fn().mockResolvedValue({ok:true,json:async()=>initial});
+  vi.stubGlobal('fetch',fetcher);
+  render(<Arena initial={initial}/>);
+  const recovery=screen.getByRole('status',{name:'Live update recovery'});
+  expect(recovery).toBeEmptyDOMElement();
+  expect(recovery).toHaveAttribute('aria-live','polite');
+  expect(recovery).toHaveAttribute('aria-atomic','true');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(recovery).toBeEmptyDOMElement();
+  fetcher.mockRejectedValue(new Error('offline'));
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('alert')).toHaveTextContent('Live updates unavailable');
+  expect(recovery).toBeEmptyDOMElement();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(recovery).toBeEmptyDOMElement();
+  fetcher.mockResolvedValue({ok:true,json:async()=>({...initial,status})});
+  await act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Retry live updates'}));});
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByRole('status',{name:'Live update recovery'})).toBe(recovery);
+  expect(recovery).toHaveTextContent('Live updates restored. Match status and progress refreshed from the server.');
+  expect(recovery).toHaveClass('arena-connection-recovered');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(recovery).toHaveTextContent('Live updates restored.');
+  if (status==='pending' || status==='active') {
+    fetcher.mockResolvedValue({ok:false});
+    await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+    expect(recovery).toBeEmptyDOMElement();
+    fetcher.mockResolvedValue({ok:true,json:async()=>({...initial,status})});
+    await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+    expect(recovery).toHaveTextContent('Live updates restored.');
+  }
+});
+
+it.each([
+  ['ready','active',false],['ready','cancelled',false],
+  ['submit','completed',false],['submit','cancelled',false],
+  ['ready','active',true],['submit','completed',true],
+] as const)('retires %s feedback after %s polling, including delayed acknowledgement %s',async(action,status,delayed)=>{
+  vi.useFakeTimers();
+  const start:ArenaSnapshot=action==='ready' ? initial : {...initial,status:'active',deadline:'2026-11-06T12:05:00Z'};
+  let snapshot=start;
+  let resolvePost!:(value:unknown)=>void;
+  const post=new Promise(resolve=>{resolvePost=resolve;});
+  vi.stubGlobal('fetch',vi.fn().mockImplementation((_url,options)=>options?.method==='POST' ? post : Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={start}/>);
+  const feedback=document.getElementById('submission-status')!;
+  fireEvent.click(screen.getByRole('button',{name:action==='ready' ? 'Ready to duel' : 'Submit solution'}));
+  const acknowledge=async()=>{await act(async()=>{resolvePost({ok:true,json:async()=>({status:action==='ready' ? 'pending' : 'queued'})});});};
+  if (!delayed) {
+    await acknowledge();
+    expect(feedback).toHaveTextContent(action==='ready' ? 'Ready. Waiting for both players' : 'Solution queued.');
+  }
+  snapshot={...start,status,deadline:status==='active' ? '2026-11-06T12:05:00Z' : start.deadline};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  if (delayed) await acknowledge();
+  expect(document.getElementById('submission-status')).toBe(feedback);
+  expect(feedback).not.toHaveTextContent(/Waiting for both players|Solution queued|Confirming readiness|Sending your solution/);
+  expect(feedback).not.toHaveClass('arena-action-pending');
+  expect(feedback).toHaveTextContent(status==='completed' ? 'Results are ready' : status==='cancelled' ? 'No ratings changed' : 'Your best judged solution counts');
+});
+
+it.each(['pending','active','settling','completed','cancelled'] as const)('uses lifecycle-aware empty score guidance on reopening %s',phase=>{
+  const status=phase==='settling' ? 'active' : phase;
+  render(<Arena initial={{...initial,status,deadline:phase==='settling' ? initial.serverTime : '2026-11-06T12:05:00Z'}}/>);
+  const expected={pending:'The duel has not started',active:'judged score will appear here',settling:'Submissions are closed. Waiting for the server',completed:'View results for the recorded outcome',cancelled:'This duel was cancelled'}[phase];
+  for (const name of ['Your best progress','Opponent progress']) {
+    const card=screen.getByRole('region',{name});
+    expect(card).toHaveTextContent(expected);
+    if (phase!=='active') expect(card).not.toHaveTextContent(/Submit your solution when ready|after they submit|Keep working/);
+  }
+});
+it('updates empty score guidance through activation, expiry and completion polling',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot=initial;
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={initial}/>);
+  const card=screen.getByRole('region',{name:'Your best progress'});
+  snapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(card).toHaveTextContent('Submit your solution when ready');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(card).toHaveTextContent('Submissions are closed. Waiting for the server');
+  snapshot={...snapshot,status:'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(card).toHaveTextContent('View results for the recorded outcome');
+  expect(card).not.toHaveTextContent('Submit your solution when ready');
+});
+
+
+it('updates latest-attempt correction guidance through clock expiry and terminal polling',async()=>{
+  vi.useFakeTimers();
+  let snapshot:ArenaSnapshot={...initial,status:'active',deadline:'2026-11-06T12:00:01Z',submission:{status:'judged',passed:0,total:8}};
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>Promise.resolve({ok:true,json:async()=>snapshot})));
+  render(<Arena initial={snapshot}/>);
+  const panel=screen.getByRole('status',{name:'Latest submission'});
+  expect(panel).toHaveTextContent('submit a corrected solution');
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(panel).not.toHaveTextContent('submit a corrected solution');
+  expect(panel).toHaveTextContent('Submissions are closed');
+  snapshot={...snapshot,status:'completed'};
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);});
+  expect(screen.getByRole('status',{name:'Latest submission'})).toBe(panel);
+  expect(panel).toHaveTextContent('View results for the recorded outcome');
+  expect(panel).toHaveTextContent('Latest solution: 0 / 8');
+});
+
+it.each([false,true])('retries saving the current draft without editing or submitting in plain mode %s',plain=>{
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'current unsaved draft'}});
+  const retry=screen.getByRole('button',{name:'Retry saving draft'});
+  const guidance=screen.getByText(/Draft recovery unavailable/);
+  expect(guidance).toHaveClass('solution-editor-recovery');
+  expect(screen.getByRole('heading',{name:'Your draft is not saved in this tab'})).toHaveClass('arena-draft-warning');
+  expect(retry).toHaveAccessibleDescription(/^Your draft is not saved in this tab/);
+  expect(retry).toHaveAccessibleDescription(/Saving a draft does not submit it/);
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('current unsaved draft');
+  write.mockRestore();
+  const recoveredWrite=vi.spyOn(Storage.prototype,'setItem');
+  fireEvent.click(retry);
+  expect(confirm).not.toHaveBeenCalled();
+  expect(recoveredWrite).toHaveBeenCalledExactlyOnceWith('codeduel:draft:Ada:match','current unsaved draft');
+  expect(screen.queryByRole('button',{name:'Retry saving draft'})).not.toBeInTheDocument();
+  expect(guidance).toHaveTextContent('Draft saved in this tab');
+  expect(guidance).not.toHaveClass('solution-editor-recovery');
+  expect(screen.queryByRole('heading',{name:'Your draft is not saved in this tab'})).not.toBeInTheDocument();
+  expect(guidance).toHaveFocus();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('current unsaved draft');
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+it.each(['completed','cancelled'] as const)('removes draft saving recovery when a match becomes %s',async status=>{
+  vi.useFakeTimers();
+  const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status})}));
+  render(<Arena initial={initial}/>);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'keep this code'}});
+  expect(screen.getByRole('button',{name:'Retry saving draft'})).toBeInTheDocument();
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  write.mockClear();
+  expect(screen.queryByRole('button',{name:'Retry saving draft'})).not.toBeInTheDocument();
+  expect(screen.queryByText(/Draft recovery unavailable/)).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('keep this code');
+  expect(write).not.toHaveBeenCalled();
+});
+
+it.each([false,true])('protects unread stored drafts until explicit replacement in plain mode %s',plain=>{
+  vi.spyOn(window,'confirm').mockReturnValue(true);
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const key='codeduel:draft:Ada:match';
+  sessionStorage.setItem(key,'valuable earlier draft');
+  const originalRead=Storage.prototype.getItem;
+  const read=vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,name:string){
+    if(this===sessionStorage && name===key) throw new Error('read denied');
+    return originalRead.call(this,name);
+  });
+  const write=vi.spyOn(Storage.prototype,'setItem');
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const draftWrites=()=>write.mock.calls.filter(call=>call[0]===key);
+  expect(draftWrites()).toHaveLength(0);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'new intentional draft'}});
+  expect(draftWrites()).toHaveLength(0);
+  const retry=screen.getByRole('button',{name:'Retry saving draft'});
+  expect(retry).toHaveAccessibleDescription(/Automatic saving is paused.*replaces any unread saved draft/);
+  read.mockRestore();
+  expect(sessionStorage.getItem(key)).toBe('valuable earlier draft');
+  const failedWrite=write.mockImplementation(()=>{throw new Error('write denied');});
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('new intentional draft');
+  expect(sessionStorage.getItem(key)).toBe('valuable earlier draft');
+  failedWrite.mockRestore();
+  fireEvent.click(retry);
+  expect(sessionStorage.getItem(key)).toBe('new intentional draft');
+  expect(screen.getByText(/Draft saved in this tab/)).toHaveFocus();
+  expect(screen.queryByText(/Automatic saving is paused/)).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'subsequent edit'}});
+  expect(sessionStorage.getItem(key)).toBe('subsequent edit');
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+
+
+it.each([false,true])('guards unread recovery before editing and clears after explicit starter save in plain mode %s',plain=>{
+  vi.spyOn(window,'confirm').mockReturnValue(true);
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  sessionStorage.setItem('codeduel:draft:Ada:match','earlier code');
+  const originalRead=Storage.prototype.getItem;
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,key:string){
+    if(this===sessionStorage) throw new Error('read denied');
+    return originalRead.call(this,key);
+  });
+  const view=render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    pass\n');
+  expect(leaveIsGuarded()).toBe(true);
+  const retry=screen.getByRole('button',{name:'Retry saving draft'});
+  expect(retry).toHaveAccessibleDescription(/Your browser may ask for confirmation before leaving or refreshing/);
+  const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('write denied');});
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(leaveIsGuarded()).toBe(true);
+  write.mockRestore();
+  fireEvent.click(retry);
+  expect(leaveIsGuarded()).toBe(false);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'edited'}});
+  expect(leaveIsGuarded()).toBe(true);
+  view.unmount();
+  expect(leaveIsGuarded()).toBe(false);
+});
+
+it.each(['completed','cancelled'] as const)('clears unread-draft leave protection when the server reports %s',async status=>{
+  vi.useFakeTimers();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({...initial,status})}));
+  const originalRead=Storage.prototype.getItem;
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,key:string){
+    if(this===sessionStorage) throw new Error('read denied');
+    return originalRead.call(this,key);
+  });
+  render(<Arena initial={initial}/>);
+  expect(leaveIsGuarded()).toBe(true);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(0);});
+  expect(leaveIsGuarded()).toBe(false);
+  expect(screen.queryByRole('button',{name:'Retry saving draft'})).not.toBeInTheDocument();
+});
+it.each([false,true])('retries reading earlier drafts safely in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const key='codeduel:draft:Ada:match';
+  sessionStorage.setItem(key,'earlier solution');
+  const originalRead=Storage.prototype.getItem;
+  let denied=true;
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,name:string){
+    if(this===sessionStorage && name===key && denied) throw new Error('read denied');
+    return originalRead.call(this,name);
+  });
+  const write=vi.spyOn(Storage.prototype,'setItem');
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const retry=screen.getByRole('button',{name:'Retry reading draft'});
+  expect(retry).toHaveAccessibleDescription(/recover earlier code without replacing it/);
+  expect(screen.queryByText(/Reading retry \d+ failed/)).not.toBeInTheDocument();
+  retry.focus();
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(screen.getByText(/Reading retry 1 failed/)).toHaveClass('arena-draft-warning');
+  expect(retry).toHaveAccessibleDescription(/Reading retry 1 failed.*Earlier saved code is still protected/);
+  fireEvent.click(retry);
+  expect(retry).toHaveFocus();
+  expect(retry).toHaveAccessibleDescription(/Reading retry 2 failed/);
+  expect(screen.getByText(/Reading retry 2 failed/).closest('[role="status"]')).toHaveAttribute('aria-atomic','true');
+  expect(leaveIsGuarded()).toBe(true);
+  expect(write.mock.calls.filter(call=>call[0]===key)).toHaveLength(0);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('def solve():\n    pass\n');
+  denied=false;
+  fireEvent.click(retry);
+  expect(screen.getByLabelText('Python solution')).toHaveValue('earlier solution');
+  expect(sessionStorage.getItem(key)).toBe('earlier solution');
+  expect(screen.getByText(/Draft saved in this tab/)).toHaveFocus();
+  expect(screen.queryByRole('button',{name:'Retry reading draft'})).not.toBeInTheDocument();
+  expect(screen.queryByText(/Reading retry \d+ failed/)).not.toBeInTheDocument();
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+
+it.each([false,true])('pauses draft reading after edits in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const originalRead=Storage.prototype.getItem;
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,key:string){
+    if(this===sessionStorage) throw new Error('read denied');
+    return originalRead.call(this,key);
+  });
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  fireEvent.click(screen.getByRole('button',{name:'Retry reading draft'}));
+  expect(screen.getByText(/Reading retry 1 failed/)).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'current edits'}});
+  expect(screen.queryByText(/Reading retry \d+ failed/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('button',{name:'Retry reading draft'})).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Python solution')).toHaveValue('current edits');
+  expect(screen.getByRole('button',{name:'Retry saving draft'})).toHaveAccessibleDescription(/reading is paused to protect your current code/);
+});
+it('resumes saving when retry confirms the unread draft slot is empty',()=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const originalRead=Storage.prototype.getItem;
+  const read=vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,key:string){
+    if(this===sessionStorage) throw new Error('read denied');
+    return originalRead.call(this,key);
+  });
+  render(<Arena initial={initial}/>);
+  read.mockRestore();
+  fireEvent.click(screen.getByRole('button',{name:'Retry reading draft'}));
+  expect(screen.getByText(/Draft saved in this tab/)).toBeInTheDocument();
+  expect(sessionStorage.getItem('codeduel:draft:Ada:match')).toBe('def solve():\n    pass\n');
+  expect(leaveIsGuarded()).toBe(false);
+});
+
+it.each([false,true])('requires fresh consent for unread draft replacement in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const key='codeduel:draft:Ada:match';
+  sessionStorage.setItem(key,'earlier valuable code');
+  const originalRead=Storage.prototype.getItem;
+  const read=vi.spyOn(Storage.prototype,'getItem').mockImplementation(function(this:Storage,name:string){
+    if(this===sessionStorage && name===key) throw new Error('read denied');
+    return originalRead.call(this,name);
+  });
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const retry=screen.getByRole('button',{name:'Retry saving draft'});
+  retry.focus();
+  fireEvent.click(retry);
+  expect(confirm).toHaveBeenCalledWith(expect.stringMatching(/Earlier saved code will be lost.*does not submit/));
+  expect(retry).toHaveFocus();
+  expect(leaveIsGuarded()).toBe(true);
+  read.mockRestore();
+  expect(sessionStorage.getItem(key)).toBe('earlier valuable code');
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'current code'}});
+  fireEvent.click(retry);
+  expect(confirm).toHaveBeenCalledTimes(2);
+  expect(sessionStorage.getItem(key)).toBe('earlier valuable code');
+  confirm.mockReturnValue(true);
+  fireEvent.click(retry);
+  expect(sessionStorage.getItem(key)).toBe('current code');
+  expect(screen.getByText(/Draft saved in this tab/)).toHaveFocus();
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+it.each(['completed','cancelled'] as const)('does not recreate a closed %s draft with the save shortcut',status=>{
+  const write=vi.spyOn(Storage.prototype,'setItem');
+  render(<Arena initial={{...initial,status}}/>);
+  write.mockClear();
+  const editor=screen.getByLabelText('Python solution');
+  expect(fireEvent.keyDown(editor,{key:'s',ctrlKey:true})).toBe(false);
+  expect(write).not.toHaveBeenCalled();
+  expect(sessionStorage.getItem('codeduel:draft:Ada:match')).toBeNull();
+  expect(screen.queryByText(/Command\+S to retry/)).not.toBeInTheDocument();
+});
+it.each([false,true])('saves with editor shortcuts and preserves focus through storage recovery in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const editor=screen.getByLabelText('Python solution');
+  fireEvent.change(editor,{target:{value:'keyboard draft'}});
+  editor.focus();
+  write.mockClear();
+  expect(fireEvent.keyDown(editor,{key:'s',ctrlKey:true})).toBe(false);
+  expect(write).toHaveBeenCalledExactlyOnceWith('codeduel:draft:Ada:match','keyboard draft');
+  expect(editor).toHaveFocus();
+  expect(screen.getByText(/Draft recovery unavailable/)).toBeInTheDocument();
+  write.mockRestore();
+  const recoveredWrite=vi.spyOn(Storage.prototype,'setItem');
+  expect(fireEvent.keyDown(editor,{key:'s',metaKey:true})).toBe(false);
+  expect(sessionStorage.getItem('codeduel:draft:Ada:match')).toBe('keyboard draft');
+  expect(screen.getByText(/Draft saved in this tab/)).toBeInTheDocument();
+  expect(editor).toHaveFocus();
+  recoveredWrite.mockClear();
+  fireEvent.keyDown(editor,{key:'s',ctrlKey:true});
+  expect(recoveredWrite).not.toHaveBeenCalled();
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+it.each([false,true])('requires fresh shortcut consent and ignores unrelated keys in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  const key='codeduel:draft:Ada:match';
+  sessionStorage.setItem(key,'earlier code');
+  const read=vi.spyOn(Storage.prototype,'getItem').mockImplementation(()=>{throw new Error('denied');});
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  read.mockRestore();
+  const editor=screen.getByLabelText('Python solution');
+  fireEvent.change(editor,{target:{value:'replacement'}});
+  editor.focus();
+  for(const modifiers of [{},{ctrlKey:true,altKey:true},{ctrlKey:true,shiftKey:true},{ctrlKey:true,isComposing:true}]) {
+    expect(fireEvent.keyDown(editor,{key:'s',...modifiers})).toBe(true);
+  }
+  expect(fireEvent.keyDown(editor,{key:'s',ctrlKey:true,repeat:true})).toBe(false);
+  expect(fireEvent.keyDown(screen.getByRole('button',{name:'Submit solution'}),{key:'s',ctrlKey:true})).toBe(true);
+  expect(confirm).not.toHaveBeenCalled();
+  fireEvent.keyDown(editor,{key:'s',ctrlKey:true});
+  fireEvent.keyDown(editor,{key:'s',metaKey:true});
+  expect(confirm).toHaveBeenCalledTimes(2);
+  expect(sessionStorage.getItem(key)).toBe('earlier code');
+  expect(editor).toHaveFocus();
+  confirm.mockReturnValue(true);
+  fireEvent.keyDown(editor,{key:'s',ctrlKey:true});
+  expect(sessionStorage.getItem(key)).toBe('replacement');
+  expect(editor).toHaveFocus();
+  expect(vi.mocked(fetch).mock.calls.some(call=>call[1]?.method==='POST')).toBe(false);
+});
+
+it.each([false,true])('highlights protection of unread drafts in plain mode %s',plain=>{
+  vi.stubGlobal('fetch',vi.fn(()=>new Promise(()=>{})));
+  vi.spyOn(Storage.prototype,'getItem').mockImplementation(()=>{throw new Error('unavailable');});
+  render(<Arena initial={initial}/>);
+  if(plain) fireEvent.click(screen.getByRole('button',{name:'Use plain text editor'}));
+  const heading=screen.getByRole('heading',{name:'Earlier saved code needs protection'});
+  expect(heading).toHaveClass('arena-draft-warning');
+  const read=screen.getByRole('button',{name:'Retry reading draft'});
+  const save=screen.getByRole('button',{name:'Retry saving draft'});
+  expect(read).toHaveAccessibleDescription(/^Earlier saved code needs protection/);
+  expect(save).toHaveAccessibleDescription(/^Earlier saved code needs protection/);
+  read.focus();
+  fireEvent.click(read);
+  expect(read).toHaveFocus();
+  expect(screen.getByRole('heading',{name:'Earlier saved code needs protection'})).toBe(heading);
+  fireEvent.change(screen.getByLabelText('Python solution'),{target:{value:'keep current code'}});
+  expect(save).toHaveAccessibleDescription(/Earlier saved code needs protection.*reading is paused/);
 });

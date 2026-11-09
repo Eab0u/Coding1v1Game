@@ -2,6 +2,19 @@ import { isDeepStrictEqual } from "node:util";
 import type { ScoredSubmission } from "./scoring";
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
+/** Copy JSON values only, excluding unrelated array properties and symbol keys. */
+function snapshotJson(value: Json): Json {
+  if (Array.isArray(value)) {
+    const copy: Json[] = [];
+    for (let index = 0; index < value.length; index++) copy.push(snapshotJson(value[index]));
+    return copy;
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, snapshotJson(entry)]));
+  }
+  return value;
+}
 export interface JudgeTest { args: Json[]; expected: Json; benchmark?: boolean }
 export interface JudgeRequest {
   source: string;
@@ -26,31 +39,82 @@ export class JudgeUnavailableError extends Error {
   constructor() { super("Sandbox judge unavailable; submission must not be scored."); }
 }
 
-function jsonValue(value: unknown): boolean {
+function jsonValue(value: unknown, budget: { remaining: number }, depth = 0): boolean {
+  // Count expanded occurrences: a small shared graph can serialize exponentially.
+  if (--budget.remaining < 0) return false;
   if (value === null || typeof value === "string" || typeof value === "boolean") return true;
   if (typeof value === "number") return Number.isFinite(value);
-  if (Array.isArray(value)) return Array.from(value).every(jsonValue);
-  return typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype && Object.values(value).every(jsonValue);
+  // Bound recursion before traversing containers, including cyclic caller data.
+  // This also keeps cloning and JSON serialization safely below stack limits.
+  if (depth >= 100) return false;
+  if (Array.isArray(value)) {
+    if (value.length > budget.remaining) return false;
+    for (let index = 0; index < value.length; index++) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, index);
+      if (!descriptor || !("value" in descriptor) || !jsonValue(descriptor.value, budget, depth + 1)) return false;
+    }
+    return true;
+  }
+  if (typeof value !== "object" || Object.getPrototypeOf(value) !== Object.prototype) return false;
+  for (const key of Object.keys(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor || !("value" in descriptor) || !jsonValue(descriptor.value, budget, depth + 1)) return false;
+  }
+  return true;
+}
+
+/** Normalize signed zeros on an owned JSON snapshot without touching caller data. */
+function normalizeJsonZeros(value: Json): Json {
+  if (value === 0) return 0;
+  if (value && typeof value === "object") {
+    for (const key of Object.keys(value)) {
+      const object = value as Record<string, Json>;
+      object[key] = normalizeJsonZeros(object[key]);
+    }
+  }
+  return value;
 }
 
 /** Server-only Judge0 adapter. No local execution or fallback is permitted. */
-export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) {
-  const url = new URL(config.url);
+export function createJudge(settings: JudgeConfig, fetcher: typeof fetch = fetch) {
+  // Validate and use one snapshot, including throughout asynchronous executions.
+  const config = { ...settings };
+  if ((config.authToken !== undefined && typeof config.authToken !== "string") ||
+      (config.onExecutionStatus !== undefined && typeof config.onExecutionStatus !== "function")) {
+    throw new RangeError("Invalid judge configuration.");
+  }
+  try {
+    // Validate header encoding now; fetch errors would otherwise look like outages.
+    if (config.authToken !== undefined) new Headers({ "X-Auth-Token": config.authToken });
+  } catch {
+    throw new RangeError("Invalid judge configuration.");
+  }
+  let url: URL;
+  try { url = new URL(config.url); }
+  catch {
+    // URL parser errors retain the raw input, which may contain credentials.
+    throw new RangeError("Invalid judge configuration.");
+  }
   const timeout = config.requestTimeoutMs ?? 10_000;
   const maxPolls = config.maxPolls ?? 120;
   const pollInterval = config.pollIntervalMs ?? 250;
+  // Node clamps larger timer delays to 1ms instead of honoring the setting.
+  const maxTimerDelayMs = 2_147_483_647;
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash ||
       !Number.isSafeInteger(config.pythonLanguageId) || config.pythonLanguageId <= 0 ||
       !Number.isFinite(config.cpuLimitSeconds) || config.cpuLimitSeconds <= 0 ||
+      !Number.isFinite(config.cpuLimitSeconds * 1000) ||
       !Number.isSafeInteger(config.memoryLimitKb) || config.memoryLimitKb <= 0 ||
-      !Number.isSafeInteger(timeout) || timeout <= 0 || !Number.isSafeInteger(maxPolls) || maxPolls <= 0 ||
-      !Number.isSafeInteger(pollInterval) || pollInterval < 0) throw new RangeError("Invalid judge configuration.");
+      !Number.isSafeInteger(timeout) || timeout <= 0 || timeout > maxTimerDelayMs || !Number.isSafeInteger(maxPolls) || maxPolls <= 0 ||
+      !Number.isSafeInteger(pollInterval) || pollInterval < 0 || pollInterval > maxTimerDelayMs) throw new RangeError("Invalid judge configuration.");
   const base = config.url.replace(/\/$/, "");
 
   async function api(path: string, body?: object) {
     try {
       const response = await fetcher(`${base}${path}`, {
         method: body ? "POST" : "GET",
+        // Keep credentials and submission source on the configured endpoint.
+        redirect: "error",
         headers: { "Content-Type": "application/json", ...(config.authToken ? { "X-Auth-Token": config.authToken } : {}) },
         signal: AbortSignal.timeout(timeout),
         ...(body ? { body: JSON.stringify(body) } : {}),
@@ -60,15 +124,55 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
     } catch { throw new JudgeUnavailableError(); }
   }
 
-  return async function judge(request: JudgeRequest): Promise<ScoredSubmission> {
-    if (typeof request.source !== "string" || !request.source.trim() || request.source.length > 65_536 ||
-        !/^[A-Za-z_][A-Za-z0-9_]*$/.test(request.functionName) ||
+  return async function judge(input: JudgeRequest): Promise<ScoredSubmission> {
+    const invalidRequest = () => new RangeError("Invalid judge request; include JSON tests and a largest-test benchmark.");
+    if (!input || typeof input !== "object" || Array.isArray(input)) throw invalidRequest();
+    // Read only own data fields: request accessors must never run during validation.
+    const fields = ["source", "functionName", "tests", "submittedAtMs"].map(key => Object.getOwnPropertyDescriptor(input, key));
+    if (fields.some(field => !field || !("value" in field))) throw invalidRequest();
+    const request: JudgeRequest = {
+      source: fields[0]!.value, functionName: fields[1]!.value,
+      tests: fields[2]!.value, submittedAtMs: fields[3]!.value,
+    };
+    const jsonBudget = { remaining: 1_000_000 };
+    // Read suite indices without invoking caller-defined iteration or array methods.
+    const suite = Array.isArray(request?.tests) && request.tests.length <= 1000
+      ? Array.from({ length: request.tests.length }, (_, index) => {
+          const descriptor = Object.getOwnPropertyDescriptor(request.tests, index);
+          if (!descriptor || !("value" in descriptor)) return undefined;
+          const entry = descriptor.value;
+          if (!entry || typeof entry !== "object" || Array.isArray(entry)) return undefined;
+          const fields = ["args", "expected", "benchmark"].map(key => Object.getOwnPropertyDescriptor(entry, key));
+          if (fields.some(field => field && !("value" in field))) return undefined;
+          return { args: fields[0]?.value, expected: fields[1]?.value, benchmark: fields[2]?.value };
+        })
+      : [];
+    if (!request || typeof request !== "object" || Array.isArray(request) ||
+        typeof request.source !== "string" || !request.source.trim() || request.source.length > 65_536 ||
+        typeof request.functionName !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(request.functionName) ||
         !Number.isFinite(request.submittedAtMs) || request.submittedAtMs < 0 ||
         !Array.isArray(request.tests) || !request.tests.length || request.tests.length > 1000 ||
-        !request.tests.some(test => test.benchmark === true) ||
-        !Array.from(request.tests).every(test => test && Array.isArray(test.args) && jsonValue(test.args) && jsonValue(test.expected))) {
+        !suite.every(test => test && typeof test === "object" && !Array.isArray(test) &&
+          (test.benchmark === undefined || typeof test.benchmark === "boolean") &&
+          Array.isArray(test.args) && jsonValue(test.args, jsonBudget) && jsonValue(test.expected, jsonBudget)) ||
+        !suite.some(test => test?.benchmark === true)) {
       throw new RangeError("Invalid judge request; include JSON tests and a largest-test benchmark.");
     }
+    // Own the validated suite before the first await; callers may reuse or mutate it.
+    // Snapshot JSON semantics as well as ownership: JSON represents -0 as 0.
+    // Keeping JavaScript's signed zero would reject correct Python JSON answers.
+    // Clone only validated fields. Unrelated caller metadata may be uncloneable
+    // or arbitrarily large and must not enter the execution snapshot.
+    const tests = suite.map(entry => {
+      const test = entry!;
+      return {
+        args: snapshotJson(test.args) as Json[],
+        expected: snapshotJson(test.expected),
+        benchmark: test.benchmark === true,
+      };
+    });
+    for (const test of tests) test.expected = normalizeJsonZeros(test.expected);
+    const submittedAtMs = request.submittedAtMs;
     // Expected answers stay on the server. Only arguments are sent to the sandbox.
     const source = `import json, sys\n_payload = json.loads(sys.stdin.read())\n_namespace = {}\nexec(compile(${JSON.stringify(request.source)}, '<submission>', 'exec'), _namespace)\n_result = _namespace[${JSON.stringify(request.functionName)}](*_payload)\nprint(json.dumps(_result, allow_nan=False))\n`;
     async function run(test: JudgeTest) {
@@ -95,10 +199,18 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
         config.onExecutionStatus?.(status);
         // Failed programs get the full limit, so immediate crashes cannot win on CPU.
         if (status !== 3) return { passed: false, cpuMs: config.cpuLimitSeconds * 1000 };
-        if (typeof result.time !== "string" || !/^(\d+)(\.\d+)?$/.test(result.time) || !Number.isFinite(Number(result.time))) throw new JudgeUnavailableError();
+        if (typeof result.time !== "string" || !/^(\d+)(\.\d+)?$/.test(result.time) || !Number.isFinite(Number(result.time) * 1000)) throw new JudgeUnavailableError();
         let passed = false;
         try {
-          if (typeof result.stdout === "string") passed = isDeepStrictEqual(JSON.parse(Buffer.from(result.stdout, "base64").toString("utf8")), test.expected);
+          if (typeof result.stdout === "string") {
+            const bytes = Buffer.from(result.stdout, "base64");
+            // Buffer decoding silently ignores invalid base64 and replaces bad UTF-8.
+            // Only compare the exact, canonically encoded sandbox output.
+            if (bytes.toString("base64") === result.stdout) {
+              const output = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
+              passed = isDeepStrictEqual(JSON.parse(output, (_key, value) => value === 0 ? 0 : value), test.expected);
+            }
+          }
         } catch { /* Malformed or non-JSON output fails this test. */ }
         return { passed, cpuMs: passed ? Number(result.time) * 1000 : config.cpuLimitSeconds * 1000 };
       }
@@ -107,14 +219,17 @@ export function createJudge(config: JudgeConfig, fetcher: typeof fetch = fetch) 
     // Three independent runs, rather than Judge0's averaging option.
     const samples: [number, number, number] = [0, 0, 0];
     let testsPassed = 0;
-    for (const test of request.tests) {
+    for (const test of tests) {
       const first = await run(test);
       if (!test.benchmark) { testsPassed += Number(first.passed); continue; }
       const second = await run(test);
       const third = await run(test);
       testsPassed += Number(first.passed && second.passed && third.passed);
-      [first, second, third].forEach((result, index) => { samples[index] += result.cpuMs; });
+      [first, second, third].forEach((result, index) => {
+        samples[index] += result.cpuMs;
+        if (!Number.isFinite(samples[index])) throw new JudgeUnavailableError();
+      });
     }
-    return { testsPassed, testsTotal: request.tests.length, largestTestsCpuMs: samples, submittedAtMs: request.submittedAtMs };
+    return { testsPassed, testsTotal: tests.length, largestTestsCpuMs: samples, submittedAtMs };
   };
 }

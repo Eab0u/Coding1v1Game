@@ -2,6 +2,7 @@ import type { Pool } from "pg";
 
 export interface DuelResult {
   title: string;
+  completedAt?: Date | string | null;
   outcome: "WIN" | "LOSS" | "DRAW";
   players: { username: string; before: number | null; after: number | null; passed: number | null; total: number | null; cpu: number | null; submitted: number | null }[];
 }
@@ -9,7 +10,7 @@ export interface DuelResult {
 /** Only completed participant results, never solutions or individual hidden tests. */
 export async function loadResult(db: Pick<Pool, "query">, id: string, userId: string): Promise<DuelResult | null> {
   if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) return null;
-  const { rows } = await db.query(`SELECT p.title,
+  const { rows } = await db.query(`SELECT p.title,m.completed_at,
     CASE WHEN m.winner_id=$2 THEN 'WIN' WHEN m.winner_id IS NULL THEN 'DRAW' ELSE 'LOSS' END AS outcome,
     u.username,h.rating_before AS before,h.rating_after AS after,
     r.tests_passed AS passed,r.tests_total AS total,r.median_cpu_ms AS cpu,r.submitted_after_ms AS submitted
@@ -21,5 +22,5 @@ export async function loadResult(db: Pick<Pool, "query">, id: string, userId: st
       AND m.status='completed' AND m.completed_at<=now()
     ORDER BY CASE WHEN u.id=$2 THEN 0 ELSE 1 END`, [id,userId]);
   if (rows.length !== 2) return null;
-  return {title:rows[0].title,outcome:rows[0].outcome,players:rows.map(r=>({username:r.username,before:r.before,after:r.after,passed:r.passed,total:r.total,cpu:r.cpu,submitted:r.submitted}))};
+  return {title:rows[0].title,completedAt:rows[0].completed_at,outcome:rows[0].outcome,players:rows.map(r=>({username:r.username,before:r.before,after:r.after,passed:r.passed,total:r.total,cpu:r.cpu,submitted:r.submitted}))};
 }

@@ -107,16 +107,49 @@ There is no local execution fallback and no public judge endpoint in this applic
 Configure a trusted server URL, Python language ID from that deployment's `/languages`,
 CPU seconds and memory kilobytes, plus an optional auth token. Pass these explicitly
 as `JudgeConfig`; the adapter does not automatically read environment variables.
+The adapter snapshots configuration at creation; later caller mutations cannot change
+credentials, execution limits, diagnostics or scoring penalties. Create a new adapter
+to apply configuration changes.
+Optional auth tokens must be strings valid as HTTP header values; optional execution
+diagnostics must be functions. Invalid values fail at adapter creation with a generic
+configuration error before network access, without retaining credentials in the error.
+Each execution also snapshots its validated test suite and submission timestamp before
+network access, preserving nested arguments, expected answers and benchmark selection
+if the caller mutates or reuses the request while judging is in progress.
 The environment example includes names for the future match server to map into config.
 Do not use player-supplied URLs, language IDs, limits or test suites.
 
 Call the returned function with Python source, a function name, server-recorded
 submission time and JSON tests `{ args: [...], expected: ..., benchmark: true }`.
+Requests must be non-null objects, excluding arrays and primitive values; malformed
+top-level requests receive the same request validation error before network access.
+Function names must be strings. Benchmark flags must be booleans when supplied;
+omitted or false flags run once, and only true flags contribute three runtime samples.
+Malformed flags and malformed or missing test entries (including sparse arrays) are
+rejected with a request validation error before any sandbox request.
+JSON arguments and expected answers allow at most 1,000,000 expanded JSON values per request (counting containers, primitives and repeated references across all tests), and at most 100 nested array/object containers
+(including the arguments array). Cyclic and deeper values are rejected before cloning
+or network access; shared acyclic values are supported.
 At least one test must mark the largest-input benchmark. The Python function receives
 positional JSON arguments and must return a JSON value; output must contain only that
 value. Comparisons are exact, including array order, with object key order ignored.
+Numeric negative zero and zero compare equally, including inside nested answers,
+matching the JSON argument representation sent to Python.
+Enumerable object fields and array indices in JSON arguments and expected answers must be own data properties; accessor properties are rejected without invoking their getters. Suite indices and test fields (`args`, `expected`, and optional `benchmark`) also use own data properties; inherited fields are not execution inputs. Frozen data properties remain supported, and unrelated test metadata and non-enumerable JSON object metadata are ignored.
+
+Execution snapshots copy only validated test fields and JSON values. Unrelated
+suite metadata, symbol keys and custom array properties (including `toJSON`,
+iterators and `map`)
+are ignored and cannot change serialized arguments or prevent cloning.
+Sandbox stdout must use canonical base64 containing valid UTF-8 JSON. Malformed
+encoding fails the test with the full CPU penalty; decoding never repairs output
+before comparing it with the expected answer. Valid Unicode replacement characters
+remain supported when explicitly encoded in valid UTF-8.
 Tree/linked-list problems will need JSON adapters in the future problem pipeline.
 Expected answers remain on the Node server; only source and arguments go to Judge0.
+Submission and polling requests reject HTTP redirects to keep authentication tokens
+and source on the configured endpoint. Configure the final sandbox URL directly;
+redirect failures are treated as sandbox outages and never scored as player losses.
 
 Every test runs in a separate sandbox. Benchmark tests run three independent times;
 all three must pass to count that test. CPU seconds are converted to milliseconds
@@ -128,6 +161,11 @@ full CPU limit for that run. Judge0 averaging and wall-clock measurements are no
 Network is disabled, processes and files are limited, and CPU, wall and memory limits
 are set on every submission.
 
+Judge request timeouts (positive) and poll intervals (zero allowed) must be integer
+milliseconds at most 2,147,483,647; larger settings are rejected before network access
+because Node would reduce those timer delays to 1ms.
+Configured CPU limits must remain finite in milliseconds. CPU timing conversions and
+benchmark totals that overflow are rejected before scoring.
 HTTP failures, exhausted polling, missing CPU timing and Judge0 internal errors throw
 `JudgeUnavailableError`; callers must retry or report unavailability without recording
 a loss or rating update. Requests have an abort timeout and polling is bounded; there

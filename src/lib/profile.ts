@@ -1,7 +1,16 @@
 import type { Pool } from "pg";
 
+export const RATING_TIERS = [
+  { name: "Bronze", minimum: 0 },
+  { name: "Silver", minimum: 1000 },
+  { name: "Gold", minimum: 1200 },
+  { name: "Platinum", minimum: 1600 },
+  { name: "Diamond", minimum: 2000 },
+  { name: "Master", minimum: 2400 },
+] as const;
+
 export function ratingTier(rating: number): string {
-  return rating >= 2400 ? "Master" : rating >= 2000 ? "Diamond" : rating >= 1600 ? "Platinum" : rating >= 1200 ? "Gold" : rating >= 1000 ? "Silver" : "Bronze";
+  return RATING_TIERS.findLast(tier => rating >= tier.minimum)?.name ?? "Bronze";
 }
 
 /** Public fields only; unfinished matches never contribute to records or graphs. */

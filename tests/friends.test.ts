@@ -14,11 +14,14 @@ it("enforces consent, unique pairs, participant removal and friends-only ranking
     const [ada,bob,eve] = users.rows.map(row => row.id);
     await changeFriend(db, ada, "request", "bOB");
     await changeFriend(db, bob, "request", "Ada");
-    expect(await loadFriends(db, bob)).toEqual([{username:"Ada",status:"pending",incoming:true}]);
+    expect(await loadFriends(db, bob)).toEqual([{username:"Ada",rating:900,status:"pending",incoming:true}]);
     await changeFriend(db, ada, "accept", "Bob");
     await changeFriend(db, eve, "accept", "Bob");
     await changeFriend(db, eve, "remove", "Bob");
     expect((await loadFriends(db, ada))[0].status).toBe("pending");
+    await db.query(`UPDATE users SET rating=999.75 WHERE id=$1`, [bob]);
+    expect(await loadFriends(db, ada)).toEqual([{username:"Bob",rating:999.75,status:"pending",incoming:false}]);
+    await db.query(`UPDATE users SET rating=1000 WHERE id=$1`, [bob]);
     const sql = db as unknown as Pool;
     expect((await loadLeaderboard(sql,"global",ada)).map(row => row.username)).toEqual(["Ada"]);
     await changeFriend(db, bob, "accept", "Ada");

@@ -1,14 +1,81 @@
 "use client";
 import { useId, useLayoutEffect, useRef } from "react";
 
-export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wordWrap = false }: {
+// Retain string and delimiter context from earlier lines when checking a header.
+function pythonLineContext(line: string) {
+  let quote = "";
+  let escaped = false;
+  let code = "";
+  let mismatched = false;
+  const brackets: string[] = [];
+  for (let index = 0; index < line.length; index++) {
+    const character = line[index];
+    // Ordinary strings cannot cross an unescaped physical newline. Recover
+    // after an incomplete earlier line while retaining triple/continued strings.
+    if (quote.length === 1 && character === "\n" && !escaped) quote = "";
+    if (quote) {
+      code += character;
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (line.startsWith(quote, index)) {
+        index += quote.length - 1;
+        quote = "";
+      }
+    } else {
+      // Python joins a backslash immediately followed by a newline outside strings.
+      if (character === "\\" && line[index + 1] === "\n") {
+        code += " ";
+        index++;
+        continue;
+      }
+      if (character === "#") {
+        const newline = line.indexOf("\n", index);
+        if (newline < 0) break;
+        index = newline - 1;
+        continue;
+      }
+      if (character === "\n") {
+        code = brackets.length ? code + " " : "";
+        if (!brackets.length) mismatched = false;
+        continue;
+      }
+      code += character;
+      if (character === "'" || character === '"') {
+        quote = line.startsWith(character.repeat(3), index) ? character.repeat(3) : character;
+        code += quote.slice(1);
+        index += quote.length - 1;
+      }
+      else if ("([{".includes(character)) brackets.push(character);
+      else if (")]}".includes(character)) {
+        const opening = { ")": "(", "]": "[", "}": "{" }[character];
+        if (brackets.pop() !== opening) mismatched = true;
+      }
+    }
+  }
+  const header = code.trim();
+  const isHeader = !mismatched && !quote && brackets.length === 0 && header.endsWith(":") &&
+    /^(?:(?:async\s+)?(?:def|for|with)\b|(?:if|elif|else|while|try|except|finally|class|match|case)\b)/.test(header);
+  return { headerIndent: isHeader ? (code.match(/^[\t ]*/)?.[0] ?? "") : null, inString: Boolean(quote) };
+}
+
+export function PlainPythonEditor({ value: sourceValue, onChange, readOnly, fontSize = 15, wordWrap = false }: {
   value: string; onChange: (value: string) => void; readOnly: boolean; fontSize?: number; wordWrap?: boolean;
 }) {
+  // Textareas normalize CRLF and standalone CR to LF. Use those same offsets
+  // for editing, selection feedback and size reporting without rewriting on mount.
+  const value = sourceValue.replace(/\r\n?/g, "\n");
   const input = useRef<HTMLTextAreaElement>(null);
-  const caret = useRef<[number, number] | null>(null);
+  const composing = useRef(false);
+  const caret = useRef<[number, number, ("forward" | "backward" | "none")?] | null>(null);
   const position = useRef<HTMLDivElement>(null);
   const hint = useId();
+  const readOnlyId = useId();
   const positionId = useId();
+  const summaryId = useId();
+  const selectAllId = useId();
+  const indentationId = useId();
+  const typingId = useId();
+  const lineCount = value.split("\n").length;
   function updatePosition() {
     const editor = input.current;
     if (!editor || !position.current) return;
@@ -18,7 +85,10 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     const line = before.split("\n").length;
     const column = active - before.lastIndexOf("\n");
     const selected = end - start;
-    position.current.textContent = `Line ${line}, column ${column}${selected ? ` · ${selected} code unit${selected === 1 ? "" : "s"} selected` : ""}`;
+    // Match block indentation: ending at the next line start excludes that line.
+    const selectionStop = end > start && editor.value[end - 1] === "\n" ? end - 1 : end;
+    const selectedLines = editor.value.slice(start, selectionStop).split("\n").length;
+    position.current.textContent = `Line ${line}, column ${column}${selected ? ` · ${selected} code unit${selected === 1 ? "" : "s"} selected across ${selectedLines} line${selectedLines === 1 ? "" : "s"}` : ""}`;
   }
   useLayoutEffect(() => {
     if (caret.current !== null) {
@@ -29,8 +99,8 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
   }, [value]);
   function changeIndent(outdent: boolean) {
     const editor = input.current;
-    if (!editor || readOnly) return;
-    const { selectionStart: start, selectionEnd: end } = editor;
+    if (!editor || readOnly || composing.current) return;
+    const { selectionStart: start, selectionEnd: end, selectionDirection } = editor;
     const first = value.slice(0, start).lastIndexOf("\n") + 1;
     // A selection ending at the next line's start does not include that line.
     const last = end > start && value[end - 1] === "\n" ? end - 1 : end;
@@ -50,29 +120,94 @@ export function PlainPythonEditor({ value, onChange, readOnly, fontSize = 15, wo
     }).join("\n");
     editor.focus();
     if (block === value.slice(first, stop)) return;
-    caret.current = [nextStart, nextEnd];
+    caret.current = [nextStart, nextEnd, selectionDirection];
     onChange(value.slice(0, first) + block + value.slice(stop));
   }
   return <>
+    {readOnly && <p id={readOnlyId} className="editor-readonly-notice" role="note" aria-label="Read-only solution">Read-only solution. Indent and Outdent are unavailable. You can select and copy your code.</p>}
     <div className="solution-editor-actions" role="group" aria-label="Python indentation">
-      <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(false)}>Indent</button>
-      <button type="button" className="button button--secondary" disabled={readOnly} onClick={() => changeIndent(true)}>Outdent</button>
+      <button type="button" className="button button--secondary" aria-disabled={readOnly} aria-describedby={readOnly ? readOnlyId : indentationId} onMouseDown={event => {
+        if (composing.current) event.preventDefault();
+      }} onClick={() => changeIndent(false)}>Indent</button>
+      <button type="button" className="button button--secondary" aria-disabled={readOnly} aria-describedby={readOnly ? readOnlyId : indentationId} onMouseDown={event => {
+        if (composing.current) event.preventDefault();
+      }} onClick={() => changeIndent(true)}>Outdent</button>
     </div>
-    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId}`} value={value}
+    {!readOnly && <p id={indentationId} className="editor-hint">Indent and Outdent adjust the current line or selected lines by four spaces (Outdent also removes one leading tab). Use Ctrl+] / Cmd+] to indent and Ctrl+[ / Cmd+[ to outdent. Tab moves to the next control.</p>}
+    <div className="solution-editor-actions"><button type="button" className="button button--secondary" aria-describedby={selectAllId} onMouseDown={event => {
+      // Keep pointer activation from blurring the textarea before the click guard.
+      if (composing.current) event.preventDefault();
+    }} onClick={() => {
+      const editor = input.current;
+      if (!editor || composing.current) return;
+      editor.focus();
+      editor.setSelectionRange(0, editor.value.length, "forward");
+      updatePosition();
+    }}>Select all code</button></div>
+    <p id={selectAllId} className="editor-hint">Select all code focuses the code field and selects the whole solution. Then press Ctrl+C or Cmd+C to copy it. Selection alone does not change your clipboard.</p>
+    <p id={summaryId} className="editor-position" aria-label="Solution size">{lineCount} {lineCount === 1 ? "line" : "lines"} · {value.length} UTF-16 code {value.length === 1 ? "unit" : "units"}. An empty draft has one line; a trailing newline starts another.</p>
+    {!readOnly && <p id={typingId} className="editor-hint">Enter keeps indentation and adds four spaces after a Python block header. Shift+Enter inserts a plain newline. Backspace in space-only indentation outside strings removes spaces to the previous four-space stop.</p>}
+    <textarea ref={input} style={{ fontSize, whiteSpace: wordWrap ? "pre-wrap" : "pre", overflowWrap: wordWrap ? "anywhere" : "normal" }} className="plain-solution-editor" aria-label="Python solution" aria-describedby={`${hint} ${positionId} ${summaryId}${readOnly ? ` ${readOnlyId}` : ` ${typingId}`}`} value={value}
       onSelect={updatePosition} onFocus={updatePosition} onKeyUp={updatePosition} onPointerUp={updatePosition}
+      onCompositionStart={() => { composing.current = true; }}
+      onCompositionEnd={() => { composing.current = false; }}
+      onBlur={() => { composing.current = false; }}
       onChange={event => { updatePosition(); onChange(event.target.value); }} readOnly={readOnly} spellCheck={false}
       autoCapitalize="off" autoCorrect="off" wrap={wordWrap ? "soft" : "off"}
       onKeyDown={event => {
-        if (readOnly || event.key !== "Enter" || event.nativeEvent.isComposing || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+        if (composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+        // Wrapped visual-line boundaries belong to the native textarea layout engine.
+        if (!wordWrap && (event.key === "Home" || event.key === "End") && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          const editor = event.currentTarget;
+          const { selectionStart: start, selectionEnd: end, selectionDirection } = editor;
+          const active = selectionDirection === "backward" ? start : end;
+          const lineStart = value.slice(0, active).lastIndexOf("\n") + 1;
+          const indentation = value.slice(lineStart).match(/^[\t ]*/)?.[0].length ?? 0;
+          const nextNewline = value.indexOf("\n", active);
+          const lineEnd = nextNewline < 0 ? value.length : nextNewline;
+          const contentEnd = lineEnd - (value.slice(lineStart, lineEnd).match(/[\t ]*$/)?.[0].length ?? 0);
+          const target = event.key === "Home"
+            ? (active === lineStart + indentation ? lineStart : lineStart + indentation)
+            : (active === contentEnd ? lineEnd : contentEnd);
+          const anchor = event.shiftKey ? (selectionDirection === "backward" ? end : start) : target;
+          event.preventDefault();
+          editor.setSelectionRange(Math.min(anchor, target), Math.max(anchor, target), target < anchor ? "backward" : "forward");
+          updatePosition();
+          return;
+        }
+        if (readOnly) return;
+        if (event.key === "Backspace" && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+          const { selectionStart: start, selectionEnd: end } = event.currentTarget;
+          const prefix = value.slice(value.slice(0, start).lastIndexOf("\n") + 1, start);
+          if (start === end && /^ +$/.test(prefix) && !pythonLineContext(value.slice(0, start)).inString) {
+            const removed = ((prefix.length - 1) % 4) + 1;
+            event.preventDefault();
+            caret.current = [start - removed, start - removed];
+            onChange(value.slice(0, start - removed) + value.slice(end));
+          }
+          return;
+        }
+        if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && (event.key === "[" || event.key === "]")) {
+          event.preventDefault();
+          changeIndent(event.key === "[");
+          return;
+        }
+        if (event.key !== "Enter" || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
         const { selectionStart: start, selectionEnd: end } = event.currentTarget;
         const prefix = value.slice(value.slice(0, start).lastIndexOf("\n") + 1, start);
         const indent = prefix.match(/^[\t ]*/)?.[0] ?? "";
-        const insertion = "\n" + indent + (prefix.trimEnd().endsWith(":") ? "    " : "");
+        const { headerIndent } = pythonLineContext(value.slice(0, start));
+        const insertion = "\n" + (headerIndent === null ? indent : headerIndent + "    ");
         event.preventDefault();
         caret.current = [start + insertion.length, start + insertion.length];
         onChange(value.slice(0, start) + insertion + value.slice(end));
       }} />
     <div ref={position} id={positionId} className="editor-position" role="group" aria-label="Solution cursor position" aria-live="off">Line 1, column 1</div>
-    <p id={hint} className="editor-hint">Enter keeps indentation and adds four spaces after a colon. Shift+Enter inserts a plain newline. Tab moves to the next control. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab).</p>
+    <details className="editor-keyboard-guide">
+      <summary>Python editor keyboard guide</summary>
+      <p id={hint} className="editor-hint">{wordWrap && "Line wrapping is on. Home and End use native visual-line navigation; hold Shift to select. Turn line wrapping off for indentation-aware Home and trailing-space-aware End. "}{readOnly
+      ? "This solution is read-only. Select text and use Ctrl+C or Cmd+C to copy it. With line wrapping off, Home moves to the first code character, then the line start; Shift+Home selects. End moves after the last non-space character, then the line end; Shift+End selects. Tab moves to the next control. Use Select all code to focus and select the whole solution for copying."
+      : "Enter keeps indentation and adds four spaces from the opening line of a Python block header, ignoring trailing comments and colons inside unfinished strings or brackets, including context from earlier lines and backslash continuations. Backspace in space-only leading indentation outside strings removes spaces to the previous four-space stop. Shift+Enter inserts a plain newline. With line wrapping off, Home moves to the first code character, then the line start; Shift+Home selects. End moves after the last non-space character, then the line end; Shift+End selects. Tab moves to the next control. Ctrl+] or Cmd+] indents; Ctrl+[ or Cmd+[ outdents. Indent and Outdent adjust the current line or selected lines by four spaces (or remove one leading tab). Use Select all code to focus and select the whole solution for copying."}</p>
+    </details>
   </>;
 }

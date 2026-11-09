@@ -17,4 +17,532 @@ The seeded generator produces 2,000 small inputs. Reference and brute force run 
 
 After successful validation, publication inserts all public metadata, private solutions, generated-test specification, a SHA-256 draft digest, validation version/count and the example/hidden suite in one statement. Slugs are immutable: an existing slug causes an error, preserving suites already used by matches. Publish revisions under new slugs. There is no cached validation approval to reuse after changing a draft. A failed validation or unavailable sandbox produces no database write.
 
-The pipeline intentionally has no published seed catalog yet. Problems 1–20 and real sandbox validation remain separate backlog work. Unit tests mock sandbox results and exercise SQL with embedded Postgres; they do not execute Python. Before enabling ranked play, smoke-test CPU limits, network isolation and memory enforcement on the actual sandbox deployment.
+The pipeline has no published catalog yet; the original drafts below are awaiting sandbox validation. Problems 1–20 and real sandbox validation remain separate backlog work. Unit tests mock sandbox results and exercise SQL with embedded Postgres; they do not execute Python. Before enabling ranked play, smoke-test CPU limits, network isolation and memory enforcement on the actual sandbox deployment.
+
+## Original problem drafts
+
+### Relay Cycle Intervals
+
+`drafts/relay-cycle-intervals.json` is an original medium prefix-remainder
+problem: count nonempty contiguous intervals whose signed sum is divisible
+by a positive cycle length. Zero and negative multiples count. Equal prefix
+remainders identify balanced intervals; seed the empty prefix and count before
+inserting the current prefix. The reference uses O(n) expected time and O(n)
+space. The baseline enumerates every interval in O(n^2) time and O(1) space.
+
+The generator supplies 2,000 seeded signed inputs. Fixtures cover unit cycles,
+negative sums, zeroes, missing intervals and signed bounds. Three 100,000-entry
+benchmarks use zeroes, ones with no qualifying interval, and alternating signed
+multiples. Each requires 5,000,050,000 baseline visits; two answers exceed 32 bits.
+Data-only tests compare enumeration with a sorted prefix-residue pairing identity,
+check reversal, negation and adding a cycle to each value, and verify large-case
+formulas. They never execute Python or establish sandbox approval.
+
+The proposed 1-second CPU and 64-MiB limits require isolated measurement. This
+draft remains private and unpublished until full sandbox validation succeeds:
+
+```sh
+npm run problems -- validate problems/drafts/relay-cycle-intervals.json
+npm run problems -- publish problems/drafts/relay-cycle-intervals.json
+```
+
+### Delayed Drop Pairs
+
+`drafts/delayed-drop-pairs.json` is an original medium divide-and-conquer
+problem: count earlier/later signal pairs whose drop strictly exceeds a
+nonnegative tolerance. Equal-to-tolerance differences are excluded; sorting
+the entire input before counting would lose the required time order.
+
+The reference recursively counts within each time half, then counts crossing
+pairs with a monotone pointer over the sorted halves before merging them.
+This takes O(n log n) time and O(n) peak auxiliary space. The brute force
+checks all n(n-1)/2 position pairs, taking O(n^2) time and O(1) space.
+The seeded generator supplies 2,000 small cases. Fixtures cover ties, signed
+boundaries, zero tolerance, exact thresholds and shared endpoints.
+
+Three 100,000-tick benchmarks use descending, constant and split high/low
+levels. Each requires 4,999,950,000 brute-force comparisons; the descending
+and split answers exceed signed 32-bit range. Data-only tests enumerate
+small answers, compare an independent ordered-prefix identity and check
+translation invariance, tolerance monotonicity and large-case formulas.
+
+Neither Python solution runs locally. The proposed 1-second CPU and 64-MiB
+limits require isolated sandbox measurement. This private draft remains
+unpublished until full validation succeeds:
+
+```sh
+npm run problems -- validate problems/drafts/delayed-drop-pairs.json
+npm run problems -- publish problems/drafts/delayed-drop-pairs.json
+```
+
+These are private authoring inputs, outside the site's public assets. No draft is
+approved for ranked play until the sandbox pipeline passes and publishes it.
+
+### Signal Rise Debt
+
+`drafts/signal-rise-debt.json` is an original medium monotonic-stack problem.
+Each tick contributes its distance to the first strictly greater later signal,
+or zero if none exists. Equal levels stay unresolved. The reference stores
+unresolved indices in a nonincreasing stack: each index is pushed and popped
+at most once, giving O(n) time and O(n) space. The O(n^2) brute force scans
+forward independently for each tick and stops at its first greater level.
+
+The seeded generator supplies 2,000 small cases with signed levels and ties.
+Authored fixtures exercise first-versus-largest confusion, equal plateaus,
+unresolved suffixes, singletons and boundary levels. Three 100,000-tick
+benchmarks use descending levels, equal levels and a descending prefix with
+one final maximum. Each requires 4,999,950,000 brute-force comparisons;
+the final-rise answer also exceeds signed 32-bit range.
+
+Data-only tests independently enumerate small answers and derive the large
+answers from their structure. They do not execute either Python solution or
+establish timeout behavior. The proposed 1-second CPU and 64-MiB limits need
+measurement in the isolated sandbox. This draft remains private and unpublished:
+
+```sh
+npm run problems -- validate problems/drafts/signal-rise-debt.json
+npm run problems -- publish problems/drafts/signal-rise-debt.json
+```
+
+### Relay Balance Window
+
+`drafts/relay-balance-window.json` is an original medium prefix-sum problem. A
+quadratic solution enumerates every consecutive window. The reference keeps the
+earliest index of each prefix sum, giving O(n) time and O(n) space. Keeping the
+earliest occurrence matters: later occurrences can hide a longer valid window.
+Negative adjustments prevent a positive-only sliding window approach.
+
+The seeded generator supplies 2,000 small comparisons in the existing pipeline.
+Authored cases include absent windows, singletons, zero targets, repeated prefix
+sums, negative targets and boundary values. Three 100,000-element benchmarks
+exercise no-solution input, repeated prefixes and prefix sums beyond 32-bit range.
+Each requires about five billion window visits from the supplied brute force.
+
+Fixture tests check data shape, expected values and case coverage without executing
+either Python solution. They do **not** establish Python correctness, CPU timeout
+behavior or sandbox isolation. The proposed 1-second CPU and 64-MiB limits still
+require measurement on the isolated deployment.
+
+Once Judge0 connectivity is restored, run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-balance-window.json
+npm run problems -- publish problems/drafts/relay-balance-window.json
+```
+
+Both commands perform full sandbox validation; publication also requires Postgres.
+Never publish through direct SQL or treat mocked runner results as approval.
+
+### Channel Budget Windows
+
+`drafts/channel-budget-windows.json` is an original medium sliding-window
+problem: count nonempty contiguous intervals using at most a given number of
+distinct channels. Duplicate readings consume one channel slot.
+
+The reference maintains a frequency map and moves the left endpoint until the
+budget holds, then counts every valid suffix ending at the right endpoint.
+Each endpoint moves at most n times: O(n) expected time and O(n) space. The
+O(n^2) brute force builds a set for each left endpoint and visits all right
+endpoints, including invalid windows. Its lack of early termination deliberately
+keeps all three benchmarks useful for timeout validation.
+
+The generator supplies 2,000 seeded small arrays and budgets. Fixtures cover
+singletons, repeated channels, signed boundary values, oversized budgets and
+repeated shrinking. Three 100,000-element benchmarks use equal, unique and
+three-channel cycling records; their expected totals follow closed-form counts.
+The equal-channel answer exceeds signed 32-bit range. The supplied brute force
+visits 5,000,050,000 windows per benchmark.
+
+Data-only fixture tests independently enumerate small intervals and verify
+reversal invariance, budget monotonicity and large-case formulas. Neither Python
+solution runs locally. The proposed 1-second CPU and 64-MiB limits require
+measurement in isolated Judge0; correctness and timeout approval remain pending.
+The draft is private and unpublished. Once connectivity is restored, run:
+
+```sh
+npm run problems -- validate problems/drafts/channel-budget-windows.json
+npm run problems -- publish problems/drafts/channel-budget-windows.json
+```
+
+### Spaced Beacon Pairs
+
+`drafts/spaced-beacon-pairs.json` adds an original easy counting problem: count
+pairs of equal channels separated by at least one tick. Positions, rather than
+channel values, distinguish pairs; adjacent equal values are excluded.
+
+The reference adds the channel two positions behind to an eligible frequency
+map before counting each right endpoint: O(n) time and O(n) space. The brute
+force visits every nonadjacent pair in O(n^2) time and O(1) extra space.
+The seeded generator provides 2,000 small signed-channel inputs. Authored cases
+cover singletons, adjacent duplicates, shared endpoints, zero and boundary values.
+Three 100,000-tick benchmarks cover all-equal, alternating and all-distinct
+channels, each requiring 4,999,850,001 brute-force comparisons. Dense answers
+exceed signed 32-bit range.
+
+Data-only fixture tests use an independent identity (all equal pairs minus equal
+neighbors) and verify that identity against enumeration on generated small cases.
+They do not execute or approve either Python implementation. The proposed
+1-second CPU and 64-MiB limits require isolated sandbox measurement. This draft
+is private and unpublished, pending full validation:
+
+```sh
+npm run problems -- validate problems/drafts/spaced-beacon-pairs.json
+npm run problems -- publish problems/drafts/spaced-beacon-pairs.json
+```
+
+### Buffered Signal Gain
+
+`drafts/buffered-signal-gain.json` is an original easy array/greedy problem:
+maximize the signed gain between two ordered readings with at least one tick
+between them. Exactly one pair is required, so decreasing records have negative
+answers. Examples expose adjacent-pair, optional-selection and ordering errors.
+
+The reference tracks the smallest eligible earlier reading in O(n) time and O(1)
+space. The O(n^2) baseline enumerates all valid pairs. The generator supplies
+2,000 seeded small signed arrays. Fixtures include mandatory losses, duplicates,
+single valid pairs and both signed bounds. Three 100,000-reading benchmarks are
+rising, falling and flat; their answers are 99,999, -2 and 0 respectively, and
+each requires 4,999,850,001 baseline comparisons.
+
+Data-only tests compare exhaustive enumeration with an independent reverse
+suffix oracle, verify translation, positive scaling and reverse-negation
+invariance, and check benchmark formulas. Neither Python solution executes on
+the host. The proposed 1-second CPU and 64-MiB limits still require isolated
+sandbox measurement; this private draft is unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/buffered-signal-gain.json
+npm run problems -- publish problems/drafts/buffered-signal-gain.json
+```
+
+### Relay Cooldown Score
+
+`drafts/relay-cooldown-score.json` is an original easy dynamic-programming
+problem: maximize the sum of scores at nonneighboring ticks. Choosing nothing
+is permitted, scores may be negative, and the record is a line rather than a
+ring. Examples distinguish this rule from choosing the single largest score,
+forcing a negative selection, or treating the endpoints as neighbors.
+
+The reference tracks the best totals through the previous two prefixes in O(n)
+time and O(1) extra space. The O(n^2) baseline stores the best score ending at
+each tick and scans all compatible earlier endpoints, including on negative
+records. Its three 100,000-tick benchmarks each require 4,999,850,001 predecessor
+comparisons. All-positive and alternating-sign records earn 50,000,000,000;
+all-negative records earn zero. The proposed 1-second CPU and 64-MiB limits
+still need isolated sandbox measurement.
+
+The seeded generator supplies 2,000 small signed records. Data-only fixture
+tests compare exhaustive choices to an independent idle/active state oracle,
+check reversal and positive scaling, and verify benchmark formulas. These tests
+do not run either Python solution or establish sandbox approval. The draft
+remains private and unpublished. Once isolated Judge0 is available, run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-cooldown-score.json
+npm run problems -- publish problems/drafts/relay-cooldown-score.json
+```
+
+### Beacon Horizon Wait
+
+`drafts/beacon-horizon-wait.json` adds an original medium monotonic-stack
+problem: sum distances to each beacon's first strictly taller beacon on its
+right. Equal heights do not qualify and missing successors contribute zero.
+
+The reference resolves pending indices with a decreasing stack in O(n) time
+and O(n) space. The quadratic baseline scans forward until a taller beacon is
+found. Three 100,000-element benchmarks (flat, descending, and a flat prefix
+with one taller final beacon) each require 4,999,950,000 baseline comparisons.
+The final case's answer exceeds signed 32-bit range.
+
+The seeded generator supplies 2,000 small inputs. Data-only fixture tests
+compare enumeration to an independent reverse successor-jump oracle, check
+strictly increasing height transformations, and verify full-size formulas.
+These checks do not execute either Python solution. The proposed 1-second CPU
+and 64-MiB limits need isolated Judge0 measurement. The draft is private,
+unpublished and unapproved. Once sandbox connectivity is restored, run:
+
+```sh
+npm run problems -- validate problems/drafts/beacon-horizon-wait.json
+npm run problems -- publish problems/drafts/beacon-horizon-wait.json
+```
+
+### Relay Balanced Cuts
+
+`drafts/relay-balanced-cuts.json` is an original easy prefix-sum problem:
+count internal gaps whose nonempty left and right portions have equal signed
+sums. Entries are never removed. Zero totals and repeated qualifying gaps count;
+a singleton has no legal cut.
+
+The reference computes the total and scans internal prefix sums in O(n) time
+and O(1) extra space. A cut qualifies exactly when twice its prefix equals the
+total. The O(n^2) baseline resums both portions at each gap, performing
+9,999,900,000 additions for each 100,000-entry benchmark. All-zero, constant
+positive and alternating-sign records have respectively 99,999, 1 and 49,999
+balanced cuts. The constant case also catches narrow intermediate sums.
+
+The generator supplies 2,000 seeded signed small cases. Data-only tests compare
+explicit left/right sums with a signed-balance walk, check reversal and nonzero
+scaling invariants, and verify fixture and benchmark answers. They never execute
+draft Python. The proposed 1-second CPU and 64-MiB limits need isolated sandbox
+calibration. This draft remains private, unpublished and unapproved. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-balanced-cuts.json
+npm run problems -- publish problems/drafts/relay-balanced-cuts.json
+```
+
+### Relay Floor Repair
+
+`drafts/relay-floor-repair.json` is an original easy greedy/prefix-maximum
+problem: increase signed log levels until they are nondecreasing, minimizing
+unit increments. Equal neighbors are allowed; decreases and reordering are not.
+Every repaired entry must be at least the original prefix maximum. Choosing
+exactly that maximum attains this lower bound, proving the greedy solution.
+The reference carries that maximum in O(n) time and O(1) space. The quadratic
+baseline scans each prefix, performing 5,000,050,000 iterations per full-size
+benchmark. Constant, descending and alternating-extreme fixtures have costs
+0, 4,999,950,000 and 100,000,000,000, respectively.
+
+Data-only tests compare prefix enumeration with unit-by-unit repairs on 2,000
+seeded small cases, check translation, positive scaling and sorted-input
+invariants, and verify full-size formulas. No authored Python executes locally.
+The proposed 1-second CPU and 64-MiB limits need isolated Judge0 calibration,
+reference/baseline agreement and baseline timeouts. This draft remains private,
+unpublished and unapproved for ranked play. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-floor-repair.json
+npm run problems -- publish problems/drafts/relay-floor-repair.json
+```
+
+### Relay Parity Streak
+
+`drafts/relay-parity-streak.json` is an original easy array/dynamic-programming
+problem: find the longest contiguous section with alternating even and odd
+levels. Negative integers and zero are supported; singleton streaks are valid.
+
+The reference tracks the longest valid suffix: extend it on a parity change,
+otherwise reset to one. Every valid section ends at some index, so the maximum
+of these suffix lengths is optimal. This takes O(n) time and O(1) extra space.
+The baseline extends a fresh streak from every start, taking quadratic time on
+alternating input. Two fully alternating 100,000-entry benchmarks return
+100,000; a central parity break returns 50,000 and still forces billions of
+baseline comparisons. The seeded generator provides 2,000 small cases.
+
+Data-only tests compare exhaustive section checks with independent boundary
+partitioning and verify reversal, negation, parity flipping, odd scaling and
+duplicate-append invariants. Python is never executed locally. Proposed
+1-second CPU and 64-MiB limits require isolated sandbox calibration, Python
+reference/baseline agreement and three baseline timeouts per benchmark.
+This draft remains private, unpublished and unapproved. Validate with:
+
+```sh
+npm run problems -- validate problems/drafts/relay-parity-streak.json
+```
+
+### Relay Prefix Diversity
+
+`drafts/relay-prefix-diversity.json` is an original easy array/hash-set problem:
+sum the number of distinct channel IDs in every nonempty prefix of a log.
+Repeated, zero and negative IDs are ordinary values; order matters.
+
+The reference maintains a set and accumulates its size in O(n) expected time
+and O(n) space. The quadratic baseline reconstructs each prefix set, requiring
+5,000,050,000 insertions on each 100,000-entry benchmark. Constant, all-distinct
+and alternating logs have answers 100,000, 5,000,050,000 and 199,999 respectively.
+The distinct benchmark catches answers exceeding signed 32-bit range.
+
+The generator supplies 2,000 seeded small cases. Data-only tests compare prefix
+enumeration with independent first-occurrence contributions: an ID first seen
+at zero-based index i contributes n-i. Tests also check injective renaming,
+appending an existing ID, fixture answers and full-size formulas. No draft
+Python executes locally. Proposed 1-second CPU and 64-MiB limits need isolated
+Judge0 calibration, reference/brute-force agreement and baseline timeouts.
+This draft remains private, unpublished and unapproved. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-prefix-diversity.json
+npm run problems -- publish problems/drafts/relay-prefix-diversity.json
+```
+
+### Relay Load Capacity
+
+`drafts/relay-load-capacity.json` is an original medium binary-search/greedy
+problem: minimize a fixed processing capacity while splitting an ordered log
+of positive loads into at most the allowed number of contiguous rounds.
+Loads cannot be split, and unused rounds are allowed.
+
+For a fixed capacity, greedily filling each round uses the fewest rounds:
+no valid first round can end later than the greedy first round; applying the
+same argument to each remaining suffix proves the bound. Feasibility is
+monotone in capacity, so binary search between the largest load and the total
+finds the minimum in O(n log(sum(loads))) time and O(1) auxiliary space.
+The baseline scans every integer capacity from the largest load upward.
+
+Three 100,000-entry benchmarks cover constant loads with one/two rounds and
+alternating large/small loads with one round. Answers are 100 billion,
+50 billion and 50 billion, testing integer range and forcing billions of
+baseline capacity candidates. A seeded generator supplies 2,000 small cases.
+Data-only tests use independent partition DP to check fixtures, exact greedy
+feasibility boundaries, reversal/scaling, extra-round monotonicity and endpoint
+formulas. No authored Python executes locally. Proposed 2-second CPU and
+64-MiB limits require isolated sandbox calibration, reference/baseline agreement
+and three baseline timeouts per benchmark. The draft remains private,
+unpublished and unapproved. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-load-capacity.json
+```
+
+### Relay Order Conflicts
+
+`drafts/relay-order-conflicts.json` is an original medium sorting problem:
+count strictly decreasing pairs of priority levels in arrival order. Equal
+levels do not conflict; negative levels and nonadjacent pairs are supported.
+
+The reference recursively sorts each half and counts cross-half conflicts
+while merging. When a right value precedes the remaining left values, all
+mid-left of those values conflict with it. Taking the left value first on
+equality excludes equal pairs. Every pair belongs to exactly one recursive
+split, giving O(n log n) time and O(n) auxiliary space. The baseline examines
+all n(n-1)/2 pairs even on sorted or constant input.
+
+Three 100,000-entry benchmarks cover descending, ascending and constant logs,
+with answers 4,999,950,000, zero and zero. The generator supplies 2,000 seeded
+small cases. Data-only tests compare pair enumeration with insertion ranks,
+check increasing relabeling, append/prepend boundaries, and verify that reversal
+or negation complements the answer among unequal pairs. No authored Python
+executes locally. Proposed 1-second CPU and 64-MiB limits require isolated
+sandbox calibration, reference/baseline agreement and three baseline timeouts
+per benchmark. This draft remains private, unpublished and unapproved. Run:
+
+```sh
+npm run problems -- validate problems/drafts/relay-order-conflicts.json
+```
+
+### Relay Missing Slot
+
+`drafts/relay-missing-slot.json` is an original easy hash-set problem: find
+the smallest missing positive slot label, ignoring duplicate and diagnostic
+(nonpositive) labels. Empty logs return 1. Among n entries at least one of
+1 through n+1 is absent. The reference builds a set and checks successive
+labels in O(n) expected time and O(n) space. The baseline repeats linear
+list membership scans, requiring O(n squared) time on occupied prefixes.
+
+Three 100,000-entry benchmarks use ascending and descending complete prefixes
+and a 50,000-label prefix padded with zeroes. Answers are 100001, 100001
+and 50001; baseline scans require over a billion comparisons in every case.
+The seeded generator supplies 2,000 small cases including empty arrays,
+duplicates and diagnostic labels. Data-only tests compare sorted-gap and
+linear-scan oracles and verify order/duplicate invariance and gap filling.
+No authored Python executes locally. Proposed 1-second CPU and 64-MiB limits
+require isolated sandbox calibration, solution agreement and three baseline
+timeouts per benchmark. This draft is private, unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/relay-missing-slot.json
+```
+
+### Relay Target Bursts
+
+`drafts/relay-target-bursts.json` is an original medium prefix-sum counting
+problem. Count nonempty contiguous spans with a specified signed energy total.
+Negative entries prevent a monotonic sliding window. The reference counts prior
+prefix sums equal to the current prefix minus the target; seed prefix zero once
+to include spans starting at index zero. Query before inserting the current
+prefix to exclude empty spans when the target is zero. Expected time is O(n),
+space O(n). The baseline enumerates every span in O(n squared) time.
+
+Three 100,000-entry benchmarks use zeroes, ones and alternating signs. Answers
+are 5,000,050,000, 50,001 and 2,500,000,000. Every baseline performs
+5,000,050,000 inner iterations; counts require more than signed 32-bit storage.
+Tests compare direct span enumeration with ordered prefix-position pairs on
+2,000 deterministic small inputs, check reversal and sign symmetry, and certify
+large answers using closed forms. No authored Python executes on the host.
+Proposed 1-second CPU and 64-MiB limits require isolated sandbox calibration,
+solution agreement and three baseline timeouts per benchmark. The draft remains
+private, unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/relay-target-bursts.json
+```
+
+### Relay Unique Span
+
+`drafts/relay-unique-span.json` is an original medium sliding-window problem:
+find the longest contiguous packet span with distinct channel labels. Negative
+labels and zero are ordinary channels; an empty log returns zero. The reference
+tracks each label's latest index and moves the left boundary only forward.
+Each right endpoint therefore contributes its longest valid suffix, yielding
+O(n) expected time and O(n) space. Taking max with the existing boundary is
+necessary when a repeated channel last appeared outside the current window.
+The baseline starts a fresh set at every position and extends until a repeat,
+requiring O(n squared) work on long distinct runs.
+
+Three 100,000-entry benchmarks cover ascending distinct labels, descending
+distinct labels and two copies of a 50,000-label cycle. Answers are 100000,
+100000 and 50000. Each requires over a billion baseline inner iterations.
+The deterministic generator supplies 2,000 small inputs. Data-only tests use
+independent contiguous-span enumeration and a shrinking queue, plus reversal,
+label-renaming and extension properties. Large answers are certified by a
+matching distinct-label upper bound and a contiguous witness.
+
+No authored Python runs on the host. Proposed 1-second CPU and 64-MiB limits
+require isolated sandbox calibration, solution agreement and three baseline
+timeouts per benchmark. This draft remains private, unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/relay-unique-span.json
+```
+
+### Relay Channel Chain
+
+`drafts/relay-channel-chain.json` is an original medium hash-set problem: find
+how many distinct consecutive integer channel labels form the longest chain.
+Arrival order and duplicate labels do not matter; negative labels and zero are
+ordinary channels. Empty logs return zero.
+
+The reference only walks forward from labels with no predecessor. Each label
+belongs to one chain and is visited once by a walk, so expected time is O(n)
+and space O(n). Skipping non-start labels is essential: the baseline walks from
+every distinct label and takes O(n squared) on consecutive inputs.
+
+Three 100,000-entry benchmarks cover ascending nonnegative labels, descending
+nonpositive labels and two 50,000-label chains separated by one missing label.
+Answers are 100000, 100000 and 50000. The baseline performs 5,000,050,000,
+5,000,050,000 and 2,500,050,000 successful membership iterations respectively.
+Data-only tests compare sorted adjacency with independent start enumeration on
+2,000 deterministic small inputs, verify reversal, duplication, translation and
+sign symmetry, and certify benchmark structure and answers.
+
+No authored Python runs on the host. Proposed 1-second CPU and 64-MiB limits
+require isolated sandbox calibration, solution agreement and three baseline
+timeouts per benchmark. This draft remains private, unpublished and unapproved.
+
+```sh
+npm run problems -- validate problems/drafts/relay-channel-chain.json
+```
+
+## Relay Basin Storage (draft 20)
+
+Original medium array/two-pointer problem about coolant held between unit-width
+dividers. Empty, short, flat and monotone trays store zero; unequal boundaries
+and interior peaks determine local depths. Answers can exceed 32-bit integers.
+
+The reference processes the side with the smaller known boundary maximum.
+The opposite known maximum bounds that side, so any depth committed there is
+final; a new taller divider contributes zero. Each step consumes one column,
+giving O(n) time and O(1) extra space. The baseline scans both sides at every
+column, performing n(n+1) inner visits regardless of the tray shape.
+
+Three 100,000-column benchmarks cover a deep enclosed basin (99,998,000,000),
+alternating tall dividers and zeroes (49,999,000,000; the final zero drains),
+and a rising tray (0). Each requires 10,000,100,000 baseline visits. Data-only
+tests compare prefix/suffix maxima with horizontal layer counting on 2,000
+seeded trays and verify reversal, translation, scaling and zero padding.
+
+No authored Python executes on the host. Proposed 1-second CPU and 64-MiB
+limits require sandbox calibration, solution agreement and three baseline
+timeouts for every benchmark. This draft is private, unpublished and unapproved.
+
+Validate with: npm run problems -- validate problems/drafts/relay-basin-storage.json

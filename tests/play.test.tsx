@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, act } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import Link from "next/link";
 import { Play } from "../src/components/play";
 class Socket {
   static OPEN = 1;
@@ -14,6 +15,185 @@ beforeEach(() => { vi.stubGlobal("WebSocket", Socket); });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 function start() { render(<Play signedIn />); fireEvent.click(screen.getByRole("button", { name: "Play a duel" })); act(() => Socket.latest.onopen()); return Socket.latest; }
 function event(data: object) { act(() => Socket.latest.onmessage({ data: JSON.stringify(data) })); }
+it.each([
+  [0, "0s", "0 seconds"],
+  [1, "1s", "1 second"],
+  [59, "59s", "59 seconds"],
+  [60, "1m", "1 minute"],
+  [61, "1m 1s", "1 minute 1 second"],
+  [3599, "59m 59s", "59 minutes 59 seconds"],
+  [3600, "1h", "1 hour"],
+  [3661, "1h 1m 1s", "1 hour 1 minute 1 second"],
+  [7322, "2h 2m 2s", "2 hours 2 minutes 2 seconds"],
+])("formats %i authoritative search seconds readably", (seconds, compact, spoken) => {
+  start();
+  event({ type: "queued", waitedSeconds: seconds, ratingBand: 800 });
+  expect(screen.getByText(`${compact} elapsed`)).toHaveAttribute("aria-hidden", "true");
+  expect(screen.getByText(`${spoken} elapsed`)).toHaveClass("sr-only");
+  expect(screen.getByRole("status")).not.toHaveTextContent(`${spoken} elapsed`);
+  expect(screen.getAllByRole("definition")[0].closest("dl")).toHaveAttribute("aria-live", "off");
+});
+
+it("updates elapsed units from server frames and removes search details at reservation", () => {
+  start();
+  for (const seconds of [59, 60, 61, 3600]) {
+    event({ type: "queued", waitedSeconds: seconds, ratingBand: 800 });
+    expect(screen.getAllByText(/elapsed$/)).toHaveLength(2);
+  }
+  expect(screen.getByText("1h elapsed")).toBeInTheDocument();
+  event({ type: "matching" });
+  expect(screen.queryByText(/elapsed$/)).not.toBeInTheDocument();
+});
+it.each(["focused cancel", "independent navigation"])("recovers a silent queued connection with %s and permits ticket recovery", focus => {
+  vi.useFakeTimers();
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  const stale = Socket.latest;
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  const target = focus === "focused cancel" ? screen.getByRole("button", { name: "Cancel search" }) : screen.getByRole("link", { name: "View profile" });
+  target.focus();
+  act(() => vi.advanceTimersByTime(29999));
+  expect(stale.close).not.toHaveBeenCalled();
+  act(() => vi.advanceTimersByTime(1));
+  expect(stale.close).toHaveBeenCalledOnce();
+  expect(screen.getByRole("status")).toHaveTextContent("Search updates stopped. Connection closed; retry to recover any reserved match.");
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toBeEnabled();
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(screen.queryByRole("definition")).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(0));
+  expect(vi.getTimerCount()).toBe(0);
+  expect(focus === "focused cancel" ? play : target).toHaveFocus();
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  act(() => stale.onmessage({ data: JSON.stringify({ type: "queued", waitedSeconds: 99, ratingBand: 550 }) }));
+  act(() => stale.onclose());
+  expect(screen.getByRole("status")).toHaveTextContent("Connecting");
+  event({ type: "matched", match: { id: "recovered", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  act(() => vi.advanceTimersByTime(30000));
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveAttribute("href", "/match/recovered");
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+it.each(["left", "error", "disconnect", "unmount"])("clears the stale-search deadline after %s", outcome => {
+  vi.useFakeTimers();
+  const view = render(<Play signedIn />);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  if (outcome === "unmount") view.unmount();
+  else if (outcome === "disconnect") act(() => Socket.latest.onclose());
+  else event({ type: outcome, message: "Please retry." });
+  const message = outcome === "unmount" ? null : screen.getByRole("status").textContent;
+  expect(vi.getTimerCount()).toBe(0);
+  act(() => vi.advanceTimersByTime(30000));
+  if (message) expect(screen.getByRole("status").textContent).toBe(message);
+});
+
+it("renews the stale-search deadline only while authoritative queue updates continue", () => {
+  vi.useFakeTimers();
+  const ws = start();
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  act(() => vi.advanceTimersByTime(25000));
+  event({ type: "queued", waitedSeconds: 25, ratingBand: 200 });
+  act(() => vi.advanceTimersByTime(25000));
+  expect(ws.close).not.toHaveBeenCalled();
+  expect(screen.getByText("25s elapsed")).toBeInTheDocument();
+  event({ type: "matching" });
+  act(() => vi.advanceTimersByTime(9999));
+  expect(ws.close).not.toHaveBeenCalled();
+  act(() => vi.advanceTimersByTime(1));
+  expect(screen.getByRole("status")).toHaveTextContent("reservation was not confirmed");
+  expect(vi.getTimerCount()).toBe(0);
+});
+it.each(["confirmed", "independent navigation", "unfocused", "failure then retry"])("preserves reservation focus intent through %s", outcome => {
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  if (outcome !== "unfocused") screen.getByRole("button", { name: "Cancel search" }).focus();
+  event({ type: "matching" });
+  expect(screen.queryByRole("button", { name: "Cancel search" })).not.toBeInTheDocument();
+  if (outcome === "independent navigation") screen.getByRole("link", { name: "View profile" }).focus();
+  if (outcome === "failure then retry") {
+    event({ type: "error", message: "Reservation failed. Please retry." });
+    fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+    act(() => Socket.latest.onopen());
+  }
+  event({ type: "matched", match: { id: "reserved", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  const arena = screen.getByRole("link", { name: "Open arena" });
+  if (outcome === "confirmed" || outcome === "failure then retry") expect(arena).toHaveFocus();
+  else expect(arena).not.toHaveFocus();
+  if (outcome === "independent navigation") expect(screen.getByRole("link", { name: "View profile" })).toHaveFocus();
+});
+it("recovers from a browser connection setup failure and permits a successful retry", () => {
+  vi.useFakeTimers();
+  vi.stubGlobal("WebSocket", class { constructor() { throw new DOMException("Blocked", "SecurityError"); } });
+  render(<Play signedIn />);
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  play.focus();
+  fireEvent.click(play);
+  expect(play).toBeEnabled();
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(play).toHaveFocus();
+  expect(screen.getByRole("status")).toHaveTextContent("Could not open a matchmaking connection. Please try again.");
+  expect(screen.queryByRole("button", { name: "Cancel search" })).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("status")).toHaveTextContent("Could not open a matchmaking connection");
+  vi.stubGlobal("WebSocket", Socket);
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  expect(Socket.latest.send).toHaveBeenCalledExactlyOnceWith('{"type":"join"}');
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
+it.each(["confirmed", "timeout", "disconnect", "error", "connecting"])("restores Play focus after focused cancellation ends through %s", outcome => {
+  vi.useFakeTimers();
+  start();
+  if (outcome === "connecting") Socket.latest.readyState = 0;
+  else event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus();
+  fireEvent.click(cancel);
+  if (outcome === "confirmed") event({ type: "left" });
+  if (outcome === "timeout") act(() => vi.advanceTimersByTime(10000));
+  if (outcome === "disconnect") act(() => Socket.latest.onclose());
+  if (outcome === "error") event({ type: "error", message: "Please retry" });
+  expect(screen.getByRole("button", { name: "Play a duel" })).toHaveFocus();
+});
+
+it("preserves independent navigation during cancellation and clears focus intent before retry", () => {
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus(); fireEvent.click(cancel);
+  const profile = screen.getByRole("link", { name: "View profile" });
+  profile.focus();
+  event({ type: "left" });
+  expect(profile).toHaveFocus();
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onerror());
+  expect(profile).toHaveFocus();
+});
+
+it("does not move focus for an unfocused cancellation", () => {
+  start();
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  event({ type: "left" });
+  expect(screen.getByRole("button", { name: "Play a duel" })).not.toHaveFocus();
+});
+
+it("hands cancellation races to the arena without restoring Play focus", () => {
+  start();
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus(); fireEvent.click(cancel);
+  event({ type: "matched", match: { id: "race", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Match reserved" })).not.toHaveFocus();
+});
 it("joins once and shows server wait and cancellation acknowledgement", () => {
   const ws = start();
   expect(ws.url.pathname).toBe("/matchmaking");
@@ -155,7 +335,7 @@ it("updates visible queue metrics without changing the live announcement and cle
   event({ type: "queued", waitedSeconds: 20, ratingBand: 200 });
   expect(status.textContent).toBe(announcement);
   expect(screen.getByText("20s elapsed")).toBeInTheDocument();
-  expect(screen.getByText("?200 points")).toBeInTheDocument();
+  expect(screen.getByText("±200 points")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
   expect(screen.queryByLabelText("Current search details")).not.toBeInTheDocument();
   expect(status).toHaveTextContent("Waiting for server confirmation");
@@ -174,4 +354,290 @@ it("recovers from invalid queue metrics without rendering them", () => {
   expect(screen.queryByLabelText("Current search details")).not.toBeInTheDocument();
   expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response");
   expect(screen.getByRole("button", { name: "Play a duel" })).toBeEnabled();
+});
+
+
+it("renders readable matchmaking copy throughout connection, search, cancellation and reservation", () => {
+  render(<Play signedIn />);
+  expect(screen.getByRole("status")).toHaveTextContent("Python only · Rating bands widen as you wait.");
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  expect(screen.getByRole("button", { name: "Connecting…" })).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Connecting to the arena…");
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  expect(screen.getByRole("button", { name: "Finding opponent…" })).toBeDisabled();
+  expect(screen.getByText("±100 points")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  expect(screen.getByRole("button", { name: "Cancelling search…" })).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Cancelling your search… Waiting for server confirmation.");
+  event({ type: "left" });
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "matching" });
+  expect(screen.getByRole("button", { name: "Reserving match…" })).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Reserving your match… Waiting for server confirmation.");
+  event({ type: "matched", match: { id: "m", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("status")).toHaveTextContent("Matched with Ada (800) · easy.");
+});
+
+
+it.each(["play", "cancel"])("focuses the arena link when a match replaces the focused %s search control", control => {
+  render(<Play signedIn />);
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  play.focus();
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  if (control === "cancel") screen.getByRole("button", { name: "Cancel search" }).focus();
+  event({ type: "matched", match: { id: "keyboard", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
+
+it("preserves independent navigation through queue updates, reservation and duplicate match frames", () => {
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  const profile = screen.getByRole("link", { name: "View profile" });
+  profile.focus();
+  event({ type: "queued", waitedSeconds: 5, ratingBand: 100 });
+  event({ type: "matching" });
+  event({ type: "matched", match: { id: "background", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(profile).toHaveFocus();
+  event({ type: "matched", match: { id: "background", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(profile).toHaveFocus();
+});
+
+
+it("does not transfer focus after a failed search or from an obsolete connection", () => {
+  const ws = start();
+  event({ type: "error", message: "Please retry" });
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  play.focus();
+  expect(play).toHaveFocus();
+  expect(screen.queryByRole("link", { name: "Open arena" })).not.toBeInTheDocument();
+  fireEvent.click(play);
+  act(() => ws.onmessage({ data: JSON.stringify({ type: "matched", match: { id: "old", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } }) }));
+  expect(play).toHaveFocus();
+  expect(screen.queryByRole("link", { name: "Open arena" })).not.toBeInTheDocument();
+  act(() => Socket.latest.onopen());
+  event({ type: "matching" });
+  event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
+it("connects matchmaking controls to stable guidance throughout the search lifecycle", () => {
+  start();
+  const status = screen.getByRole("status");
+  const id = status.id;
+  const play = screen.getByRole("button", { name: "Connecting…" });
+  expect(id).toBeTruthy();
+  expect(play).toHaveAttribute("aria-describedby", id);
+  expect(play).toHaveAttribute("aria-busy", "true");
+  expect(screen.getByRole("button", { name: "Cancel search" })).toHaveAttribute("aria-describedby", id);
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  expect(play).toHaveAttribute("aria-busy", "false");
+  fireEvent.click(screen.getByRole("button", { name: "Cancel search" }));
+  expect(play).toHaveAttribute("aria-busy", "true");
+  event({ type: "left" });
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(screen.getByRole("status")).toBe(status);
+  expect(play).toHaveAccessibleDescription("Search cancelled. Ready when you are.");
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: "matching" });
+  expect(play).toHaveAttribute("aria-busy", "true");
+  event({ type: "matched", match: { id: "accessible", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveAttribute("aria-describedby", id);
+  expect(screen.getByRole("status")).toBe(status);
+});
+
+it.each(["timeout", "error", "disconnect"])("clears pending matchmaking busy feedback after %s", outcome => {
+  vi.useFakeTimers();
+  start();
+  if (outcome === "timeout") act(() => vi.advanceTimersByTime(10000));
+  if (outcome === "error") event({ type: "error", message: "Please retry" });
+  if (outcome === "disconnect") act(() => Socket.latest.onclose());
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(play).toHaveAccessibleDescription(screen.getByRole("status").textContent!);
+});
+
+it("keeps guidance associations unique across matchmaking panels", () => {
+  render(<><Play signedIn /><Play signedIn /></>);
+  const buttons = screen.getAllByRole("button", { name: "Play a duel" });
+  const statuses = screen.getAllByRole("status");
+  expect(statuses[0].id).not.toBe(statuses[1].id);
+  buttons.forEach((button, index) => expect(button).toHaveAttribute("aria-describedby", statuses[index].id));
+});
+
+
+it.each(["disconnect", "error", "server error", "malformed", "timeout"])("restores Play after %s removes the focused search control", outcome => {
+  vi.useFakeTimers();
+  start();
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus();
+  if (outcome === "disconnect") act(() => Socket.latest.onclose());
+  if (outcome === "error") act(() => Socket.latest.onerror());
+  if (outcome === "server error") event({ type: "error", message: "Search unavailable" });
+  if (outcome === "malformed") event({ type: "queued", waitedSeconds: -1, ratingBand: 100 });
+  if (outcome === "timeout") act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("button", { name: "Play a duel" })).toHaveFocus();
+  expect(cancel).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  event({ type: "matched", match: { id: "recovered", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
+
+it("preserves navigation away from Cancel when the search fails", () => {
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  screen.getByRole("button", { name: "Cancel search" }).focus();
+  const profile = screen.getByRole("link", { name: "View profile" });
+  profile.focus();
+  act(() => Socket.latest.onerror());
+  expect(profile).toHaveFocus();
+});
+
+
+it("restores Play when an established queued search disconnects and ignores its late frames", () => {
+  const ws = start();
+  event({ type: "queued", waitedSeconds: 12, ratingBand: 150 });
+  screen.getByRole("button", { name: "Cancel search" }).focus();
+  act(() => ws.onclose());
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toHaveFocus();
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  const cancel = screen.getByRole("button", { name: "Cancel search" });
+  cancel.focus();
+  act(() => ws.onerror());
+  act(() => ws.onmessage({ data: JSON.stringify({ type: "error", message: "Obsolete failure" }) }));
+  expect(cancel).toHaveFocus();
+  expect(screen.getByRole("status")).toHaveTextContent("Connecting");
+});
+
+it.each([
+  { match: null },
+  { match: { id: '', difficulty: 'easy' } },
+  { match: { id: '../account?redirect=1', difficulty: 'easy' } },
+  { match: { id: 'x'.repeat(129), difficulty: 'easy' } },
+  { match: { id: 12, difficulty: 'easy' } },
+  { match: { id: 'match', difficulty: 'unknown' } },
+  { opponent: null },
+  { opponent: { username: ' ', rating: 800 } },
+  { opponent: { username: 'Ada', rating: '800' } },
+  { opponent: { username: 'Ada', rating: -1 } },
+  { opponent: { username: 'Ada', rating: null } },
+])('rejects malformed match confirmation %j and recovers through a valid retry', invalid => {
+  vi.useFakeTimers();
+  const ws = start();
+  event({ type: 'queued', waitedSeconds: 0, ratingBand: 100 });
+  screen.getByRole('button', { name: 'Cancel search' }).focus();
+  event({ type: 'matched', match: { id: 'valid', difficulty: 'easy' }, opponent: { username: 'Ada', rating: 800 }, ...invalid });
+  expect(screen.queryByRole('link', { name: 'Open arena' })).not.toBeInTheDocument();
+  const play = screen.getByRole('button', { name: 'Play a duel' });
+  expect(play).toBeEnabled();
+  expect(play).toHaveFocus();
+  expect(play).toHaveAttribute('aria-busy', 'false');
+  expect(screen.getByRole('status')).toHaveTextContent('Unexpected server response. Please try again.');
+  expect(ws.close).toHaveBeenCalled();
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole('status')).toHaveTextContent('Unexpected server response. Please try again.');
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: 'matched', match: { id: 'recovered', difficulty: 'hard' }, opponent: { username: 'Ada', rating: 1600 } });
+  expect(screen.getByRole('link', { name: 'Open arena' })).toHaveAttribute('href', '/match/recovered');
+  expect(screen.getByRole('link', { name: 'Open arena' })).toHaveFocus();
+});
+
+it.each([null, [], {}, { type: "unknown" }, { type: 1 },
+  { type: "error" }, { type: "error", message: {} },
+  { type: "error", message: "   " }])("recovers from malformed response %j and permits retry", frame => {
+  vi.useFakeTimers();
+  const ws = start();
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  screen.getByRole("button", { name: "Cancel search" }).focus();
+  act(() => ws.onmessage({ data: JSON.stringify(frame) }));
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toBeEnabled();
+  expect(play).toHaveFocus();
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(ws.close).toHaveBeenCalledOnce();
+  expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response. Please try again.");
+  expect(screen.queryByRole("button", { name: "Cancel search" })).not.toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response");
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+  event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
+it.each([
+  { waitedSeconds: 0.5 }, { waitedSeconds: Number.MAX_SAFE_INTEGER + 1 },
+  { waitedSeconds: "10" }, { waitedSeconds: null }, { waitedSeconds: -1 },
+  { ratingBand: 0 }, { ratingBand: 99 }, { ratingBand: 125 },
+  { ratingBand: 800.5 }, { ratingBand: 850 }, { ratingBand: "100" },
+])("rejects impossible queue statistics %j and restores a usable retry", invalid => {
+  vi.useFakeTimers();
+  const ws = start();
+  event({ type: "queued", waitedSeconds: 10, ratingBand: 150 });
+  screen.getByRole("button", { name: "Cancel search" }).focus();
+  event({ type: "queued", waitedSeconds: 10, ratingBand: 150, ...invalid });
+  expect(screen.queryByRole("definition")).not.toBeInTheDocument();
+  const play = screen.getByRole("button", { name: "Play a duel" });
+  expect(play).toBeEnabled();
+  expect(play).toHaveFocus();
+  expect(play).toHaveAttribute("aria-busy", "false");
+  expect(ws.close).toHaveBeenCalledOnce();
+  expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response. Please try again.");
+  act(() => vi.advanceTimersByTime(10000));
+  expect(screen.getByRole("status")).toHaveTextContent("Unexpected server response");
+  fireEvent.click(play);
+  act(() => Socket.latest.onopen());
+  event({ type: "queued", waitedSeconds: 140, ratingBand: 800 });
+  expect(screen.getByText("2m 20s elapsed")).toBeInTheDocument();
+  event({ type: "matched", match: { id: "retry", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveFocus();
+});
+
+it.each([100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800])("accepts supported queue band %i", ratingBand => {
+  start();
+  event({ type: "queued", waitedSeconds: 0, ratingBand });
+  expect(screen.getByText("0s elapsed")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Cancel search" })).toBeEnabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Finding opponent");
+});
+
+it.each(["timeout", "error", "disconnect", "malformed"])("restores reservation keyboard focus after %s without overriding independent navigation", outcome => {
+  vi.useFakeTimers();
+  render(<><Link href="/profile/Ada">View profile</Link><Play signedIn /></>);
+  for (const navigate of [false, true]) {
+    fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+    act(() => Socket.latest.onopen());
+    event({ type: "queued", waitedSeconds: 0, ratingBand: 100 });
+    screen.getByRole("button", { name: "Cancel search" }).focus();
+    event({ type: "matching" });
+    const profile = screen.getByRole("link", { name: "View profile" });
+    if (navigate) profile.focus();
+    if (outcome === "timeout") act(() => vi.advanceTimersByTime(10000));
+    else if (outcome === "disconnect") act(() => Socket.latest.onclose());
+    else if (outcome === "malformed") event({ type: "matched" });
+    else event({ type: "error", message: "Reservation failed. Retry." });
+    const play = screen.getByRole("button", { name: "Play a duel" });
+    expect(play).toBeEnabled();
+    expect(play).toHaveAttribute("aria-busy", "false");
+    expect(navigate ? profile : play).toHaveFocus();
+    const failure = screen.getByRole("status").textContent;
+    act(() => vi.advanceTimersByTime(30000));
+    expect(screen.getByRole("status").textContent).toBe(failure);
+    expect(vi.getTimerCount()).toBe(0);
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Play a duel" }));
+  act(() => Socket.latest.onopen());
+  event({ type: "matched", match: { id: "recovered", difficulty: "easy" }, opponent: { username: "Ada", rating: 800 } });
+  expect(screen.getByRole("link", { name: "Open arena" })).toHaveAttribute("href", "/match/recovered");
 });

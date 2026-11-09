@@ -1,5 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
+import { createServer } from "node:http";
+import { once } from "node:events";
 import { createJudge, JudgeUnavailableError, type JudgeConfig, type JudgeRequest } from "../src/lib/judge";
 import { scoreMatch } from "../src/lib/scoring";
 
@@ -12,6 +14,454 @@ function sandbox(results: unknown[]) {
 }
 
 describe("sandbox judge", () => {
+  it.each(["source", "functionName", "tests", "submittedAtMs"] as const)(
+    "rejects own and inherited request %s accessors without invoking them", async field => {
+      for (const inherited of [false, true]) {
+        const getter = vi.fn(() => { throw new Error("Request getter must not execute"); });
+        const malformed = { ...request };
+        delete (malformed as Partial<JudgeRequest>)[field];
+        if (inherited) Object.setPrototypeOf(malformed, Object.defineProperty({}, field, { get: getter }));
+        else Object.defineProperty(malformed, field, { get: getter });
+        const fetcher = sandbox([done(), done(), done()]);
+        const judge = createJudge(config, fetcher);
+        await expect(judge(malformed)).rejects.toThrow("Invalid judge request; include JSON tests and a largest-test benchmark.");
+        expect(getter).not.toHaveBeenCalled();
+        expect(fetcher).not.toHaveBeenCalled();
+        expect((await judge(request)).testsPassed).toBe(1);
+      }
+    },
+  );
+
+  it("accepts frozen request data and ignores accessor-backed request metadata", async () => {
+    const getter = vi.fn(() => { throw new Error("Metadata must not execute"); });
+    const input = Object.freeze(Object.defineProperty({ ...request }, "metadata", { enumerable: true, get: getter }));
+    expect((await createJudge(config, sandbox([done(), done(), done()]))(input)).testsPassed).toBe(1);
+    expect(getter).not.toHaveBeenCalled();
+  });
+
+  it("rejects inherited test fields without invoking prototype getters", async () => {
+    const getter = vi.fn(() => { throw new Error("Inherited getter must not execute"); });
+    const entry = Object.assign(Object.create(Object.defineProperty({}, "args", { get: getter })), { expected: 42, benchmark: true });
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    await expect(judge({ ...request, tests: [entry] })).rejects.toThrow(RangeError);
+    expect(getter).not.toHaveBeenCalled();
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
+  it.each(["index", "args", "expected", "benchmark"])(
+    "rejects accessor-backed suite %s without invoking getters and permits reuse", async field => {
+      const getter = vi.fn(() => { throw new Error("Getter must not execute"); });
+      const entry = { args: [42], expected: 42, benchmark: true };
+      const tests = [entry];
+      Object.defineProperty(field === "index" ? tests : entry, field === "index" ? "0" : field, { get: getter });
+      const fetcher = sandbox([done(), done(), done()]);
+      const judge = createJudge(config, fetcher);
+      await expect(judge({ ...request, tests })).rejects.toThrow(RangeError);
+      expect(getter).not.toHaveBeenCalled();
+      expect(fetcher).not.toHaveBeenCalled();
+      expect((await judge(request)).testsPassed).toBe(1);
+    },
+  );
+
+  it("accepts frozen test fields and ignores accessor-backed test metadata", async () => {
+    const getter = vi.fn(() => { throw new Error("Metadata must not execute"); });
+    const entry = Object.freeze(Object.defineProperty({ args: [42], expected: 42, benchmark: true }, "metadata", { enumerable: true, get: getter }));
+    const fetcher = sandbox([done(), done(), done()]);
+    expect((await createJudge(config, fetcher)({ ...request, tests: Object.freeze([entry]) })).testsPassed).toBe(1);
+    expect(getter).not.toHaveBeenCalled();
+  });
+
+  it.each(["args-array", "args-object", "expected-array", "expected-object"])(
+    "rejects accessor-backed %s without invoking getters and permits reuse", async field => {
+      const getter = vi.fn(() => { throw new Error("Getter must not execute"); });
+      const value = field.endsWith("array") ? [42] : { answer: 42 };
+      Object.defineProperty(value, Array.isArray(value) ? "0" : "answer", { enumerable: true, get: getter });
+      const tests = [{ args: field.startsWith("args") ? [value] : [42],
+        expected: field.startsWith("expected") ? value : 42, benchmark: true }];
+      const fetcher = sandbox([done(), done(), done()]);
+      const judge = createJudge(config, fetcher);
+      await expect(judge({ ...request, tests })).rejects.toThrow(RangeError);
+      expect(getter).not.toHaveBeenCalled();
+      expect(fetcher).not.toHaveBeenCalled();
+      expect((await judge(request)).testsPassed).toBe(1);
+    },
+  );
+
+  it("accepts frozen JSON data and ignores non-enumerable object accessors", async () => {
+    const getter = vi.fn(() => { throw new Error("Metadata must not execute"); });
+    const value = Object.freeze(Object.defineProperty({ answer: 42 }, "metadata", { get: getter }));
+    const fetcher = sandbox([done({ answer: 42 }), done({ answer: 42 }), done({ answer: 42 })]);
+    const result = await createJudge(config, fetcher)({ ...request,
+      tests: [{ args: [value], expected: value, benchmark: true }] });
+    expect(result.testsPassed).toBe(1);
+    expect(getter).not.toHaveBeenCalled();
+    const sent = JSON.parse(String(fetcher.mock.calls[0][1]?.body));
+    expect(Buffer.from(sent.stdin, "base64").toString()).toBe('[{"answer":42}]');
+  });
+
+  it("ignores custom array iteration and mapping in suites and nested JSON", async () => {
+    const override = vi.fn(() => { throw new Error("Array hook must not run"); });
+    const nested = Object.assign([42], { map: override, [Symbol.iterator]: override });
+    const tests = Object.assign([{ args: [nested], expected: nested, benchmark: true }], {
+      map: override, some: override, [Symbol.iterator]: override,
+    });
+    const fetcher = sandbox([done([42]), done([42]), done([42])]);
+    const result = await createJudge(config, fetcher)({ ...request, tests });
+    expect(result.testsPassed).toBe(1);
+    expect(result.largestTestsCpuMs).toEqual([12, 12, 12]);
+    expect(override).not.toHaveBeenCalled();
+    const sent = JSON.parse(String(fetcher.mock.calls[0][1]?.body));
+    expect(Buffer.from(sent.stdin, "base64").toString()).toBe("[[42]]");
+  });
+
+  it.each(["args", "expected", "suite"])("rejects sparse %s despite a custom iterator and permits retry", async field => {
+    const sparse = new Array(1);
+    sparse[Symbol.iterator] = function* () {
+      yield field === "suite" ? { args: [42], expected: 42, benchmark: true } : 42;
+      return undefined;
+    };
+    const tests = field === "suite" ? sparse : [{
+      args: field === "args" ? sparse : [42],
+      expected: field === "expected" ? sparse : 42,
+      benchmark: true,
+    }];
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    await expect(judge({ ...request, tests } as JudgeRequest)).rejects.toThrow(RangeError);
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
+  it("copies nested JSON arrays without metadata and preserves literal prototype keys", async () => {
+    const array = Object.assign([42], { callback: () => undefined });
+    const expected = { nested: array, ...JSON.parse('{"__proto__":{"safe":true}}') };
+    const output = { nested: [42], ...JSON.parse('{"__proto__":{"safe":true}}') };
+    const fetcher = sandbox([done(output), done(output), done(output)]);
+    const result = await createJudge(config, fetcher)({ ...request, tests: [{ args: [{ nested: array }], expected, benchmark: true }] });
+    expect(result.testsPassed).toBe(1);
+    const sent = JSON.parse(String(fetcher.mock.calls[0][1]?.body));
+    expect(Buffer.from(sent.stdin, "base64").toString()).toBe('[{"nested":[42]}]');
+    expect(array.callback).toBeTypeOf("function");
+    expect(Object.hasOwn(expected, "__proto__")).toBe(true);
+  });
+
+  it("ignores unvalidated suite metadata while snapshotting execution fields", async () => {
+    const metadata = { callback: () => undefined, value: Symbol("metadata") };
+    const tests = Object.assign([
+      { args: Object.assign([42], { metadata, toJSON: () => [999] }), expected: 42, benchmark: false, metadata },
+      { args: [42], expected: 42, benchmark: true, metadata },
+    ], { metadata });
+    const fetcher = sandbox([done(), done(), done(), done()]);
+    const result = await createJudge(config, fetcher)({ ...request, tests });
+    expect(result).toEqual({ testsPassed: 2, testsTotal: 2, largestTestsCpuMs: [12, 12, 12], submittedAtMs: 150 });
+    expect(fetcher).toHaveBeenCalledTimes(8);
+    for (const [, init] of fetcher.mock.calls.filter(([, init]) => init?.method === "POST")) {
+      const sent = JSON.parse(String(init?.body));
+      expect(Buffer.from(sent.stdin, "base64").toString()).toBe("[42]");
+    }
+    expect(tests.metadata).toBe(metadata);
+    expect(tests[0].metadata.callback).toBe(metadata.callback);
+  });
+
+  it.each([null, false, 42, {}, [], "secret\r\ninjected: value", "secret\u0000", "secret\u0100"])("rejects malformed credentials before network access (%#)", authToken => {
+    const fetcher = vi.fn<typeof fetch>();
+    expect(() => createJudge({ ...config, authToken } as JudgeConfig, fetcher)).toThrow(new RangeError("Invalid judge configuration."));
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([null, false, 42, "callback", {}, []])("rejects malformed diagnostic callbacks before network access (%#)", onExecutionStatus => {
+    const fetcher = vi.fn<typeof fetch>();
+    expect(() => createJudge({ ...config, onExecutionStatus } as JudgeConfig, fetcher)).toThrow(new RangeError("Invalid judge configuration."));
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, "", "valid-token"])("preserves optional credentials and valid diagnostics (%j)", async authToken => {
+    const onExecutionStatus = vi.fn();
+    const fetcher = sandbox([done(), done(), done()]);
+    expect((await createJudge({ ...config, authToken, onExecutionStatus }, fetcher)(request)).testsPassed).toBe(1);
+    expect(onExecutionStatus.mock.calls).toEqual([[3], [3], [3]]);
+    expect(fetcher.mock.calls[0][1]?.headers).toEqual({ "Content-Type": "application/json", ...(authToken ? { "X-Auth-Token": authToken } : {}) });
+  });
+
+  it.each([0, -0])("accepts sandbox JSON negative zero against expected %s", async expected => {
+    const negativeZero = { ...done(), stdout: Buffer.from("-0.0").toString("base64") };
+    const fetcher = sandbox([negativeZero, negativeZero, negativeZero]);
+    const result = await createJudge(config, fetcher)({ ...request, tests: [{ args: [], expected, benchmark: true }] });
+    expect(result.testsPassed).toBe(1);
+  });
+
+  it("compares signed zero using JSON semantics throughout nested answers without mutating the suite", async () => {
+    const expected = { values: [-0, { zero: -0 }], positive: 0 };
+    const tests = [{ args: [-0], expected, benchmark: true }];
+    const fetcher = sandbox([done({ values: [0, { zero: 0 }], positive: 0 }), done(expected), done(expected)]);
+    const result = await createJudge(config, fetcher)({ ...request, tests });
+    expect(result.testsPassed).toBe(1);
+    expect(result.largestTestsCpuMs).toEqual([12, 12, 12]);
+    expect(Object.is(expected.values[0], -0)).toBe(true);
+    expect(Object.is(tests[0].args[0], -0)).toBe(true);
+    const sent = JSON.parse(String(fetcher.mock.calls[0][1]?.body));
+    expect(Buffer.from(sent.stdin, "base64").toString()).toBe("[0]");
+  });
+
+  it("still rejects incorrect nested numeric answers after JSON normalization", async () => {
+    const fetcher = sandbox([done({ zero: 1 }), done({ zero: 0 }), done({ zero: 0 })]);
+    const result = await createJudge(config, fetcher)({ ...request, tests: [{ args: [], expected: { zero: -0 }, benchmark: true }] });
+    expect(result.testsPassed).toBe(0);
+    expect(result.largestTestsCpuMs).toEqual([2000, 12, 12]);
+  });
+
+  it("rejects malformed top-level requests consistently before network access and permits retry", async () => {
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    // Even an array carrying all required fields is not a request object.
+    const arrayRequest = Object.assign([], request);
+    for (const input of [null, undefined, false, true, 0, 42, "request", Symbol("request"), BigInt(1), () => request, [], arrayRequest, {}]) {
+      await expect(judge(input as JudgeRequest)).rejects.toThrow(new RangeError(
+        "Invalid judge request; include JSON tests and a largest-test benchmark.",
+      ));
+      expect(fetcher).not.toHaveBeenCalled();
+    }
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
+  it.each(["args", "expected"] as const)("bounds expanded shared %s before network access and permits retry", async field => {
+    let shared: unknown = 42;
+    for (let level = 0; level < 40; level++) shared = [shared, shared];
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    await expect(judge({ ...request, tests: [{ ...request.tests[0], [field]: shared }] } as JudgeRequest)).rejects.toThrow("Invalid judge request");
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
+  it("rejects enormous sparse argument arrays without expanding them", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    await expect(createJudge(config, fetcher)({ ...request, tests: [{ args: new Array(2 ** 32 - 1), expected: 42, benchmark: true }] })).rejects.toThrow("Invalid judge request");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("accepts the expanded JSON value budget boundary and rejects overflow across tests", async () => {
+    // Two argument arrays, two expected primitives and 999,996 argument values.
+    const args = Array.from({ length: 499_998 }, () => 0);
+    const tests = [{ args, expected: 42, benchmark: true }, { args, expected: 42 }];
+    const fetcher = sandbox([done(), done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    expect((await judge({ ...request, tests })).testsPassed).toBe(2);
+    fetcher.mockClear();
+    await expect(judge({ ...request, tests: [...tests, { args: [], expected: 42 }] })).rejects.toThrow("Invalid judge request");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each(["args", "expected"] as const)("rejects cyclic and overdeep %s before network access and permits retry", async field => {
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    const cyclicArray: unknown[] = [];
+    cyclicArray.push(cyclicArray);
+    const cyclicObject: Record<string, unknown> = {};
+    cyclicObject.self = cyclicObject;
+    let deep: unknown = 42;
+    for (let index = 0; index < 10_000; index++) deep = [deep];
+    for (const value of [cyclicArray, cyclicObject, deep]) {
+      const test = { ...request.tests[0], [field]: value };
+      await expect(judge({ ...request, tests: [test] } as JudgeRequest)).rejects.toThrow(
+        "Invalid judge request; include JSON tests and a largest-test benchmark.",
+      );
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
+  it("accepts 100 JSON container levels and shared acyclic values but rejects 101", async () => {
+    let nested = 42 as unknown;
+    for (let index = 0; index < 99; index++) nested = { value: nested };
+    const shared = { nested };
+    // args adds one container level; repeated references are valid JSON trees.
+    const args = [nested, nested];
+    const fetcher = sandbox([done(shared), done(shared), done(shared)]);
+    const judge = createJudge(config, fetcher);
+    expect((await judge({ ...request, tests: [{ args, expected: shared, benchmark: true }] } as JudgeRequest)).testsPassed).toBe(1);
+    fetcher.mockClear();
+    await expect(judge({ ...request, tests: [{ args: [args], expected: 42, benchmark: true }] } as JudgeRequest)).rejects.toThrow("Invalid judge request");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([null, undefined, false, 0, "test", [], {}])("rejects malformed suite entries (%j) in either position before network access", async entry => {
+    const fetcher = vi.fn<typeof fetch>();
+    const judge = createJudge(config, fetcher);
+    for (const tests of [[entry, ...request.tests], [...request.tests, entry], [entry]]) {
+      await expect(judge({ ...request, tests } as JudgeRequest)).rejects.toThrow("Invalid judge request; include JSON tests and a largest-test benchmark.");
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("rejects sparse suites before network access and remains reusable", async () => {
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge(config, fetcher);
+    for (const tests of [new Array(2), [, ...request.tests], [...request.tests, ,]]) {
+      await expect(judge({ ...request, tests } as JudgeRequest)).rejects.toThrow("Invalid judge request; include JSON tests and a largest-test benchmark.");
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await judge(request)).testsPassed).toBe(1);
+  });
+
+  it.each(["false", "true", 0, 1, null, [], {}])("rejects malformed benchmark flags (%j) before network access", async benchmark => {
+    const fetcher = vi.fn<typeof fetch>();
+    const input = { ...request, tests: [...request.tests, { args: [42], expected: 42, benchmark }] };
+    await expect(createJudge(config, fetcher)(input as JudgeRequest)).rejects.toThrow(RangeError);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([null, undefined, 123, ["solve"], { toString: () => "solve" }])("rejects non-string function names (%j) before network access", async functionName => {
+    const fetcher = vi.fn<typeof fetch>();
+    await expect(createJudge(config, fetcher)({ ...request, functionName } as JudgeRequest)).rejects.toThrow(RangeError);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("benchmarks only explicit true flags while accepting false and omitted flags", async () => {
+    const fetcher = sandbox(Array.from({ length: 5 }, () => done()));
+    const result = await createJudge(config, fetcher)({ ...request, tests: [
+      { args: [42], expected: 42 },
+      { args: [42], expected: 42, benchmark: false },
+      ...request.tests,
+    ] });
+    expect(result).toEqual({ testsPassed: 3, testsTotal: 3, largestTestsCpuMs: [12, 12, 12], submittedAtMs: 150 });
+    expect(fetcher).toHaveBeenCalledTimes(10);
+  });
+
+  it.each([true, false])("snapshots nested tests and scoring metadata during execution (correct=%s)", async correct => {
+    const expected = { values: [42] };
+    const tests = [
+      { args: [{ values: [1] }], expected, benchmark: true },
+      { args: [{ values: [2] }], expected, benchmark: false },
+    ];
+    const input = { ...request, tests };
+    const responses = sandbox(Array.from({ length: 4 }, () => done({ values: [correct ? 42 : 99] })));
+    const fetcher = vi.fn<typeof fetch>(async (url, init) => {
+      tests[0].args[0].values[0] = 999;
+      tests[1].args[0].values[0] = 999;
+      expected.values[0] = 99;
+      tests[0].benchmark = false;
+      tests[1].benchmark = true;
+      tests.push(tests[0]);
+      input.tests = [];
+      input.submittedAtMs = NaN;
+      input.source = "changed source";
+      input.functionName = "changed_function";
+      return responses(url, init);
+    });
+    expect(await createJudge(config, fetcher)(input)).toEqual({
+      testsPassed: correct ? 2 : 0, testsTotal: 2,
+      largestTestsCpuMs: correct ? [12, 12, 12] : [2000, 2000, 2000], submittedAtMs: 150,
+    });
+    const bodies = fetcher.mock.calls.filter(([, init]) => init?.method === "POST")
+      .map(([, init]) => JSON.parse(init!.body as string));
+    expect(bodies.map(body => JSON.parse(Buffer.from(body.stdin, "base64").toString()))).toEqual([
+      [{ values: [1] }], [{ values: [1] }], [{ values: [1] }], [{ values: [2] }],
+    ]);
+    for (const body of bodies) {
+      const source = Buffer.from(body.source_code, "base64").toString();
+      expect(source).toContain('def solve(x):');
+      expect(source).toContain('_namespace["solve"]');
+    }
+    expect(fetcher).toHaveBeenCalledTimes(8);
+  });
+
+  it.each(["before execution", "during execution"])("retains validated configuration when callers mutate settings %s", async timing => {
+    const originalStatus = vi.fn();
+    const replacementStatus = vi.fn();
+    const settings = { ...config, onExecutionStatus: originalStatus };
+    const mutate = () => Object.assign(settings, {
+      url: "https://changed.example", authToken: "changed-token", pythonLanguageId: -1,
+      cpuLimitSeconds: Infinity, memoryLimitKb: -1, maxPolls: 0,
+      requestTimeoutMs: 0, pollIntervalMs: -1, onExecutionStatus: replacementStatus,
+    });
+    const responses = sandbox(Array.from({ length: 6 }, () => ({ status: { id: 5 } })));
+    const fetcher = vi.fn<typeof fetch>(async (url, init) => {
+      if (timing === "during execution") mutate();
+      return responses(url, init);
+    });
+    const judge = createJudge(settings, fetcher);
+    if (timing === "before execution") mutate();
+    for (let run = 0; run < 2; run++) {
+      expect(await judge(request)).toEqual({
+        testsPassed: 0, testsTotal: 1, largestTestsCpuMs: [2000, 2000, 2000], submittedAtMs: 150,
+      });
+    }
+    expect(originalStatus).toHaveBeenCalledTimes(6);
+    expect(replacementStatus).not.toHaveBeenCalled();
+    for (const [url, init] of fetcher.mock.calls) {
+      expect(String(url)).toMatch(/^https:\/\/sandbox\.example\/submissions/);
+      expect(init?.headers).toMatchObject({ "X-Auth-Token": "test-only" });
+      if (init?.method === "POST") expect(JSON.parse(init.body as string)).toMatchObject({
+        language_id: 71, cpu_time_limit: 2, wall_time_limit: 10, memory_limit: 128000, stack_limit: 128000,
+      });
+    }
+  });
+
+  it.each(["requestTimeoutMs", "pollIntervalMs"] as const)("rejects overflowing %s before network access", field => {
+    const fetcher = vi.fn<typeof fetch>();
+    for (const delay of [2_147_483_648, Number.MAX_SAFE_INTEGER]) {
+      expect(() => createJudge({ ...config, [field]: delay }, fetcher)).toThrow("Invalid judge configuration.");
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("accepts the maximum supported timer delay and preserves successful scoring", async () => {
+    const fetcher = sandbox([done(), done(), done()]);
+    const judge = createJudge({ ...config, requestTimeoutMs: 2_147_483_647, pollIntervalMs: 2_147_483_647 }, fetcher);
+    expect((await judge(request)).testsPassed).toBe(1);
+    expect(fetcher).toHaveBeenCalledTimes(6);
+  });
+
+  it.each(["POST", "GET"])("never follows %s redirects or forwards sandbox credentials", async redirectedMethod => {
+    const received: string[] = [];
+    const server = createServer((req, res) => {
+      received.push(`${req.method} ${req.url}`);
+      if (req.url === "/redirect-target") {
+        res.end(JSON.stringify(done()));
+      } else if (req.method === redirectedMethod) {
+        res.writeHead(307, { Location: "/redirect-target?secret=private-token" });
+        res.end("private response details");
+      } else {
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ token: "sandbox-token" }));
+      }
+    });
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+    try {
+      const address = server.address() as { port: number };
+      await expect(createJudge({ ...config, url: `http://127.0.0.1:${address.port}` })(request))
+        .rejects.toThrow("Sandbox judge unavailable; submission must not be scored.");
+      expect(received).toEqual(redirectedMethod === "POST"
+        ? ["POST /submissions?base64_encoded=true&wait=false"]
+        : ["POST /submissions?base64_encoded=true&wait=false", "GET /submissions/sandbox-token?base64_encoded=true&fields=status,time,stdout"]);
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    }
+  });
+  it.each([
+    "private-token@invalid-host",
+    "https://private-user:private-password@[invalid",
+    "https://sandbox.example:invalid/private-token",
+    "",
+    "https://private-user:private-password@sandbox.example",
+    "https://sandbox.example?token=private-token",
+    "https://sandbox.example#private-token",
+  ])("rejects unsafe URLs without retaining configuration secrets (%#)", url => {
+    const fetcher = vi.fn<typeof fetch>();
+    let failure: unknown;
+    try { createJudge({ ...config, url }, fetcher); } catch (error) { failure = error; }
+    expect(failure).toBeInstanceOf(RangeError);
+    expect((failure as Error).message).toBe("Invalid judge configuration.");
+    expect((failure as Error).cause).toBeUndefined();
+    expect(Object.getOwnPropertyNames(failure)).not.toContain("input");
+    expect(String((failure as Error).stack)).not.toMatch(/private-token|private-user|private-password/);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
   it("reports final execution statuses so catalog validation distinguishes timeouts from crashes", async () => {
     const onExecutionStatus = vi.fn();
     await createJudge({ ...config, onExecutionStatus }, sandbox([{ status: { id: 1 } }, { status: { id: 5 } }, { status: { id: 7 } }, done()]))(request);
@@ -28,9 +478,30 @@ describe("sandbox judge", () => {
     expect(body).toMatchObject({ language_id: 71, enable_network: false, cpu_time_limit: 2, memory_limit: 128000, number_of_runs: 1, max_processes_and_or_threads: 1, max_file_size: 64 });
     expect(init.headers).toMatchObject({ "X-Auth-Token": "test-only" });
     expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(fetcher.mock.calls.every(([, options]) => options?.redirect === "error")).toBe(true);
     expect(Buffer.from(body.stdin, "base64").toString()).toBe("[42]");
     expect(body).not.toHaveProperty("expected_output");
     expect(Buffer.from(body.source_code, "base64").toString()).toContain("_namespace[\"solve\"](*_payload)");
+  });
+
+  it.each([true, false])("rejects CPU conversion overflow before scoring (correct=%s)", async correct => {
+    const fetcher = sandbox([done(correct ? 42 : 43, "1" + "0".repeat(306))]);
+    await expect(createJudge(config, fetcher)(request)).rejects.toBeInstanceOf(JudgeUnavailableError);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects benchmark total overflow even when individual CPU samples are finite", async () => {
+    const output = done(42, "6" + "0".repeat(304));
+    const fetcher = sandbox(Array.from({ length: 9 }, () => output));
+    await expect(createJudge(config, fetcher)({ ...request, tests: Array.from({ length: 3 }, () => request.tests[0]) }))
+      .rejects.toBeInstanceOf(JudgeUnavailableError);
+    expect(fetcher).toHaveBeenCalledTimes(18);
+  });
+
+  it("rejects CPU limits that overflow milliseconds before making requests", () => {
+    const fetcher = vi.fn<typeof fetch>();
+    expect(() => createJudge({ ...config, cpuLimitSeconds: Number.MAX_VALUE }, fetcher)).toThrow("Invalid judge configuration.");
+    expect(fetcher).not.toHaveBeenCalled();
   });
 
   it("counts ordinary tests once and sums multiple benchmark suites", async () => {
@@ -53,6 +524,32 @@ describe("sandbox judge", () => {
 
   it.each([done(43), { ...done(), stdout: Buffer.from("debug\n42").toString("base64") }, { ...done(), stdout: null }])("rejects incorrect or malformed output", async output => {
     expect((await createJudge(config, sandbox([output, output, output]))(request)).testsPassed).toBe(0);
+  });
+
+  it.each(["NDI=garbage", "N!DI=", "NDI=\n", "NDI", "NDJ="])("fails malformed base64 output with the full CPU penalty (%s)", async stdout => {
+    const output = { ...done(), stdout };
+    const result = await createJudge(config, sandbox([output, done(), done()]))(request);
+    expect(result.testsPassed).toBe(0);
+    expect(result.largestTestsCpuMs).toEqual([2000, 12, 12]);
+  });
+
+  it.each([{ bytes: [0x22, 0xff, 0x22] }, { bytes: [0x22, 0xc0, 0xaf, 0x22] }, { bytes: [0x22, 0xe2, 0x82, 0x22] }])("fails invalid UTF-8 instead of comparing replacement characters ($bytes)", async ({ bytes }) => {
+    const buffer = Buffer.from(bytes);
+    const output = { ...done(), stdout: buffer.toString("base64") };
+    const result = await createJudge(config, sandbox([output, output, output]))({
+      ...request, tests: [{ args: [], expected: JSON.parse(buffer.toString("utf8")), benchmark: true }],
+    });
+    expect(result.testsPassed).toBe(0);
+    expect(result.largestTestsCpuMs).toEqual([2000, 2000, 2000]);
+  });
+
+  it.each(["signal \uFFFD \u{1F6A6}", { label: "café", values: [true, null, 42] }])("preserves valid Unicode and structured output (%j)", async expected => {
+    const output = done(expected);
+    const result = await createJudge(config, sandbox([output, output, output]))({
+      ...request, tests: [{ args: [], expected, benchmark: true }],
+    });
+    expect(result.testsPassed).toBe(1);
+    expect(result.largestTestsCpuMs).toEqual([12, 12, 12]);
   });
 
   it("compares objects without depending on key order", async () => {

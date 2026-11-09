@@ -17,10 +17,26 @@ it("counts the current streak, excludes unfinished matches and keeps private pro
       await db.query(`INSERT INTO matches (problem_id,player_one_id,player_two_id,status,winner_id,completed_at)
         VALUES ($1,$2,$3,'completed',$4,now() + ($5::integer * interval '1 second'))`, [problems.rows[0].id, one, two, i < 2 ? null : one, i]);
     }
+    const examples = [{ args: [[1, 2]], expected: 3, explanation: "Add both readings." }];
+    await db.query("UPDATE problems SET topics=ARRAY['arrays','greedy'], examples=$1::jsonb WHERE id=$2", [JSON.stringify(examples), problems.rows[0].id]);
     const data = await loadHome(db as unknown as Pool, one);
     expect(data.streak).toBe(6);
     expect(data.recent).toHaveLength(5);
+    expect(data.recent.every(row => row.delta === null)).toBe(true);
+    const matchId = data.recent[0].id;
+    await db.query(`INSERT INTO rating_history (user_id,match_id,rating_before,rating_after) VALUES
+      ($1,$3,800,812.6),($2,$3,800,777)`, [one, two, matchId]);
+    const personal = await loadHome(db as unknown as Pool, one);
+    expect(personal.recent[0].delta).toBeCloseTo(12.6);
+    expect(personal.recent).toHaveLength(5);
+    const opponent = await loadHome(db as unknown as Pool, two);
+    expect(opponent.recent[0].delta).toBe(-23);
+    expect(personal.recent[1].delta).toBeNull();
     expect(data.daily?.title).toBe("Public");
+    expect(data.daily?.examples).toEqual(examples);
+    expect(data.daily?.topics).toEqual(["arrays", "greedy"]);
+    expect(data.daily?.constraints).toBe("n<10");
+    expect(Object.keys(data.daily!).sort()).toEqual(["constraints", "difficulty", "examples", "function_signature", "statement", "title", "topics"]);
     expect(JSON.stringify(data)).not.toContain("SECRET");
     const guest = await loadHome(db as unknown as Pool);
     expect(guest.recent).toEqual([]);

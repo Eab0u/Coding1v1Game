@@ -1,8 +1,8 @@
 import type { AuthDatabase } from "./auth";
 
-export type FriendEntry = { username: string; status: "pending" | "accepted"; incoming: boolean };
+export type FriendEntry = { username: string; rating: number; status: "pending" | "accepted"; incoming: boolean };
 export async function loadFriends(db: AuthDatabase, userId: string): Promise<FriendEntry[]> {
-  return (await db.query<FriendEntry>(`SELECT u.username, f.status, (f.recipient_id=$1) AS incoming
+  return (await db.query<FriendEntry>(`SELECT u.username, u.rating, f.status, (f.recipient_id=$1) AS incoming
     FROM friendships f JOIN users u ON u.id=CASE WHEN f.requester_id=$1 THEN f.recipient_id ELSE f.requester_id END
     WHERE f.requester_id=$1 OR f.recipient_id=$1 ORDER BY f.status, lower(u.username)`, [userId])).rows;
 }
